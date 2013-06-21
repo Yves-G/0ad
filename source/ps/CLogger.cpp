@@ -22,6 +22,7 @@
 #include "graphics/FontMetrics.h"
 #include "graphics/ShaderManager.h"
 #include "graphics/TextRenderer.h"
+#include "i18n/L10n.h"
 #include "lib/ogl.h"
 #include "lib/timer.h"
 #include "lib/utf8.h"
@@ -300,26 +301,24 @@ void CLogger::Render()
 
 	for (std::deque<RenderedMessage>::iterator it = m_RenderMessages.begin(); it != m_RenderMessages.end(); ++it)
 	{
-		const wchar_t* type;
+		CMatrix3D savedTransform = textRenderer.GetTransform();
+
 		if (it->method == Normal)
 		{
-			type = L"info";
 			textRenderer.Color(0.0f, 0.8f, 0.0f);
+			textRenderer.PrintfAdvance(wstring_from_utf8(L10n::instance().translate("[%8.3f] info: ")).c_str(), it->time);
 		}
 		else if (it->method == Warning)
 		{
-			type = L"warning";
 			textRenderer.Color(1.0f, 1.0f, 0.0f);
+			textRenderer.PrintfAdvance(wstring_from_utf8(L10n::instance().translate("[%8.3f] warning: ")).c_str(), it->time);
 		}
 		else
 		{
-			type = L"error";
 			textRenderer.Color(1.0f, 0.0f, 0.0f);
+			textRenderer.PrintfAdvance(wstring_from_utf8(L10n::instance().translate("[%8.3f] error: ")).c_str(), it->time);
 		}
 
-		CMatrix3D savedTransform = textRenderer.GetTransform();
-
-		textRenderer.PrintfAdvance(L"[%8.3f] %ls: ", it->time, type);
 		// Display the actual message in white so it's more readable
 		textRenderer.Color(1.0f, 1.0f, 1.0f);
 		textRenderer.Put(0.0f, 0.0f, it->message.c_str());

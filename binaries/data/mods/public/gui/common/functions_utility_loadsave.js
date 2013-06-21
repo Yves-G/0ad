@@ -3,11 +3,27 @@ function sortDecreasingDate(a, b)
 	return b.metadata.time - a.metadata.time;
 }
 
-function twoDigits(n)
+function generateLabel(metadata, engineInfo)
 {
-	return n < 10 ? "0" + n : n;
+	// TODO TODO TODO metadata.time is a unix timestamp (seconds)
+	var dateTimeString = Engine.formatMillisecondsIntoDateString(metadata.time, translate("yyyy-MM-dd HH:mm:ss"));
+	var dateString = sprintf(translate("[%(date)s]"), { date: dateTimeString });
+	if (engineInfo)
+	{
+		if (!hasSameVersion(metadata, engineInfo))
+			dateString = "[color=\"red\"]" + dateString + "[/color]";
+		else if (!hasSameMods(metadata, engineInfo))
+			dateString = "[color=\"orange\"]" + dateString + "[/color]";
+	}
+	if (metadata.description)
+	{
+		return sprintf(translate("%(dateString) %(map)s - %(description)s"), { dateString: dateString, map: metadata.initAttributes.map, description: metadata.description });
+	}
+	else
+	{
+		return sprintf(translate("%(dateString)s %(map)s"), { dateString: dateString, map: metadata.initAttributes.map });
+	}
 }
-
 function generateLabel(metadata, engineInfo)
 {
 	var t = new Date(metadata.time*1000);

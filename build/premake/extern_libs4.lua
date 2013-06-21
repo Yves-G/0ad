@@ -359,6 +359,39 @@ extern_lib_defs = {
 			end
 		end,
 	},
+	iconv = {
+		compile_settings = function()
+			if os.is("windows") then
+				add_default_include_paths("iconv")
+			end
+		end,
+		link_settings = function()
+			if os.is("windows") then
+				add_default_lib_paths("iconv")
+			end
+			add_default_links({
+				win_names  = { "iconv" },
+				-- TODO: glibc provides symbols for this, so we should only include that (and depend on libiconv) on non-glibc unix
+				--unix_names = { "iconv" },
+			})
+		end,
+	},
+	icu = {
+		compile_settings = function()
+			if os.is("windows") then
+				add_default_include_paths("icu")
+			end
+		end,
+		link_settings = function()
+			if os.is("windows") then
+				add_default_lib_paths("icu")
+			end
+			add_default_links({
+				win_names  = { "icu" },
+				unix_names = { "icui18n", "icuuc" },
+			})
+		end,
+	},
 	libcurl = {
 		compile_settings = function()
 			if os.is("windows") or os.is("macosx") then
@@ -597,6 +630,18 @@ extern_lib_defs = {
 				configuration { }
 				add_source_lib_paths("spidermonkey")
 			end
+		end,
+	},
+	tinygettext = {
+		compile_settings = function()
+			includedirs { libraries_source_dir .. "tinygettext" }
+		end,
+		link_settings = function()
+			add_source_lib_paths("tinygettext")
+			add_default_links({
+				win_names  = { "tinygettext" },
+				unix_names = { "tinygettext" },
+			})
 		end,
 	},
 	valgrind = {

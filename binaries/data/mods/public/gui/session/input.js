@@ -138,7 +138,7 @@ function updateBuildingPlacementPreview()
 				    elevationBonus: placementSupport.attack.elevationBonus,
 				};
 				var averageRange = Engine.GuiInterfaceCall("GetAverageRangeForBuildings",cmd);
-				placementSupport.tooltipMessage = "Basic range: "+Math.round(cmd.range/4)+"\nAverage bonus range: "+Math.round((averageRange - cmd.range)/4);
+				placementSupport.tooltipMessage = sprintf(translate("Basic range: %(range)s"), { range: Math.round(cmd.range/4) }) + "\n" + sprintf(translate("Average bonus range: %(range)s"), { range: Math.round((averageRange - cmd.range)/4) });
 			}
 			return true;
 		}
@@ -253,8 +253,10 @@ function getActionInfo(action, target)
 			data.command = "garrison";
 			data.target = target;
 			cursor = "action-garrison";
-			tooltip = "Current garrison: " + targetState.garrisonHolder.garrisonedEntitiesCount
-				+ "/" + targetState.garrisonHolder.capacity;
+			tooltip = sprintf(translate("Current garrison: %(garrisoned)s/%(capacity)s"), {
+				garrisoned: targetState.garrisonHolder.garrisonedEntitiesCount,
+				capacity: targetState.garrisonHolder.capacity
+			});
 			if (targetState.garrisonHolder.garrisonedEntitiesCount >= targetState.garrisonHolder.capacity)
 				tooltip = "[color=\"orange\"]" + tooltip + "[/color]";
 		}
@@ -293,11 +295,11 @@ function getActionInfo(action, target)
 				data.target = traderData.secondMarket;
 				data.source = traderData.firstMarket;
 				cursor = "action-setup-trade-route";
-				tooltip = "Right-click to establish a default route for new traders.";
+				tooltip = translate("Right-click to establish a default route for new traders.");
 				if (trader)
-					tooltip += "\nGain: " + getTradingTooltip(gain);
+					tooltip += "\n" + sprintf(translate("Gain: %(gain)s"), { gain: getTradingTooltip(gain) });
 				else // Foundation or cannot produce traders
-					tooltip += "\nExpected gain: " + getTradingTooltip(gain);
+					tooltip += "\n" + sprintf(translate("Expected gain: %(gain)s"), { gain: getTradingTooltip(gain) });
 			}
 		}
 		else if (targetState.needsRepair && allyOwned)
@@ -344,8 +346,10 @@ function getActionInfo(action, target)
 		case "garrison":
 			if (hasClass(entState, "Unit") && targetState.garrisonHolder && (playerOwned || mutualAllyOwned))
 			{
-				var tooltip = "Current garrison: " + targetState.garrisonHolder.garrisonedEntitiesCount
-					+ "/" + targetState.garrisonHolder.capacity;
+				var tooltip = sprintf(translate("Current garrison: %(garrisoned)s/%(capacity)s"), {
+					garrisoned: targetState.garrisonHolder.garrisonedEntitiesCount,
+					capacity: targetState.garrisonHolder.capacity
+				});
 				var extraCount = 0;
 				if (entState.garrisonHolder)
 					extraCount += entState.garrisonHolder.garrisonedEntitiesCount;
@@ -372,22 +376,28 @@ function getActionInfo(action, target)
 				switch (tradingDetails.type)
 				{
 				case "is first":
-					tooltip = "Origin trade market.";
+					tooltip = translate("Origin trade market.");
 					if (tradingDetails.hasBothMarkets)
-						tooltip += "\nGain: " + getTradingTooltip(tradingDetails.gain);
+						tooltip += "\n" + sprintf(translate("Gain: %(gain)s"), {
+							gain: getTradingTooltip(tradingDetails.gain)
+						});
 					else
-						tooltip += "\nRight-click on another market to set it as a destination trade market."
+						tooltip += "\n" + translate("Right-click on another market to set it as a destination trade market.")
 					break;
 				case "is second":
-					tooltip = "Destination trade market.\nGain: " + getTradingTooltip(tradingDetails.gain);
+					tooltip = translate("Destination trade market.") + "\n" + sprintf(translate("Gain: %(gain)s"), {
+						gain: getTradingTooltip(tradingDetails.gain)
+					});
 					break;
 				case "set first":
-					tooltip = "Right-click to set as origin trade market";
+					tooltip = translate("Right-click to set as origin trade market");
 					break;
 				case "set second":
 					if (tradingDetails.gain.traderGain == 0)   // markets too close
 						return {"possible": false};
-					tooltip = "Right-click to set as destination trade market.\nGain: " + getTradingTooltip(tradingDetails.gain);
+					tooltip = translate("Right-click to set as destination trade market.") + "\n" + sprintf(translate("Gain: %(gain)s"), {
+						gain: getTradingTooltip(tradingDetails.gain)
+					});
 					break;
 				}
 				return {"possible": true, "tooltip": tooltip};
@@ -585,7 +595,10 @@ function tryPlaceBuilding(queued)
 {
 	if (placementSupport.mode !== "building")
 	{
-		error("[tryPlaceBuilding] Called while in '"+placementSupport.mode+"' placement mode instead of 'building'");
+		error(sprintf(translate("[%(functionName)s] Called while in '%(mode)s' placement mode instead of 'building'"), {
+			functionName: "tryPlaceBuilding",
+			mode: placementSupport.mode
+		}));
 		return false;
 	}
 
@@ -626,14 +639,21 @@ function tryPlaceWall(queued)
 {
 	if (placementSupport.mode !== "wall")
 	{
-		error("[tryPlaceWall] Called while in '" + placementSupport.mode + "' placement mode; expected 'wall' mode");
+		error(sprintf(translate("[%(functionName)s] Called while in '%(mode)s' placement mode; expected 'wall' mode"), {
+			functionName: "tryPlaceWall",
+			mode: placementSupport.mode
+		}));
 		return false;
 	}
 	
 	var wallPlacementInfo = updateBuildingPlacementPreview(); // entities making up the wall (wall segments, towers, ...)
 	if (!(wallPlacementInfo === false || typeof(wallPlacementInfo) === "object"))
 	{
-		error("[tryPlaceWall] Unexpected return value from updateBuildingPlacementPreview: '" + uneval(placementInfo) + "'; expected either 'false' or 'object'");
+		error(sprintf(translate("[%(functionName)s] Unexpected return value from %(function2Name)s: '%(value)s'; expected either 'false' or 'object'"), {
+			functionName: "tryPlaceWall",
+			function2Name: "updateBuildingPlacementPreview",
+			value: uneval(placementInfo)
+		}));
 		return false;
 	}
 	
@@ -965,7 +985,7 @@ function handleInputBeforeGui(ev, hoveredObject)
 					}
 					else
 					{
-						placementSupport.tooltipMessage = "Cannot build wall here!";
+						placementSupport.tooltipMessage = translate("Cannot build wall here!");
 					}
 					
 					updateBuildingPlacementPreview();

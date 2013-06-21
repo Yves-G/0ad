@@ -1,0 +1,157 @@
+[
+	{
+		"output": "public.pot",
+		"inputRoot": "..",
+		"project": "0 A.D. — Empires Ascendant",
+		"copyrightHolder": "Wildfire Games",
+		"rules": [
+			{
+				"extractor": "javascript",
+				"filemasks": ["**.js"],
+				"options": {
+					"keywords": {
+						"translate": [1],
+						"translatePlural": [1, 2],
+						"translateWithContext": [[1], 2],
+						"translatePluralWithContext": [[1], 2, 3],
+						"markForTranslation": [1]
+					},
+					"commentTags": [
+						"Translation:"
+					]
+				}
+			},
+			{
+				"extractor": "xml",
+				"filemasks": ["gui/**.xml"],
+				"options": {
+					"keywords": {
+						"translatableAttribute": {
+							"locationAttributes": ["id"]
+						},
+						"translate": {}
+					}
+				}
+			},
+			{
+				"extractor": "txt",
+				"filemasks": [
+					"gui/manual/intro.txt",
+					"gui/manual/userreport.txt",
+					"gui/text/quotes.txt",
+					"gui/splashscreen/splashscreen.txt",
+					"gui/text/tips/**.txt"
+				]
+			},
+			{
+				"extractor": "json",
+				"filemasks": [
+					"simulation/data/game_speeds.json",
+					"simulation/data/player_defaults.json"
+				],
+				"options": {
+					"keywords": [
+						"Name"
+					]
+				}
+			},
+			{
+				"extractor": "json",
+				"filemasks": [
+					"simulation/data/map_sizes.json"
+				],
+				"options": {
+					"keywords": [
+						"Name",
+						"LongName"
+					]
+				}
+			},
+			{
+				"extractor": "json",
+				"filemasks": [
+					"civs/**.json"
+				],
+				"options": {
+					"keywords": [
+						"Name",
+						"Description",
+						"History",
+						"Special",
+						"Formations",
+						"AINames"
+					]
+				}
+			},
+			{
+				"extractor": "json",
+				"filemasks": [
+					"maps/random/**.json"
+				],
+				"options": {
+					"keywords": [
+						"Name",
+						"Description"
+					]
+				}
+			},
+			{
+				"extractor": "json",
+				"filemasks": [
+					"simulation/ai/**.json"
+				],
+				"options": {
+					"keywords": [
+						"name",
+						"description"
+					]
+				}
+			},
+			{
+				"extractor": "json",
+				"filemasks": [
+					"simulation/data/technologies/**.json"
+				],
+				"options": {
+					"keywords": [
+						"specificName",
+						"genericName",
+						"description",
+						"tooltip",
+						"requirementsTooltip"
+					]
+				}
+			},
+			{
+				"extractor": "xml",
+				"filemasks": ["simulation/templates/**.xml"],
+				"options": {
+					"keywords": {
+						"GenericName": {},
+						"SpecificName": {},
+						"Tooltip": {}
+					}
+				}
+			},
+			{
+				"extractor": "xml",
+				"filemasks": [
+					"maps/scenarios/**.xml",
+					"maps/skirmishes/**.xml"
+				],
+				"options": {
+					"keywords": {
+						"ScriptSettings": {
+							"extractJson": {
+								"keywords": [
+									"Name",
+									"Description"
+								]
+							}
+						}
+					}
+				}
+			}
+		]
+	}
+]

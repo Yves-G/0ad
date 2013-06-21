@@ -673,6 +673,7 @@ function setup_all_libs ()
 		"soundmanager/scripting",
 		"maths",
 		"maths/scripting",
+		"i18n"
 	}
 	extern_libs = {
 		"spidermonkey",
@@ -683,6 +684,9 @@ function setup_all_libs ()
 		"boost",
 		"enet",
 		"libcurl",
+		"tinygettext",
+		"icu",
+		"iconv",
 	}
 	
 	if not _OPTIONS["without-audio"] then
@@ -727,13 +731,17 @@ function setup_all_libs ()
 
 	source_dirs = {
 		"gui",
-		"gui/scripting"
+		"gui/scripting",
+		"i18n"
 	}
 	extern_libs = {
 		"spidermonkey",
 		"sdl",	-- key definitions
 		"opengl",
 		"boost",
+		"tinygettext",
+		"icu",
+		"iconv",
 	}
 	if not _OPTIONS["without-audio"] then
 		table.insert(extern_libs, "openal")
@@ -858,6 +866,9 @@ used_extern_libs = {
 	"comsuppw",
 	"enet",
 	"libcurl",
+	"tinygettext",
+	"icu",
+	"iconv",
 
 	"valgrind",
 }

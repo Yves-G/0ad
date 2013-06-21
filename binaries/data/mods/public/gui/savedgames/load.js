@@ -7,7 +7,7 @@ function init()
 	var savedGames = Engine.GetSavedGames();
 	if (savedGames.length == 0)
 	{
-		gameSelection.list = [ "No saved games found" ];
+		gameSelection.list = [translate("No saved games found")];
 		gameSelection.selected = 0;
 		Engine.GetGUIObjectByName("loadGameButton").enabled = false;
 		Engine.GetGUIObjectByName("deleteGameButton").enabled = false;
@@ -40,6 +40,7 @@ function loadGame()
 	var engineInfo = Engine.GetEngineInfo();
 	if (!hasSameVersion(metadata, engineInfo) || !hasSameMods(metadata, engineInfo))
 	{
+		// TODO TODO TODO
 		// version not compatible ... ask for confirmation
 		var btCaptions = ["Yes", "No"];
 		var btCode = [function(){ reallyLoadGame(gameId); }, init];
@@ -76,7 +77,7 @@ function reallyLoadGame(gameId)
 	{
 		// Probably the file wasn't found
 		// Show error and refresh saved game list
-		error("Could not load saved game '"+gameId+"'");
+		error(sprintf(translate("Could not load saved game '%(id)s'"), { id: gameId }));
 		init();
 	}
 	else
@@ -97,15 +98,15 @@ function deleteGame()
 	var gameID = gameSelection.list_data[gameSelection.selected];
 
 	// Ask for confirmation
-	var btCaptions = ["Yes", "No"];
+	var btCaptions = [translate("Yes"), translate("No")];
 	var btCode = [function(){ reallyDeleteGame(gameID); }, null];
-	messageBox(500, 200, "\""+gameLabel+"\"\nSaved game will be permanently deleted, are you sure?", "DELETE", 0, btCaptions, btCode);
+	messageBox(500, 200, sprintf(translate("\"%(label)s\""), { label: gameLabel }) + "\n" + translate("Saved game will be permanently deleted, are you sure?"), translate("DELETE"), 0, btCaptions, btCode);
 }
 
 function reallyDeleteGame(gameID)
 {
 	if (!Engine.DeleteSavedGame(gameID))
-		error("Could not delete saved game '"+gameID+"'");
+		error(sprintf(translate("Could not delete saved game '%(id)s'"), { id: gameID }));
 
 	// Run init again to refresh saved game list
 	init();

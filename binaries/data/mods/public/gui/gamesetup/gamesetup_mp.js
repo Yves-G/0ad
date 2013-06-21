@@ -37,7 +37,7 @@ function init(attribs)
 			Engine.GetGUIObjectByName("hostPlayerNameWrapper").hidden = false;
 		break;
 	default:
-		error("Unrecognised multiplayer game type : " + attribs.multiplayerGameType);
+		error(sprintf(translate("Unrecognised multiplayer game type: %(gameType)s"), { gameType: multiplayerGameType }));
 		break;
 	}
 }
@@ -57,7 +57,7 @@ function startConnectionStatus(type)
 	g_GameType = type;
 	g_IsConnecting = true;
 	g_IsRejoining = false;
-	Engine.GetGUIObjectByName("connectionStatus").caption = "Connecting to server...";
+	Engine.GetGUIObjectByName("connectionStatus").caption = translate("Connecting to server...");
 }
 
 function onTick()
@@ -76,7 +76,7 @@ function pollAndHandleNetworkClient()
 		if (!message)
 			break;
 
-		log("Net message: "+uneval(message));
+		log(sprintf(translate("Net message: %(message)s"), { message: uneval(message) }));
 
 		// If we're rejoining an active game, we don't want to actually display
 		// the game setup screen, so perform similar processing to gamesetup.js
@@ -94,7 +94,7 @@ function pollAndHandleNetworkClient()
 					return;
 
 				default:
-					error("Unrecognised netstatus type "+message.status);
+					error(sprintf(translate("Unrecognised netstatus type %(netType)s"), { netType: message.status }));
 					break;
 				}
 				break;
@@ -120,7 +120,7 @@ function pollAndHandleNetworkClient()
 				break;
 
 			default:
-				error("Unrecognised net message type "+message.type);
+				error(sprintf(translate("Unrecognised net message type %(messageType)s"), { messageType: message.type }));
 			}
 		}
 		else
@@ -133,13 +133,13 @@ function pollAndHandleNetworkClient()
 				switch (message.status)
 				{
 				case "connected":
-					Engine.GetGUIObjectByName("connectionStatus").caption = "Registering with server...";
+					Engine.GetGUIObjectByName("connectionStatus").caption = translate("Registering with server...");
 					break;
 
 				case "authenticated":
 					if (message.rejoining)
 					{
-						Engine.GetGUIObjectByName("connectionStatus").caption = "Game has already started - rejoining...";
+						Engine.GetGUIObjectByName("connectionStatus").caption = translate("Game has already started, rejoining...");
 						g_IsRejoining = true;
 						return; // we'll process the game setup messages in the next tick
 					}
@@ -155,12 +155,12 @@ function pollAndHandleNetworkClient()
 					return;
 
 				default:
-					error("Unrecognised netstatus type "+message.status);
+					error(sprintf(translate("Unrecognised netstatus type %(netType)s"), { netType: message.status }));
 					break;
 				}
 				break;
 			default:
-				error("Unrecognised net message type "+message.type);
+				error(sprintf(translate("Unrecognised net message type %(messageType)s"), { messageType: message.type }));
 				break;
 			}
 		}
@@ -198,8 +198,8 @@ function startHost(playername, servername)
 	{
 		cancelSetup();
 		messageBox(400, 200,
-			"Cannot host game: " + e.message + ".",
-			"Error", 2);
+			sprintf(translate("Cannot host game: %(message)s."), { message: e.message }),
+			translate("Error"), 2);
 		return false;
 	}
 
@@ -224,8 +224,8 @@ function startJoin(playername, ip)
 	{
 		cancelSetup();
 		messageBox(400, 200,
-			"Cannot join game: " + e.message + ".",
-			"Error", 2);
+			sprintf(translate("Cannot join game: %(message)s."), { message: e.message }),
+			translate("Error"), 2);
 		return false;
 	}
 

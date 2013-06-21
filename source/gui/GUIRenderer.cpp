@@ -22,6 +22,7 @@
 #include "graphics/ShaderManager.h"
 #include "graphics/TextureManager.h"
 #include "gui/GUIutil.h"
+#include "i18n/L10n.h"
 #include "lib/ogl.h"
 #include "lib/utf8.h"
 #include "lib/res/h_mgr.h"
@@ -200,7 +201,7 @@ void GUIRenderer::UpdateDrawCallCache(DrawCalls &Calls, const CStr& SpriteName, 
 
 		if (!(*cit)->m_TextureName.empty())
 		{
-			CTextureProperties textureProps((*cit)->m_TextureName);
+			CTextureProperties textureProps(L10n::instance().localizePath((*cit)->m_TextureName));
 			textureProps.SetWrap((*cit)->m_WrapMode);
 			CTexturePtr texture = g_Renderer.GetTextureManager().CreateTexture(textureProps);
 			texture->Prefetch();

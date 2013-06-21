@@ -34,15 +34,15 @@
 		{
 		case 1:
 			// Simple Yes/No question box
-			data.buttonCaptions = ["Yes", "No"];
+			data.buttonCaptions = [translate("Yes"), translate("No")];
 			break;
 		case 2:
 			// Okay-only box
-			data.buttonCaptions = ["OK"];
+			data.buttonCaptions = [translate("OK")];
 			break;
 		case 3:
 			// Retry/Abort/Ignore box (will we ever need this?!)
-			data.buttonCaptions = ["Retry", "Ignore", "Abort"];
+			data.buttonCaptions = [translate("Retry"), translate("Ignore"), translate("Abort")];
 		default:
 			break;
 		}

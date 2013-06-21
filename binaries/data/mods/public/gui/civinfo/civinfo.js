@@ -83,14 +83,13 @@ function selectCiv(code)
 	var civInfo = g_CivData[code];
 	
 	if(!civInfo)
-		error("Error loading civ data for \""+code+"\"");
+		error(sprintf(translateWithContext("civinfo", "Error loading civ data for \"%(code)s\""), { code: code }));
 
 	// Update civ gameplay display
-	Engine.GetGUIObjectByName("civGameplayHeading").caption = heading(civInfo.Name+" Gameplay", 16);
-
+	Engine.GetGUIObjectByName("civGameplayHeading").caption = heading(sprintf(translateWithContext("civinfo", "%(civilization)s Gameplay"), { civilization: civInfo.Name }), 16);
 
 	// Bonuses
-	var bonusCaption = heading("Civilization Bonus"+(civInfo.CivBonuses.length == 1 ? "" : "es"), 12) + '\n';
+	var bonusCaption = heading(translatePluralWithContext("civinfo", "Civilization Bonus", "Civilization Bonuses", civInfo.CivBonuses.length), 12) + '\n';
 	
 	for(var i = 0; i < civInfo.CivBonuses.length; ++i)
 	{
@@ -98,7 +97,7 @@ function selectCiv(code)
                     + civInfo.CivBonuses[i].History + '" tooltip_style="civInfoTooltip"]\n     ' + civInfo.CivBonuses[i].Description + '\n[/color]';
 	}
 
-	bonusCaption += heading("Team Bonus"+(civInfo.TeamBonuses.length == 1 ? "" : "es"), 12) + '\n';
+	bonusCaption += heading(translatePluralWithContext("civinfo", "Team Bonus", "Team Bonuses", civInfo.TeamBonuses.length), 12) + '\n';
 	
 	for(var i = 0; i < civInfo.TeamBonuses.length; ++i)
 	{
@@ -110,7 +109,7 @@ function selectCiv(code)
 
 
 	// Special techs / buildings
-	var techCaption = heading("Special Technologies", 12) + '\n';
+	var techCaption = heading(translate("Special Technologies"), 12) + '\n';
 	
 	for(var i = 0; i < civInfo.Factions.length; ++i)
 	{
@@ -122,7 +121,7 @@ function selectCiv(code)
 		}
 	}
 
-	techCaption += heading("Special Building"+(civInfo.Structures.length == 1 ? "" : "s"), 12) + '\n';
+	techCaption += heading(translatePluralWithContext("civinfo", "Special Building", "Special Buildings", civInfo.Structures.length), 12) + '\n';
 	
 	for(var i = 0; i < civInfo.Structures.length; ++i)
 	{
@@ -134,7 +133,7 @@ function selectCiv(code)
 
 
 	// Heroes
-	var heroCaption = heading("Heroes", 12) + '\n';
+	var heroCaption = heading(translateWithContext("civinfo", "Heroes"), 12) + '\n';
 	
 	for(var i = 0; i < civInfo.Factions.length; ++i)
 	{
@@ -151,6 +150,6 @@ function selectCiv(code)
 
 
 	// Update civ history display
-	Engine.GetGUIObjectByName("civHistoryHeading").caption = heading("History of the " + civInfo.Name, 16);
+	Engine.GetGUIObjectByName("civHistoryHeading").caption = heading(sprintf(translateWithContext("civinfo", "History of the %(civilization)s"), { civilization: civInfo.Name }), 16);
 	Engine.GetGUIObjectByName("civHistoryText").caption = civInfo.History;
 }

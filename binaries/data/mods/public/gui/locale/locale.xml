@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<objects>
+
+	<script file="gui/common/functions_global_object.js"/>
+	<script file="gui/locale/locale.js"/>
+
+	<!-- Add a translucent black background to fade out the menu page -->
+	<object type="image" z="0" sprite="bkTranslucent"/>
+
+	<object type="image" style="StoneDialog" size="50%-190 50%-100 50%+190 50%+100">
+
+		<object style="TitleText" type="text" size="50%-128 0%-16 50%+128 16">
+			<translatableAttribute id="caption">Language</translatableAttribute>
+		</object>
+
+		<object size="0 32 100% 100%">
+			<object type="text" size="0 0 140 30" style="RightLabelText">
+				<translatableAttribute id="caption">Language:</translatableAttribute>
+			</object>
+
+			<object name="languageList"
+					type="dropdown"
+					style="StoneDropDown"
+					size="150 0 100%-32 28">
+			</object>
+
+			<object type="text" size="30 40 100%-30 100" style="LeftLabelText">
+				<translatableAttribute id="caption">Note: Restart the game for these changes to take effect.</translatableAttribute>
+			</object>
+
+			<object type="button" size="50%-154 100%-60 50%+10 100%-32" style="StoneButton">
+				<translatableAttribute id="caption">Accept</translatableAttribute>
+				<action on="Press">applySelectedLocale();</action>
+			</object>
+		</object>
+
+		<object type="button" style="StoneButton" size="50%+26 100%-60 50%+154 100%-32">
+			<translatableAttribute id="caption">Cancel</translatableAttribute>
+			<action on="Press">cancelSetup();</action>
+		</object>
+
+	</object>
+
+</objects>

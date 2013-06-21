@@ -15,7 +15,7 @@ function init(data)
 	{
 		// Set tip text
 		var tipTextFilePath = tipTextLoadingArray[getRandom (0, tipTextLoadingArray.length-1)];
-		var tipText = Engine.ReadFile(tipTextFilePath);
+		var tipText = Engine.translateLines(Engine.ReadFile(tipTextFilePath));
 
 		if (tipText)
 		{
@@ -34,7 +34,7 @@ function init(data)
 	}
 	else
 	{
-		error("Failed to find any matching tips for the loading screen.")
+		error(translate("Failed to find any matching tips for the loading screen."))
 	}
 
 	// janwas: main loop now sets progress / description, but that won't
@@ -48,15 +48,15 @@ function init(data)
 		{
 		case "skirmish":
 		case "scenario":
-			loadingMapName.caption = "Loading \"" + mapName + "\"";
+			loadingMapName.caption = sprintf(translate("Loading \"%(map)s\""), {map: mapName});
 			break;
 
 		case "random":
-			loadingMapName.caption = "Generating \"" + mapName + "\"";
+			loadingMapName.caption = sprintf(translate("Generating \"%(map)s\""), {map: mapName});
 			break;
 
 		default:
-			error("Unknown map type: " + data.attribs.mapType);
+			error(sprintf(translate("Unknown map type: %(mapType)s"), { mapType: data.attribs.mapType }));
 		}
 	}
 
@@ -65,7 +65,7 @@ function init(data)
 
 	// Pick a random quote of the day (each line is a separate tip).
 	var quoteArray = Engine.ReadFileLines("gui/text/quotes.txt");
-	Engine.GetGUIObjectByName("quoteText").caption = quoteArray[getRandom(0, quoteArray.length-1)];
+	Engine.GetGUIObjectByName("quoteText").caption = translate(quoteArray[getRandom(0, quoteArray.length-1)]);
 }
 
 // ====================================================================

@@ -64,7 +64,7 @@ function parseJSONData(pathname)
 	var rawData = Engine.ReadFile(pathname);
 	if (!rawData)
 	{
-		error("Failed to read file: "+pathname);
+		error(sprintf(translate("Failed to read file: %(path)s"), { path: pathname }));
 	}
 	else
 	{
@@ -73,13 +73,11 @@ function parseJSONData(pathname)
 			// TODO: Need more info from the parser on why it failed: line number, position, etc!
 			data = JSON.parse(rawData);
 			if (!data)
-				error("Failed to parse JSON data in: "+pathname+" (check for valid JSON data)");
-
-
+				error(sprintf(translate("Failed to parse JSON data in: %(path)s (check for valid JSON data)"), { path: pathname }));
 		}
 		catch(err)
 		{
-			error(err.toString()+": parsing JSON data in "+pathname);
+			error(sprintf(translate("%(error)s: parsing JSON data in %(path)s"), { error: err.toString(), path: pathname }));
 		}
 	}
 
@@ -141,7 +139,7 @@ function parseJSONFromDataFile(filename)
 	var path = "simulation/data/"+filename;
 	var rawData = Engine.ReadFile(path);
 	if (!rawData)
-		error("Failed to read file: "+path);
+		error(sprintf(translate("Failed to read file: %(path)s"), { path: path }));
 
 	try
 	{
@@ -152,7 +150,7 @@ function parseJSONFromDataFile(filename)
 	}
 	catch(err)
 	{
-		error(err.toString()+": parsing JSON data in "+path);
+		error(sprintf(translate("%(error)s: parsing JSON data in %(path)s"), { error: err.toString(), path: path }));
 	}
 
 	return undefined;
@@ -167,9 +165,12 @@ function initPlayerDefaults()
 
 	var data = parseJSONFromDataFile("player_defaults.json");
 	if (!data || !data.PlayerData)
-		error("Failed to parse player defaults in player_defaults.json (check for valid JSON data)");
+		error(translate("Failed to parse player defaults in player_defaults.json (check for valid JSON data)"));
 	else
+	{
+		translateObjectKeys(data.PlayerData, ["Name"])
 		defaults = data.PlayerData;
+	}
 
 	return defaults;
 }
@@ -188,9 +189,10 @@ function initMapSizes()
 
 	var data = parseJSONFromDataFile("map_sizes.json");
 	if (!data || !data.Sizes)
-		error("Failed to parse map sizes in map_sizes.json (check for valid JSON data)");
+		error(translate("Failed to parse map sizes in map_sizes.json (check for valid JSON data)"));
 	else
 	{
+		translateObjectKeys(data, ["Name", "LongName"]);
 		for (var i = 0; i < data.Sizes.length; ++i)
 		{
 			sizes.shortNames.push(data.Sizes[i].Name);
@@ -218,9 +220,10 @@ function initGameSpeeds()
 
 	var data = parseJSONFromDataFile("game_speeds.json");
 	if (!data || !data.Speeds)
-		error("Failed to parse game speeds in game_speeds.json (check for valid JSON data)");
+		error(translate("Failed to parse game speeds in game_speeds.json (check for valid JSON data)"));
 	else
 	{
+		translateObjectKeys(data, ["Name"]);
 		for (var i = 0; i < data.Speeds.length; ++i)
 		{
 			gameSpeeds.names.push(data.Speeds[i].Name);
@@ -256,10 +259,7 @@ function iColorToString(color)
  */
 function timeToString(time)
 {
-	var hours   = Math.floor(time / 1000 / 60 / 60);
-	var minutes = Math.floor(time / 1000 / 60) % 60;
-	var seconds = Math.floor(time / 1000) % 60;
-	return hours + ':' + (minutes < 10 ? '0' + minutes : minutes) + ':' + (seconds < 10 ? '0' + seconds : seconds);
+	return Engine.formatMillisecondsIntoDateString(time, translate("HH:mm:ss"));
 }
 
 // ====================================================================
