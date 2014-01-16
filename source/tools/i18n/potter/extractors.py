@@ -386,7 +386,7 @@ class xml(Extractor):
                         jsonExtractor.setOptions(self.keywords[keyword]["extractJson"])
                         for message, breadcrumbs in jsonExtractor.extractFromString(element.text):
                             yield message, None, position + ":" + json.formatBreadcrumbs(breadcrumbs), []
-                    else:
+                    elif element.text is not None:
                         if "locationAttributes" in self.keywords[keyword]:
                             attributes = [element.get(attribute) for attribute in self.keywords[keyword]["locationAttributes"]]
                             position += " ({attributes})".format(attributes=", ".join(attributes))
