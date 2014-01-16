@@ -78,7 +78,6 @@
 						"Description",
 						"History",
 						"Special",
-						"Formations",
 						"AINames"
 					]
 				}
@@ -129,7 +128,9 @@
 					"keywords": {
 						"GenericName": {},
 						"SpecificName": {},
-						"Tooltip": {}
+						"Tooltip": {},
+						"DisabledTooltip": {},
+						"FormationName": {}
 					}
 				}
 			},
