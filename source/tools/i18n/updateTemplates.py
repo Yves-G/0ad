@@ -84,9 +84,13 @@ def generateTemplatesForMessagesFile(messagesFilePath):
             if "skip" in rule and rule["skip"] == "yes":
                 continue
 
-            extractor = getExtractorInstance(rule["extractor"], inputRootPath, rule["filemasks"], rule.get("options", {}))
+            options = rule.get("options", {})
+            extractor = getExtractorInstance(rule["extractor"], inputRootPath, rule["filemasks"], options)
             for message, context, location, comments in extractor.run():
-                template.add(message, context=context, locations=[location], auto_comments=comments)
+                formatFlag = None
+                if "format" in options:
+                    formatFlag = options["format"]
+                template.add(message, context=context, locations=[location], auto_comments=comments, formatFlag=formatFlag)
 
         with codecs.open(os.path.join(rootPath, templateSettings["output"]), 'w', 'utf-8') as fileObject:
             write_po(fileObject, template)

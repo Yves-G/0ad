@@ -76,7 +76,7 @@ class Message(object):
     """Representation of a single message in a catalog."""
 
     def __init__(self, id, string=u'', locations=(), flags=(), auto_comments=(),
-                 user_comments=(), previous_id=(), lineno=None, context=None):
+                 user_comments=(), previous_id=(), lineno=None, context=None, formatFlag=None):
         """Create the message object.
 
         :param id: the message ID, or a ``(singular, plural)`` tuple for
@@ -99,7 +99,7 @@ class Message(object):
         self.string = string #: The message translation
         self.locations = list(distinct(locations))
         self.flags = set(flags)
-        if id:
+        if id and formatFlag is None:
             formatFlag = self.guessFormatFlag();
             if formatFlag:
                 self.flags.add(formatFlag)
@@ -500,7 +500,7 @@ class Catalog(object):
             self._messages[key] = message
 
     def add(self, id, string=None, locations=(), flags=(), auto_comments=(),
-            user_comments=(), previous_id=(), lineno=None, context=None):
+            user_comments=(), previous_id=(), lineno=None, context=None, formatFlag=None):
         """Add or update the message with the specified ID.
 
         >>> catalog = Catalog()
@@ -530,7 +530,7 @@ class Catalog(object):
         """
         message = Message(id, string, locations, flags, auto_comments,
                           user_comments, previous_id, lineno=lineno,
-                          context=context)
+                          context=context, formatFlag=formatFlag)
         self[id] = message
         return message
 
