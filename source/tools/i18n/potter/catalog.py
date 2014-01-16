@@ -176,12 +176,13 @@ class Message(object):
         ids = self.id
         if not isinstance(ids, (list, tuple)):
             ids = [ids]
-        if bool(filter(None, [C_FORMAT.search(id) for id in ids])):
-            return "c-format"
-        elif bool(filter(None, [PYTHON_FORMAT.search(id) for id in ids])):
-            return "python-format"
-        else:
-            return None
+        for id in ids:
+            if C_FORMAT.search(id) is not None:
+                return "c-format"
+        for id in ids:
+            if PYTHON_FORMAT.search(id) is not None:
+                return "python-format"
+        return None
 
 
 DEFAULT_HEADER = u"""\
