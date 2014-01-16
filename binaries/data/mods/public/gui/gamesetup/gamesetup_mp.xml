@@ -86,7 +86,7 @@
 
 			<object name="hostServerName" type="input" size="210 80 100%-32 104" style="ModernInput">
 				<action on="Load">
-					this.caption = Engine.ConfigDB_GetValue("user", "playername") + "'s game";
+					this.caption = sprintf(translate("%(playername)s's game"), { playername: Engine.ConfigDB_GetValue("user", "playername"));
 				</action>
 			</object>
 			</object>

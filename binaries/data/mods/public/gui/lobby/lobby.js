@@ -22,7 +22,7 @@ function init(attribs)
 	g_Name = Engine.LobbyGetNick();
 
 	g_mapSizes = initMapSizes();
-	g_mapSizes.shortNames.splice(0, 0, "Any");
+	g_mapSizes.shortNames.splice(0, 0, translateWithContext("map size", "Any"));
 	g_mapSizes.tiles.splice(0, 0, "");
 
 	var mapSizeFilter = Engine.GetGUIObjectByName("mapSizeFilter");
@@ -30,11 +30,11 @@ function init(attribs)
 	mapSizeFilter.list_data = g_mapSizes.tiles;
 
 	var playersNumberFilter = Engine.GetGUIObjectByName("playersNumberFilter");
-	playersNumberFilter.list = ["Any",2,3,4,5,6,7,8];
+	playersNumberFilter.list = [translateWithContext("player number", "Any"),2,3,4,5,6,7,8];
 	playersNumberFilter.list_data = ["",2,3,4,5,6,7,8];
 
 	var mapTypeFilter = Engine.GetGUIObjectByName("mapTypeFilter");
-	mapTypeFilter.list = ["Any", "Skirmish", "Random", "Scenario"];
+	mapTypeFilter.list = [translateWithContext("map type", "Any"), translateWithContext("map type", "Skirmish"), translateWithContext("map type", "Random"), translate("Scenario")];
 	mapTypeFilter.list_data = ["", "skirmish", "random", "scenario"];
 
 	Engine.LobbySetPlayerPresence("available");
@@ -289,30 +289,31 @@ function updateGameList()
 function formatPlayerListEntry(nickname, presence, rating, role)
 {
 	// Set colors based on player status
-	var color, status;
+	var color;
+	var status;
 	switch (presence)
 	{
 	case "playing":
 		color = "125 0 0";
-		status = "Busy";
+		status = translate("Busy");
 		break;
 	case "gone":
 	case "away":
 		color = "229 76 13";
-		status = "Away";
+		status = translate("Away");
 		break;
 	case "available":
 		color = "0 125 0";
-		status = "Online";
+		status = translate("Online");
 		break;
 	case "offline":
 		color = "0 0 0";
-		status = "Offline";
+		status = translate("Offline");
 		break;
 	default:
-		warn("Unknown presence '" + presence + "'");
+		warn(sprintf(translate("Unknown presence '%(presence)s'"), { presence: presence }));
 		color = "178 178 178";
-		status = "Unknown";
+		status = translateWithContext("lobby presence", "Unknown");
 		break;
 	}
 	// Center the unrated symbol.
@@ -327,6 +328,7 @@ function formatPlayerListEntry(nickname, presence, rating, role)
 	// Give moderators special formatting.
 	if (role == "moderator")
 		formattedName = formattedName; //TODO
+
 	// Push this player's name and status onto the list
 	return [formattedName, formattedStatus, formattedRating];
 }
@@ -351,14 +353,14 @@ function updateGameSelection()
 
 	// Load map data
 	if (g_GameList[g].mapType == "random" && g_GameList[g].mapName == "random")
-		mapData = {"settings": {"Description": "A randomly selected map."}};
+		mapData = {"settings": {"Description": translate("A randomly selected map.")}};
 	else if (g_GameList[g].mapType == "random" && Engine.FileExists(g_GameList[g].mapName + ".json"))
 		mapData = parseJSONData(g_GameList[g].mapName + ".json");
 	else if (Engine.FileExists(g_GameList[g].mapName + ".xml"))
 		mapData = Engine.LoadMapSettings(g_GameList[g].mapName + ".xml");
 	else
 		// Warn the player if we can't find the map. 
-		warn("Map '" + g_GameList[g].mapName + "' not found locally.");
+		warn(sprintf(translate("Map '%(mapName)s' not found locally."), { mapName: g_GameList[g].mapName }));
 
 	// Show the game info panel and join button.
 	Engine.GetGUIObjectByName("gameInfo").hidden = false;
@@ -376,7 +378,7 @@ function updateGameSelection()
 	if (mapData && mapData.settings.Description)
 		var mapDescription = mapData.settings.Description;
 	else
-		var mapDescription = "Sorry, no description available.";
+		var mapDescription = translate("Sorry, no description available.");
 
 	// Display map preview if it exists, otherwise display a placeholder.
 	if (mapData && mapData.settings.Preview)
@@ -404,7 +406,7 @@ function joinSelectedGame()
 		// Check if it looks like an ip address
 		if (sip.split('.').length != 4)
 		{
-			addChatMessage({ "from": "system", "text": "This game's address '" + sip + "' does not appear to be valid." });
+			addChatMessage({ "from": "system", "text": sprintf(translate("This game's address '%(ip)s' does not appear to be valid."), { ip: sip }) });
 			return;
 		}
 
@@ -429,6 +431,7 @@ function hostGame()
 /**
  * Add a leading zero to single-digit numbers.
  */
+// TODO TODO TODO check where this is used and why
 function twoDigits(n)
 {
 	return n < 10 ? "0" + n : n;
@@ -492,7 +495,7 @@ function onTick()
 				nickList.push(nick);
 				ratingList.push(String(rating));
 				Engine.SendGetRatingList();
-				addChatMessage({ "text": "/special " + nick + " has joined.", "key": g_specialKey });
+				addChatMessage({ "text": "/special " + sprintf(translate("%(nick)s has joined."), { nick: nick }), "key": g_specialKey });
 				break;
 			case "leave":
 				if (nickIndex == -1) // Left, but not present (TODO: warn about this?)
@@ -501,21 +504,21 @@ function onTick()
 				presenceList.splice(nickIndex, 1);
 				nickList.splice(nickIndex, 1);
 				ratingList.splice(nickIndex, 1);
-				addChatMessage({ "text": "/special " + nick + " has left.", "key": g_specialKey });
+				addChatMessage({ "text": "/special " + sprintf(translate("%(nick)s has left."), { nick: nick }), "key": g_specialKey });
 				break;
 			case "nick":
 				if (nickIndex == -1) // This shouldn't ever happen
 					break;
 				if (!isValidNick(message.data))
 				{
-					addChatMessage({ "from": "system", "text": "Invalid nickname: " + message.data });
+					addChatMessage({ "from": "system", "text": sprintf(translate("Invalid nickname: %(nick)s"), { nick: message.data })});
 					break;
 				}
 				var [name, status, rating] = formatPlayerListEntry(message.data, presence, stripColorCodes(ratingList[nickIndex])); // TODO: actually we don't want to change the presence here, so use what was used before
 				playerList[nickIndex] = name;
 				// presence stays the same
 				nickList[nickIndex] = message.data;
-				addChatMessage({ "text": "/special " + nick + " is now known as " + message.data + ".", "key": g_specialKey });
+				addChatMessage({ "text": "/special " + sprintf(translate("%(oldnick)s is now known as %(newnick)s."), { oldnick: nick, newnick: message.data }), "key": g_specialKey });
 				Engine.SendGetRatingList();
 				break;
 			case "presence":
@@ -530,7 +533,7 @@ function onTick()
 				updateSubject(message.text);
 				break;
 			default:
-				warn("Unknown message.level '" + message.level + "'");
+				warn(sprintf(translate("Unknown message.level '%(msglvl)s'"), { msglvl: message.level }));
 				break;
 			}
 			// Push new data to GUI
@@ -580,7 +583,7 @@ function onTick()
 			}
 			break;
 		default:
-			error("Unrecognised message type "+message.type);
+			error(sprintf(translate("Unrecognised message type %(msgtype)s"), { msgtype: message.type }));
 		}
 	}
 }
@@ -669,7 +672,7 @@ function handleSpecialCommand(text)
 	case "me":
 		return false;
 	default:
-		addChatMessage({ "from":"system", "text":"We're sorry, the '" + cmd + "' command is not supported."});
+		addChatMessage({ "from":"system", "text": sprintf(translate("We're sorry, the '%(cmd)s' command is not supported."), { cmd: cmd})});
 	}
 	return true;
 }
@@ -720,6 +723,7 @@ function ircSplit(string)
  */
 function ircFormat(text, from, color, key)
 {
+	// TODO TODO TODO
 	// Generate and apply color to uncolored names,
 	if (!color && from)
 		var coloredFrom = colorPlayerName(from);
@@ -801,7 +805,7 @@ function isSpam(text, from)
 	{
 		g_spamMonitor[from][2] = time;
 		if (from == g_Name)
-			addChatMessage({ "from": "system", "text": "Please do not spam. You have been blocked for thirty seconds." });
+			addChatMessage({ "from": "system", "text": translate("Please do not spam. You have been blocked for thirty seconds.") });
 		return true;
 	}
 	// Return false if everything is clear.

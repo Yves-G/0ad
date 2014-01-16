@@ -92,11 +92,11 @@ function init(attribs)
 	var cancelButton = Engine.GetGUIObjectByName("cancelGame");
 	if(!Engine.HasXmppClient())
 	{
-		cancelButton.tooltip = "Return to the main menu."
+		cancelButton.tooltip = translate("Return to the main menu.");
 	}
 	else
 	{
-		cancelButton.tooltip = "Return to the lobby."
+		cancelButton.tooltip = translate("Return to the lobby.");
 	}
 
 }
@@ -925,7 +925,7 @@ function onGameAttributesChange()
 	{
 		var mapFilderSelection = Engine.GetGUIObjectByName("mapFilterText");
 		var mapFilterId = mapFilderSelection.list_data.indexOf(g_GameAttributes.mapFilter);
-		getGUIObjectByName("mapFilterText").caption = mapFilderSelection.list[mapFilterId];
+		Engine.GetGUIObjectByName("mapFilterText").caption = mapFilderSelection.list[mapFilterId];
 		var mapTypeSelection = Engine.GetGUIObjectByName("mapTypeSelection");
 		var idx = mapTypeSelection.list_data.indexOf(g_GameAttributes.mapType);
 		Engine.GetGUIObjectByName("mapTypeText").caption = mapTypeSelection.list[idx];
@@ -1032,7 +1032,7 @@ function onGameAttributesChange()
 		break;
 
 	case "skirmish":
-		mapSizeText.caption = "Default";
+		mapSizeText.caption = translate("Default");
 		numPlayersText.caption = numPlayers;
 		numPlayersSelection.hidden = true;
 		mapSize.hidden = true;
@@ -1054,12 +1054,12 @@ function onGameAttributesChange()
 			populationCapText.hidden = true;
 			startingResourcesText.hidden = true;
 
-			revealMapText.caption = "Reveal map:";
+			revealMapText.caption = translate("Reveal map:");
 			revealMap.checked = (mapSettings.RevealMap ? true : false);
 
-			victoryConditionText.caption = "Victory condition:";
+			victoryConditionText.caption = translate("Victory condition:");
 			victoryCondition.selected = victoryIdx;
-			lockTeamsText.caption = "Teams locked:";
+			lockTeamsText.caption = translate("Teams locked:");
 			lockTeams.checked = (mapSettings.LockTeams ? true : false);
 		}
 		else
@@ -1074,9 +1074,9 @@ function onGameAttributesChange()
 			startingResources.hidden = true;
 			startingResourcesText.hidden = false;
 
-			revealMapText.caption = (mapSettings.RevealMap ? "Yes" : "No");
+			revealMapText.caption = (mapSettings.RevealMap ? translate("Yes") : translate("No"));
 			victoryConditionText.caption = VICTORY_TEXT[victoryIdx];
-			lockTeamsText.caption = (mapSettings.LockTeams ? "Yes" : "No");
+			lockTeamsText.caption = (mapSettings.LockTeams ? translate("Yes") : translate("No"));
 		}
 
 		break;
@@ -1180,7 +1180,7 @@ function onGameAttributesChange()
 		}
 	}
 
-	getGUIObjectByName("mapInfoDescription").caption = playerString;
+	Engine.GetGUIObjectByName("mapInfoDescription").caption = playerString;
 
 	g_IsInGuiUpdate = false;
 

@@ -182,7 +182,7 @@ function startHost(playername, servername)
 		{
 			if (g.name === servername)
 			{
-				Engine.GetGUIObjectByName("hostFeedback").caption = "Game name already in use.";
+				Engine.GetGUIObjectByName("hostFeedback").caption = translate("Game name already in use.");
 				return false;
 			}
 		}
