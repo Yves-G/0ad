@@ -80,6 +80,7 @@ function heading(string, size)
 // Called when user selects civ from dropdown
 function selectCiv(code)
 {
+	// TODO TODO TODO escape " in translated tooltips
 	var civInfo = g_CivData[code];
 	
 	if(!civInfo)
