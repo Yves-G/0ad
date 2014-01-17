@@ -634,7 +634,7 @@ extern_lib_defs = {
 	},
 	tinygettext = {
 		compile_settings = function()
-			includedirs { libraries_source_dir .. "tinygettext" }
+			add_source_include_paths("tinygettext")
 		end,
 		link_settings = function()
 			add_source_lib_paths("tinygettext")

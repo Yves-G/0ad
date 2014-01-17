@@ -219,8 +219,8 @@ std::string L10n::translateLines(const std::string& sourceString)
 UDate L10n::parseDateTime(const std::string& dateTimeString, const std::string& dateTimeFormat, const Locale& locale)
 {
 	UErrorCode success = U_ZERO_ERROR;
-	UnicodeString utf16DateTimeString = UnicodeString::fromUTF8(dateTimeString);
-	UnicodeString utf16DateTimeFormat = UnicodeString::fromUTF8(dateTimeFormat);
+	UnicodeString utf16DateTimeString = UnicodeString::fromUTF8(dateTimeString.c_str());
+	UnicodeString utf16DateTimeFormat = UnicodeString::fromUTF8(dateTimeFormat.c_str());
 
 	DateFormat* dateFormatter = new SimpleDateFormat(utf16DateTimeFormat, locale, success);
 	UDate date = dateFormatter->parse(utf16DateTimeString, success);
@@ -248,10 +248,10 @@ std::string L10n::formatMillisecondsIntoDateString(int milliseconds, const std::
 	std::string utf8Date;
 	UnicodeString utf16Date;
 	UnicodeString utf16SourceDateTimeFormat = UnicodeString::fromUTF8("A");
-	UnicodeString utf16LocalizedDateTimeFormat = UnicodeString::fromUTF8(formatString);
+	UnicodeString utf16LocalizedDateTimeFormat = UnicodeString::fromUTF8(formatString.c_str());
 	char buffer[32];
 	std::string utf8MillisecondsString(std::string(buffer, sprintf(buffer, "%d", milliseconds)));
-	UnicodeString utf16MillisecondsString = UnicodeString::fromUTF8(utf8MillisecondsString);
+	UnicodeString utf16MillisecondsString = UnicodeString::fromUTF8(utf8MillisecondsString.c_str());
 
 	SimpleDateFormat* dateFormatter = new SimpleDateFormat(utf16SourceDateTimeFormat, currentLocale, success);
 	UDate dateTime = dateFormatter->parse(utf16MillisecondsString, success);
