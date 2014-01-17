@@ -978,7 +978,7 @@ function onGameAttributesChange()
 	switch (g_GameAttributes.mapType)
 	{
 	case "random":
-			mapSizeDesc.hidden = false;
+		mapSizeDesc.hidden = false;
 		if (g_IsController)
 		{
 			//Host

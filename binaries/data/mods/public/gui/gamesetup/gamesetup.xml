@@ -127,7 +127,7 @@
 				<object type="text" style="ModernRightLabelText" size="0 64 100% 94">
 					<translatableAttribute id="caption">Select Map:</translatableAttribute>
 				</object>
-				<object type="text" style="ModernRightLabelText" size="0 96 100% 126">
+				<object name="mapSizeDesc" type="text" style="ModernRightLabelText" size="0 96 100% 126">
 					<translatableAttribute id="caption">Map Size:</translatableAttribute>
 				</object>
 			</object>

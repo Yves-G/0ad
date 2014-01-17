@@ -312,7 +312,6 @@ function displaySingle(entState, template)
 			});
 		}
 
-
 		Engine.GetGUIObjectByName("attackAndArmorStats").tooltip = attack + "\n" + armorString;	
 	}
 	else
