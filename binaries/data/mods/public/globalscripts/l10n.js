@@ -69,7 +69,7 @@ function translatePluralWithContext(context, singularMessage, pluralMessage, num
 
 	var pluralTranslationWithContext = g_pluralTranslationsWithContext[context][singularMessage][number];
 	if (!pluralTranslationWithContext)
-		return g_pluralTranslationsWithContext[context][message][number] = Engine.translateWithContext(context, singularMessage, pluralMessage, number);
+		return g_pluralTranslationsWithContext[context][singularMessage][number] = Engine.translateWithContext(context, singularMessage, pluralMessage, number);
 
 	return pluralTranslationWithContext;
 }
