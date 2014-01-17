@@ -387,7 +387,7 @@ extern_lib_defs = {
 				add_default_lib_paths("icu")
 			end
 			add_default_links({
-				win_names  = { "icu" },
+				win_names  = { "icudt", "icuin", "icuio", "icule", "iculx", "icutu", "icuuc" },
 				unix_names = { "icui18n", "icuuc" },
 			})
 		end,
