@@ -22,10 +22,11 @@
 #include <memory>
 #include <iosfwd>
 #include <string>
+#include "macros.h"
 
 namespace tinygettext {
 
-class FileSystem 
+class tinygettext_API FileSystem 
 {
 public:
   virtual ~FileSystem() {}

@@ -21,6 +21,7 @@
 #include <map>
 #include <vector>
 #include <string>
+#include "macros.h"
 #include "plural_forms.hpp"
 
 namespace tinygettext {
@@ -28,7 +29,7 @@ namespace tinygettext {
 /** A simple dictionary class that mimics gettext() behaviour. Each
     Dictionary only works for a single language, for managing multiple
     languages and .po files at once use the DictionaryManager. */
-class Dictionary
+class tinygettext_API Dictionary
 {
 private:
   typedef std::map<std::string, std::vector<std::string> > Entries;

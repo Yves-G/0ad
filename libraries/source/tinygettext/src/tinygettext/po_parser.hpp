@@ -20,13 +20,14 @@
 
 #include <iosfwd>
 
+#include "macros.h"
 #include "iconv.hpp"
 
 namespace tinygettext {
 
 class Dictionary;
 
-class POParser
+class tinygettext_API POParser
 {
 private:
   std::string filename;

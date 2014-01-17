@@ -19,10 +19,11 @@
 #define HEADER_TINYGETTEXT_LOG_HPP
 
 #include <sstream>
+#include "macros.h"
 
 namespace tinygettext {
 
-class Log
+class tinygettext_API Log
 {
 public:
   typedef void (*log_callback_t)(const std::string&);

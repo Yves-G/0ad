@@ -19,13 +19,14 @@
 #define HEADER_TINYGETTEXT_LANGUAGE_HPP
 
 #include <string>
+#include "macros.h"
 
 namespace tinygettext {
 
 struct LanguageSpec;
 
 /** Lightweight wrapper around LanguageSpec */
-class Language
+class tinygettext_API Language
 {
 private:
   LanguageSpec* language_spec;

@@ -19,12 +19,13 @@
 #define HEADER_TINYGETTEXT_PLURAL_FORMS_HPP
 
 #include <string>
+#include "macros.h"
 
 namespace tinygettext {
 
 typedef unsigned int (*PluralFunc)(int n);
 
-class PluralForms
+class tinygettext_API PluralForms
 {
 private:
   unsigned int nplural;

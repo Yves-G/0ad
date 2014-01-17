@@ -18,6 +18,7 @@
 #ifndef HEADER_TINYGETTEXT_TINYGETTEXT_HPP
 #define HEADER_TINYGETTEXT_TINYGETTEXT_HPP
 
+#include "macros.h"
 #include "dictionary.hpp"
 #include "dictionary_manager.hpp"
 #include "language.hpp"
