@@ -492,7 +492,7 @@ class Project(object):
                                 self.root, native_path(
                                     file_filter.replace('<lang>', local_lang)
                                 )
-                            ), os.curdir
+                            ), os.curdir.decode('utf-8')
                         )
                     else:
                         trans_dir = os.path.join(self.root, ".tx", resource)

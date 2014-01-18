@@ -46,6 +46,7 @@ def main():
     transifexClientFolder = ".tx"
 
     for root, folders, filenames in os.walk(projectRootDirectory):
+        root = root.decode('utf-8')
         for folder in folders:
             if folder == l10nFolderName:
                 if os.path.exists(os.path.join(root, folder, transifexClientFolder)):
