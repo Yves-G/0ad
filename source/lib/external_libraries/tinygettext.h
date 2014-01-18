@@ -27,7 +27,17 @@
 #ifndef INCLUDED_TINYGETTEXT
 #define INCLUDED_TINYGETTEXT
 
+#if MSC_VERSION
+# pragma warning(push)
+# pragma warning(disable:4251) // "class X needs to have dll-interface to be used by clients of class Y"
+# pragma warning(disable:4800) // "forcing value to bool 'true' or 'false' (performance warning)"
+#endif
+
 #include <tinygettext/tinygettext.hpp>
 #include <tinygettext/po_parser.hpp>
+
+#if MSC_VERSION
+# pragma warning(pop)
+#endif
 
 #endif	// INCLUDED_TINYGETTEXT

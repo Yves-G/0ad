@@ -66,9 +66,9 @@ void L10n::setCurrentLocale(const std::string& localeCode)
 
 void L10n::setCurrentLocale(Locale locale)
 {
-	bool reload = (currentLocale != locale);
+	bool reload = (currentLocale != locale) == TRUE;
 	currentLocale = locale;
-	currentLocaleIsOriginalGameLocale = (currentLocale == Locale::getUS());
+	currentLocaleIsOriginalGameLocale = (currentLocale == Locale::getUS()) == TRUE;
 	if (reload && !currentLocaleIsOriginalGameLocale)
 		loadDictionaryForCurrentLocale();
 }
@@ -100,6 +100,7 @@ std::vector< std::wstring > L10n::getSupportedLocaleDisplayNames()
 		UnicodeString utf16LocaleDisplayName;
 		(**iterator).getDisplayName(**iterator, utf16LocaleDisplayName);
 		std::string localeDisplayName;
+		// TODO: this is probably unsafe in MSVC
 		utf16LocaleDisplayName.toUTF8String(localeDisplayName);
 		supportedLocaleDisplayNames.push_back(wstring_from_utf8(localeDisplayName));
 	}
@@ -236,6 +237,7 @@ std::string L10n::localizeDateTime(const UDate& dateTime, DateTimeType type, Dat
 
 	DateFormat* dateFormatter = createDateTimeInstance(type, style, currentLocale);
 	dateFormatter->format(dateTime, utf16Date);
+	// TODO: this is probably unsafe in MSVC
 	utf16Date.toUTF8String(utf8Date);
 	delete dateFormatter;
 
@@ -250,13 +252,14 @@ std::string L10n::formatMillisecondsIntoDateString(int milliseconds, const std::
 	UnicodeString utf16SourceDateTimeFormat = UnicodeString::fromUTF8("A");
 	UnicodeString utf16LocalizedDateTimeFormat = UnicodeString::fromUTF8(formatString.c_str());
 	char buffer[32];
-	std::string utf8MillisecondsString(std::string(buffer, sprintf(buffer, "%d", milliseconds)));
-	UnicodeString utf16MillisecondsString = UnicodeString::fromUTF8(utf8MillisecondsString.c_str());
+	sprintf_s(buffer, ARRAY_SIZE(buffer), "%d", milliseconds);
+	UnicodeString utf16MillisecondsString = UnicodeString::fromUTF8(buffer);
 
 	SimpleDateFormat* dateFormatter = new SimpleDateFormat(utf16SourceDateTimeFormat, currentLocale, success);
 	UDate dateTime = dateFormatter->parse(utf16MillisecondsString, success);
 	dateFormatter->applyLocalizedPattern(utf16LocalizedDateTimeFormat, success);
 	dateFormatter->format(dateTime, utf16Date);
+	// TODO: this is probably unsafe in MSVC
 	utf16Date.toUTF8String(utf8Date);
 	delete dateFormatter;
 
@@ -270,6 +273,7 @@ std::string L10n::formatDecimalNumberIntoString(double number)
 	std::string utf8Number;
 	NumberFormat* numberFormatter = NumberFormat::createInstance(currentLocale, UNUM_DECIMAL, success);
 	numberFormatter->format(number, utf16Number);
+	// TODO: this is probably unsafe in MSVC
 	utf16Number.toUTF8String(utf8Number);
 	return utf8Number;
 }
@@ -366,7 +370,7 @@ void L10n::readPoIntoDictionary(const std::string& poContent, tinygettext::Dicti
 	}
 	catch(std::exception& e)
 	{
-		LOGERROR(L"[Localization] Exception while reading virtual PO file");
+		LOGERROR(L"[Localization] Exception while reading virtual PO file: %hs", e.what());
 	}
 }
 
