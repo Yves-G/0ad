@@ -99,10 +99,12 @@ std::vector< std::wstring > L10n::getSupportedLocaleDisplayNames()
 
 		UnicodeString utf16LocaleDisplayName;
 		(**iterator).getDisplayName(**iterator, utf16LocaleDisplayName);
-		std::string localeDisplayName;
-		// TODO: this is probably unsafe in MSVC
-		utf16LocaleDisplayName.toUTF8String(localeDisplayName);
-		supportedLocaleDisplayNames.push_back(wstring_from_utf8(localeDisplayName));
+		char localeDisplayName[512];
+		CheckedArrayByteSink sink(localeDisplayName, ARRAY_SIZE(localeDisplayName));
+		utf16LocaleDisplayName.toUTF8(sink);
+		ENSURE(!sink.Overflowed());
+
+		supportedLocaleDisplayNames.push_back(wstring_from_utf8(std::string(localeDisplayName, sink.NumberOfBytesWritten())));
 	}
 	return supportedLocaleDisplayNames;
 }
@@ -233,21 +235,21 @@ UDate L10n::parseDateTime(const std::string& dateTimeString, const std::string& 
 std::string L10n::localizeDateTime(const UDate& dateTime, DateTimeType type, DateFormat::EStyle style)
 {
 	UnicodeString utf16Date;
-	std::string utf8Date;
 
 	DateFormat* dateFormatter = createDateTimeInstance(type, style, currentLocale);
 	dateFormatter->format(dateTime, utf16Date);
-	// TODO: this is probably unsafe in MSVC
-	utf16Date.toUTF8String(utf8Date);
+	char utf8Date[512];
+	CheckedArrayByteSink sink(utf8Date, ARRAY_SIZE(utf8Date));
+	utf16Date.toUTF8(sink);
+	ENSURE(!sink.Overflowed());
 	delete dateFormatter;
 
-	return utf8Date;
+	return std::string(utf8Date, sink.NumberOfBytesWritten());
 }
 
 std::string L10n::formatMillisecondsIntoDateString(int milliseconds, const std::string& formatString)
 {
 	UErrorCode success = U_ZERO_ERROR;
-	std::string utf8Date;
 	UnicodeString utf16Date;
 	UnicodeString utf16SourceDateTimeFormat = UnicodeString::fromUTF8("A");
 	UnicodeString utf16LocalizedDateTimeFormat = UnicodeString::fromUTF8(formatString.c_str());
@@ -259,23 +261,27 @@ std::string L10n::formatMillisecondsIntoDateString(int milliseconds, const std::
 	UDate dateTime = dateFormatter->parse(utf16MillisecondsString, success);
 	dateFormatter->applyLocalizedPattern(utf16LocalizedDateTimeFormat, success);
 	dateFormatter->format(dateTime, utf16Date);
-	// TODO: this is probably unsafe in MSVC
-	utf16Date.toUTF8String(utf8Date);
+	char utf8Date[512];
+	CheckedArrayByteSink sink(utf8Date, ARRAY_SIZE(utf8Date));
+	utf16Date.toUTF8(sink);
+	ENSURE(!sink.Overflowed());
 	delete dateFormatter;
 
-	return utf8Date;
+	return std::string(utf8Date, sink.NumberOfBytesWritten());
 }
 
 std::string L10n::formatDecimalNumberIntoString(double number)
 {
 	UErrorCode success = U_ZERO_ERROR;
 	UnicodeString utf16Number;
-	std::string utf8Number;
 	NumberFormat* numberFormatter = NumberFormat::createInstance(currentLocale, UNUM_DECIMAL, success);
 	numberFormatter->format(number, utf16Number);
-	// TODO: this is probably unsafe in MSVC
-	utf16Number.toUTF8String(utf8Number);
-	return utf8Number;
+	char utf8Number[512];
+	CheckedArrayByteSink sink(utf8Number, ARRAY_SIZE(utf8Number));
+	utf16Number.toUTF8(sink);
+	ENSURE(!sink.Overflowed());
+
+	return std::string(utf8Number, sink.NumberOfBytesWritten());
 }
 
 VfsPath L10n::localizePath(VfsPath sourcePath)
