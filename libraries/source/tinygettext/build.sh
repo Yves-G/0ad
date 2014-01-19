@@ -22,6 +22,6 @@ else
   extension=so
 fi
 
-filepath=src/libtinygettext.${extension}
+filepath=src/tinygettext/libtinygettext.${extension}
 cp $filepath lib/
 cp $filepath ../../../binaries/system/
