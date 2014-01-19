@@ -131,6 +131,7 @@ def generateLongStringTranslationFromPotIntoPo(inputFilePath, outputFilePath):
 def main():
 
     for root, folders, filenames in os.walk(projectRootDirectory):
+        root = root.decode("utf-8")
         for filename in filenames:
             if len(filename) > 4 and filename[-4:] == ".pot" and os.path.basename(root) == "l10n":
                 generateLongStringTranslationFromPotIntoPo(os.path.join(root, filename), os.path.join(root, "long." + filename[:-1]))
