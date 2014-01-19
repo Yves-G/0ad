@@ -19,7 +19,7 @@
 #define HEADER_TINYGETTEXT_PLURAL_FORMS_HPP
 
 #include <string>
-#include "macros.h"
+#include "macros.hpp"
 
 namespace tinygettext {
 

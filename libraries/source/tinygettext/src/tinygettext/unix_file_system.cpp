@@ -21,7 +21,7 @@
 #include <fstream>
 #ifdef _MSC_VER
 // MSVC doesn't include dirent.h, so we use this emulated win32 version
-#  include "win-dirent.h"
+#  include "win32/dirent.h"
 #else
 #  include <dirent.h>
 #endif

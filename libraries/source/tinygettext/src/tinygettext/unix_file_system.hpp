@@ -18,7 +18,7 @@
 #ifndef HEADER_TINYGETTEXT_UNIX_FILE_SYSTEM_HPP
 #define HEADER_TINYGETTEXT_UNIX_FILE_SYSTEM_HPP
 
-#include "macros.h"
+#include "macros.hpp"
 #include "file_system.hpp"
 
 namespace tinygettext {

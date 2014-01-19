@@ -8,12 +8,7 @@
 
 */
 
-#ifdef _MSC_VER
-// MSVC doesn't include dirent.h, so we use this emulated win32 version
-#  include "win-dirent.h"
-#else
-#  include <dirent.h>
-#endif
+#include "dirent.h"
 #include <errno.h>
 #include <io.h> /* _findfirst and _findnext set errno iff they return -1 */
 #include <stdlib.h>

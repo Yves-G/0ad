@@ -19,7 +19,7 @@
 #define HEADER_TINYGETTEXT_LOG_HPP
 
 #include <sstream>
-#include "macros.h"
+#include "macros.hpp"
 
 namespace tinygettext {
 

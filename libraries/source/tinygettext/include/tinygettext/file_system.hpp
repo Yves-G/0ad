@@ -22,7 +22,7 @@
 #include <memory>
 #include <iosfwd>
 #include <string>
-#include "macros.h"
+#include "macros.hpp"
 
 namespace tinygettext {
 

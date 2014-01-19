@@ -18,7 +18,7 @@
 #define HEADER_TINYGETTEXT_ICONV_HPP
 
 #include <string>
-#include "macros.h"
+#include "macros.hpp"
 
 #ifdef HAVE_SDL
 #  include "SDL.h"
@@ -32,7 +32,7 @@
 #  include <iconv.h>
 
 #  ifdef HAVE_ICONV_CONST
-#    define tinygettext_ICONV_CONST ICONV_CONST
+#    define tinygettext_ICONV_CONST const
 #  else
 #    define tinygettext_ICONV_CONST 
 #  endif

@@ -24,7 +24,7 @@
 #include <vector>
 #include <memory>
 
-#include "macros.h"
+#include "macros.hpp"
 #include "dictionary.hpp"
 #include "language.hpp"
 

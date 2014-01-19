@@ -20,7 +20,7 @@
 
 #include <iosfwd>
 
-#include "macros.h"
+#include "macros.hpp"
 #include "iconv.hpp"
 
 namespace tinygettext {

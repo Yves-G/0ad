@@ -21,7 +21,7 @@
 #include <map>
 #include <vector>
 #include <string>
-#include "macros.h"
+#include "macros.hpp"
 #include "plural_forms.hpp"
 
 namespace tinygettext {
