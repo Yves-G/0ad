@@ -3,25 +3,21 @@
 set -e
 
 JOBS=${JOBS:="-j2"}
+MAKE=${MAKE:="make"}
 
-echo "Building tinygettext…"
+echo "Building tinygettext..."
 echo
 
 cd src/
 
-scons ${JOBS}
+cmake -G "Unix Makefiles"
+
+${MAKE} ${JOBS}
 
 cd ../
 
 mkdir -p lib/
 
-if [ "`uname -s`" = "Darwin" ]
-then
-  extension=dylib
-else
-  extension=so
-fi
-
-filepath=src/tinygettext/libtinygettext.${extension}
+filepath=src/libtinygettext.so
 cp $filepath lib/
 cp $filepath ../../../binaries/system/
