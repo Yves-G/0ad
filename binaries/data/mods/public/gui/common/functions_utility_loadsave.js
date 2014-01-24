@@ -16,32 +16,9 @@ function generateLabel(metadata, engineInfo)
 			dateString = "[color=\"orange\"]" + dateString + "[/color]";
 	}
 	if (metadata.description)
-	{
-		return sprintf(translate("%(dateString) %(map)s - %(description)s"), { dateString: dateString, map: metadata.initAttributes.map, description: metadata.description });
-	}
+		return sprintf(translate("%(dateString)s %(map)s - %(description)s"), { dateString: dateString, map: metadata.initAttributes.map, description: metadata.description });
 	else
-	{
 		return sprintf(translate("%(dateString)s %(map)s"), { dateString: dateString, map: metadata.initAttributes.map });
-	}
-}
-function generateLabel(metadata, engineInfo)
-{
-	var t = new Date(metadata.time*1000);
-	var date = t.getFullYear()+"-"+twoDigits(1+t.getMonth())+"-"+twoDigits(t.getDate());
-	var time = twoDigits(t.getHours())+":"+twoDigits(t.getMinutes())+":"+twoDigits(t.getSeconds());
-	var label = "["+date+" "+time+"] ";
-
-	if (engineInfo)
-	{
-		if (!hasSameVersion(metadata, engineInfo))
-			label = "[color=\"red\"]" + label + "[/color]";
-		else if (!hasSameMods(metadata, engineInfo))
-			label = "[color=\"orange\"]" + label + "[/color]";
-	}
-
-	label += metadata.initAttributes.map.replace("maps/","")
-		+ (metadata.description ? " - "+metadata.description : "");
-	return label;
 }
 
 /**
