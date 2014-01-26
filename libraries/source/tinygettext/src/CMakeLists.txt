@@ -108,6 +108,11 @@ ADD_LIBRARY(tinygettext ${TINYGETTEXT_SOURCES})
 
 INCLUDE_DIRECTORIES(${tinygettext_SOURCE_DIR})
 
+## libc may already have iconv, in which case we wouldn't want to link it here
+if(NOT HAVE_ICONV_IN_LIBC)	
+	TARGET_LINK_LIBRARIES(tinygettext ${ICONV_LIBRARY})
+ENDIF(NOT HAVE_ICONV_IN_LIBC)
+
 ## Debug options
 
 OPTION(WERROR "Stops on first compiler warning in debug mode" OFF)
@@ -128,12 +133,13 @@ IF(CMAKE_COMPILER_IS_GNUCC)
           -Wformat=2
           -Winit-self 
           -Winvalid-pch  -Wunsafe-loop-optimizations
-          -Wlogical-op 
+          # -Wlogical-op 
           -Wmissing-format-attribute  -Wmissing-include-dirs -Wmissing-noreturn 
           -Wpacked
           -Wredundant-decls
           -Wshadow
-          -Wsign-conversion  -Wstack-protector
+          # -Wsign-conversion
+          -Wstack-protector
           -Wstrict-overflow=5
           -Wswitch-default  -Wswitch-enum
           -Wundef)
