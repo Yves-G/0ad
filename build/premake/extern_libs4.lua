@@ -380,16 +380,31 @@ extern_lib_defs = {
 		compile_settings = function()
 			if os.is("windows") then
 				add_default_include_paths("icu")
+			elseif os.is("macosx") then
+				-- Support ICU_CONFIG for overriding the default PATH-based icu-config
+				icu_config_path = os.getenv("ICU_CONFIG")
+				if not icu_config_path then
+					icu_config_path = "icu-config"
+				end
+				pkgconfig_cflags(nil, icu_config_path.." --cppflags")
 			end
 		end,
 		link_settings = function()
 			if os.is("windows") then
 				add_default_lib_paths("icu")
 			end
-			add_default_links({
-				win_names  = { "icuuc", "icuin" },
-				unix_names = { "icui18n", "icuuc" },
-			})
+			if os.is("macosx") then
+				icu_config_path = os.getenv("ICU_CONFIG")
+				if not icu_config_path then
+					icu_config_path = "gloox-config"
+				end
+				pkgconfig_libs(nil, icu_config_path.." --ldflags-searchpath --ldflags-libsonly --ldflags-system")
+			else
+				add_default_links({
+					win_names  = { "icuuc", "icuin" },
+					unix_names = { "icui18n", "icuuc" },
+				})
+			end
 		end,
 	},
 	libcurl = {

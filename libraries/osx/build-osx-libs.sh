@@ -38,6 +38,8 @@ OGG_VERSION="libogg-1.3.0"
 VORBIS_VERSION="libvorbis-1.3.3"
 # gloox is necessary for multiplayer lobby
 GLOOX_VERSION="gloox-1.0.9"
+# OS X only includes part of ICU, and only the dylib
+ICU_VERSION="icu4c-52_1"
 # --------------------------------------------------------------
 # Bundled with the game:
 # * SpiderMonkey 1.8.5
@@ -45,6 +47,7 @@ GLOOX_VERSION="gloox-1.0.9"
 # * NVTT
 # * FCollada
 # * MiniUPnPc
+# * tinygettext
 # --------------------------------------------------------------
 # Provided by OS X:
 # * OpenAL
@@ -518,6 +521,40 @@ else
 fi
 popd > /dev/null
 
+# --------------------------------------------------------------
+echo -e "Building ICU..."
+
+LIB_VERSION="${ICU_VERSION}"
+LIB_ARCHIVE="$LIB_VERSION-src.tgz"
+LIB_DIRECTORY="icu"
+LIB_URL="http://download.icu-project.org/files/icu4c/52.1/"
+
+mkdir -p icu
+pushd icu > /dev/null
+
+if [[ "$force_rebuild" = "true" ]] || [[ ! -e .already-built ]] || [[ .already-built -ot $LIB_DIRECTORY ]]
+then
+  INSTALL_DIR="$(pwd)"
+
+  rm -f .already-built
+  download_lib $LIB_URL $LIB_ARCHIVE
+
+  rm -rf $LIB_DIRECTORY bin include lib sbin share
+  tar -xf $LIB_ARCHIVE
+  pushd $LIB_DIRECTORY
+
+  mkdir -p source/build
+  pushd source/build
+
+  (CFLAGS="$CFLAGS" CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS" ../runConfigureICU MacOSX --prefix=$INSTALL_DIR --disable-shared --enable-static --disable-samples --enable-extras --enable-icuio --enable-layout --enable-tools && make ${JOBS} && make install) || die "ICU build failed"
+  popd
+  popd
+  touch .already-built
+else
+  already_built
+fi
+popd > /dev/null
+
 # --------------------------------------------------------------------
 # The following libraries are shared on different OSes and may
 # be customzied, so we build and install them from bundled sources
@@ -669,6 +706,37 @@ then
   (make clean && CFLAGS=$CFLAGS LDFLAGS=$LDFLAGS make ${JOBS}) || die "MiniUPnPc build failed"
 
   cp libminiupnpc.a ../lib/
+
+  popd
+  touch .already-built
+else
+  already_built
+fi
+popd > /dev/null
+
+# --------------------------------------------------------------
+# tinygettext - no install
+echo -e "Building tinygettext..."
+
+pushd ../source/tinygettext > /dev/null
+
+if [[ "$force_rebuild" = "true" ]] || [[ ! -e .already-built ]]
+then
+  rm -f .already-built
+  rm -f lib/*.a
+  pushd src
+  rm -rf build
+  mkdir -p build
+  mkdir -p ../lib
+
+  pushd build
+
+  # TODO: pass in various flags we need on OS X
+  # Use our previously built iconv insread of OS X bundled version
+  (cmake .. -DBUILD_SHARED_LIBS=OFF -DCMAKE_CXX_FLAGS="$CPPFLAGS" -DCMAKE_BUILD_TYPE=Release -DICONV_LIBRARY="${ICONV_DIR}/lib/libiconv.a" -DICONV_INCLUDE_DIR="${ICONV_DIR}/include" -G "Unix Makefiles" && make clean && make ${JOBS}) || die "tinygettext build failed"
+  popd
+
+  cp build/libtinygettext.a ../lib/
 
   popd
   touch .already-built
