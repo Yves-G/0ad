@@ -111,98 +111,68 @@ std::vector< std::wstring > L10n::getSupportedLocaleDisplayNames()
 
 int L10n::getCurrentLocaleIndex()
 {
-	std::vector<std::string> supportedLocaleCodes;
+	int languageCodeOnly = -1;
+	int defaultLocale = -1;
 
-	// Try to match a whole code first.
+	// Check for an exact match (whole code) first, then for the same language and at last for the default locale en_US
 	for (std::vector<Locale*>::iterator iterator = availableLocales.begin(); iterator != availableLocales.end(); ++iterator)
 	{
 		if (strcmp((**iterator).getBaseName(), getCurrentLocale().getBaseName()) == 0)
-		{
 			return iterator - availableLocales.begin();
-		}
+
+		if (languageCodeOnly < 0 && strcmp((**iterator).getLanguage(), getCurrentLocale().getLanguage()) == 0)
+			languageCodeOnly = iterator - availableLocales.begin();
+
+		if (defaultLocale < 0 && strcmp((**iterator).getLanguage(), Locale::getUS().getLanguage()) == 0)
+			defaultLocale = iterator - availableLocales.begin();
 	}
 
-	// Match language code only if no whole code matched.
-	for (std::vector<Locale*>::iterator iterator = availableLocales.begin(); iterator != availableLocales.end(); ++iterator)
-	{
-		if (strcmp((**iterator).getLanguage(), getCurrentLocale().getLanguage()) == 0)
-		{
-			return iterator - availableLocales.begin();
-		}
-	}
+	if (languageCodeOnly >= 0)
+		return languageCodeOnly;
+	
+	if (defaultLocale >= 0)
+		return defaultLocale;
 
-	// Use en_US, the default locale.
-	for (std::vector<Locale*>::iterator iterator = availableLocales.begin(); iterator != availableLocales.end(); ++iterator)
-	{
-		if (strcmp((**iterator).getLanguage(), Locale::getUS().getLanguage()) == 0)
-		{
-			return iterator - availableLocales.begin();
-		}
-	}
-
-	return 0; // It should never get this far.
+	debug_warn(L"Current locale, one with the same language, and the default language (en_US) not found in the available locales.");
+	return 0;
 }
 
 std::string L10n::translate(const std::string& sourceString)
 {
 	if (!currentLocaleIsOriginalGameLocale)
-	{
 		return dictionary->translate(sourceString);
-	}
-	else
-	{
-		return sourceString;
-	}
+
+	return sourceString;
 }
 
 std::string L10n::translateWithContext(const std::string& context, const std::string& sourceString)
 {
 	if (!currentLocaleIsOriginalGameLocale)
-	{
 		return dictionary->translate_ctxt(context, sourceString);
-	}
-	else
-	{
-		return sourceString;
-	}
+
+	return sourceString;
 }
 
 std::string L10n::translatePlural(const std::string& singularSourceString, const std::string& pluralSourceString, int number)
 {
 	if (!currentLocaleIsOriginalGameLocale)
-	{
 		return dictionary->translate_plural(singularSourceString, pluralSourceString, number);
-	}
-	else
-	{
-		if (number == 1)
-		{
-			return singularSourceString;
-		}
-		else
-		{
-			return pluralSourceString;
-		}
-	}
+
+	if (number == 1)
+		return singularSourceString;
+
+	return pluralSourceString;
 }
 
 std::string L10n::translatePluralWithContext(const std::string& context, const std::string& singularSourceString, const std::string& pluralSourceString, int number)
 {
 	if (!currentLocaleIsOriginalGameLocale)
-	{
 		return dictionary->translate_ctxt_plural(context, singularSourceString, pluralSourceString, number);
-	}
-	else
-	{
-		if (number == 1)
-		{
-			return singularSourceString;
-		}
-		else
-		{
-			return pluralSourceString;
-		}
-	}
+
+	if (number == 1)
+		return singularSourceString;
+
+	return pluralSourceString;
 }
 
 std::string L10n::translateLines(const std::string& sourceString)
@@ -290,9 +260,7 @@ VfsPath L10n::localizePath(VfsPath sourcePath)
 
 	VfsPath localizedPath = sourcePath.Parent() / L"l10n" / wstring_from_utf8(currentLocale.getLanguage()) / sourcePath.Filename();
 	if (VfsFileExists(localizedPath))
-	{
 		path = localizedPath;
-	}
 
 	return path;
 }
@@ -329,9 +297,8 @@ void L10n::loadDictionaryForCurrentLocale()
 void L10n::loadListOfAvailableLocales()
 {
 	for (std::vector<Locale*>::iterator iterator = availableLocales.begin(); iterator != availableLocales.end(); ++iterator)
-	{
 		delete *iterator;
-	}
+
 	availableLocales.clear();
 
 	Locale* defaultLocale = new Locale(Locale::getUS());
@@ -361,9 +328,7 @@ void L10n::loadListOfAvailableLocales()
 		}
 
 		if (!localeIsAlreadyAvailable)
-		{
 			availableLocales.push_back(locale);
-		}
 	}
 }
 
@@ -382,16 +347,16 @@ void L10n::readPoIntoDictionary(const std::string& poContent, tinygettext::Dicti
 
 DateFormat* L10n::createDateTimeInstance(L10n::DateTimeType type, DateFormat::EStyle style, const Locale& locale)
 {
-	if (type == Date)
+	switch(type)
 	{
+	case Date:
 		return SimpleDateFormat::createDateInstance(style, locale);
-	}
-	else if (type == Time)
-	{
+
+	case Time:
 		return SimpleDateFormat::createTimeInstance(style, locale);
-	}
-	else // Provide DateTime by default.
-	{
+
+	case DateTime:
+	default:
 		return SimpleDateFormat::createDateTimeInstance(style, style, locale);
 	}
 }
