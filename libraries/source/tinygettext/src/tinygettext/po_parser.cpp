@@ -36,6 +36,15 @@ namespace tinygettext {
 bool POParser::pedantic = true;
 
 void
+POParser::parse(const char* filename, const char* in, Dictionary& dict, bool use_fuzzy_)
+{
+  std::istringstream in_(in);
+  POParser parser(filename, in_, dict, use_fuzzy_);
+  parser.parse();
+}
+
+// Do NOT use this (internal use only) (or you break compatibility with different compilers)
+void
 POParser::parse(const std::string& filename, std::istream& in, Dictionary& dict, bool use_fuzzy_)
 {
   POParser parser(filename, in, dict, use_fuzzy_);

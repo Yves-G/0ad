@@ -61,6 +61,8 @@ public:
   /** @param filename name of the istream, only used in error messages
       @param in stream from which the PO file is read.
       @param dict dictionary to which the strings are written */
+  static void parse(const char* filename, const char* in, Dictionary& dict, bool use_fuzzy = true);
+  // Do NOT use this second version
   static void parse(const std::string& filename, std::istream& in, Dictionary& dict, bool use_fuzzy = true);
   static bool pedantic;
 

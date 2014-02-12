@@ -106,7 +106,7 @@ DictionaryManager::get_dictionary(const Language& language)
   else // Dictionary for languages lang isn't loaded, so we load it
   {
     //log_debug << "get_dictionary: " << lang << std::endl;
-    Dictionary* dict = new Dictionary(charset);
+    Dictionary* dict = new Dictionary(charset.c_str());
 
     dictionaries[language] = dict;
 

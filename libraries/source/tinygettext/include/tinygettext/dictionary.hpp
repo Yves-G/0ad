@@ -41,37 +41,37 @@ private:
   std::string charset;
   PluralForms plural_forms;
 
-  std::string translate(const Entries& dict, const std::string& msgid);
-  std::string translate_plural(const Entries& dict, const std::string& msgid, const std::string& msgidplural, int num);
+  const char* translate(const Entries& dict, const char* msgid);
+  const char* translate_plural(const Entries& dict, const char* msgid, const char* msgidplural, int num);
 
 public:
   /** Constructs a dictionary converting to the specified \a charset (default UTF-8) */
-  Dictionary(const std::string& charset = "UTF-8");
+  Dictionary(const char* charset = "UTF-8");
   ~Dictionary();
 
   /** Return the charset used for this dictionary */
-  std::string get_charset() const;
+  const char* get_charset() const;
 
   void set_plural_forms(const PluralForms&);
   PluralForms get_plural_forms() const;
 
 
   /** Translate the string \a msgid. */
-  std::string translate(const std::string& msgid);
+  const char* translate(const char* msgid);
 
   /** Translate the string \a msgid to its correct plural form, based
       on the number of items given by \a num. \a msgid_plural is \a msgid in
       plural form. */
-  std::string translate_plural(const std::string& msgid, const std::string& msgidplural, int num);
+  const char* translate_plural(const char* msgid, const char* msgidplural, int num);
 
   /** Translate the string \a msgid that is in context \a msgctx. A
       context is a way to disambiguate msgids that contain the same
       letters, but different meaning. For example "exit" might mean to
       quit doing something or it might refer to a door that leads
       outside (i.e. 'Ausgang' vs 'Beenden' in german) */
-  std::string translate_ctxt(const std::string& msgctxt, const std::string& msgid);
+  const char* translate_ctxt(const char* msgctxt, const char* msgid);
 
-  std::string translate_ctxt_plural(const std::string& msgctxt, const std::string& msgid, const std::string& msgidplural, int num);
+  const char* translate_ctxt_plural(const char* msgctxt, const char* msgid, const char* msgidplural, int num);
 
   /** Add a translation from \a msgid to \a msgstr to the dictionary,
       where \a msgid is the singular form of the message, msgid_plural the

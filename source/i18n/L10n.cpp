@@ -140,7 +140,7 @@ int L10n::getCurrentLocaleIndex()
 std::string L10n::translate(const std::string& sourceString)
 {
 	if (!currentLocaleIsOriginalGameLocale)
-		return dictionary->translate(sourceString);
+		return dictionary->translate(sourceString.c_str());
 
 	return sourceString;
 }
@@ -148,7 +148,7 @@ std::string L10n::translate(const std::string& sourceString)
 std::string L10n::translateWithContext(const std::string& context, const std::string& sourceString)
 {
 	if (!currentLocaleIsOriginalGameLocale)
-		return dictionary->translate_ctxt(context, sourceString);
+		return dictionary->translate_ctxt(context.c_str(), sourceString.c_str());
 
 	return sourceString;
 }
@@ -156,7 +156,7 @@ std::string L10n::translateWithContext(const std::string& context, const std::st
 std::string L10n::translatePlural(const std::string& singularSourceString, const std::string& pluralSourceString, int number)
 {
 	if (!currentLocaleIsOriginalGameLocale)
-		return dictionary->translate_plural(singularSourceString, pluralSourceString, number);
+		return dictionary->translate_plural(singularSourceString.c_str(), pluralSourceString.c_str(), number);
 
 	if (number == 1)
 		return singularSourceString;
@@ -167,7 +167,7 @@ std::string L10n::translatePlural(const std::string& singularSourceString, const
 std::string L10n::translatePluralWithContext(const std::string& context, const std::string& singularSourceString, const std::string& pluralSourceString, int number)
 {
 	if (!currentLocaleIsOriginalGameLocale)
-		return dictionary->translate_ctxt_plural(context, singularSourceString, pluralSourceString, number);
+		return dictionary->translate_ctxt_plural(context.c_str(), singularSourceString.c_str(), pluralSourceString.c_str(), number);
 
 	if (number == 1)
 		return singularSourceString;
@@ -182,7 +182,7 @@ std::string L10n::translateLines(const std::string& sourceString)
 	std::string line;
 
 	while (std::getline(stringOfLines, line)) {
-		targetString.append(translate(line));
+		targetString.append(translate(line.c_str()));
 		targetString.append("\n");
 	}
 
@@ -334,10 +334,10 @@ void L10n::loadListOfAvailableLocales()
 
 void L10n::readPoIntoDictionary(const std::string& poContent, tinygettext::Dictionary* dictionary)
 {
+	// TODO TODO TODO exceptions are not safe... but parse does not seem to throw anything (there is a catch in that while)
 	try
 	{
-		std::istringstream inputStream(poContent);
-		tinygettext::POParser::parse("virtual PO file", inputStream, *dictionary, false);
+		tinygettext::POParser::parse("virtual PO file", poContent.c_str(), *dictionary, false);
 	}
 	catch(std::exception& e)
 	{
