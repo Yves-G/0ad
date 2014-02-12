@@ -1157,7 +1157,7 @@ function updateUnitCommands(entState, supplementalDetailsPanel, commandsPanel, s
 						}
 						else if (wallName === "Stone Wall" && gateName === "City Gate")
 						{
-							tooltipString = translate("Convert Store Wall into City Gate");
+							tooltipString = translate("Convert Stone Wall into City Gate");
 						}
 						else if (wallName === "Siege Wall" && gateName === "Siege Wall Gate")
 						{
