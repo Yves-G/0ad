@@ -43,7 +43,7 @@ L10n& L10n::instance()
 }
 
 L10n::L10n()
-: currentLocaleIsOriginalGameLocale(false) // determineCurrentLocale() takes care of setting this value to true.
+	: currentLocaleIsOriginalGameLocale(false), dictionary(new tinygettext::Dictionary())
 {
 	loadListOfAvailableLocales();
 	setCurrentLocale(getConfiguredOrSystemLocale());
@@ -73,7 +73,7 @@ void L10n::setCurrentLocale(Locale locale)
 		loadDictionaryForCurrentLocale();
 }
 
-std::vector< std::string > L10n::getSupportedLocaleCodes()
+std::vector<std::string> L10n::getSupportedLocaleCodes()
 {
 	std::vector<std::string> supportedLocaleCodes;
 	for (std::vector<Locale*>::iterator iterator = availableLocales.begin(); iterator != availableLocales.end(); ++iterator)
@@ -85,7 +85,7 @@ std::vector< std::string > L10n::getSupportedLocaleCodes()
 	return supportedLocaleCodes;
 }
 
-std::vector< std::wstring > L10n::getSupportedLocaleDisplayNames()
+std::vector<std::wstring> L10n::getSupportedLocaleDisplayNames()
 {
 	std::vector<std::wstring> supportedLocaleDisplayNames;
 	for (std::vector<Locale*>::iterator iterator = availableLocales.begin(); iterator != availableLocales.end(); ++iterator)

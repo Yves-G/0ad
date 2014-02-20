@@ -21,7 +21,7 @@
 
 namespace tinygettext {
 
-Dictionary::Dictionary(const char* charset_) :
+Dictionary::Dictionary(const char* charset_ /* = "UTF-8" */) :
   entries(),
   ctxt_entries(),
   charset(charset_),
