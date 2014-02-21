@@ -31,7 +31,7 @@ function init(attribs)
 		{
 			Engine.GetGUIObjectByName("hostServerNameWrapper").hidden = false;
 			Engine.GetGUIObjectByName("hostPlayerName").caption = attribs.name;
-			Engine.GetGUIObjectByName("hostServerName").caption = sprintf(translate("%(name)'s game"), { name: attribs.name });
+			Engine.GetGUIObjectByName("hostServerName").caption = sprintf(translate("%(name)s's game"), { name: attribs.name });
 		}
 		else
 			Engine.GetGUIObjectByName("hostPlayerNameWrapper").hidden = false;
