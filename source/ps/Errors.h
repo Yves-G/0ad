@@ -72,7 +72,7 @@ plus a few extra things for converting between error codes and exceptions.
 
 #include <exception>
 
-typedef u32 PSRETURN;
+typedef uint32_t PSRETURN;
 
 class PSERROR : public std::exception
 {

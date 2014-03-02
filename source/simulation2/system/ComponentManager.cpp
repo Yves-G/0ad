@@ -243,12 +243,12 @@ void CComponentManager::Script_RegisterComponentType(ScriptInterface::CxPrivate*
 
 	// Find all the ctor prototype's On* methods, and subscribe to the appropriate messages:
 
-	CScriptVal proto;
+	JS::RootedObject proto(componentManager->m_ScriptInterface.GetContext());
 	if (!componentManager->m_ScriptInterface.GetProperty(ctor.get(), "prototype", proto))
 		return; // error
 
 	std::vector<std::string> methods;
-	if (!componentManager->m_ScriptInterface.EnumeratePropertyNamesWithPrefix(proto.get(), "On", methods))
+	if (!componentManager->m_ScriptInterface.EnumeratePropertyNamesWithPrefix(proto, "On", methods))
 		return; // error
 
 	for (std::vector<std::string>::const_iterator it = methods.begin(); it != methods.end(); ++it)
@@ -289,7 +289,10 @@ void CComponentManager::Script_RegisterComponentType(ScriptInterface::CxPrivate*
 		{
 			jsval instance = eit->second->GetJSInstance();
 			if (!JSVAL_IS_NULL(instance))
-				componentManager->m_ScriptInterface.SetPrototype(instance, proto.get());
+			{
+				JS::RootedObject instanceObj(componentManager->m_ScriptInterface.GetContext(),&instance.toObject());
+				componentManager->m_ScriptInterface.SetPrototype(instanceObj, proto);
+			}
 		}
 	}
 }
@@ -616,7 +619,7 @@ IComponent* CComponentManager::ConstructComponent(CEntityHandle ent, ComponentTy
 	jsval obj = JSVAL_NULL;
 	if (ct.type == CT_Script)
 	{
-		obj = m_ScriptInterface.CallConstructor(ct.ctor.get(), JSVAL_VOID);
+		obj = m_ScriptInterface.CallConstructor(ct.ctor.get(), 0, JSVAL_VOID);
 		if (JSVAL_IS_VOID(obj))
 		{
 			LOGERROR(L"Script component constructor failed");

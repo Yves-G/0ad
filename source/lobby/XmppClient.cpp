@@ -309,7 +309,7 @@ void XmppClient::SendIqGetRatingList()
 void XmppClient::SendIqGameReport(ScriptInterface& scriptInterface, CScriptVal data)
 {
 	glooxwrapper::JID xpartamuppJid(m_xpartamuppId);
-	jsval dataval = data.get();
+	JS::RootedValue dataval(scriptInterface.GetContext(), data.get());
 
 	// Setup some base stanza attributes
 	GameReport* game = new GameReport();
@@ -317,7 +317,8 @@ void XmppClient::SendIqGameReport(ScriptInterface& scriptInterface, CScriptVal d
 
 	// Iterate through all the properties reported and add them to the stanza.
 	std::vector<std::string> properties;
-	scriptInterface.EnumeratePropertyNamesWithPrefix(dataval, "", properties);
+	JS::RootedObject dataObj(scriptInterface.GetContext(), JSVAL_TO_OBJECT(dataval));
+	scriptInterface.EnumeratePropertyNamesWithPrefix(dataObj, "", properties);
 	for (std::vector<int>::size_type i = 0; i != properties.size(); i++)
 	{
 		std::wstring value;
@@ -343,7 +344,7 @@ void XmppClient::SendIqGameReport(ScriptInterface& scriptInterface, CScriptVal d
 void XmppClient::SendIqRegisterGame(ScriptInterface& scriptInterface, CScriptVal data)
 {
 	glooxwrapper::JID xpartamuppJid(m_xpartamuppId);
-	jsval dataval = data.get();
+	JS::RootedValue dataval(scriptInterface.GetContext(), data.get());
 
 	// Setup some base stanza attributes
 	GameListQuery* g = new GameListQuery();
@@ -354,7 +355,8 @@ void XmppClient::SendIqRegisterGame(ScriptInterface& scriptInterface, CScriptVal
 
 	// Iterate through all the properties reported and add them to the stanza.
 	std::vector<std::string> properties;
-	scriptInterface.EnumeratePropertyNamesWithPrefix(dataval, "", properties);
+	JS::RootedObject dataobj(scriptInterface.GetContext(), JSVAL_TO_OBJECT(dataval.get()));
+	scriptInterface.EnumeratePropertyNamesWithPrefix(dataobj, "", properties);
 	for (std::vector<int>::size_type i = 0; i != properties.size(); i++)
 	{
 		std::wstring value;

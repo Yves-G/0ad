@@ -127,7 +127,7 @@ void CReplayPlayer::Replay()
 	new CProfileManager;
 	g_ScriptStatsTable = new CScriptStatsTable;
 	g_ProfileViewer.AddRootTable(g_ScriptStatsTable);
-	g_ScriptRuntime = ScriptInterface::CreateRuntime(128 * 1024 * 1024);
+	g_ScriptRuntime = ScriptInterface::CreateRuntime(384 * 1024 * 1024);
 
 	CGame game(true);
 	g_Game = &game;
@@ -210,6 +210,7 @@ void CReplayPlayer::Replay()
 				g_Profiler2.IncrementFrameNumber();
 				PROFILE2_ATTR("%d", g_Profiler2.GetFrameNumber());
 
+				game.GetSimulation2()->Tick();
 				game.GetSimulation2()->Update(turnLength, commands);
 				commands.clear();
 			}
@@ -217,7 +218,7 @@ void CReplayPlayer::Replay()
 //			std::string hash;
 //			bool ok = game.GetSimulation2()->ComputeStateHash(hash, true);
 //			ENSURE(ok);
-//			debug_printf(L"%hs", Hexify(hash).c_str());
+//			debug_printf(L"turn hash (%u) : %hs", turn, Hexify(hash).c_str());
 
 			debug_printf(L"\n");
 
@@ -244,6 +245,10 @@ void CReplayPlayer::Replay()
 
 	timer_DisplayClientTotals();
 
+	// Must be explicitly destructed here to avoid callbacks from the JSAPI trying to use g_Profiler2 when
+	// it's already destructed.
+	g_ScriptRuntime.reset();
+	
 	// Clean up
 	delete &g_TexMan;
 	tex_codec_unregister_all();

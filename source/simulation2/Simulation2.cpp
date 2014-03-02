@@ -19,6 +19,8 @@
 
 #include "Simulation2.h"
 
+#include "scriptinterface/ScriptInterface.h"
+
 #include "simulation2/MessageTypes.h"
 #include "simulation2/system/ComponentManager.h"
 #include "simulation2/system/ParamNode.h"
@@ -155,6 +157,8 @@ public:
 	}
 
 	int ProgressiveLoad();
+
+	void Tick();
 	void Update(int turnLength, const std::vector<SimulationCommand>& commands);
 	static void UpdateComponents(CSimContext& simContext, fixed turnLengthFixed, const std::vector<SimulationCommand>& commands);
 	void Interpolate(float simFrameLength, float frameOffset, float realFrameLength);
@@ -336,6 +340,11 @@ void CSimulation2Impl::ReportSerializationFailure(
 	debug_warn(L"Serialization test failure");
 }
 
+void CSimulation2Impl::Tick()
+{
+    m_ComponentManager.Tick();
+}
+
 void CSimulation2Impl::Update(int turnLength, const std::vector<SimulationCommand>& commands)
 {
 	PROFILE3("sim update");
@@ -451,8 +460,8 @@ void CSimulation2Impl::Update(int turnLength, const std::vector<SimulationComman
 	// Run the GC occasionally
 	// (TODO: we ought to schedule this for a frame where we're not
 	// running the sim update, to spread the load)
-	if (m_TurnNumber % 10 == 0)
-		m_ComponentManager.GetScriptInterface().MaybeGC();
+	if (m_TurnNumber % 1 == 0)
+		m_ComponentManager.GetScriptInterface().MaybeIncrementalRuntimeGC();
 
 	if (m_EnableOOSLog)
 		DumpState();
@@ -635,6 +644,11 @@ CSimulation2::InterfaceList CSimulation2::GetEntitiesWithInterface(int iid)
 const CSimulation2::InterfaceListUnordered& CSimulation2::GetEntitiesWithInterfaceUnordered(int iid)
 {
 	return m->m_ComponentManager.GetEntitiesWithInterfaceUnordered(iid);
+}
+
+void CSimulation2::Tick()
+{
+    m->Tick();
 }
 
 const CSimContext& CSimulation2::GetSimContext() const
