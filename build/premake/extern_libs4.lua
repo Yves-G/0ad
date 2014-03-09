@@ -571,8 +571,6 @@ extern_lib_defs = {
 			else
 				if os.is("windows") then
 					include_dir = "include-win32"
-				elseif os.is("macosx") then
-					include_dir = "include-unix"
 				else
 					include_dir = "include-unix"
 				end
@@ -593,6 +591,10 @@ extern_lib_defs = {
 				--	pkgconfig_libs("mozjs185")
 				--end
 			else
+				if os.is("macosx") then
+					add_default_lib_paths("nspr")
+					links { "nspr4", "plc4", "plds4" }
+				end
 				configuration "Debug"
 					links { "mozjs24-ps-debug" }
 				configuration "Release"

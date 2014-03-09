@@ -38,9 +38,11 @@ OGG_VERSION="libogg-1.3.0"
 VORBIS_VERSION="libvorbis-1.3.3"
 # gloox is necessary for multiplayer lobby
 GLOOX_VERSION="gloox-1.0.9"
+# NSPR is necessary for threadsafe Spidermonkey
+NSPR_VERSION="4.10.3"
 # --------------------------------------------------------------
 # Bundled with the game:
-# * SpiderMonkey 1.8.5
+# * SpiderMonkey 24
 # * ENet 1.3.3
 # * NVTT
 # * FCollada
@@ -518,32 +520,72 @@ else
 fi
 popd > /dev/null
 
+# --------------------------------------------------------------
+echo -e "Building NSPR..."
+
+LIB_VERSION="${NSPR_VERSION}"
+LIB_ARCHIVE="nspr-$LIB_VERSION.tar.gz"
+LIB_DIRECTORY="nspr-$LIB_VERSION"
+LIB_URL="https://ftp.mozilla.org/pub/mozilla.org/nspr/releases/v$LIB_VERSION/src/"
+
+mkdir -p nspr
+pushd nspr > /dev/null
+
+NSPR_DIR="$(pwd)"
+
+if [[ "$force_rebuild" = "true" ]] || [[ ! -e .already-built ]] || [[ .already-built -ot $LIB_DIRECTORY ]]
+then
+  rm -f .already-built
+  download_lib $LIB_URL $LIB_ARCHIVE
+
+  rm -rf $LIB_DIRECTORY bin include lib share
+  tar -xf $LIB_ARCHIVE
+  pushd $LIB_DIRECTORY/nspr
+
+  (CFLAGS="$CFLAGS" CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS" ./configure --prefix="$NSPR_DIR" && make ${JOBS} && make install) || die "NSPR build failed"
+  popd
+  # TODO: how can we not build the dylibs?
+  rm -f lib/*.dylib
+  touch .already-built
+else
+  already_built
+fi
+popd > /dev/null
+
 # --------------------------------------------------------------------
 # The following libraries are shared on different OSes and may
 # be customzied, so we build and install them from bundled sources
 # --------------------------------------------------------------------
 echo -e "Building Spidermonkey..."
 
-LIB_VERSION="js185-1.0.0"
-LIB_ARCHIVE="$LIB_VERSION.tar.gz"
-LIB_DIRECTORY="js-1.8.5"
+LIB_VERSION="mozjs-24.2.0"
+LIB_ARCHIVE="$LIB_VERSION.tar.bz2"
+LIB_DIRECTORY="mozjs24"
 
 pushd ../source/spidermonkey/ > /dev/null
 
 if [[ "$force_rebuild" = "true" ]] || [[ ! -e .already-built ]] || [[ .already-built -ot $LIB_DIRECTORY ]]
 then
   INSTALL_DIR="$(pwd)"
+  INCLUDE_DIR_DEBUG=$INSTALL_DIR/include-unix-debug
+  INCLUDE_DIR_RELEASE=$INSTALL_DIR/include-unix-release
 
   rm -f .already-built
   rm -f lib/*.a
-  rm -rf $LIB_DIRECTORY
+  rm -rf $LIB_DIRECTORY $INCLUDE_DIR_DEBUG $INCLUDE_DIR_RELEASE
   tar -xf $LIB_ARCHIVE
+  # rename the extracted directory to something shorter
+  mv $LIB_VERSION $LIB_DIRECTORY 
   pushd $LIB_DIRECTORY/js/src
 
-  # We want separate debug/release versions of the library, so change their install name in the Makefile
-  sed -i.bak -e 's/\(STATIC_LIBRARY_NAME),mozjs185-\)\(\$(SRCREL_ABI_VERSION)\)\{0,1\}/\1ps-debug/' Makefile.in
+  NSPR_INCLUDES="`${NSPR_DIR}/bin/nspr-config --cflags`"
+  NSPR_LIBS="`${NSPR_DIR}/bin/nspr-config --libs`"
 
-  CONF_OPTS="--prefix=${INSTALL_DIR} --disable-tests --disable-shared-js"
+  # We want separate debug/release versions of the library, so change their install name in the Makefile
+  perl -i.bak -pe 's/(^STATIC_LIBRARY_NAME\s+=).*/$1mozjs24-ps-debug/' Makefile.in
+  perl -i.bak -pe 's/js_static/mozjs24-ps-debug/g' shell/Makefile.in
+
+  CONF_OPTS="--prefix=${INSTALL_DIR} --enable-threadsafe --disable-tests --disable-shared-js" # --enable-trace-logging"
   # Uncomment this line for 32-bit 10.5 cross compile:
   #CONF_OPTS="$CONF_OPTS --target=i386-apple-darwin9.0.0"
   if [[ $MIN_OSX_VERSION && ${MIN_OSX_VERSION-_} ]]; then
@@ -555,17 +597,27 @@ then
 
   mkdir -p build-debug
   pushd build-debug
-  (CC="$CC -arch $ARCH" CXX="$CXX -arch $ARCH" AR=ar CROSS_COMPILE=1 ../configure $CONF_OPTS --enable-debug --disable-optimize && make ${JOBS} && make install) || die "Spidermonkey build failed"
+  (CC="clang -arch $ARCH" CXX="clang++ -arch $ARCH" AR=ar CROSS_COMPILE=1 ../configure $CONF_OPTS --enable-debug --disable-optimize --enable-js-diagnostics --enable-gczeal --with-nspr-libs="$NSPR_LIBS" --with-nspr-cflags="$NSPR_INCLUDES" && make ${JOBS}) || die "Spidermonkey build failed" 
+  # js-config.h is different for debug and release builds, so we need different include directories for both
+  mkdir -p $INCLUDE_DIR_DEBUG
+  cp -R -L dist/include/* $INCLUDE_DIR_DEBUG/
+  cp *.a $INSTALL_DIR/lib
   popd
   mv Makefile.in.bak Makefile.in
-  
-  sed -i.bak -e 's/\(STATIC_LIBRARY_NAME),mozjs185-\)\(\$(SRCREL_ABI_VERSION)\)\{0,1\}/\1ps-release/' Makefile.in
+  mv shell/Makefile.in.bak shell/Makefile.in
 
+  perl -i.bak -pe 's/(^STATIC_LIBRARY_NAME\s+=).*/$1mozjs24-ps-release/' Makefile.in
+  perl -i.bak -pe 's/js_static/mozjs24-ps-release/g' shell/Makefile.in
   mkdir -p build-release
   pushd build-release
-  (CC="$CC -arch $ARCH" CXX="$CXX -arch $ARCH" AR=ar CROSS_COMPILE=1 ../configure $CONF_OPTS && make ${JOBS} && make install) || die "Spidermonkey build failed"
+  (CC="clang -arch $ARCH" CXX="clang++ -arch $ARCH" AR=ar CROSS_COMPILE=1 ../configure $CONF_OPTS --enable-optimize --with-nspr-libs="$NSPR_LIBS" --with-nspr-cflags="$NSPR_INCLUDES" && make ${JOBS}) || die "Spidermonkey build failed"
+  # js-config.h is different for debug and release builds, so we need different include directories for both
+  mkdir -p $INCLUDE_DIR_RELEASE
+  cp -R -L dist/include/* $INCLUDE_DIR_RELEASE/
+  cp *.a $INSTALL_DIR/lib
   popd
   mv Makefile.in.bak Makefile.in
+  mv shell/Makefile.in.bak shell/Makefile.in
   
   popd
   touch .already-built
