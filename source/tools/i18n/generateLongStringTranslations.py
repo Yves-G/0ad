@@ -130,11 +130,17 @@ def generateLongStringTranslationFromPotIntoPo(inputFilePath, outputFilePath):
 
 def main():
 
+    foundPots = 0
     for root, folders, filenames in os.walk(projectRootDirectory):
         root = root.decode("utf-8")
         for filename in filenames:
             if len(filename) > 4 and filename[-4:] == ".pot" and os.path.basename(root) == "l10n":
+                foundPots += 1
                 generateLongStringTranslationFromPotIntoPo(os.path.join(root, filename), os.path.join(root, "long." + filename[:-1]))
+    if foundPots == 0:
+        print(u"This script did not work because no ‘.pot’ files were found.")
+        print(u"Please, run ‘updateTemplates.py’ to generate the ‘.pot’ files, and run ‘pullTranslations.py’ to pull the latest translations from Transifex.")
+        print(u"Then you can run this script to generate ‘.po’ files with the longest strings.")
 
 
 if __name__ == "__main__":
