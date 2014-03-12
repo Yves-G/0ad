@@ -254,7 +254,7 @@ public:
 	 */
 	bool HasProperty(jsval obj, const char* name);
 
-	bool EnumeratePropertyNamesWithPrefix(JS::HandleObject obj, const char* prefix, std::vector<std::string>& out);
+	bool EnumeratePropertyNamesWithPrefix(JS::HandleValue objVal, const char* prefix, std::vector<std::string>& out);
 
 	bool SetPrototype(JS::HandleObject obj, JS::HandleObject proto);
 

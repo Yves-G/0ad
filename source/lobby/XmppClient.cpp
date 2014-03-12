@@ -317,8 +317,7 @@ void XmppClient::SendIqGameReport(ScriptInterface& scriptInterface, CScriptVal d
 
 	// Iterate through all the properties reported and add them to the stanza.
 	std::vector<std::string> properties;
-	JS::RootedObject dataObj(scriptInterface.GetContext(), JSVAL_TO_OBJECT(dataval));
-	scriptInterface.EnumeratePropertyNamesWithPrefix(dataObj, "", properties);
+	scriptInterface.EnumeratePropertyNamesWithPrefix(dataval, "", properties);
 	for (std::vector<int>::size_type i = 0; i != properties.size(); i++)
 	{
 		std::wstring value;
@@ -355,8 +354,7 @@ void XmppClient::SendIqRegisterGame(ScriptInterface& scriptInterface, CScriptVal
 
 	// Iterate through all the properties reported and add them to the stanza.
 	std::vector<std::string> properties;
-	JS::RootedObject dataobj(scriptInterface.GetContext(), JSVAL_TO_OBJECT(dataval.get()));
-	scriptInterface.EnumeratePropertyNamesWithPrefix(dataobj, "", properties);
+	scriptInterface.EnumeratePropertyNamesWithPrefix(dataval, "", properties);
 	for (std::vector<int>::size_type i = 0; i != properties.size(); i++)
 	{
 		std::wstring value;

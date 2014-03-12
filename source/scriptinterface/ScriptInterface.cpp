@@ -990,7 +990,7 @@ bool ScriptInterface::CallFunction_(jsval val, const char* name, size_t argc, js
 
 	bool ok = JS_CallFunctionName(m->m_cx, obj, name, (uint)argc, argv, &ret);
 
-	return ok ? JS_TRUE : JS_FALSE;
+	return ok;
 }
 
 jsval ScriptInterface::GetGlobalObject()
@@ -1021,7 +1021,7 @@ bool ScriptInterface::SetGlobal_(const char* name, jsval value, bool replace)
 
 	bool ok = JS_DefineProperty(m->m_cx, m->m_glob, name, value, NULL, NULL, JSPROP_ENUMERATE | JSPROP_READONLY
  			| JSPROP_PERMANENT);
-	return ok ? JS_TRUE : JS_FALSE;
+	return ok;
 }
 
 bool ScriptInterface::SetProperty_(jsval obj, const char* name, jsval value, bool constant, bool enumerate)
@@ -1117,31 +1117,37 @@ bool ScriptInterface::HasProperty(jsval obj, const char* name)
 	return found;
 }
 
-bool ScriptInterface::EnumeratePropertyNamesWithPrefix(JS::HandleObject obj, const char* prefix, std::vector<std::string>& out)
+bool ScriptInterface::EnumeratePropertyNamesWithPrefix(JS::HandleValue objVal, const char* prefix, std::vector<std::string>& out)
 {
 	JSAutoRequest rq(m->m_cx);
-	if (obj.get() == 0x0)
-		return true;
-
-//	if ( obj.get().isPrimitive() )
-//		return false; // TODO: log error messages
-
-	JSObject* it = JS_NewPropertyIterator(m->m_cx, obj.get());
+	
+	if (!objVal.isObjectOrNull())
+	{
+		LOGERROR(L"EnumeratePropertyNamesWithPrefix expected object type!");
+		return false;
+	}
+		
+	if(objVal.isNull())
+		return true; // reached the end of the prototype chain
+	
+	JS::RootedObject obj(m->m_cx, &objVal.toObject());
+	JS::RootedObject it(m->m_cx, JS_NewPropertyIterator(m->m_cx, obj));
 	if (!it)
 		return false;
 
 	while (true)
 	{
-		jsid idp;
-		jsval val;
-		if (! JS_NextProperty(m->m_cx, it, &idp) || ! JS_IdToValue(m->m_cx, idp, &val))
+		JS::RootedId idp(m->m_cx);
+		JS::RootedValue val(m->m_cx);
+		if (! JS_NextProperty(m->m_cx, it, idp.address()) || ! JS_IdToValue(m->m_cx, idp, val.address()))
 			return false;
-		if (val == JSVAL_VOID)
+
+		if (val.isUndefined())
 			break; // end of iteration
-		if (! JSVAL_IS_STRING(val))
+		if (!val.isString())
 			continue; // ignore integer properties
 
-		JSString* name = JSVAL_TO_STRING(val);
+		JS::RootedString name(m->m_cx, val.toString());
 		size_t len = strlen(prefix)+1;
 		std::vector<char> buf(len);
 		size_t prefixLen = strlen(prefix) * sizeof(char);
@@ -1159,7 +1165,8 @@ bool ScriptInterface::EnumeratePropertyNamesWithPrefix(JS::HandleObject obj, con
 	JS::RootedObject prototype(m->m_cx);
 	if (JS_GetPrototype(m->m_cx, obj, prototype.address()))
 	{
-		if (! EnumeratePropertyNamesWithPrefix(prototype, prefix, out))
+		JS::RootedValue prototypeVal(m->m_cx, JS::ObjectOrNullValue(prototype));
+		if (! EnumeratePropertyNamesWithPrefix(prototypeVal, prefix, out))
 			return false;
 	}
 

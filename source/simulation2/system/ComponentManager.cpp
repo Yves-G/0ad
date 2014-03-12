@@ -146,6 +146,8 @@ bool CComponentManager::LoadScript(const VfsPath& filename, bool hotload)
 void CComponentManager::Script_RegisterComponentType(ScriptInterface::CxPrivate* pCxPrivate, int iid, std::string cname, CScriptVal ctor)
 {
 	CComponentManager* componentManager = static_cast<CComponentManager*> (pCxPrivate->pCBData);
+	JSContext* cx = componentManager->m_ScriptInterface.GetContext();
+	JSAutoRequest rq(cx);
 
 	// Find the C++ component that wraps the interface
 	int cidWrapper = componentManager->GetScriptWrapper(iid);
@@ -234,7 +236,7 @@ void CComponentManager::Script_RegisterComponentType(ScriptInterface::CxPrivate*
 		ctWrapper.dealloc,
 		cname,
 		schema,
-		CScriptValRooted(componentManager->m_ScriptInterface.GetContext(), ctor)
+		CScriptValRooted(cx, ctor)
 	};
 	componentManager->m_ComponentTypesById[cid] = ct;
 
@@ -243,12 +245,14 @@ void CComponentManager::Script_RegisterComponentType(ScriptInterface::CxPrivate*
 
 	// Find all the ctor prototype's On* methods, and subscribe to the appropriate messages:
 
-	JS::RootedObject proto(componentManager->m_ScriptInterface.GetContext());
+	JS::RootedObject proto(cx);
 	if (!componentManager->m_ScriptInterface.GetProperty(ctor.get(), "prototype", proto))
 		return; // error
 
 	std::vector<std::string> methods;
-	if (!componentManager->m_ScriptInterface.EnumeratePropertyNamesWithPrefix(proto, "On", methods))
+	JS::RootedValue protoVal(cx, JS::ObjectOrNullValue(proto));
+	
+	if (!componentManager->m_ScriptInterface.EnumeratePropertyNamesWithPrefix(protoVal, "On", methods))
 		return; // error
 
 	for (std::vector<std::string>::const_iterator it = methods.begin(); it != methods.end(); ++it)
