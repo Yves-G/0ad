@@ -37,13 +37,13 @@ template<> void ScriptInterface::ToJSVal<IComponent*>(JSContext* cx, JS::Value& 
 	JSAutoRequest rq(cx);
 	if (val == NULL)
 	{
-		ret = JSVAL_NULL;
+		ret = JS::NullValue();
 		return;
 	}
 
 	// If this is a scripted component, just return the JS object directly
-	jsval instance = val->GetJSInstance();
-	if (!JSVAL_IS_NULL(instance))
+	JS::RootedValue instance(cx, val->GetJSInstance());
+	if (!instance.isNull())
 	{
 		ret = instance;
 		return;
@@ -56,20 +56,20 @@ template<> void ScriptInterface::ToJSVal<IComponent*>(JSContext* cx, JS::Value& 
 	{
 		// Report as an error, since scripts really shouldn't try to use unscriptable interfaces
 		LOGERROR(L"IComponent does not have a scriptable interface");
-		ret = JSVAL_VOID;
+		ret = JS::UndefinedValue();
 		return;
 	}
 
-	JSObject* obj = JS_NewObject(cx, cls, NULL, NULL);
+	JS::RootedObject obj(cx, JS_NewObject(cx, cls, NULL, NULL));
 	if (!obj)
 	{
 		LOGERROR(L"Failed to construct IComponent script object");
-		ret = JSVAL_VOID;
+		ret = JS::UndefinedValue();
 		return;
 	}
 	JS_SetPrivate(obj, static_cast<void*>(val));
 
-	ret = OBJECT_TO_JSVAL(obj);
+	ret = JS::ObjectValue(*obj);
 }
 
 template<> void ScriptInterface::ToJSVal<CParamNode>(JSContext* cx, JS::Value& ret, CParamNode const& val)
@@ -79,8 +79,8 @@ template<> void ScriptInterface::ToJSVal<CParamNode>(JSContext* cx, JS::Value& r
 
 	// Prevent modifications to the object, so that it's safe to share between
 	// components and to reconstruct on deserialization
-	if (!JSVAL_IS_PRIMITIVE(ret))
-		JS_DeepFreezeObject(cx, JSVAL_TO_OBJECT(ret));
+	if (ret.isObject())
+		JS_DeepFreezeObject(cx, &ret.toObject());
 }
 
 template<> void ScriptInterface::ToJSVal<const CParamNode*>(JSContext* cx, JS::Value& ret, const CParamNode* const& val)
@@ -93,11 +93,11 @@ template<> void ScriptInterface::ToJSVal<const CParamNode*>(JSContext* cx, JS::V
 
 template<> bool ScriptInterface::FromJSVal<CColor>(JSContext* cx, jsval v, CColor& out)
 {
-	if (JSVAL_IS_PRIMITIVE(v))
+	if (!v.isObject())
 		FAIL("jsval not an object");
 
 	JSAutoRequest rq(cx);
-	JSObject* obj = JSVAL_TO_OBJECT(v);
+	JS::RootedObject obj(cx, &v.toObject());
 
 	JS::RootedValue r(cx);
 	JS::RootedValue g(cx);
@@ -111,7 +111,6 @@ template<> bool ScriptInterface::FromJSVal<CColor>(JSContext* cx, jsval v, CColo
 		FAIL("Failed to get property CColor.b");
 	if (!JS_GetProperty(cx, obj, "a", a.address()) || !FromJSVal(cx, a, out.a))
 		FAIL("Failed to get property CColor.a");
-	// TODO: this probably has GC bugs if a getter returns an unrooted value
 
 	return true;
 }
@@ -119,7 +118,7 @@ template<> bool ScriptInterface::FromJSVal<CColor>(JSContext* cx, jsval v, CColo
 template<> void ScriptInterface::ToJSVal<CColor>(JSContext* cx, JS::Value& ret, CColor const& val)
 {
 	JSAutoRequest rq(cx);
-	JSObject* obj = JS_NewObject(cx, NULL, NULL, NULL);
+	JS::RootedObject obj(cx, JS_NewObject(cx, NULL, NULL, NULL));
 	if (!obj)
 	{
 		ret = JSVAL_VOID;
@@ -140,14 +139,14 @@ template<> void ScriptInterface::ToJSVal<CColor>(JSContext* cx, JS::Value& ret, 
 	JS_SetProperty(cx, obj, "b", b.address());
 	JS_SetProperty(cx, obj, "a", a.address());
 
-	ret = OBJECT_TO_JSVAL(obj);
+	ret = JS::ObjectValue(*obj);
 }
 
 template<> bool ScriptInterface::FromJSVal<fixed>(JSContext* cx, jsval v, fixed& out)
 {
 	JSAutoRequest rq(cx);
 	double ret;
-	if (!JS_ValueToNumber(cx, v, &ret))
+	if (!JS::ToNumber(cx, v, &ret))
 		return false;
 	out = fixed::FromDouble(ret);
 	// double can precisely represent the full range of fixed, so this is a non-lossy conversion
@@ -157,17 +156,16 @@ template<> bool ScriptInterface::FromJSVal<fixed>(JSContext* cx, jsval v, fixed&
 
 template<> void ScriptInterface::ToJSVal<fixed>(JSContext* UNUSED(cx), JS::Value& ret, const fixed& val)
 {
-	ret = JS_NumberValue(val.ToDouble());
+	ret = JS::NumberValue(val.ToDouble());
 }
 
 template<> bool ScriptInterface::FromJSVal<CFixedVector3D>(JSContext* cx, jsval v, CFixedVector3D& out)
 {
-	if (JSVAL_IS_PRIMITIVE(v))
+	if (!v.isObject())
 		return false; // TODO: report type error
 
 	JSAutoRequest rq(cx);
-	JSObject* obj = JSVAL_TO_OBJECT(v);
-
+	JS::RootedObject obj(cx, &v.toObject());
 	JS::RootedValue p(cx);
 
 	if (!JS_GetProperty(cx, obj, "x", p.address())) return false; // TODO: report type errors
@@ -188,7 +186,9 @@ template<> void ScriptInterface::ToJSVal<CFixedVector3D>(JSContext* cx, JS::Valu
 
 	// apply the Vector3D prototype to the return value;
  	ScriptInterface::CxPrivate* pCxPrivate = ScriptInterface::GetScriptInterfaceAndCBData(cx);
-	JSObject* obj = JS_NewObject(cx, NULL, JSVAL_TO_OBJECT(pCxPrivate->pScriptInterface->GetCachedValue(ScriptInterface::CACHE_VECTOR3DPROTO).get()), NULL);
+	JS::RootedObject obj(cx, JS_NewObject(cx, NULL, 
+						&pCxPrivate->pScriptInterface->GetCachedValue(ScriptInterface::CACHE_VECTOR3DPROTO).get().toObject(), 
+						NULL));
 
 	if (!obj)
 	{
@@ -207,15 +207,15 @@ template<> void ScriptInterface::ToJSVal<CFixedVector3D>(JSContext* cx, JS::Valu
 	JS_SetProperty(cx, obj, "y", y.address());
 	JS_SetProperty(cx, obj, "z", z.address());
 
-	ret = OBJECT_TO_JSVAL(obj);
+	ret = JS::ObjectValue(*obj);
 }
 
 template<> bool ScriptInterface::FromJSVal<CFixedVector2D>(JSContext* cx, jsval v, CFixedVector2D& out)
 {
 	JSAutoRequest rq(cx);
-	if (JSVAL_IS_PRIMITIVE(v))
+	if (!v.isObject())
 		return false; // TODO: report type error
-	JSObject* obj = JSVAL_TO_OBJECT(v);
+	JS::RootedObject obj(cx, &v.toObject());
 
 	JS::RootedValue p(cx);
 
@@ -234,8 +234,9 @@ template<> void ScriptInterface::ToJSVal<CFixedVector2D>(JSContext* cx, JS::Valu
 
 	// apply the Vector2D prototype to the return value
  	ScriptInterface::CxPrivate* pCxPrivate = ScriptInterface::GetScriptInterfaceAndCBData(cx);
-	JSObject* obj = JS_NewObject(cx, NULL, JSVAL_TO_OBJECT(pCxPrivate->pScriptInterface->GetCachedValue(ScriptInterface::CACHE_VECTOR2DPROTO).get()), NULL);
-
+	JS::RootedObject obj(cx, JS_NewObject(cx, NULL, 
+						&pCxPrivate->pScriptInterface->GetCachedValue(ScriptInterface::CACHE_VECTOR2DPROTO).get().toObject(), 
+						NULL));
 	if (!obj)
 	{
 		ret = JSVAL_VOID;
@@ -250,7 +251,7 @@ template<> void ScriptInterface::ToJSVal<CFixedVector2D>(JSContext* cx, JS::Valu
 	JS_SetProperty(cx, obj, "x", x.address());
 	JS_SetProperty(cx, obj, "y", y.address());
 
-	ret = OBJECT_TO_JSVAL(obj);
+	ret = JS::ObjectValue(*obj);
 }
 
 template<> void ScriptInterface::ToJSVal<Grid<u8> >(JSContext* cx, JS::Value& ret, const Grid<u8>& val)
@@ -258,21 +259,21 @@ template<> void ScriptInterface::ToJSVal<Grid<u8> >(JSContext* cx, JS::Value& re
 	JSAutoRequest rq(cx);
 	uint32_t length = (uint32_t)(val.m_W * val.m_H);
 	uint32_t nbytes = (uint32_t)(length * sizeof(uint8_t));
-	JSObject* objArr = JS_NewUint8Array(cx, length);
+	JS::RootedObject objArr(cx, JS_NewUint8Array(cx, length));
 	memcpy((void*)JS_GetUint8ArrayData(objArr), val.m_Data, nbytes);
 
-	JS::RootedValue data(cx, OBJECT_TO_JSVAL(objArr));
+	JS::RootedValue data(cx, JS::ObjectValue(*objArr));
 	JS::RootedValue w(cx);
 	JS::RootedValue h(cx);
 	ScriptInterface::ToJSVal(cx, w.get(), val.m_W);
 	ScriptInterface::ToJSVal(cx, h.get(), val.m_H);
 
-	JSObject* obj = JS_NewObject(cx, NULL, NULL, NULL);
+	JS::RootedObject obj(cx, JS_NewObject(cx, NULL, NULL, NULL));
 	JS_SetProperty(cx, obj, "width", w.address());
 	JS_SetProperty(cx, obj, "height", h.address());
 	JS_SetProperty(cx, obj, "data", data.address());
 
-	ret = OBJECT_TO_JSVAL(obj);
+	ret = JS::ObjectValue(*obj);
 }
  
 template<> void ScriptInterface::ToJSVal<Grid<u16> >(JSContext* cx, JS::Value& ret, const Grid<u16>& val)
@@ -280,19 +281,19 @@ template<> void ScriptInterface::ToJSVal<Grid<u16> >(JSContext* cx, JS::Value& r
 	JSAutoRequest rq(cx);
 	uint32_t length = (uint32_t)(val.m_W * val.m_H);
 	uint32_t nbytes = (uint32_t)(length * sizeof(uint16_t));
-	JSObject* objArr = JS_NewUint16Array(cx, length);
+	JS::RootedObject objArr(cx, JS_NewUint16Array(cx, length));
 	memcpy((void*)JS_GetUint16ArrayData(objArr), val.m_Data, nbytes);
  
-	JS::RootedValue data(cx, OBJECT_TO_JSVAL(objArr));
+	JS::RootedValue data(cx, JS::ObjectValue(*objArr));
 	JS::RootedValue w(cx);
 	JS::RootedValue h(cx);
 	ScriptInterface::ToJSVal(cx, w.get(), val.m_W);
 	ScriptInterface::ToJSVal(cx, h.get(), val.m_H);
 
-	JSObject* obj = JS_NewObject(cx, NULL, NULL, NULL);
+	JS::RootedObject obj(cx, JS_NewObject(cx, NULL, NULL, NULL));
 	JS_SetProperty(cx, obj, "width", w.address());
 	JS_SetProperty(cx, obj, "height", h.address());
 	JS_SetProperty(cx, obj, "data", data.address());
 
-	ret = OBJECT_TO_JSVAL(obj);
+	ret = JS::ObjectValue(*obj);
 }

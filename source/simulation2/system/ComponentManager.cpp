@@ -294,11 +294,10 @@ void CComponentManager::Script_RegisterComponentType(ScriptInterface::CxPrivate*
 		std::map<entity_id_t, IComponent*>::const_iterator eit = comps.begin();
 		for (; eit != comps.end(); ++eit)
 		{
-			jsval instance = eit->second->GetJSInstance();
-			if (!JSVAL_IS_NULL(instance))
+			JS::RootedValue instance(cx, eit->second->GetJSInstance());
+			if (!instance.isNull())
 			{
-				JS::RootedObject instanceObj(componentManager->m_ScriptInterface.GetContext(),&instance.toObject());
-				componentManager->m_ScriptInterface.SetPrototype(instanceObj, proto);
+				componentManager->m_ScriptInterface.SetPrototype(instance, protoVal);
 			}
 		}
 	}

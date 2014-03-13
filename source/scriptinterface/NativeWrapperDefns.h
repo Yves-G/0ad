@@ -79,11 +79,11 @@ struct ScriptInterface_NativeMethodWrapper<void, TC> {
 #define SCRIPT_PROFILE \
 	if (g_ScriptProfilingEnabled) \
 	{ \
-		ENSURE(!JSVAL_IS_PRIMITIVE(JS_CALLEE(cx, vp)) && JS_ObjectIsFunction(cx, JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)))); \
+		ENSURE(JS_CALLEE(cx, vp).isObject() && JS_ObjectIsFunction(cx, &JS_CALLEE(cx, vp).toObject())); \
 		const char* name = "(unknown)"; \
 		jsval nameval; \
-		nameval = JS_GetReservedSlot(JSVAL_TO_OBJECT(JS_CALLEE(cx, vp)), 0); \
-		if (!JSVAL_IS_VOID(nameval)) \
+		nameval = JS_GetReservedSlot( &JS_CALLEE(cx, vp).toObject(), 0); \
+		if (!nameval.isUndefined()) \
 			name = static_cast<const char*>(JSVAL_TO_PRIVATE(nameval)); \
 		CProfileSampleScript profile(name); \
 	}

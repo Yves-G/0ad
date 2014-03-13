@@ -264,7 +264,7 @@ public:
 
 	bool EnumeratePropertyNamesWithPrefix(JS::HandleValue objVal, const char* prefix, std::vector<std::string>& out);
 
-	bool SetPrototype(JS::HandleObject obj, JS::HandleObject proto);
+	bool SetPrototype(JS::HandleValue obj, JS::HandleValue proto);
 
 	bool FreezeObject(jsval obj, bool deep);
 

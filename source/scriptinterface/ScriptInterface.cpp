@@ -233,7 +233,7 @@ public:
 
 private:
 	
-		// Workaround for: https://bugzilla.mozilla.org/show_bug.cgi?id=890243
+	// Workaround for: https://bugzilla.mozilla.org/show_bug.cgi?id=890243
 	JSContext* m_dummyContext;
 	
 	int m_LastGCBytes;
@@ -426,7 +426,7 @@ void ErrorReporter(JSContext* cx, const char* message, JSErrorReport* report)
 
 	// If there is an exception, then print its stack trace
 	jsval excn;
-	if (JS_GetPendingException(cx, &excn) && !JSVAL_IS_PRIMITIVE(excn))
+	if (JS_GetPendingException(cx, &excn) && excn.isObject())
 	{
 		// TODO: this violates the docs ("The error reporter callback must not reenter the JSAPI.")
 
@@ -436,7 +436,7 @@ void ErrorReporter(JSContext* cx, const char* message, JSErrorReport* report)
 
 		jsval rval;
 		const char dumpStack[] = "this.stack.trimRight().replace(/^/mg, '  ')"; // indent each line
-		if (JS_EvaluateScript(cx, JSVAL_TO_OBJECT(excn), dumpStack, ARRAY_SIZE(dumpStack)-1, "(eval)", 1, &rval))
+		if (JS_EvaluateScript(cx, &excn.toObject(), dumpStack, ARRAY_SIZE(dumpStack)-1, "(eval)", 1, &rval))
 		{
 			std::string stackTrace;
 			if (ScriptInterface::FromJSVal(cx, rval, stackTrace))
@@ -487,7 +487,7 @@ JSBool logmsg(JSContext* cx, uint argc, jsval* vp)
 	std::wstring str;
 	if (!ScriptInterface::FromJSVal(cx, JS_ARGV(cx, vp)[0], str))
 		return JS_FALSE;
-	LOGMESSAGE(L"%ls%f", str.c_str(), timer_Time());
+	LOGMESSAGE(L"%ls", str.c_str());
 	JS_SET_RVAL(cx, vp, JSVAL_VOID);
 	return JS_TRUE;
 }
@@ -607,7 +607,7 @@ JSBool Math_random(JSContext* cx, uint UNUSED(argc), jsval* vp)
 	}
 	else
 	{
-		jsval rv = JS_NumberValue(r);
+		jsval rv = JS::NumberValue(r);
 		JS_SET_RVAL(cx, vp, rv);
 		return JS_TRUE;
 	}
@@ -676,7 +676,7 @@ ScriptInterface_impl::ScriptInterface_impl(const char* nativeScopeName, const sh
 	ENSURE(ok);
 
 
-	JS_DefineProperty(m_cx, m_glob, "global", OBJECT_TO_JSVAL(m_glob), NULL, NULL, JSPROP_ENUMERATE | JSPROP_READONLY
+	JS_DefineProperty(m_cx, m_glob, "global", JS::ObjectValue(*m_glob), NULL, NULL, JSPROP_ENUMERATE | JSPROP_READONLY
 			| JSPROP_PERMANENT);
 
 	m_nativeScope = JS_DefineObject(m_cx, m_glob, nativeScopeName, NULL, NULL, JSPROP_ENUMERATE | JSPROP_READONLY
@@ -696,9 +696,8 @@ ScriptInterface_impl::ScriptInterface_impl(const char* nativeScopeName, const sh
 
 ScriptInterface_impl::~ScriptInterface_impl()
 {
-        // Important: this must come before JS_DestroyContext because CScriptValRooted needs the context to unroot the values!
-        // TODO: Check again when SpiderMonkey is upgraded and when/if CScriptValRooted gets replaces by JS::Heap<T>.
-        m_ScriptValCache.clear();
+	// Important: this must come before JS_DestroyContext because CScriptValRooted needs the context to unroot the values!
+	m_ScriptValCache.clear();
 
 	m_runtime->UnRegisterContext(m_cx);
 	{
@@ -830,9 +829,9 @@ bool ScriptInterface::ReplaceNondeterministicRNG(boost::rand48& rng)
 {
 	JSAutoRequest rq(m->m_cx);
 	JS::RootedValue math(m->m_cx);
-	if (JS_GetProperty(m->m_cx, m->m_glob, "Math", math.address()) && !JSVAL_IS_PRIMITIVE(math.get()))
+	if (JS_GetProperty(m->m_cx, m->m_glob, "Math", math.address()) && math.isObject())
 	{
-		JSFunction* random = JS_DefineFunction(m->m_cx, JSVAL_TO_OBJECT(math), "random", Math_random, 0,
+		JSFunction* random = JS_DefineFunction(m->m_cx, &math.toObject(), "random", Math_random, 0,
 			JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
 		if (random)
 		{
@@ -875,56 +874,62 @@ AutoGCRooter* ScriptInterface::ReplaceAutoGCRooter(AutoGCRooter* rooter)
 jsval ScriptInterface::CallConstructor(jsval ctor, int argc, jsval argv)
 {
 	JSAutoRequest rq(m->m_cx);
-	if (JSVAL_IS_PRIMITIVE(ctor))
+	if (!ctor.isObject())
 	{
 		LOGERROR(L"CallConstructor: ctor is not an object");
-		return JSVAL_VOID;
+		return JS::UndefinedValue();
 	}
 
 	// Passing argc 0 and argv JSVAL_VOID causes a crash in mozjs24
 	if (argc == 0)
 	{
-		return OBJECT_TO_JSVAL(JS_New(m->m_cx, JSVAL_TO_OBJECT(ctor), 0, NULL));
+		return JS::ObjectValue(*JS_New(m->m_cx, &ctor.toObject(), 0, NULL));
 	}
 	else
-		return OBJECT_TO_JSVAL(JS_New(m->m_cx, JSVAL_TO_OBJECT(ctor), argc, &argv));
+		return JS::ObjectValue(*JS_New(m->m_cx, &ctor.toObject(), argc, &argv));
 }
 
 jsval ScriptInterface::NewObjectFromConstructor(jsval ctor)
 {
 	JSAutoRequest rq(m->m_cx);
+	
+	if (!ctor.isObject())
+	{
+		LOGERROR(L"NewObjectFromConstructor: ctor is not an object");
+		return JS::UndefinedValue();
+	}
 	// Get the constructor's prototype
 	// (Can't use JS_GetPrototype, since we want .prototype not .__proto__)
 	JS::RootedValue protoVal(m->m_cx);
-	if (!JS_GetProperty(m->m_cx, JSVAL_TO_OBJECT(ctor), "prototype", protoVal.address()))
+	if (!JS_GetProperty(m->m_cx, &ctor.toObject(), "prototype", protoVal.address()))
 	{
 		LOGERROR(L"NewObjectFromConstructor: can't get prototype");
-		return JSVAL_VOID;
+		return JS::UndefinedValue();
 	}
 
-	if (JSVAL_IS_PRIMITIVE(protoVal.get()))
+	if (!protoVal.isObject())
 	{
 		LOGERROR(L"NewObjectFromConstructor: prototype is not an object");
-		return JSVAL_VOID;
+		return JS::UndefinedValue();
 	}
 
-	JSObject* proto = JSVAL_TO_OBJECT(protoVal.get());
-	JSObject* parent = JS_GetParent(JSVAL_TO_OBJECT(ctor));
-	// TODO: rooting?
+	JSObject* proto = &protoVal.toObject();
+	JSObject* parent = JS_GetParent(&ctor.toObject());
+
 	if (!proto || !parent)
 	{
 		LOGERROR(L"NewObjectFromConstructor: null proto/parent");
-		return JSVAL_VOID;
+		return JS::UndefinedValue();
 	}
 
 	JSObject* obj = JS_NewObject(m->m_cx, NULL, proto, parent);
 	if (!obj)
 	{
 		LOGERROR(L"NewObjectFromConstructor: object creation failed");
-		return JSVAL_VOID;
+		return JS::UndefinedValue();
 	}
 
-	return OBJECT_TO_JSVAL(obj);
+	return JS::ObjectValue(*obj);
 }
 
 void ScriptInterface::DefineCustomObjectType(JSClass *clasp, JSNative constructor, uint minArgs, JSPropertySpec *ps, JSFunctionSpec *fs, JSPropertySpec *static_ps, JSFunctionSpec *static_fs)
@@ -938,7 +943,7 @@ void ScriptInterface::DefineCustomObjectType(JSClass *clasp, JSNative constructo
 		throw PSERROR_Scripting_DefineType_AlreadyExists();
 	}
 
-	JSObject * obj = JS_InitClass(	m->m_cx, JSVAL_TO_OBJECT(GetGlobalObject()), 0,
+	JSObject * obj = JS_InitClass(	m->m_cx, &GetGlobalObject().toObject(), 0,
 									clasp,
 									constructor, minArgs,				// Constructor, min args
 									ps, fs,								// Properties, methods
@@ -978,10 +983,10 @@ bool ScriptInterface::CallFunctionVoid(jsval val, const char* name)
 bool ScriptInterface::CallFunction_(jsval val, const char* name, size_t argc, jsval* argv, jsval& ret)
 {
 	JSAutoRequest rq(m->m_cx);
-	JSObject* obj;
-	if (!JS_ValueToObject(m->m_cx, val, &obj) || obj == NULL)
+	if (!val.isObject())
 		return false;
-
+	
+	JS::RootedObject obj(m->m_cx, &val.toObject());
 	// Check that the named function actually exists, to avoid ugly JS error reports
 	// when calling an undefined value
 	JSBool found;
@@ -996,7 +1001,7 @@ bool ScriptInterface::CallFunction_(jsval val, const char* name, size_t argc, js
 jsval ScriptInterface::GetGlobalObject()
 {
 	JSAutoRequest rq(m->m_cx);
-	return OBJECT_TO_JSVAL(JS_GetGlobalForScopeChain(m->m_cx));
+	return JS::ObjectValue(*JS_GetGlobalForScopeChain(m->m_cx));
 }
 
 JSClass* ScriptInterface::GetGlobalClass()
@@ -1042,9 +1047,9 @@ bool ScriptInterface::SetProperty_(jsval obj, const char* name, jsval value, boo
 	if (enumerate)
 		attrs |= JSPROP_ENUMERATE;
 
-	if (JSVAL_IS_PRIMITIVE(obj))
+	if (!obj.isObject())
 		return false;
-	JSObject* object = JSVAL_TO_OBJECT(obj);
+	JS::RootedObject object(m->m_cx, &obj.toObject());
 
 	if (! JS_DefineProperty(m->m_cx, object, name, value, NULL, NULL, attrs))
 		return false;
@@ -1060,9 +1065,9 @@ bool ScriptInterface::SetProperty_(jsval obj, const wchar_t* name, jsval value, 
 	if (enumerate)
 		attrs |= JSPROP_ENUMERATE;
 
-	if ( JSVAL_IS_PRIMITIVE(obj))
+	if (!obj.isObject())
 		return false;
-	JSObject* object = JSVAL_TO_OBJECT(obj);
+	JS::RootedObject object(m->m_cx, &obj.toObject());
 
 	utf16string name16(name, name + wcslen(name));
 	if (! JS_DefineUCProperty(m->m_cx, object, reinterpret_cast<const jschar*>(name16.c_str()), name16.length(), value, NULL, NULL, attrs))
@@ -1079,9 +1084,9 @@ bool ScriptInterface::SetPropertyInt_(jsval obj, int name, jsval value, bool con
 	if (enumerate)
 		attrs |= JSPROP_ENUMERATE;
 
-	if ( JSVAL_IS_PRIMITIVE(obj))
+	if (!obj.isObject())
 		return false;
-	JSObject* object = JSVAL_TO_OBJECT(obj);
+	JS::RootedObject object(m->m_cx, &obj.toObject());
 
 	if (! JS_DefinePropertyById(m->m_cx, object, INT_TO_JSID(name), value, NULL, NULL, attrs))
 		return false;
@@ -1091,10 +1096,10 @@ bool ScriptInterface::SetPropertyInt_(jsval obj, int name, jsval value, bool con
 bool ScriptInterface::GetProperty_(jsval obj, const char* name, JS::MutableHandleValue out)
 {
 	JSAutoRequest rq(m->m_cx);
-	if ( JSVAL_IS_PRIMITIVE(obj))
+	if (!obj.isObject())
 		return false;
-	JSObject* object = JSVAL_TO_OBJECT(obj);
-
+	JS::RootedObject object(m->m_cx, &obj.toObject());
+	
 	if (!JS_GetProperty(m->m_cx, object, name, out.address()))
 		return false;
 	return true;
@@ -1103,10 +1108,10 @@ bool ScriptInterface::GetProperty_(jsval obj, const char* name, JS::MutableHandl
 bool ScriptInterface::GetPropertyInt_(jsval obj, int name, JS::MutableHandleValue out)
 {
 	JSAutoRequest rq(m->m_cx);
-	if ( JSVAL_IS_PRIMITIVE(obj))
+	if (!obj.isObject())
 		return false;
-	JSObject* object = JSVAL_TO_OBJECT(obj);
-
+	JS::RootedObject object(m->m_cx, &obj.toObject());
+	
 	if (!JS_GetPropertyById(m->m_cx, object, INT_TO_JSID(name), out.address()))
 		return false;
 	return true;
@@ -1116,9 +1121,9 @@ bool ScriptInterface::HasProperty(jsval obj, const char* name)
 {
 	// TODO: proper errorhandling 
 	JSAutoRequest rq(m->m_cx);
-	if ( JSVAL_IS_PRIMITIVE(obj))
+	if (!obj.isObject())
 		return JS_FALSE;
-	JSObject* object = JSVAL_TO_OBJECT(obj);
+	JS::RootedObject object(m->m_cx, &obj.toObject());
 
 	JSBool found;
 	if (!JS_HasProperty(m->m_cx, object, name, &found))
@@ -1182,24 +1187,24 @@ bool ScriptInterface::EnumeratePropertyNamesWithPrefix(JS::HandleValue objVal, c
 	return true;
 }
 
-bool ScriptInterface::SetPrototype(JS::HandleObject obj, JS::HandleObject proto)
+bool ScriptInterface::SetPrototype(JS::HandleValue obj, JS::HandleValue proto)
 {
 	JSAutoRequest rq(m->m_cx);
-	//if (JSVAL_IS_PRIMITIVE(obj) || JSVAL_IS_PRIMITIVE(proto))
-	//	return false;
-	return JS_SetPrototype(m->m_cx, obj, proto);
+	if (!obj.isObject() || !proto.isObject())
+		return false;
+	return JS_SetPrototype(m->m_cx, &obj.toObject(), &proto.toObject());
 }
 
 bool ScriptInterface::FreezeObject(jsval obj, bool deep)
 {
 	JSAutoRequest rq(m->m_cx);
-	if (JSVAL_IS_PRIMITIVE(obj))
+	if (!obj.isObject())
 		return false;
 
 	if (deep)
-		return JS_DeepFreezeObject(m->m_cx, JSVAL_TO_OBJECT(obj)) ? true : false;
+		return JS_DeepFreezeObject(m->m_cx, &obj.toObject()) ? true : false;
 	else
-		return JS_FreezeObject(m->m_cx, JSVAL_TO_OBJECT(obj)) ? true : false;
+		return JS_FreezeObject(m->m_cx, &obj.toObject()) ? true : false;
 }
 
 bool ScriptInterface::LoadScript(const VfsPath& filename, const std::string& code)
@@ -1208,7 +1213,7 @@ bool ScriptInterface::LoadScript(const VfsPath& filename, const std::string& cod
 	utf16string codeUtf16(code.begin(), code.end());
 	uint lineNo = 1;
 
-	JS::Rooted<JSFunction*> func(m->m_cx,
+	JS::RootedFunction func(m->m_cx,
 		JS_CompileUCFunction(m->m_cx, m->m_glob, utf8_from_wstring(filename.string()).c_str(), 0, NULL,
 			reinterpret_cast<const jschar*> (codeUtf16.c_str()), (uint)(codeUtf16.length()),
 			utf8_from_wstring(filename.string()).c_str(), lineNo)
@@ -1297,7 +1302,7 @@ CScriptValRooted ScriptInterface::ParseJSON(const std::string& string_utf8)
 	JSAutoRequest rq(m->m_cx);
 	std::wstring attrsW = wstring_from_utf8(string_utf8);
  	utf16string string(attrsW.begin(), attrsW.end());
-	JS::Rooted<jsval> vp(m->m_cx);
+	JS::RootedValue vp(m->m_cx);
 	JS_ParseJSON(m->m_cx, reinterpret_cast<const jschar*>(string.c_str()), (uint32_t)string.size(), &vp);
 	return CScriptValRooted(m->m_cx, vp);
 }

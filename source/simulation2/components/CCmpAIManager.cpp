@@ -448,7 +448,7 @@ public:
 		ScriptInterface::ToJSVal(cx, tmpVal.get(), passabilityMap);
 		m_PassabilityMapVal = CScriptValRooted(cx, tmpVal.get());
 		ScriptInterface::ToJSVal(cx, tmpVal.get(), territoryMap);
-		m_TerritoryMapVal = CScriptValRooted(cx, tmpVal.get());
+		m_TerritoryMapVal = CScriptValRooted(cx, tmpVal);
 		if (m_HasSharedComponent)
 		{
 			m_ScriptInterface->SetProperty(state.get(), "passabilityMap", m_PassabilityMapVal, true);
@@ -479,7 +479,7 @@ public:
 			m_PassabilityMap = passabilityMap;
 			JS::RootedValue tmpVal(cx);
 			ScriptInterface::ToJSVal(cx, tmpVal.get(), m_PassabilityMap);
-			m_PassabilityMapVal = CScriptValRooted(cx, tmpVal.get());
+			m_PassabilityMapVal = CScriptValRooted(cx, tmpVal);
 		}
 
 		if (territoryMapDirty)
@@ -487,7 +487,7 @@ public:
 			m_TerritoryMap = territoryMap;
 			JS::RootedValue tmpVal(cx);
 			ScriptInterface::ToJSVal(cx, tmpVal.get(), m_TerritoryMap);
-			m_TerritoryMapVal = CScriptValRooted(cx, tmpVal.get());
+			m_TerritoryMapVal = CScriptValRooted(cx, tmpVal);
 		}
 
 		m_CommandsComputed = false;

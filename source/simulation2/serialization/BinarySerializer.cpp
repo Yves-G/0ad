@@ -79,13 +79,13 @@ void CBinarySerializerScriptImpl::HandleScriptVal(jsval val)
 	}
 	case JSTYPE_OBJECT:
 	{
-		if (JSVAL_IS_NULL(val))
+		if (val.isNull())
 		{
 			m_Serializer.NumberU8_Unbounded("type", SCRIPT_TYPE_NULL);
 			break;
 		}
 
-		JS::RootedObject obj(cx, JSVAL_TO_OBJECT(val));
+		JS::RootedObject obj(cx, &val.toObject());
 
 		// If we've already serialized this object, just output a reference to it
 		u32 tag = GetScriptBackrefTag(obj);
@@ -119,7 +119,7 @@ void CBinarySerializerScriptImpl::HandleScriptVal(jsval val)
 
 			// Now handle its array buffer
 			// this may be a backref, since ArrayBuffers can be shared by multiple views
-			HandleScriptVal(OBJECT_TO_JSVAL(JS_GetArrayBufferViewBuffer(obj)));
+			HandleScriptVal(JS::ObjectValue(*JS_GetArrayBufferViewBuffer(obj)));
 			break;
 		}
 		else if (JS_IsArrayBufferObject(obj))
@@ -180,7 +180,7 @@ void CBinarySerializerScriptImpl::HandleScriptVal(jsval val)
 							throw PSERROR_Serialize_ScriptError("JS_LookupProperty failed");
 
 						// If serialize is null, so don't serialize anything more
-						if (!JSVAL_IS_NULL(serialize))
+						if (!serialize.isNull())
 						{
 							CScriptValRooted data;
 							if (!m_ScriptInterface.CallFunction(val, "Serialize", data))
@@ -197,8 +197,8 @@ void CBinarySerializerScriptImpl::HandleScriptVal(jsval val)
 				m_Serializer.NumberU8_Unbounded("type", SCRIPT_TYPE_OBJECT_NUMBER);
 				// Get primitive value
 				double d;
-				if (!JS_ValueToNumber(cx, val, &d))
-					throw PSERROR_Serialize_ScriptError("JS_ValueToNumber failed");
+				if (!JS::ToNumber(cx, val, &d))
+					throw PSERROR_Serialize_ScriptError("JS::ToNumber failed");
 				m_Serializer.NumberDouble_Unbounded("value", d);
 				break;
 			}
@@ -218,9 +218,7 @@ void CBinarySerializerScriptImpl::HandleScriptVal(jsval val)
 				// Standard Boolean object
 				m_Serializer.NumberU8_Unbounded("type", SCRIPT_TYPE_OBJECT_BOOLEAN);
 				// Get primitive value
-				JSBool b;
-				if (!JS_ValueToBoolean(cx, val, &b))
-					throw PSERROR_Serialize_ScriptError("JS_ValueToBoolean failed");
+				bool b = JS::ToBoolean(val);
 				m_Serializer.Bool("value", b);
 				break;
 			}
@@ -292,7 +290,7 @@ void CBinarySerializerScriptImpl::HandleScriptVal(jsval val)
 	case JSTYPE_STRING:
 	{
 		m_Serializer.NumberU8_Unbounded("type", SCRIPT_TYPE_STRING);
-		ScriptString("string", JSVAL_TO_STRING(val));
+		ScriptString("string", val.toString());
 		break;
 	}
 	case JSTYPE_NUMBER:
