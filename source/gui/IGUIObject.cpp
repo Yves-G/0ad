@@ -446,7 +446,7 @@ void IGUIObject::RegisterScriptHandler(const CStr& Action, const CStr& Code, CGU
 
 void IGUIObject::SetScriptHandler(const CStr& Action, JSObject* Function)
 {
-	m_ScriptHandlers[Action] = CScriptValRooted(m_pGUI->GetScriptInterface()->GetContext(), OBJECT_TO_JSVAL(Function));
+	m_ScriptHandlers[Action] = CScriptValRooted(m_pGUI->GetScriptInterface()->GetContext(), JS::ObjectValue(*Function));
 }
 
 InReaction IGUIObject::SendEvent(EGUIMessageType type, const CStr& EventName)

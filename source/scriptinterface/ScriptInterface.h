@@ -242,6 +242,14 @@ public:
 	 */
 	template<typename T>
 	bool GetProperty(jsval obj, const char* name, T& out);
+	
+	/**
+	 * This function overload is used for JS::MutableHandleValue type.
+	 * If we use JS::RootedValue with the GetProperty function template, it will generate an overload for the type
+	 * JS::RootedValue*, but JS::MutableHandleValue needs to be used when passing JS::RootedValue& to a function.
+	 * Check the SpiderMonkey rooting guide for details.
+	 */
+	bool GetPropertyJS(jsval obj, const char* name, JS::MutableHandleValue out);
 
 	/**
 	 * Get the integer-named property on the given object.

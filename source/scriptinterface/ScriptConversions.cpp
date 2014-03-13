@@ -152,25 +152,10 @@ template<> bool ScriptInterface::FromJSVal<ssize_t>(JSContext* cx, jsval v, ssiz
 
 #endif
 
-template<> void ScriptInterface::ToJSVal<JS::Value>(JSContext* UNUSED(cx), JS::Value& rval, const JS::Value& val)
-{
-	rval = val;
-}
-
 template<> bool ScriptInterface::FromJSVal<CScriptVal>(JSContext* UNUSED(cx), jsval v, CScriptVal& out)
 {
 	out = v;
 	return true;
-}
-
-template<> bool ScriptInterface::FromJSVal<JS::RootedObject>(JSContext* UNUSED(cx), jsval v, JS::RootedObject& out)
-{
-	if (v.isObjectOrNull())
-	{
-		out.set(JSVAL_TO_OBJECT(v));
-		return true;
-	}
-	return false;
 }
 
 template<> bool ScriptInterface::FromJSVal<CScriptValRooted>(JSContext* cx, jsval v, CScriptValRooted& out)

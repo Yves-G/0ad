@@ -244,13 +244,16 @@ void CComponentManager::Script_RegisterComponentType(ScriptInterface::CxPrivate*
 
 
 	// Find all the ctor prototype's On* methods, and subscribe to the appropriate messages:
-
-	JS::RootedObject proto(cx);
-	if (!componentManager->m_ScriptInterface.GetProperty(ctor.get(), "prototype", proto))
+	JS::RootedValue protoVal(cx);
+	if (!componentManager->m_ScriptInterface.GetPropertyJS(ctor.get(), "prototype", &protoVal))
 		return; // error
 
 	std::vector<std::string> methods;
-	JS::RootedValue protoVal(cx, JS::ObjectOrNullValue(proto));
+	JS::RootedObject proto(cx);
+	if (!protoVal.isObjectOrNull())
+		return; // error
+
+	proto = protoVal.toObjectOrNull();
 	
 	if (!componentManager->m_ScriptInterface.EnumeratePropertyNamesWithPrefix(protoVal, "On", methods))
 		return; // error

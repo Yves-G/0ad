@@ -83,7 +83,7 @@ template<> void ScriptInterface::ToJSVal<SDL_Event_>(JSContext* cx, JS::Value& r
 			ret = JSVAL_VOID;
 			return;
 		}
-		JS::RootedValue keysymVal(cx, OBJECT_TO_JSVAL(keysym));
+		JS::RootedValue keysymVal(cx, JS::ObjectValue(*keysym));
 		JS_SetProperty(cx, obj, "keysym", keysymVal.address());
 
 		// SET(keysym, "scancode", (int)val.ev.key.keysym.scancode); // (not in wsdl.h)
@@ -131,7 +131,7 @@ template<> void ScriptInterface::ToJSVal<SDL_Event_>(JSContext* cx, JS::Value& r
 	}
 	}
 
-	ret = OBJECT_TO_JSVAL(obj);
+	ret = JS::ObjectValue(*obj);
 }
 
 template<> void ScriptInterface::ToJSVal<IGUIObject*>(JSContext* UNUSED(cx), JS::Value& ret, IGUIObject* const& val)
@@ -139,5 +139,5 @@ template<> void ScriptInterface::ToJSVal<IGUIObject*>(JSContext* UNUSED(cx), JS:
 	if (val == NULL)
 		ret = JSVAL_NULL;
 	else
-		ret = OBJECT_TO_JSVAL(val->GetJSObject());
+		ret = JS::ObjectValue(*val->GetJSObject());
 }

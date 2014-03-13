@@ -25,8 +25,8 @@ namespace JSI_IGUIObject
 	extern JSClass JSI_class;
 	extern JSPropertySpec JSI_props[];
 	extern JSFunctionSpec JSI_methods[];
-	JSBool getProperty(JSContext* cx, JS::Handle<JSObject*> obj, JS::Handle<jsid> id, JS::MutableHandle<jsval> vp);
-	JSBool setProperty(JSContext* cx, JS::Handle<JSObject*> obj, JS::Handle<jsid> id, JSBool UNUSED(strict), JS::MutableHandle<jsval> vp);
+	JSBool getProperty(JSContext* cx, JS::HandleObject obj, JS::HandleId id, JS::MutableHandleValue vp);
+	JSBool setProperty(JSContext* cx, JS::HandleObject obj, JS::HandleId id, JSBool UNUSED(strict), JS::MutableHandleValue vp);
 	JSBool construct(JSContext* cx, uint argc, jsval* vp);
 	JSBool toString(JSContext* cx, uint argc, jsval* vp);
 	JSBool focus(JSContext* cx, uint argc, jsval* vp);

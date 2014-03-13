@@ -190,15 +190,11 @@ JSBool JSI_GUIColor::construct(JSContext* cx, uint argc, jsval* vp)
 	else
 	{
 		// Nice magenta:
-		JS::RootedValue c(cx, JS_NumberValue(1.0));
-		if (JSVAL_IS_NULL(c))
-			return JS_FALSE;
+		JS::RootedValue c(cx, JS::NumberValue(1.0));
 		JS_SetProperty(cx, obj, "r", c.address());
 		JS_SetProperty(cx, obj, "b", c.address());
 		JS_SetProperty(cx, obj, "a", c.address());
-		c = JS_NumberValue(0.0);
-		if (JSVAL_IS_NULL(c))
-			return JS_FALSE;
+		c = JS::NumberValue(0.0);
 		JS_SetProperty(cx, obj, "g", c.address());
 	}
 
@@ -268,7 +264,7 @@ JSBool JSI_GUIMouse::construct(JSContext* cx, uint argc, jsval* vp)
 	}
 	else
 	{
-		JS::RootedValue zero (cx, JSVAL_ZERO);
+		JS::RootedValue zero (cx, JS::NumberValue(0));
 		JS_SetProperty(cx, obj, "x", zero.address());
 		JS_SetProperty(cx, obj, "y", zero.address());
 		JS_SetProperty(cx, obj, "buttons", zero.address());
