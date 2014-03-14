@@ -103,9 +103,9 @@ else
   # Fix suffix issue on OpenBSD
   if [ "`uname -s`" = "OpenBSD" ]
   then
-    DLL_SRC_SUFFIX=.so.1.0
-    LIB_SRC_SUFFIX=.so.1.0
-    LIB_DST_SUFFIX=.so.1.0
+    DLL_SRC_SUFFIX=.so
+    LIB_SRC_SUFFIX=.so
+    LIB_DST_SUFFIX=.so
   fi
 fi
 
