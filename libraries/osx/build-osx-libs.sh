@@ -575,17 +575,14 @@ then
   rm -rf $LIB_DIRECTORY $INCLUDE_DIR_DEBUG $INCLUDE_DIR_RELEASE
   tar -xf $LIB_ARCHIVE
   # rename the extracted directory to something shorter
-  mv $LIB_VERSION $LIB_DIRECTORY 
+  mv $LIB_VERSION $LIB_DIRECTORY
   pushd $LIB_DIRECTORY/js/src
-
-  NSPR_INCLUDES="`${NSPR_DIR}/bin/nspr-config --cflags`"
-  NSPR_LIBS="`${NSPR_DIR}/bin/nspr-config --libs`"
 
   # We want separate debug/release versions of the library, so change their install name in the Makefile
   perl -i.bak -pe 's/(^STATIC_LIBRARY_NAME\s+=).*/$1mozjs24-ps-debug/' Makefile.in
   perl -i.bak -pe 's/js_static/mozjs24-ps-debug/g' shell/Makefile.in
 
-  CONF_OPTS="--prefix=${INSTALL_DIR} --enable-threadsafe --disable-tests --disable-shared-js" # --enable-trace-logging"
+  CONF_OPTS="--target=$ARCH-apple-darwin --prefix=${INSTALL_DIR} --with-system-nspr --with-nspr-prefix=${NSPR_DIR} --with-system-zlib=${ZLIB_DIR} --enable-threadsafe --disable-tests --disable-shared-js" # --enable-trace-logging"
   # Uncomment this line for 32-bit 10.5 cross compile:
   #CONF_OPTS="$CONF_OPTS --target=i386-apple-darwin9.0.0"
   if [[ $MIN_OSX_VERSION && ${MIN_OSX_VERSION-_} ]]; then
@@ -595,9 +592,12 @@ then
     CONF_OPTS="$CONF_OPTS --with-macosx-sdk=$SYSROOT"
   fi
 
+  # apply patch to fix clang build on Mavericks (see https://bugzilla.mozilla.org/show_bug.cgi?id=917526)
+  patch -p0 -d ../../ -i ../../../osx/patches/sm-mavericks-clang-fix.diff || die "Spidermonkey build failed"
+
   mkdir -p build-debug
   pushd build-debug
-  (CC="clang -arch $ARCH" CXX="clang++ -arch $ARCH" AR=ar CROSS_COMPILE=1 ../configure $CONF_OPTS --enable-debug --disable-optimize --enable-js-diagnostics --enable-gczeal --with-nspr-libs="$NSPR_LIBS" --with-nspr-cflags="$NSPR_INCLUDES" && make ${JOBS}) || die "Spidermonkey build failed" 
+  (CC="clang" CXX="clang++" AR=ar CROSS_COMPILE=1 ../configure $CONF_OPTS --enable-debug --disable-optimize --enable-js-diagnostics --enable-gczeal && make ${JOBS}) || die "Spidermonkey build failed"
   # js-config.h is different for debug and release builds, so we need different include directories for both
   mkdir -p $INCLUDE_DIR_DEBUG
   cp -R -L dist/include/* $INCLUDE_DIR_DEBUG/
@@ -610,7 +610,7 @@ then
   perl -i.bak -pe 's/js_static/mozjs24-ps-release/g' shell/Makefile.in
   mkdir -p build-release
   pushd build-release
-  (CC="clang -arch $ARCH" CXX="clang++ -arch $ARCH" AR=ar CROSS_COMPILE=1 ../configure $CONF_OPTS --enable-optimize --with-nspr-libs="$NSPR_LIBS" --with-nspr-cflags="$NSPR_INCLUDES" && make ${JOBS}) || die "Spidermonkey build failed"
+  (CC="clang" CXX="clang++" AR=ar CROSS_COMPILE=1 ../configure $CONF_OPTS --enable-optimize && make ${JOBS}) || die "Spidermonkey build failed"
   # js-config.h is different for debug and release builds, so we need different include directories for both
   mkdir -p $INCLUDE_DIR_RELEASE
   cp -R -L dist/include/* $INCLUDE_DIR_RELEASE/
