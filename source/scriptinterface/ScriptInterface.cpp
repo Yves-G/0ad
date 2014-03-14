@@ -983,10 +983,10 @@ bool ScriptInterface::CallFunctionVoid(jsval val, const char* name)
 bool ScriptInterface::CallFunction_(jsval val, const char* name, size_t argc, jsval* argv, jsval& ret)
 {
 	JSAutoRequest rq(m->m_cx);
-	if (!val.isObject())
+	JS::RootedObject obj(m->m_cx);
+	if (!JS_ValueToObject(m->m_cx, val, obj.address()) || !obj)
 		return false;
 	
-	JS::RootedObject obj(m->m_cx, &val.toObject());
 	// Check that the named function actually exists, to avoid ugly JS error reports
 	// when calling an undefined value
 	JSBool found;
