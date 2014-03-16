@@ -16,6 +16,7 @@ else
 end
 -- directory for shared, bundled libraries
 libraries_source_dir = rootdir.."/libraries/source/"
+third_party_source_dir = rootdir.."/source/third_party/"
 
 local function add_default_lib_paths(extern_lib)
 	libdirs { libraries_dir .. extern_lib .. "/lib" }
@@ -31,6 +32,10 @@ end
 
 local function add_source_include_paths(extern_lib)
 	includedirs { libraries_source_dir .. extern_lib .. "/include" }
+end
+
+local function add_third_party_include_paths(extern_lib)
+	includedirs { third_party_source_dir .. extern_lib .. "/include" }
 end
 
 
@@ -649,14 +654,7 @@ extern_lib_defs = {
 	},
 	tinygettext = {
 		compile_settings = function()
-			add_source_include_paths("tinygettext")
-		end,
-		link_settings = function()
-			add_source_lib_paths("tinygettext")
-			add_default_links({
-				win_names  = { "tinygettext" },
-				unix_names = { "tinygettext" },
-			})
+			add_third_party_include_paths("tinygettext")
 		end,
 	},
 	valgrind = {

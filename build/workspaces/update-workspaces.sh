@@ -98,8 +98,6 @@ if [ "`uname -s`" != "Darwin" ]; then
     (cd ../../libraries/source/miniupnpc && MAKE=${MAKE} JOBS=${JOBS} ./build.sh) || die "MiniUPnPc build failed"
   fi
   echo
-  (cd ../../libraries/source/tinygettext && JOBS=${JOBS} ./build.sh) || die "tinygettext build failed"
-  echo
 fi
 
 # Now build premake and run it to create the makefiles

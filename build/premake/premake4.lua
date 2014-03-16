@@ -542,6 +542,12 @@ function setup_static_lib_project (project_name, rel_source_dirs, extern_libs, e
 	end
 end
 
+function setup_third_party_static_lib_project (project_name, rel_source_dirs, extern_libs, extra_params)
+
+	setup_static_lib_project(project_name, rel_source_dirs, extern_libs, extra_params)
+	includedirs { source_root .. "third_party/" .. project_name .. "/include" }
+end
+
 function setup_shared_lib_project (project_name, rel_source_dirs, extern_libs, extra_params)
 
 	local target_type = "SharedLib"
@@ -585,6 +591,13 @@ function setup_all_libs ()
 		table.insert(extern_libs, "miniupnpc")
 	end
 	setup_static_lib_project("network", source_dirs, extern_libs, {})
+
+	source_dirs = {
+		"third_party/tinygettext/src",
+	}
+	extern_libs = {
+	}
+	setup_third_party_static_lib_project("tinygettext", source_dirs, extern_libs, { no_pch = 1 })
 
 
 	if not _OPTIONS["without-lobby"] then
