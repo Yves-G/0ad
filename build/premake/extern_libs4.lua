@@ -563,11 +563,10 @@ extern_lib_defs = {
 	spidermonkey = {
 		compile_settings = function()
 			if _OPTIONS["with-system-mozjs24"] then
-				-- to be implemented when such system packages exist
-				--if not _OPTIONS["android"] then
-				--	pkgconfig_cflags("mozjs24")
-				--end
-				--defines { "WITH_SYSTEM_MOZJS24" }
+				if not _OPTIONS["android"] then
+					pkgconfig_cflags("mozjs-24")
+				end
+				defines { "WITH_SYSTEM_MOZJS24" }
 			else
 				if os.is("windows") then
 					include_dir = "include-win32"
@@ -584,12 +583,12 @@ extern_lib_defs = {
 		end,
 		link_settings = function()
 			if _OPTIONS["with-system-mozjs24"] then
-				-- to be implemented when such system packages exist
-				--if _OPTIONS["android"] then
-				--	links { "mozjs185-1.0" }
-				--else
-				--	pkgconfig_libs("mozjs185")
-				--end
+				if _OPTIONS["android"] then
+					links { "mozjs-24" }
+				else
+					pkgconfig_libs("nspr")
+					pkgconfig_libs("mozjs-24")
+				end
 			else
 				if os.is("macosx") then
 					add_default_lib_paths("nspr")
