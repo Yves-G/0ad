@@ -596,8 +596,10 @@ function setup_all_libs ()
 		"third_party/tinygettext/src",
 	}
 	extern_libs = {
+		"iconv",
 	}
 	setup_third_party_static_lib_project("tinygettext", source_dirs, extern_libs, { no_pch = 1 })
+	defines { "tinygettext_STATIC" }
 
 
 	if not _OPTIONS["without-lobby"] then

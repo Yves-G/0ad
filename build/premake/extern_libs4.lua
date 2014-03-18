@@ -368,6 +368,8 @@ extern_lib_defs = {
 		compile_settings = function()
 			if os.is("windows") then
 				add_default_include_paths("iconv")
+				defines { "HAVE_ICONV_CONST" }
+				defines { "LIBICONV_STATIC" }
 			end
 		end,
 		link_settings = function()
@@ -655,6 +657,7 @@ extern_lib_defs = {
 	tinygettext = {
 		compile_settings = function()
 			add_third_party_include_paths("tinygettext")
+			defines { "tinygettext_STATIC" }
 		end,
 	},
 	valgrind = {
