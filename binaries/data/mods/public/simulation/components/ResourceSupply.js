@@ -78,11 +78,14 @@ ResourceSupply.prototype.GetMaxGatherers = function()
 	return +this.template.MaxGatherers;
 };
 
-ResourceSupply.prototype.GetGatherers = function(player)
+ResourceSupply.prototype.GetGatherers = function()
 {
-	if (player === undefined)
-		return this.gatherers;
-	return this.gatherers[player];
+	var numPlayers = Engine.QueryInterface(SYSTEM_ENTITY, IID_PlayerManager).GetNumPlayers();
+	var total = [];
+	for (var playerid = 0; playerid <= numPlayers; playerid++)
+		for (var gatherer = 0; gatherer < this.gatherers[playerid].length; gatherer++)
+			total.push(this.gatherers[playerid][gatherer]);
+	return total;
 };
 
 ResourceSupply.prototype.GetDiminishingReturns = function()
@@ -122,7 +125,7 @@ ResourceSupply.prototype.GetType = function()
 
 ResourceSupply.prototype.IsAvailable = function(player, gathererID)
 {
-	if (this.gatherers[player].length < this.GetMaxGatherers() || this.gatherers[player].indexOf(gathererID) !== -1)
+	if (this.GetGatherers().length < this.GetMaxGatherers() || this.gatherers[player].indexOf(gathererID) !== -1)
 		return true;
 	return false;
 };
@@ -136,7 +139,7 @@ ResourceSupply.prototype.AddGatherer = function(player, gathererID)
 	{
 		this.gatherers[player].push(gathererID);
 		// broadcast message, mainly useful for the AIs.
-		Engine.PostMessage(this.entity, MT_ResourceSupplyGatherersChanged, { "to": this.gatherers });
+	    Engine.PostMessage(this.entity, MT_ResourceSupplyGatherersChanged, { "to": this.GetGatherers() });
 	}
 	
 	return true;
@@ -158,7 +161,7 @@ ResourceSupply.prototype.RemoveGatherer = function(gathererID, player)
 		{
 			this.gatherers[player].splice(index,1);
 			// broadcast message, mainly useful for the AIs.
-			Engine.PostMessage(this.entity, MT_ResourceSupplyGatherersChanged, { "to": this.gatherers });
+			Engine.PostMessage(this.entity, MT_ResourceSupplyGatherersChanged, { "to": this.GetGatherers() });
 			return;
 		}
 	}

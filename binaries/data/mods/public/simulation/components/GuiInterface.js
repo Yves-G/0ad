@@ -395,7 +395,7 @@ GuiInterface.prototype.GetExtendedEntityState = function(player, ent)
 			"type": cmpResourceSupply.GetType(),
 			"killBeforeGather": cmpResourceSupply.GetKillBeforeGather(),
 			"maxGatherers": cmpResourceSupply.GetMaxGatherers(),
-			"gatherers": cmpResourceSupply.GetGatherers(player)
+			"gatherers": cmpResourceSupply.GetGatherers()
 		};
 	}
 
@@ -1844,7 +1844,7 @@ GuiInterface.prototype.GetBatchTime = function(player, data)
 GuiInterface.prototype.IsMapRevealed = function(player)
 {
 	var cmpRangeManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_RangeManager);
-	return cmpRangeManager.GetLosRevealAll(-1);
+	return cmpRangeManager.GetLosRevealAll(player);
 };
 
 GuiInterface.prototype.SetPathfinderDebugOverlay = function(player, enabled)
