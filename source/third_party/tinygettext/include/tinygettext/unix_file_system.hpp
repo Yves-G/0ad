@@ -18,12 +18,11 @@
 #ifndef HEADER_TINYGETTEXT_UNIX_FILE_SYSTEM_HPP
 #define HEADER_TINYGETTEXT_UNIX_FILE_SYSTEM_HPP
 
-#include "macros.hpp"
 #include "file_system.hpp"
 
 namespace tinygettext {
 
-class tinygettext_API UnixFileSystem : public FileSystem
+class UnixFileSystem : public FileSystem
 {
 public:
   UnixFileSystem();

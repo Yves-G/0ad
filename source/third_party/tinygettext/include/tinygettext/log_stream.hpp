@@ -18,7 +18,6 @@
 #ifndef HEADER_TINYGETTEXT_LOG_STREAM_HPP
 #define HEADER_TINYGETTEXT_LOG_STREAM_HPP
 
-#include "macros.hpp"
 #include "log.hpp"
 
 namespace tinygettext {

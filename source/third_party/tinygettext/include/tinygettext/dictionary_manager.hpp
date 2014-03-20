@@ -24,13 +24,12 @@
 #include <vector>
 #include <memory>
 
-#include "macros.hpp"
 #include "dictionary.hpp"
 #include "language.hpp"
 
 namespace tinygettext {
 
-class tinygettext_API FileSystem;
+class FileSystem;
 
 /** Manager class for dictionaries, you give it a bunch of directories
     with .po files and it will then automatically load the right file

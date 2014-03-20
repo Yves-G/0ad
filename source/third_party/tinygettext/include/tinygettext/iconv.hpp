@@ -18,7 +18,6 @@
 #define HEADER_TINYGETTEXT_ICONV_HPP
 
 #include <string>
-#include "macros.hpp"
 
 #ifdef HAVE_SDL
 #  include "SDL.h"
@@ -45,7 +44,7 @@
 
 namespace tinygettext {
 
-class tinygettext_API IConv
+class IConv
 {
 private:
   std::string to_charset;

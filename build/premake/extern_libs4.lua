@@ -657,7 +657,6 @@ extern_lib_defs = {
 	tinygettext = {
 		compile_settings = function()
 			add_third_party_include_paths("tinygettext")
-			defines { "tinygettext_STATIC" }
 		end,
 	},
 	valgrind = {

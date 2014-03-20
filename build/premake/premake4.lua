@@ -599,7 +599,6 @@ function setup_all_libs ()
 		"iconv",
 	}
 	setup_third_party_static_lib_project("tinygettext", source_dirs, extern_libs, { no_pch = 1 })
-	defines { "tinygettext_STATIC" }
 	
 	-- it's an external library and we don't want to modify its source to fix warnings, so we just disable them to avoid noise in the compile output
 	if _ACTION == "vs2005" or _ACTION == "vs2008" or _ACTION == "vs2010" or _ACTION == "vs2012" or _ACTION == "vs2013" then
