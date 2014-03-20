@@ -380,6 +380,7 @@ extern_lib_defs = {
 				win_names  = { "iconv" },
 				-- TODO: glibc provides symbols for this, so we should only include that (and depend on libiconv) on non-glibc unix
 				--unix_names = { "iconv" },
+				dbg_suffix = "",
 			})
 		end,
 	},
@@ -410,6 +411,7 @@ extern_lib_defs = {
 				add_default_links({
 					win_names  = { "icuuc", "icuin" },
 					unix_names = { "icui18n", "icuuc" },
+					dbg_suffix = "",
 				})
 			end
 		end,
