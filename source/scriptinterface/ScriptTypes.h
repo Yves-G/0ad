@@ -25,8 +25,6 @@
 # endif
 #endif
 
-typedef unsigned int uint;
-
 // Guess whether the library was compiled with the release-mode or debug-mode ABI
 // (for JS_DumpHeap etc)
 #if defined(DEBUG) && !defined(WITH_SYSTEM_MOZJS24)

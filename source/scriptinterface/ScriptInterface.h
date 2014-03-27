@@ -139,7 +139,7 @@ public:
 	 * Call a constructor function, equivalent to JS "new ctor(arg)".
 	 * @return The new object; or JSVAL_VOID on failure, and logs an error message
 	 */
-	jsval CallConstructor(jsval ctor, int argc, jsval argv);
+	jsval CallConstructor(jsval ctor, uint argc, jsval argv);
 
 	/**
 	 * Create an object as with CallConstructor except don't actually execute the
@@ -368,7 +368,7 @@ public:
 	public:
 		StructuredClone();
 		~StructuredClone();
-		uint64_t* m_Data;
+		u64* m_Data;
 		size_t m_Size;
 	};
 
@@ -376,7 +376,7 @@ public:
 	jsval ReadStructuredClone(const shared_ptr<StructuredClone>& ptr);
 
 private:
-	bool CallFunction_(jsval val, const char* name, size_t argc, jsval* argv, jsval& ret);
+	bool CallFunction_(jsval val, const char* name, uint argc, jsval* argv, jsval& ret);
 	bool Eval_(const char* code, jsval& ret);
 	bool Eval_(const wchar_t* code, jsval& ret);
 	bool SetGlobal_(const char* name, jsval value, bool replace);

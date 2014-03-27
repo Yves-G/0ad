@@ -91,7 +91,7 @@ struct ScriptInterface_NativeMethodWrapper<void, TC> {
 // JSFastNative-compatible function that wraps the function identified in the template argument list
 #define OVERLOADS(z, i, data) \
 	template <typename R, TYPENAME_T0_HEAD(z,i)  R (*fptr) ( ScriptInterface::CxPrivate* T0_TAIL(z,i) )> \
-	JSBool ScriptInterface::call(JSContext* cx, uint32_t argc, jsval* vp) { \
+	JSBool ScriptInterface::call(JSContext* cx, uint argc, jsval* vp) { \
 		UNUSED2(argc); \
 		SCRIPT_PROFILE \
 		BOOST_PP_REPEAT_##z (i, CONVERT_ARG, ~) \
@@ -106,7 +106,7 @@ BOOST_PP_REPEAT(SCRIPT_INTERFACE_MAX_ARGS, OVERLOADS, ~)
 // Same idea but for methods
 #define OVERLOADS(z, i, data) \
 	template <typename R, TYPENAME_T0_HEAD(z,i)  JSClass* CLS, typename TC, R (TC::*fptr) ( T0(z,i) )> \
-	JSBool ScriptInterface::callMethod(JSContext* cx, uint32_t argc, jsval* vp) { \
+	JSBool ScriptInterface::callMethod(JSContext* cx, uint argc, jsval* vp) { \
 		UNUSED2(argc); \
 		SCRIPT_PROFILE \
 		if (ScriptInterface::GetClass(JS_THIS_OBJECT(cx, vp)) != CLS) return false; \

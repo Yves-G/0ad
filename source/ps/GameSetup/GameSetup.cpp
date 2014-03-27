@@ -1104,7 +1104,7 @@ bool Autostart(const CmdLineArgs& args)
 		CStr seedArg = args.Get("autostart-random");
 
 		// Default seed is 0
-		uint32_t seed = 0;
+		u32 seed = 0;
 		if (!seedArg.empty())
 		{
 			if (seedArg.compare("-1") == 0)

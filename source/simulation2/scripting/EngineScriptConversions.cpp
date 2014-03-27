@@ -257,8 +257,8 @@ template<> void ScriptInterface::ToJSVal<CFixedVector2D>(JSContext* cx, JS::Valu
 template<> void ScriptInterface::ToJSVal<Grid<u8> >(JSContext* cx, JS::Value& ret, const Grid<u8>& val)
 {
 	JSAutoRequest rq(cx);
-	uint32_t length = (uint32_t)(val.m_W * val.m_H);
-	uint32_t nbytes = (uint32_t)(length * sizeof(uint8_t));
+	u32 length = (u32)(val.m_W * val.m_H);
+	u32 nbytes = (u32)(length * sizeof(u8));
 	JS::RootedObject objArr(cx, JS_NewUint8Array(cx, length));
 	memcpy((void*)JS_GetUint8ArrayData(objArr), val.m_Data, nbytes);
 
@@ -279,8 +279,8 @@ template<> void ScriptInterface::ToJSVal<Grid<u8> >(JSContext* cx, JS::Value& re
 template<> void ScriptInterface::ToJSVal<Grid<u16> >(JSContext* cx, JS::Value& ret, const Grid<u16>& val)
  {
 	JSAutoRequest rq(cx);
-	uint32_t length = (uint32_t)(val.m_W * val.m_H);
-	uint32_t nbytes = (uint32_t)(length * sizeof(uint16_t));
+	u32 length = (u32)(val.m_W * val.m_H);
+	u32 nbytes = (u32)(length * sizeof(u16));
 	JS::RootedObject objArr(cx, JS_NewUint16Array(cx, length));
 	memcpy((void*)JS_GetUint16ArrayData(objArr), val.m_Data, nbytes);
  

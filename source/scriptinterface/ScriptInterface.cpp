@@ -356,7 +356,7 @@ private:
 
 		// No name - compute from the location instead
 		JSScript* script;
-		unsigned lineno;
+		uint lineno;
 		JS_DescribeScriptedCaller(cx, &script, &lineno);
 		ENSURE(script == fp.script());
 		ScriptLocation loc = { cx, fp.script(), JS_LineNumberToPC(cx, script, lineno) };
@@ -641,7 +641,7 @@ ScriptInterface_impl::ScriptInterface_impl(const char* nativeScopeName, const sh
 	JS_SetErrorReporter(m_cx, ErrorReporter);
 	
 
-	uint32_t options = 0;
+	u32 options = 0;
 	options |= JSOPTION_EXTRA_WARNINGS; // "warn on dubious practice"
 	// We use strict mode to encourage better coding practices and
 	//to get code that can be optimized better by Spidermonkey's JIT compiler.
@@ -871,7 +871,7 @@ AutoGCRooter* ScriptInterface::ReplaceAutoGCRooter(AutoGCRooter* rooter)
 	return ret;
 }
 
-jsval ScriptInterface::CallConstructor(jsval ctor, int argc, jsval argv)
+jsval ScriptInterface::CallConstructor(jsval ctor, uint argc, jsval argv)
 {
 	JSAutoRequest rq(m->m_cx);
 	if (!ctor.isObject())
@@ -980,7 +980,7 @@ bool ScriptInterface::CallFunctionVoid(jsval val, const char* name)
 	return CallFunction_(val, name, 0, NULL, jsRet);
 }
 
-bool ScriptInterface::CallFunction_(jsval val, const char* name, size_t argc, jsval* argv, jsval& ret)
+bool ScriptInterface::CallFunction_(jsval val, const char* name, uint argc, jsval* argv, jsval& ret)
 {
 	JSAutoRequest rq(m->m_cx);
 	JS::RootedObject obj(m->m_cx);
@@ -993,7 +993,7 @@ bool ScriptInterface::CallFunction_(jsval val, const char* name, size_t argc, js
 	if (!JS_HasProperty(m->m_cx, obj, name, &found) || !found)
 		return JS_FALSE;
 
-	bool ok = JS_CallFunctionName(m->m_cx, obj, name, (uint)argc, argv, &ret);
+	bool ok = JS_CallFunctionName(m->m_cx, obj, name, argc, argv, &ret);
 
 	return ok;
 }
@@ -1303,7 +1303,7 @@ CScriptValRooted ScriptInterface::ParseJSON(const std::string& string_utf8)
 	std::wstring attrsW = wstring_from_utf8(string_utf8);
  	utf16string string(attrsW.begin(), attrsW.end());
 	JS::RootedValue vp(m->m_cx);
-	JS_ParseJSON(m->m_cx, reinterpret_cast<const jschar*>(string.c_str()), (uint32_t)string.size(), &vp);
+	JS_ParseJSON(m->m_cx, reinterpret_cast<const jschar*>(string.c_str()), (u32)string.size(), &vp);
 	return CScriptValRooted(m->m_cx, vp);
 }
 
@@ -1332,7 +1332,7 @@ CScriptValRooted ScriptInterface::ReadJSONFile(const VfsPath& path)
 
 struct Stringifier
 {
-	static JSBool callback(const jschar* buf, uint32_t len, void* data)
+	static JSBool callback(const jschar* buf, u32 len, void* data)
 	{
 		utf16string str(buf, buf+len);
 		std::wstring strw(str.begin(), str.end());
@@ -1347,7 +1347,7 @@ struct Stringifier
 
 struct StringifierW
 {
-	static JSBool callback(const jschar* buf, uint32_t len, void* data)
+	static JSBool callback(const jschar* buf, u32 len, void* data)
 	{
 		utf16string str(buf, buf+len);
 		static_cast<StringifierW*>(data)->stream << std::wstring(str.begin(), str.end());
@@ -1487,7 +1487,7 @@ ScriptInterface::StructuredClone::~StructuredClone()
 shared_ptr<ScriptInterface::StructuredClone> ScriptInterface::WriteStructuredClone(jsval v)
 {
 	JSAutoRequest rq(m->m_cx);
-	uint64_t* data = NULL;
+	u64* data = NULL;
 	size_t nbytes = 0;
 	if (!JS_WriteStructuredClone(m->m_cx, v, &data, &nbytes, NULL, NULL, JSVAL_VOID))
 	{

@@ -51,14 +51,14 @@ BOOST_PP_REPEAT(SCRIPT_INTERFACE_MAX_ARGS, OVERLOADS, ~)
 // (Definition comes later, since it depends on some things we haven't defined yet)
 #define OVERLOADS(z, i, data) \
 	template <typename R, TYPENAME_T0_HEAD(z,i)  R (*fptr) ( ScriptInterface::CxPrivate* T0_TAIL(z,i) )> \
-	static JSBool call(JSContext* cx, uint32_t argc, jsval* vp);
+	static JSBool call(JSContext* cx, uint argc, jsval* vp);
 BOOST_PP_REPEAT(SCRIPT_INTERFACE_MAX_ARGS, OVERLOADS, ~)
 #undef OVERLOADS
 
 // Similar, for class methods
 #define OVERLOADS(z, i, data) \
 	template <typename R, TYPENAME_T0_HEAD(z,i)  JSClass* CLS, typename TC, R (TC::*fptr) ( T0(z,i) )> \
-	static JSBool callMethod(JSContext* cx, uint32_t argc, jsval* vp);
+	static JSBool callMethod(JSContext* cx, uint argc, jsval* vp);
 BOOST_PP_REPEAT(SCRIPT_INTERFACE_MAX_ARGS, OVERLOADS, ~)
 #undef OVERLOADS
 

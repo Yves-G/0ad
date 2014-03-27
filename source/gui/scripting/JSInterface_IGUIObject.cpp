@@ -276,11 +276,11 @@ JSBool JSI_IGUIObject::getProperty(JSContext* cx, JS::HandleObject obj, JS::Hand
 				JS::RootedObject obj(cx, JS_NewArrayObject(cx, 0, NULL));
 				vp.set(JS::ObjectValue(*obj));
 
-				for (size_t i = 0; i < value.m_Items.size(); ++i)
+				for (u32 i = 0; i < value.m_Items.size(); ++i)
 				{
 					JS::RootedValue val(cx);
 					ScriptInterface::ToJSVal(cx, val.get(), value.m_Items[i].GetOriginalString());
-					JS_SetElement(cx, obj, (uint32_t)i, val.address());
+					JS_SetElement(cx, obj, i, val.address());
 				}
 
 				break;
@@ -427,8 +427,8 @@ JSBool JSI_IGUIObject::setProperty(JSContext* cx, JS::HandleObject obj, JS::Hand
 
 	case GUIST_int:
 		{
-			int32_t value;
-			if (JS_ValueToInt32(cx, vp, &value) == true)
+			int value;
+			if (ScriptInterface::FromJSVal(cx, vp, value))
 				GUI<int>::SetSetting(e, propName, value);
 			else
 			{
@@ -543,13 +543,13 @@ JSBool JSI_IGUIObject::setProperty(JSContext* cx, JS::HandleObject obj, JS::Hand
 
 	case GUIST_CGUIList:
 		{
-			uint length;
+			u32 length;
 			if (vp.isObject() && JS_GetArrayLength(cx, &vp.toObject(), &length) == true)
 			{
 				CGUIList list;
 				JS::RootedObject obj(cx, &vp.toObject());
 				
-				for (int i=0; i<(int)length; ++i)
+				for (u32 i=0; i<length; ++i)
 				{
 					JS::RootedValue element(cx);
 					if (! JS_GetElement(cx, obj, i, element.address()))
