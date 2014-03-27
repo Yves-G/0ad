@@ -92,7 +92,7 @@ void ISerializer::String(const char* name, const std::wstring& value, uint32_t m
 	PutString(name, str);
 }
 
-void ISerializer::ScriptVal(const char* name, jsval value)
+void ISerializer::ScriptVal(const char* name, JS::Value& value)
 {
 	PutScriptVal(name, value);
 }

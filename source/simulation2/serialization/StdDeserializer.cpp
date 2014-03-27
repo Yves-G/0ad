@@ -142,7 +142,7 @@ jsval CStdDeserializer::ReadScriptVal(const char* UNUSED(name), JSObject* append
 	case SCRIPT_TYPE_OBJECT:
 	case SCRIPT_TYPE_OBJECT_PROTOTYPE:
 	{
-		JSObject* obj;
+		JS::RootedObject obj(cx);
 		if (appendParent)
 		{
 			obj = appendParent;
@@ -151,11 +151,11 @@ jsval CStdDeserializer::ReadScriptVal(const char* UNUSED(name), JSObject* append
 		{
 			u32 length;
 			NumberU32_Unbounded("array length", length);
-			obj = JS_NewArrayObject(cx, length, NULL);
+			obj = JS_NewArrayObject(cx, length);
 		}
 		else if (type == SCRIPT_TYPE_OBJECT)
 		{
-			obj = JS_NewObject(cx, NULL, NULL, NULL);
+			obj = JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr());
 		}
 		else // SCRIPT_TYPE_OBJECT_PROTOTYPE
 		{
@@ -163,29 +163,29 @@ jsval CStdDeserializer::ReadScriptVal(const char* UNUSED(name), JSObject* append
 			String("proto name", prototypeName, 0, 256);
 
 			// Get constructor object
-			JSObject* proto = GetSerializablePrototype(prototypeName);
+			JS::RootedObject proto(cx, GetSerializablePrototype(prototypeName));
 			if (!proto)
 				throw PSERROR_Deserialize_ScriptError("Failed to find serializable prototype for object");
 
-			JSObject* parent = JS_GetParent(proto);
+			JS::RootedObject parent(cx, JS_GetParent(proto));
 			if (!proto || !parent)
 				throw PSERROR_Deserialize_ScriptError();
 
-			obj = JS_NewObject(cx, NULL, proto, parent);
+			obj = JS_NewObject(cx, nullptr, proto, parent);
 			if (!obj)
 				throw PSERROR_Deserialize_ScriptError("JS_NewObject failed");
 			CScriptValRooted objRoot(cx, JS::ObjectValue(*obj));
 
 			// Does it have custom Deserialize function?
 			// if so, we let it handle the deserialized data, rather than adding properties directly
-			JSBool hasCustomDeserialize, hasCustomSerialize;
+			bool hasCustomDeserialize, hasCustomSerialize;
 			if (!JS_HasProperty(cx, obj, "Serialize", &hasCustomSerialize) || !JS_HasProperty(cx, obj, "Deserialize", &hasCustomDeserialize))
 				throw PSERROR_Serialize_ScriptError("JS_HasProperty failed");
 
 			if (hasCustomDeserialize)
 			{
 				JS::RootedValue serialize(cx);
-				if (!JS_LookupProperty(cx, obj, "Serialize", serialize.address()))
+				if (!JS_LookupProperty(cx, obj, "Serialize", &serialize))
 					throw PSERROR_Serialize_ScriptError("JS_LookupProperty failed");
 				bool hasNullSerialize = hasCustomSerialize && JSVAL_IS_NULL(serialize);
 
@@ -219,7 +219,7 @@ jsval CStdDeserializer::ReadScriptVal(const char* UNUSED(name), JSObject* append
 			JS::RootedValue propval(cx, ReadScriptVal("prop value", NULL));
 			CScriptValRooted propvalRoot(cx, propval);
 
-			if (!JS_SetUCProperty(cx, obj, (const jschar*)propname.data(), propname.length(), propval.address()))
+			if (!JS_SetUCProperty(cx, obj, (const jschar*)propname.data(), propname.length(), propval))
 				throw PSERROR_Deserialize_ScriptError();
 		}
 
@@ -268,11 +268,11 @@ jsval CStdDeserializer::ReadScriptVal(const char* UNUSED(name), JSObject* append
 		JS::RootedValue val(cx, JS::NumberValue(value));
 		CScriptValRooted objRoot(cx, val);
 
-		JSObject* ctorobj;
-		if (!JS_GetClassObject(cx, JS_GetGlobalForScopeChain(cx), JSProto_Number, &ctorobj))
+		JS::RootedObject ctorobj(cx);
+		if (!JS_GetClassObject(cx, JSProto_Number, &ctorobj))
 			throw PSERROR_Deserialize_ScriptError("JS_GetClassObject failed");
 
-		JSObject* obj = JS_New(cx, ctorobj, 1, val.address());
+		JSObject* obj = JS_New(cx, ctorobj, val);
 		if (!obj)
 			throw PSERROR_Deserialize_ScriptError("JS_New failed");
 		AddScriptBackref(obj);
@@ -287,11 +287,11 @@ jsval CStdDeserializer::ReadScriptVal(const char* UNUSED(name), JSObject* append
 		JS::RootedValue val(cx, JS::StringValue(str));
 		CScriptValRooted valRoot(cx, val);
 
-		JSObject* ctorobj;
-		if (!JS_GetClassObject(cx, JS_GetGlobalForScopeChain(cx), JSProto_String, &ctorobj))
+		JS::RootedObject ctorobj(cx);
+		if (!JS_GetClassObject(cx, JSProto_String, &ctorobj))
 			throw PSERROR_Deserialize_ScriptError("JS_GetClassObject failed");
 
-		JSObject* obj = JS_New(cx, ctorobj, 1, val.address());
+		JS::RootedObject obj(cx, JS_New(cx, ctorobj, val));
 		if (!obj)
 			throw PSERROR_Deserialize_ScriptError("JS_New failed");
 		AddScriptBackref(obj);
@@ -303,11 +303,11 @@ jsval CStdDeserializer::ReadScriptVal(const char* UNUSED(name), JSObject* append
 		Bool("value", value);
 		JS::RootedValue val(cx, JS::BooleanValue(value));
 
-		JSObject* ctorobj;
-		if (!JS_GetClassObject(cx, JS_GetGlobalForScopeChain(cx), JSProto_Boolean, &ctorobj))
+		JS::RootedObject ctorobj(cx);
+		if (!JS_GetClassObject(cx, JSProto_Boolean, &ctorobj))
 			throw PSERROR_Deserialize_ScriptError("JS_GetClassObject failed");
 
-		JSObject* obj = JS_New(cx, ctorobj, 1, val.address());
+		JS::RootedObject obj(cx, JS_New(cx, ctorobj, val));
 		if (!obj)
 			throw PSERROR_Deserialize_ScriptError("JS_New failed");
 		AddScriptBackref(obj);
@@ -330,7 +330,7 @@ jsval CStdDeserializer::ReadScriptVal(const char* UNUSED(name), JSObject* append
 		if (!bufferVal.isObject())
 			throw PSERROR_Deserialize_ScriptError();
 
-		JSObject* bufferObj = &bufferVal.toObject();
+		JS::RootedObject bufferObj(cx, &bufferVal.toObject());
 		if (!JS_IsArrayBufferObject(bufferObj))
 			throw PSERROR_Deserialize_ScriptError("js_IsArrayBuffer failed");
 
@@ -378,16 +378,14 @@ jsval CStdDeserializer::ReadScriptVal(const char* UNUSED(name), JSObject* append
 	{
 		u32 length;
 		NumberU32_Unbounded("buffer length", length);
-		u8* bufferData = NULL;
-		
 
 #if BYTE_ORDER != LITTLE_ENDIAN
 #error TODO: need to convert JS ArrayBuffer data from little-endian
 #endif
 		void* contents = NULL;
-		JS_AllocateArrayBufferContents(cx, length, &contents, &bufferData);
-		RawBytes("buffer data", bufferData, length);
-		JSObject* bufferObj = JS_NewArrayBufferWithContents(cx, contents);
+		contents = JS_AllocateArrayBufferContents(cx, length);
+		RawBytes("buffer data", (u8*)contents, length);
+		JSObject* bufferObj = JS_NewArrayBufferWithContents(cx, length, contents);
 		AddScriptBackref(bufferObj);
 
 		return JS::ObjectValue(*bufferObj);

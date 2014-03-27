@@ -154,7 +154,7 @@ private:
 
 				JS::AutoValueVector argv(m_ScriptInterface->GetContext());
 				argv.append(settings.get());
-				obj = m_ScriptInterface->CallConstructor(ctor.get(), argv.length(), argv.handleAt(0));
+				obj = m_ScriptInterface->CallConstructor(ctor.get(), argv);
 			}
 			else
 			{
@@ -174,19 +174,19 @@ private:
 			return true;
 		}
 
-		void Run(CScriptVal state, int playerID)
+		void Run(JS::HandleValue state, int playerID)
 		{
 			m_Commands.clear();
 			m_ScriptInterface->CallFunctionVoid(m_Obj.get(), "HandleMessage", state, playerID);
 		}
 		// overloaded with a sharedAI part.
 		// javascript can handle both natively on the same function.
-		void Run(CScriptVal state, int playerID, CScriptValRooted SharedAI)
+		void Run(JS::HandleValue state, int playerID, CScriptValRooted SharedAI)
 		{
 			m_Commands.clear();
 			m_ScriptInterface->CallFunctionVoid(m_Obj.get(), "HandleMessage", state, playerID, SharedAI);
 		}
-		void InitAI(CScriptVal state, CScriptValRooted SharedAI)
+		void InitAI(JS::HandleValue state, CScriptValRooted SharedAI)
 		{
 			m_Commands.clear();
 			m_ScriptInterface->CallFunctionVoid(m_Obj.get(), "Init", state, m_Player, SharedAI);
@@ -385,8 +385,10 @@ public:
 		
 		for (size_t i = 0; i < m_Players.size(); ++i)
 		{
-			JS::Value val;
-			m_ScriptInterface->ToJSVal(m_ScriptInterface->GetContext(), val, m_Players[i]->m_Player);
+			JSContext* cx = m_ScriptInterface->GetContext();
+			JSAutoRequest rq(cx);
+			JS::RootedValue val(cx);
+			m_ScriptInterface->ToJSVal(cx, &val, m_Players[i]->m_Player);
 			m_ScriptInterface->SetPropertyInt(playersID.get(), i, CScriptVal(val), true);
 		}
 		
@@ -408,7 +410,7 @@ public:
 		
 		JS::AutoValueVector argv(m_ScriptInterface->GetContext());
 		argv.append(settings.get());
-		m_SharedAIObj = CScriptValRooted(m_ScriptInterface->GetContext(),m_ScriptInterface->CallConstructor(ctor.get(), argv.length(), argv.handleAt(0)));
+		m_SharedAIObj = CScriptValRooted(m_ScriptInterface->GetContext(),m_ScriptInterface->CallConstructor(ctor.get(), argv));
 	
 		
 		if (m_SharedAIObj.undefined())
@@ -440,20 +442,23 @@ public:
 		// this will be run last by InitGame.Js, passing the full game representation.
 		// For now it will run for the shared Component.
 		// This is NOT run during deserialization.
-		CScriptVal state = m_ScriptInterface->ReadStructuredClone(gameState);
 		JSContext* cx = m_ScriptInterface->GetContext();
-
+		JSAutoRequest rq(cx);
+		
+		JS::RootedValue state(cx);
+		m_ScriptInterface->ReadStructuredClone(gameState, &state);
+		
 		JS::RootedValue tmpVal(cx);
-		ScriptInterface::ToJSVal(cx, tmpVal.get(), passabilityMap);
+		ScriptInterface::ToJSVal(cx, &tmpVal, passabilityMap);
 		m_PassabilityMapVal = CScriptValRooted(cx, tmpVal.get());
-		ScriptInterface::ToJSVal(cx, tmpVal.get(), territoryMap);
+		ScriptInterface::ToJSVal(cx, &tmpVal, territoryMap);
 		m_TerritoryMapVal = CScriptValRooted(cx, tmpVal);
 		if (m_HasSharedComponent)
 		{
-			m_ScriptInterface->SetProperty(state.get(), "passabilityMap", m_PassabilityMapVal, true);
-			m_ScriptInterface->SetProperty(state.get(), "territoryMap", m_TerritoryMapVal, true);
+			m_ScriptInterface->SetProperty(state, "passabilityMap", m_PassabilityMapVal, true);
+			m_ScriptInterface->SetProperty(state, "territoryMap", m_TerritoryMapVal, true);
 
-			m_ScriptInterface->CallFunctionVoid(m_SharedAIObj.get(), "init", state);
+			m_ScriptInterface->CallFunctionVoid(m_SharedAIObj.get(), "init", (JS::HandleValue)state);
 			
 			for (size_t i = 0; i < m_Players.size(); ++i)
 			{
@@ -477,7 +482,7 @@ public:
 		{
 			m_PassabilityMap = passabilityMap;
 			JS::RootedValue tmpVal(cx);
-			ScriptInterface::ToJSVal(cx, tmpVal.get(), m_PassabilityMap);
+			ScriptInterface::ToJSVal(cx, &tmpVal, m_PassabilityMap);
 			m_PassabilityMapVal = CScriptValRooted(cx, tmpVal);
 		}
 
@@ -485,7 +490,7 @@ public:
 		{
 			m_TerritoryMap = territoryMap;
 			JS::RootedValue tmpVal(cx);
-			ScriptInterface::ToJSVal(cx, tmpVal.get(), m_TerritoryMap);
+			ScriptInterface::ToJSVal(cx, &tmpVal, m_TerritoryMap);
 			m_TerritoryMapVal = CScriptValRooted(cx, tmpVal);
 		}
 
@@ -516,7 +521,10 @@ public:
 
 	void RegisterTechTemplates(const shared_ptr<ScriptInterface::StructuredClone>& techTemplates) {
 		JSContext* cx = m_ScriptInterface->GetContext();
-		m_TechTemplates = CScriptValRooted(cx, m_ScriptInterface->ReadStructuredClone(techTemplates));
+		JSAutoRequest rq(cx);
+		JS::RootedValue ret(cx);
+		m_ScriptInterface->ReadStructuredClone(techTemplates, &ret);
+		m_TechTemplates = CScriptValRooted(cx, ret);
 	}
 	
 	void LoadEntityTemplates(const std::vector<std::pair<std::string, const CParamNode*> >& templates)
@@ -582,8 +590,11 @@ public:
 			serializer.NumberU32_Unbounded("num commands", (u32)m_Players[i]->m_Commands.size());
 			for (size_t j = 0; j < m_Players[i]->m_Commands.size(); ++j)
 			{
-				CScriptVal val = m_ScriptInterface->ReadStructuredClone(m_Players[i]->m_Commands[j]);
-				serializer.ScriptVal("command", val);
+				JSContext* cx = m_ScriptInterface->GetContext();
+				JSAutoRequest rq(cx);
+				JS::RootedValue val(cx);
+				m_ScriptInterface->ReadStructuredClone(m_Players[i]->m_Commands[j], &val);
+				serializer.ScriptVal("command", val.get());
 			}
 
 			bool hasCustomSerialize = m_ScriptInterface->HasProperty(m_Players[i]->m_Obj.get(), "Serialize");
@@ -711,12 +722,13 @@ private:
 	void PerformComputation()
 	{			
 		// Deserialize the game state, to pass to the AI's HandleMessage
-		CScriptVal state;
+		JSContext* cx = m_ScriptInterface->GetContext();
+		JS::RootedValue state(cx);
 		{
 			PROFILE3("AI compute read state");
-			state = m_ScriptInterface->ReadStructuredClone(m_GameState);
-			m_ScriptInterface->SetProperty(state.get(), "passabilityMap", m_PassabilityMapVal, true);
-			m_ScriptInterface->SetProperty(state.get(), "territoryMap", m_TerritoryMapVal, true);
+			m_ScriptInterface->ReadStructuredClone(m_GameState, &state);
+			m_ScriptInterface->SetProperty(state, "passabilityMap", m_PassabilityMapVal, true);
+			m_ScriptInterface->SetProperty(state, "territoryMap", m_TerritoryMapVal, true);
 		}
 
 		// It would be nice to do
@@ -729,7 +741,7 @@ private:
 		if (m_HasSharedComponent)
 		{
 			PROFILE3("AI run shared component");
-			m_ScriptInterface->CallFunctionVoid(m_SharedAIObj.get(), "onUpdate", state);
+			m_ScriptInterface->CallFunctionVoid(m_SharedAIObj.get(), "onUpdate", (JS::HandleValue)state);
 		}
 		
 		for (size_t i = 0; i < m_Players.size(); ++i)
@@ -967,12 +979,15 @@ public:
 		if (!cmpCommandQueue)
 			return;
 
+		JSContext* cx = scriptInterface.GetContext();
+		JSAutoRequest rq(cx);
+		JS::RootedValue tmpVal(cx);
 		for (size_t i = 0; i < commands.size(); ++i)
 		{
 			for (size_t j = 0; j < commands[i].commands.size(); ++j)
 			{
-				cmpCommandQueue->PushLocalCommand(commands[i].player,
-					scriptInterface.ReadStructuredClone(commands[i].commands[j]));
+				scriptInterface.ReadStructuredClone(commands[i].commands[j], &tmpVal);
+				cmpCommandQueue->PushLocalCommand(commands[i].player, CScriptVal(tmpVal));
 			}
 		}
 	}

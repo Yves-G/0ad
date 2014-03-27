@@ -625,7 +625,7 @@ IComponent* CComponentManager::ConstructComponent(CEntityHandle ent, ComponentTy
 	jsval obj = JSVAL_NULL;
 	if (ct.type == CT_Script)
 	{
-		obj = m_ScriptInterface.CallConstructor(ct.ctor.get(), 0, JSVAL_VOID);
+		obj = m_ScriptInterface.CallConstructor(ct.ctor.get(), JS::HandleValueArray::empty());
 		if (JSVAL_IS_VOID(obj))
 		{
 			LOGERROR(L"Script component constructor failed");

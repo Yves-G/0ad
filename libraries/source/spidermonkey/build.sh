@@ -51,30 +51,40 @@ CONF_OPTS="${CONF_OPTS} \
 echo "SpiderMonkey build options: ${CONF_OPTS}"
 echo ${CONF_OPTS}
 
-# Delete the existing directory to avoid conflicts and extract the tarball
-rm -rf mozjs24
-tar xjf mozjs-24.2.0.tar.bz2
+# Download the current development version from the mozilla-central repository
+if [ ! -d "mozjs31" ]; then
+  hg clone http://hg.mozilla.org/mozilla-central/ mozjs31
+else
+  cd mozjs31
+  hg pull
+  # I've tested with this version, but you can try a more recent one if you like
+  hg update 174921:c3b840de1f7b
+  cd ..
+fi
 
 # Apply patches if needed
 #patch -p0 < name_of_thepatch.diff
 
-# rename the extracted directory to something shorter
-mv mozjs-24.2.0 mozjs24
+# Clean up header files that may be left over by earlier versions of SpiderMonkey
+rm -rf include-unix-*
 
-cd mozjs24/js/src
+cd mozjs31/js/src
+
+# Run autoconf to create the configure script
+autoconf2.13
 
 # We want separate debug/release versions of the library, so we have to change
 # the LIBRARY_NAME for each build.
 # (We use perl instead of sed so that it works with MozillaBuild on Windows,
 # which has an ancient sed.)
-perl -i.bak -pe 's/(^LIBRARY_NAME\s+=).*/$1mozjs24-ps-debug/' Makefile.in
+perl -i.bak -pe 's/(LIBRARY_NAME\s+=).*/$1 '\''mozjs31-ps-debug'\''/' moz.build
 mkdir -p build-debug
 cd build-debug
 ../configure ${CONF_OPTS} --with-nspr-libs="$NSPR_LIBS" --with-nspr-cflags="$NSPR_INCLUDES" --enable-debug --disable-optimize --enable-js-diagnostics --enable-gczeal # --enable-root-analysis
 ${MAKE} ${MAKE_OPTS}
 cd ..
 
-perl -i.bak -pe 's/(^LIBRARY_NAME\s+=).*/$1mozjs24-ps-release/' Makefile.in
+perl -i.bak -pe 's/(LIBRARY_NAME\s+=).*/$1 '\''mozjs31-ps-release'\''/' moz.build
 mkdir -p build-release
 cd build-release
 ../configure ${CONF_OPTS} --with-nspr-libs="$NSPR_LIBS" --with-nspr-cflags="$NSPR_INCLUDES" --enable-optimize  # --enable-gczeal --enable-debug-symbols
@@ -114,14 +124,14 @@ fi
 # js-config.h is different for debug and release builds, so we need different include directories for both
 mkdir -p ${INCLUDE_DIR_DEBUG}
 mkdir -p ${INCLUDE_DIR_RELEASE}
-cp -R -L mozjs24/js/src/build-release/dist/include/* ${INCLUDE_DIR_RELEASE}/
-cp -R -L mozjs24/js/src/build-debug/dist/include/* ${INCLUDE_DIR_DEBUG}/
+cp -R -L mozjs31/js/src/build-release/dist/include/* ${INCLUDE_DIR_RELEASE}/
+cp -R -L mozjs31/js/src/build-debug/dist/include/* ${INCLUDE_DIR_DEBUG}/
 
 mkdir -p lib/
-cp -L mozjs24/js/src/build-debug/dist/lib/${LIB_PREFIX}mozjs24-ps-debug${LIB_SRC_SUFFIX} lib/${LIB_PREFIX}mozjs24-ps-debug${LIB_DST_SUFFIX}
-cp -L mozjs24/js/src/build-release/dist/lib/${LIB_PREFIX}mozjs24-ps-release${LIB_SRC_SUFFIX} lib/${LIB_PREFIX}mozjs24-ps-release${LIB_DST_SUFFIX}
-cp -L mozjs24/js/src/build-debug/dist/bin/${LIB_PREFIX}mozjs24-ps-debug${DLL_SRC_SUFFIX} ../../../binaries/system/${LIB_PREFIX}mozjs24-ps-debug${DLL_DST_SUFFIX}
-cp -L mozjs24/js/src/build-release/dist/bin/${LIB_PREFIX}mozjs24-ps-release${DLL_SRC_SUFFIX} ../../../binaries/system/${LIB_PREFIX}mozjs24-ps-release${DLL_DST_SUFFIX}
+cp -L mozjs31/js/src/build-debug/dist/lib/${LIB_PREFIX}mozjs31-ps-debug${LIB_SRC_SUFFIX} lib/${LIB_PREFIX}mozjs31-ps-debug${LIB_DST_SUFFIX}
+cp -L mozjs31/js/src/build-release/dist/lib/${LIB_PREFIX}mozjs31-ps-release${LIB_SRC_SUFFIX} lib/${LIB_PREFIX}mozjs31-ps-release${LIB_DST_SUFFIX}
+cp -L mozjs31/js/src/build-debug/dist/bin/${LIB_PREFIX}mozjs31-ps-debug${DLL_SRC_SUFFIX} ../../../binaries/system/${LIB_PREFIX}mozjs31-ps-debug${DLL_DST_SUFFIX}
+cp -L mozjs31/js/src/build-release/dist/bin/${LIB_PREFIX}mozjs31-ps-release${DLL_SRC_SUFFIX} ../../../binaries/system/${LIB_PREFIX}mozjs31-ps-release${DLL_DST_SUFFIX}
 
 # Flag that it's already been built successfully so we can skip it next time
 touch .already-built

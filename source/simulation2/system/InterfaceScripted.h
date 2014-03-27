@@ -29,13 +29,16 @@
 	static JSFunctionSpec methods_ICmp##iname[] = {
 
 #define END_INTERFACE_WRAPPER(iname) \
-		{ NULL } \
+		JS_FS_END \
 	}; \
 	void ICmp##iname::InterfaceInit(ScriptInterface& scriptInterface) { \
 		JSContext* cx = scriptInterface.GetContext(); \
 		JSAutoRequest rq(cx); \
-		JSObject* global = JS_GetGlobalForScopeChain(cx); \
-		JS_InitClass(cx, global, NULL, &class_ICmp##iname, NULL, 0, NULL, methods_ICmp##iname, NULL, NULL); \
+		JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx)); \
+		if (!global) \
+			printf("ERROR global is null"); \
+		printf("INITIALIZING CLASS class_ICmp" #iname);\
+		ENSURE(NULL != JS_InitClass(cx, global, JS::NullPtr(), &class_ICmp##iname, NULL, 0, NULL, methods_ICmp##iname, NULL, NULL)); \
 	} \
 	JSClass* ICmp##iname::GetJSClass() const { return &class_ICmp##iname; } \
 	void RegisterComponentInterface_##iname(ScriptInterface& scriptInterface) { \
@@ -43,51 +46,27 @@
 	}
 
 #define DEFINE_INTERFACE_METHOD_0(scriptname, rettype, classname, methodname) \
-	{ scriptname, \
-		{ ScriptInterface::callMethod<rettype, &class_##classname, classname, &classname::methodname>, NULL }, \
-		0, \
-		JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT },
+	JS_FN(scriptname, (ScriptInterface::callMethod<rettype, &class_##classname, classname, &classname::methodname>), 0, JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT),
 
 #define DEFINE_INTERFACE_METHOD_1(scriptname, rettype, classname, methodname, arg1) \
-	{ scriptname, \
-		{ ScriptInterface::callMethod<rettype, arg1, &class_##classname, classname, &classname::methodname>, NULL}, \
-		1, \
-		JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT },
+	JS_FN(scriptname, (ScriptInterface::callMethod<rettype, arg1, &class_##classname, classname, &classname::methodname>), 1, JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT),
 
 #define DEFINE_INTERFACE_METHOD_2(scriptname, rettype, classname, methodname, arg1, arg2) \
-	{ scriptname, \
-		{ ScriptInterface::callMethod<rettype, arg1, arg2, &class_##classname, classname, &classname::methodname>, NULL }, \
-		2, \
-		JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT },
+	JS_FN(scriptname, (ScriptInterface::callMethod<rettype, arg1, arg2, &class_##classname, classname, &classname::methodname>), 2, JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT),
 
 #define DEFINE_INTERFACE_METHOD_3(scriptname, rettype, classname, methodname, arg1, arg2, arg3) \
-	{ scriptname, \
-		{ ScriptInterface::callMethod<rettype, arg1, arg2, arg3, &class_##classname, classname, &classname::methodname>, NULL }, \
-		3, \
-		JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT },
+	JS_FN(scriptname, (ScriptInterface::callMethod<rettype, arg1, arg2, arg3, &class_##classname, classname, &classname::methodname>), 3, JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT),
 
 #define DEFINE_INTERFACE_METHOD_4(scriptname, rettype, classname, methodname, arg1, arg2, arg3, arg4) \
-	{ scriptname, \
-		{ ScriptInterface::callMethod<rettype, arg1, arg2, arg3, arg4, &class_##classname, classname, &classname::methodname>, NULL }, \
-		4, \
-		JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT },
+	JS_FN(scriptname, (ScriptInterface::callMethod<rettype, arg1, arg2, arg3, arg4, &class_##classname, classname, &classname::methodname>), 4, JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT),
 
 #define DEFINE_INTERFACE_METHOD_5(scriptname, rettype, classname, methodname, arg1, arg2, arg3, arg4, arg5) \
-	{ scriptname, \
-		{ ScriptInterface::callMethod<rettype, arg1, arg2, arg3, arg4, arg5, &class_##classname, classname, &classname::methodname>, NULL }, \
-		5, \
-		JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT },
+	JS_FN(scriptname, (ScriptInterface::callMethod<rettype, arg1, arg2, arg3, arg4, arg5, &class_##classname, classname, &classname::methodname>), 5, JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT),
 
 #define DEFINE_INTERFACE_METHOD_6(scriptname, rettype, classname, methodname, arg1, arg2, arg3, arg4, arg5, arg6) \
-	{ scriptname, \
-		{ ScriptInterface::callMethod<rettype, arg1, arg2, arg3, arg4, arg5, arg6, &class_##classname, classname, &classname::methodname>, NULL }, \
-		6, \
-		JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT },
+	JS_FN(scriptname, (ScriptInterface::callMethod<rettype, arg1, arg2, arg3, arg4, arg5, arg6, &class_##classname, classname, &classname::methodname>), 6, JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT),
 
 #define DEFINE_INTERFACE_METHOD_7(scriptname, rettype, classname, methodname, arg1, arg2, arg3, arg4, arg5, arg6, arg7) \
-	{ scriptname, \
-		{ ScriptInterface::callMethod<rettype, arg1, arg2, arg3, arg4, arg5, arg6, arg7, &class_##classname, classname, &classname::methodname>, NULL }, \
-		7, \
-		JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT },
+	JS_FN(scriptname, (ScriptInterface::callMethod<rettype, arg1, arg2, arg3, arg4, arg5, arg6, arg7, &class_##classname, classname, &classname::methodname>), 7, JSPROP_ENUMERATE|JSPROP_READONLY|JSPROP_PERMANENT),
 
 #endif // INCLUDED_INTERFACE_SCRIPTED

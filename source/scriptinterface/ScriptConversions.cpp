@@ -30,17 +30,19 @@
 // Implicit type conversions often hide bugs, so warn about them
 #define WARN_IF_NOT(c, v) STMT(if (!(c)) { JS_ReportWarning(cx, "Script value conversion check failed: %s (got type %s)", #c, JS_GetTypeName(cx, JS_TypeOfValue(cx, v))); })
 
-template<> bool ScriptInterface::FromJSVal<bool>(JSContext* cx, jsval v, bool& out)
+template<> bool ScriptInterface::FromJSVal<bool>(JSContext* cx, jsval v1, bool& out)
 {
 	JSAutoRequest rq(cx);
+	JS::RootedValue v(cx, v1);
 	WARN_IF_NOT(v.isBoolean(), v);
 	out = JS::ToBoolean(v);
 	return true;
 }
 
-template<> bool ScriptInterface::FromJSVal<float>(JSContext* cx, jsval v, float& out)
+template<> bool ScriptInterface::FromJSVal<float>(JSContext* cx, jsval v1, float& out)
 {
 	JSAutoRequest rq(cx);
+	JS::RootedValue v(cx, v1);
 	double ret;
 	WARN_IF_NOT(v.isNumber(), v);
 	if (!JS::ToNumber(cx, v, &ret))
@@ -49,9 +51,10 @@ template<> bool ScriptInterface::FromJSVal<float>(JSContext* cx, jsval v, float&
 	return true;
 }
 
-template<> bool ScriptInterface::FromJSVal<double>(JSContext* cx, jsval v, double& out)
+template<> bool ScriptInterface::FromJSVal<double>(JSContext* cx, jsval v1, double& out)
 {
 	JSAutoRequest rq(cx);
+	JS::RootedValue v(cx, v1);
 	double ret;
 	WARN_IF_NOT(v.isNumber(), v);
 	if (!JS::ToNumber(cx, v, &ret))
@@ -60,9 +63,10 @@ template<> bool ScriptInterface::FromJSVal<double>(JSContext* cx, jsval v, doubl
 	return true;
 }
 
-template<> bool ScriptInterface::FromJSVal<i32>(JSContext* cx, jsval v, i32& out)
+template<> bool ScriptInterface::FromJSVal<i32>(JSContext* cx, jsval v1, i32& out)
 {
 	JSAutoRequest rq(cx);
+	JS::RootedValue v(cx, v1);
 	int32_t ret;
 	WARN_IF_NOT(v.isNumber(), v);
 	if (!JS::ToInt32(cx, v, &ret))
@@ -71,9 +75,10 @@ template<> bool ScriptInterface::FromJSVal<i32>(JSContext* cx, jsval v, i32& out
 	return true;
 }
 
-template<> bool ScriptInterface::FromJSVal<u32>(JSContext* cx, jsval v, u32& out)
+template<> bool ScriptInterface::FromJSVal<u32>(JSContext* cx, jsval v1, u32& out)
 {
 	JSAutoRequest rq(cx);
+	JS::RootedValue v(cx, v1);
 	uint32_t ret;
 	WARN_IF_NOT(v.isNumber(), v);
 	if (!JS::ToUint32(cx, v, &ret))
@@ -82,9 +87,10 @@ template<> bool ScriptInterface::FromJSVal<u32>(JSContext* cx, jsval v, u32& out
 	return true;
 }
 
-template<> bool ScriptInterface::FromJSVal<u16>(JSContext* cx, jsval v, u16& out)
+template<> bool ScriptInterface::FromJSVal<u16>(JSContext* cx, jsval v1, u16& out)
 {
 	JSAutoRequest rq(cx);
+	JS::RootedValue v(cx, v1);
 	uint16_t ret;
 	WARN_IF_NOT(v.isNumber(), v);
 	if (!JS::ToUint16(cx, v, &ret))
@@ -93,9 +99,10 @@ template<> bool ScriptInterface::FromJSVal<u16>(JSContext* cx, jsval v, u16& out
 	return true;
 }
 
-template<> bool ScriptInterface::FromJSVal<u8>(JSContext* cx, jsval v, u8& out)
+template<> bool ScriptInterface::FromJSVal<u8>(JSContext* cx, jsval v1, u8& out)
 {
 	JSAutoRequest rq(cx);
+	JS::RootedValue v(cx, v1);
 	uint16_t ret;
 	WARN_IF_NOT(v.isNumber(), v);
 	if (!JS::ToUint16(cx, v, &ret))
@@ -104,16 +111,20 @@ template<> bool ScriptInterface::FromJSVal<u8>(JSContext* cx, jsval v, u8& out)
 	return true;
 }
 
-template<> bool ScriptInterface::FromJSVal<long>(JSContext* cx, jsval v, long& out)
+template<> bool ScriptInterface::FromJSVal<long>(JSContext* cx, jsval v1, long& out)
 {
+	JSAutoRequest rq(cx);
+	JS::RootedValue v(cx, v1);
 	int32_t tmp;
 	bool ok = JS::ToInt32(cx, v, &tmp);
 	out = (long)tmp;
 	return ok;
 }
 
-template<> bool ScriptInterface::FromJSVal<unsigned long>(JSContext* cx, jsval v, unsigned long& out)
+template<> bool ScriptInterface::FromJSVal<unsigned long>(JSContext* cx, jsval v1, unsigned long& out)
 {
+	JSAutoRequest rq(cx);
+	JS::RootedValue v(cx, v1);
 	int32_t tmp;
 	bool ok = JS::ToInt32(cx, v, &tmp);
 	out = (unsigned long)tmp;
@@ -123,8 +134,10 @@ template<> bool ScriptInterface::FromJSVal<unsigned long>(JSContext* cx, jsval v
 // see comment below (where the same preprocessor condition is used)
 #if MSC_VERSION && ARCH_AMD64
 
-template<> bool ScriptInterface::FromJSVal<size_t>(JSContext* cx, jsval v, size_t& out)
+template<> bool ScriptInterface::FromJSVal<size_t>(JSContext* cx, jsval v1, size_t& out)
 {
+	JSAutoRequest rq(cx);
+	JS::RootedValue v(cx, v1);
 	int temp;
 	if(!FromJSVal<int>(cx, v, temp))
 		return false;
@@ -134,8 +147,10 @@ template<> bool ScriptInterface::FromJSVal<size_t>(JSContext* cx, jsval v, size_
 	return true;
 }
 
-template<> bool ScriptInterface::FromJSVal<ssize_t>(JSContext* cx, jsval v, ssize_t& out)
+template<> bool ScriptInterface::FromJSVal<ssize_t>(JSContext* cx, jsval v1, ssize_t& out)
 {
+	JSAutoRequest rq(cx);
+	JS::RootedValue v(cx, v1);
 	int temp;
 	if(!FromJSVal<int>(cx, v, temp))
 		return false;
@@ -146,6 +161,7 @@ template<> bool ScriptInterface::FromJSVal<ssize_t>(JSContext* cx, jsval v, ssiz
 }
 
 #endif
+
 
 template<> bool ScriptInterface::FromJSVal<CScriptVal>(JSContext* UNUSED(cx), jsval v, CScriptVal& out)
 {
@@ -159,11 +175,12 @@ template<> bool ScriptInterface::FromJSVal<CScriptValRooted>(JSContext* cx, jsva
 	return true;
 }
 
-template<> bool ScriptInterface::FromJSVal<std::wstring>(JSContext* cx, jsval v, std::wstring& out)
+template<> bool ScriptInterface::FromJSVal<std::wstring>(JSContext* cx, jsval v1, std::wstring& out)
 {
 	JSAutoRequest rq(cx);
+	JS::RootedValue v(cx, v1);
 	WARN_IF_NOT(JSVAL_IS_STRING(v) || JSVAL_IS_NUMBER(v), v); // allow implicit number conversions
-	JSString* ret = JS_ValueToString(cx, v);
+	JSString* ret = JS::ToString(cx, v);
 	if (!ret)
 		FAIL("Argument must be convertible to a string");
 	size_t length;
@@ -183,11 +200,12 @@ template<> bool ScriptInterface::FromJSVal<Path>(JSContext* cx, jsval v, Path& o
 	return true;
 }
 
-template<> bool ScriptInterface::FromJSVal<std::string>(JSContext* cx, jsval v, std::string& out)
+template<> bool ScriptInterface::FromJSVal<std::string>(JSContext* cx, jsval v1, std::string& out)
 {
 	JSAutoRequest rq(cx);
+	JS::RootedValue v(cx, v1);
 	WARN_IF_NOT(v.isString() || v.isNumber(), v); // allow implicit number conversions
-	JSString* ret = JS_ValueToString(cx, v);
+	JSString* ret = JS::ToString(cx, v);
 	if (!ret)
 		FAIL("Argument must be convertible to a string");
 	char* ch = JS_EncodeString(cx, ret); // chops off high byte of each jschar
@@ -208,9 +226,10 @@ template<> bool ScriptInterface::FromJSVal<CStrW>(JSContext* cx, jsval v, CStrW&
 	return ScriptInterface::FromJSVal(cx, v, static_cast<std::wstring&>(out));
 }
 
-template<> bool ScriptInterface::FromJSVal<Entity>(JSContext* cx, jsval v, Entity& out)
+template<> bool ScriptInterface::FromJSVal<Entity>(JSContext* cx, jsval v1, Entity& out)
 {
 	JSAutoRequest rq(cx);
+	JS::RootedValue v(cx, v1);
 	if (!v.isObject())
 		FAIL("Argument must be an object");
 
@@ -222,15 +241,15 @@ template<> bool ScriptInterface::FromJSVal<Entity>(JSContext* cx, jsval v, Entit
 	JS::RootedValue rotation(cx);
 
 	// TODO: Report type errors
-	if(!JS_GetProperty(cx, obj, "player", player.address()) || !FromJSVal(cx, player, out.playerID))
+	if(!JS_GetProperty(cx, obj, "player", &player) || !FromJSVal(cx, player, out.playerID))
 		FAIL("Failed to read Entity.player property");
-	if (!JS_GetProperty(cx, obj, "templateName", templateName.address()) || !FromJSVal(cx, templateName, out.templateName))
+	if (!JS_GetProperty(cx, obj, "templateName", &templateName) || !FromJSVal(cx, templateName, out.templateName))
 		FAIL("Failed to read Entity.templateName property");
-	if (!JS_GetProperty(cx, obj, "id", id.address()) || !FromJSVal(cx, id, out.entityID))
+	if (!JS_GetProperty(cx, obj, "id", &id) || !FromJSVal(cx, id, out.entityID))
 		FAIL("Failed to read Entity.id property");
-	if (!JS_GetProperty(cx, obj, "position", position.address()) || !FromJSVal(cx, position, out.position))
+	if (!JS_GetProperty(cx, obj, "position", &position) || !FromJSVal(cx, position, out.position))
 		FAIL("Failed to read Entity.position property");
-	if (!JS_GetProperty(cx, obj, "rotation", rotation.address()) || !FromJSVal(cx, rotation, out.rotation))
+	if (!JS_GetProperty(cx, obj, "rotation", &rotation) || !FromJSVal(cx, rotation, out.rotation))
 		FAIL("Failed to read Entity.rotation property");
 
 	return true;
@@ -239,49 +258,49 @@ template<> bool ScriptInterface::FromJSVal<Entity>(JSContext* cx, jsval v, Entit
 ////////////////////////////////////////////////////////////////
 // Primitive types:
 
-template<> void ScriptInterface::ToJSVal<bool>(JSContext* UNUSED(cx), JS::Value& ret, const bool& val)
+template<> void ScriptInterface::ToJSVal<bool>(JSContext* UNUSED(cx), JS::MutableHandleValue ret, const bool& val)
 {
-	ret = val ? JSVAL_TRUE : JSVAL_FALSE;
+	ret.set(JS::BooleanValue(val));
 }
 
-template<> void ScriptInterface::ToJSVal<float>(JSContext* UNUSED(cx), JS::Value& ret, const float& val)
+template<> void ScriptInterface::ToJSVal<float>(JSContext* UNUSED(cx), JS::MutableHandleValue ret, const float& val)
 {
-	ret = JS::NumberValue(val);
+	ret.set(JS::NumberValue(val));
 }
 
-template<> void ScriptInterface::ToJSVal<double>(JSContext* UNUSED(cx), JS::Value& ret, const double& val)
+template<> void ScriptInterface::ToJSVal<double>(JSContext* UNUSED(cx), JS::MutableHandleValue ret, const double& val)
 {
-	ret = JS::NumberValue(val);
+	ret.set(JS::NumberValue(val));
 }
 
-template<> void ScriptInterface::ToJSVal<i32>(JSContext* UNUSED(cx), JS::Value& ret, const i32& val)
+template<> void ScriptInterface::ToJSVal<i32>(JSContext* UNUSED(cx), JS::MutableHandleValue ret, const i32& val)
 {
-	ret = JS::NumberValue(val);
+	ret.set(JS::NumberValue(val));
 }
 
-template<> void ScriptInterface::ToJSVal<u16>(JSContext* UNUSED(cx), JS::Value& ret, const u16& val)
+template<> void ScriptInterface::ToJSVal<u16>(JSContext* UNUSED(cx), JS::MutableHandleValue ret, const u16& val)
 {
-	ret = JS::NumberValue(val);
+	ret.set(JS::NumberValue(val));
 }
 
-template<> void ScriptInterface::ToJSVal<u8>(JSContext* UNUSED(cx), JS::Value& ret, const u8& val)
+template<> void ScriptInterface::ToJSVal<u8>(JSContext* UNUSED(cx), JS::MutableHandleValue ret, const u8& val)
 {
-	ret = JS::NumberValue(val);
+	ret.set(JS::NumberValue(val));
 }
 
-template<> void ScriptInterface::ToJSVal<u32>(JSContext* UNUSED(cx), JS::Value& ret, const u32& val)
+template<> void ScriptInterface::ToJSVal<u32>(JSContext* UNUSED(cx), JS::MutableHandleValue ret, const u32& val)
 {
-	ret = JS::NumberValue(val);
+	ret.set(JS::NumberValue(val));
 }
 
-template<> void ScriptInterface::ToJSVal<long>(JSContext* UNUSED(cx), JS::Value& ret, const long& val)
+template<> void ScriptInterface::ToJSVal<long>(JSContext* UNUSED(cx), JS::MutableHandleValue ret, const long& val)
 {
-	ret = JS::NumberValue((int)val);
+	ret.set(JS::NumberValue((int)val));
 }
 
-template<> void ScriptInterface::ToJSVal<unsigned long>(JSContext* UNUSED(cx), JS::Value& ret, const unsigned long& val)
+template<> void ScriptInterface::ToJSVal<unsigned long>(JSContext* UNUSED(cx), JS::MutableHandleValue ret, const unsigned long& val)
 {
-	ret = JS::NumberValue((int)val);
+	ret.set(JS::NumberValue((int)val));
 }
 
 // (s)size_t are considered to be identical to (unsigned) int by GCC and 
@@ -291,75 +310,81 @@ template<> void ScriptInterface::ToJSVal<unsigned long>(JSContext* UNUSED(cx), J
 // for some reason, x64 MSC treats size_t as distinct from unsigned long:
 #if MSC_VERSION && ARCH_AMD64
 
-template<> void ScriptInterface::ToJSVal<size_t>(JSContext* UNUSED(cx), JS::Value& ret, const size_t& val)
+template<> void ScriptInterface::ToJSVal<size_t>(JSContext* UNUSED(cx), JS::MutableHandleValue ret, const size_t& val)
 {
-	ret = JS::NumberValue((int)val);
+	ret.set(JS::NumberValue((int)val));
 }
 
-template<> void ScriptInterface::ToJSVal<ssize_t>(JSContext* UNUSED(cx), JS::Value& ret, const ssize_t& val)
+template<> void ScriptInterface::ToJSVal<ssize_t>(JSContext* UNUSED(cx), JS::MutableHandleValue ret, const ssize_t& val)
 {
-	ret = JS::NumberValue((int)val);
+	ret.set(JS::NumberValue((int)val));
 }
 
 #endif
 
-template<> void ScriptInterface::ToJSVal<CScriptVal>(JSContext* UNUSED(cx), JS::Value& ret, const CScriptVal& val)
+template<> void ScriptInterface::ToJSVal<CScriptVal>(JSContext* UNUSED(cx), JS::MutableHandleValue ret, const CScriptVal& val)
 {
-	ret = val.get();
+	ret.set(val.get());
 }
 
-template<> void ScriptInterface::ToJSVal<CScriptValRooted>(JSContext* UNUSED(cx), JS::Value& ret, const CScriptValRooted& val)
+template<> void ScriptInterface::ToJSVal<JS::HandleValue>(JSContext* UNUSED(cx), JS::MutableHandleValue ret, const JS::HandleValue& val)
 {
-	ret = val.get();
+	ret.set(val);
 }
 
-template<> void ScriptInterface::ToJSVal<std::wstring>(JSContext* cx, JS::Value& ret, const std::wstring& val)
+
+template<> void ScriptInterface::ToJSVal<CScriptValRooted>(JSContext* UNUSED(cx), JS::MutableHandleValue ret, const CScriptValRooted& val)
+{
+	ret.set(val.get());
+}
+
+template<> void ScriptInterface::ToJSVal<std::wstring>(JSContext* cx, JS::MutableHandleValue ret, const std::wstring& val)
 {
 	JSAutoRequest rq(cx);
 	utf16string utf16(val.begin(), val.end());
 	JSString* str = JS_NewUCStringCopyN(cx, reinterpret_cast<const jschar*> (utf16.c_str()), utf16.length());
 	if (str)
-		ret = JS::StringValue(str);
+		ret.set(JS::StringValue(str));
 	else
-		ret = JS::UndefinedValue();
+		ret.set(JS::UndefinedValue());
 }
 
-template<> void ScriptInterface::ToJSVal<Path>(JSContext* cx, JS::Value& ret, const Path& val)
+template<> void ScriptInterface::ToJSVal<Path>(JSContext* cx, JS::MutableHandleValue ret, const Path& val)
 {
 	ToJSVal(cx, ret, val.string());
 }
 
-template<> void ScriptInterface::ToJSVal<std::string>(JSContext* cx, JS::Value& ret, const std::string& val)
+template<> void ScriptInterface::ToJSVal<std::string>(JSContext* cx, JS::MutableHandleValue ret, const std::string& val)
 {
 	JSAutoRequest rq(cx);
 	JSString* str = JS_NewStringCopyN(cx, val.c_str(), val.length());
 	if (str)
-		ret = JS::StringValue(str);
+		ret.set(JS::StringValue(str));
 	else
-		ret = JS::UndefinedValue();
+		ret.set(JS::UndefinedValue());
 }
 
-template<> void ScriptInterface::ToJSVal<const wchar_t*>(JSContext* cx, JS::Value& ret, const wchar_t* const& val)
+template<> void ScriptInterface::ToJSVal<const wchar_t*>(JSContext* cx, JS::MutableHandleValue ret, const wchar_t* const& val)
 {
 	ToJSVal(cx, ret, std::wstring(val));
 }
 
-template<> void ScriptInterface::ToJSVal<const char*>(JSContext* cx, JS::Value& ret, const char* const& val)
+template<> void ScriptInterface::ToJSVal<const char*>(JSContext* cx, JS::MutableHandleValue ret, const char* const& val)
 {
 	JSAutoRequest rq(cx);
 	JSString* str = JS_NewStringCopyZ(cx, val);
 	if (str)
-		ret = JS::StringValue(str);
+		ret.set(JS::StringValue(str));
 	else
-		ret = JS::UndefinedValue();
+		ret.set(JS::UndefinedValue());
 }
 
-template<> void ScriptInterface::ToJSVal<CStrW>(JSContext* cx, JS::Value& ret, const CStrW& val)
+template<> void ScriptInterface::ToJSVal<CStrW>(JSContext* cx, JS::MutableHandleValue ret, const CStrW& val)
 {
 	ToJSVal(cx, ret, static_cast<const std::wstring&>(val));
 }
 
-template<> void ScriptInterface::ToJSVal<CStr8>(JSContext* cx, JS::Value& ret, const CStr8& val)
+template<> void ScriptInterface::ToJSVal<CStr8>(JSContext* cx, JS::MutableHandleValue ret, const CStr8& val)
 {
 	ToJSVal(cx, ret, static_cast<const std::string&>(val));
 }
@@ -367,28 +392,28 @@ template<> void ScriptInterface::ToJSVal<CStr8>(JSContext* cx, JS::Value& ret, c
 ////////////////////////////////////////////////////////////////
 // Compound types:
 
-template<typename T> static void ToJSVal_vector(JSContext* cx, JS::Value& ret, const std::vector<T>& val)
+template<typename T> static void ToJSVal_vector(JSContext* cx, JS::MutableHandleValue ret, const std::vector<T>& val)
 {
 	JSAutoRequest rq(cx);
-	JSObject* obj = JS_NewArrayObject(cx, val.size(), NULL);
+	JS::RootedObject obj(cx, JS_NewArrayObject(cx, 0));
 	if (!obj)
 	{
-		ret = JS::UndefinedValue();
+		ret.set(JS::UndefinedValue());
 		return;
 	}
 	for (uint32_t i = 0; i < val.size(); ++i)
 	{
 		JS::RootedValue el(cx);
-		ScriptInterface::ToJSVal<T>(cx, el.get(), val[i]);
-		JS_SetElement(cx, obj, i, el.address());
+		ScriptInterface::ToJSVal<T>(cx, &el, val[i]);
+		JS_SetElement(cx, obj, i, el);
 	}
-	ret = JS::ObjectValue(*obj);
+	ret.set(JS::ObjectValue(*obj));
 }
 
 template<typename T> static bool FromJSVal_vector(JSContext* cx, jsval v, std::vector<T>& out)
 {
 	JSAutoRequest rq(cx);
-	JSObject* obj;
+	JS::RootedObject obj(cx);
 	if (!v.isObject())
 		FAIL("Argument must be an array");
 	obj = &v.toObject();
@@ -402,7 +427,7 @@ template<typename T> static bool FromJSVal_vector(JSContext* cx, jsval v, std::v
 	for (uint32_t i = 0; i < length; ++i)
 	{
 		JS::RootedValue el(cx);
-		if (!JS_GetElement(cx, obj, i, el.address()))
+		if (!JS_GetElement(cx, obj, i, &el))
 			FAIL("Failed to read array element");
 		T el2;
 		if (!ScriptInterface::FromJSVal<T>(cx, el, el2))
@@ -415,7 +440,7 @@ template<typename T> static bool FromJSVal_vector(JSContext* cx, jsval v, std::v
 // Instantiate various vector types:
 
 #define VECTOR(T) \
-	template<> void ScriptInterface::ToJSVal<std::vector<T> >(JSContext* cx, JS::Value& ret, const std::vector<T>& val) \
+	template<> void ScriptInterface::ToJSVal<std::vector<T> >(JSContext* cx, JS::MutableHandleValue ret, const std::vector<T>& val) \
 	{ \
 		ToJSVal_vector(cx, ret, val); \
 	} \
@@ -433,7 +458,7 @@ VECTOR(CScriptValRooted)
 
 
 class IComponent;
-template<> void ScriptInterface::ToJSVal<std::vector<IComponent*> >(JSContext* cx, JS::Value& ret, const std::vector<IComponent*>& val)
+template<> void ScriptInterface::ToJSVal<std::vector<IComponent*> >(JSContext* cx, JS::MutableHandleValue ret, const std::vector<IComponent*>& val)
 {
 	ToJSVal_vector(cx, ret, val);
 }

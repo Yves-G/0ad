@@ -60,10 +60,11 @@ CBinarySerializerScriptImpl::CBinarySerializerScriptImpl(ScriptInterface& script
 {
 }
 
-void CBinarySerializerScriptImpl::HandleScriptVal(jsval val)
+void CBinarySerializerScriptImpl::HandleScriptVal(JS::Value valArg)
 {
 	JSContext* cx = m_ScriptInterface.GetContext();
 	JSAutoRequest rq(cx);
+	JS::RootedValue val(cx, valArg);
 
 	switch (JS_TypeOfValue(cx, val))
 	{
@@ -119,7 +120,8 @@ void CBinarySerializerScriptImpl::HandleScriptVal(jsval val)
 
 			// Now handle its array buffer
 			// this may be a backref, since ArrayBuffers can be shared by multiple views
-			HandleScriptVal(JS::ObjectValue(*JS_GetArrayBufferViewBuffer(obj)));
+			JS::RootedValue bufferVal(cx, JS::ObjectValue(*JS_GetArrayBufferViewBuffer(obj)));
+			HandleScriptVal(bufferVal);
 			break;
 		}
 		else if (JS_IsArrayBufferObject(obj))
@@ -138,7 +140,7 @@ void CBinarySerializerScriptImpl::HandleScriptVal(jsval val)
 		else
 		{
 			// Find type of object
-			JSClass* jsclass = JS_GetClass(obj);
+			const JSClass* jsclass = JS_GetClass(obj);
 			if (!jsclass)
 				throw PSERROR_Serialize_ScriptError("JS_GetClass failed");
 			JSProtoKey protokey = JSCLASS_CACHED_PROTO_KEY(jsclass);
@@ -147,7 +149,7 @@ void CBinarySerializerScriptImpl::HandleScriptVal(jsval val)
 			{
 				// Object class - check for user-defined prototype
 				JS::RootedObject proto(cx);
-				JS_GetPrototype(cx, obj, proto.address());
+				JS_GetPrototype(cx, obj, &proto);
 				if (!proto)
 					throw PSERROR_Serialize_ScriptError("JS_GetPrototype failed");
 
@@ -169,14 +171,14 @@ void CBinarySerializerScriptImpl::HandleScriptVal(jsval val)
 
 					// Does it have custom Serialize function?
 					// if so, we serialize the data it returns, rather than the object's properties directly
-					JSBool hasCustomSerialize;
+					bool hasCustomSerialize;
 					if (!JS_HasProperty(cx, obj, "Serialize", &hasCustomSerialize))
 						throw PSERROR_Serialize_ScriptError("JS_HasProperty failed");
 
 					if (hasCustomSerialize)
 					{
 						JS::RootedValue serialize(cx);
-						if (!JS_LookupProperty(cx, obj, "Serialize", serialize.address()))
+						if (!JS_LookupProperty(cx, obj, "Serialize", &serialize))
 							throw PSERROR_Serialize_ScriptError("JS_LookupProperty failed");
 
 						// If serialize is null, so don't serialize anything more
@@ -207,7 +209,7 @@ void CBinarySerializerScriptImpl::HandleScriptVal(jsval val)
 				// Standard String object
 				m_Serializer.NumberU8_Unbounded("type", SCRIPT_TYPE_OBJECT_STRING);
 				// Get primitive value
-				JSString* str = JS_ValueToString(cx, val);
+				JSString* str = JS::ToString(cx, val);
 				if (!str)
 					throw PSERROR_Serialize_ScriptError("JS_ValueToString failed");
 				ScriptString("value", str);
@@ -243,15 +245,15 @@ void CBinarySerializerScriptImpl::HandleScriptVal(jsval val)
 
 		for (size_t i = 0; i < ida.length(); ++i)
 		{
-			jsid id = ida[i];
+			JS::RootedId id(cx, ida[i]);
 
 			JS::RootedValue idval(cx);
 			JS::RootedValue propval(cx);
 			
 			// Get the property name as a string
-			if (!JS_IdToValue(cx, id, idval.address()))
+			if (!JS_IdToValue(cx, id, &idval))
 				throw PSERROR_Serialize_ScriptError("JS_IdToValue failed");
-			JSString* idstr = JS_ValueToString(cx, idval.get());
+			JSString* idstr = JS::ToString(cx, idval);
 			if (!idstr)
 				throw PSERROR_Serialize_ScriptError("JS_ValueToString failed");
 
@@ -259,7 +261,7 @@ void CBinarySerializerScriptImpl::HandleScriptVal(jsval val)
 
 			// Use LookupProperty instead of GetProperty to avoid the danger of getters
 			// (they might delete values and trigger GC)
-			if (!JS_LookupPropertyById(cx, obj, id, propval.address()))
+			if (!JS_LookupPropertyById(cx, obj, id, &propval))
 				throw PSERROR_Serialize_ScriptError("JS_LookupPropertyById failed");
 
 			HandleScriptVal(propval);

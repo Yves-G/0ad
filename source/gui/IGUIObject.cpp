@@ -435,8 +435,12 @@ void IGUIObject::RegisterScriptHandler(const CStr& Action, const CStr& Code, CGU
 	char buf[64];
 	sprintf_s(buf, ARRAY_SIZE(buf), "__eventhandler%d (%s)", x++, Action.c_str());
 
-	JSFunction* func = JS_CompileFunction(cx, JSVAL_TO_OBJECT(pGUI->GetGlobalObject()),
-		buf, paramCount, paramNames, Code.c_str(), Code.length(), CodeName.c_str(), 0);
+	JS::RootedObject global(cx, &pGUI->GetGlobalObject().toObject());
+	JS::CompileOptions options(cx);
+	options.setFileAndLine(CodeName.c_str(), 0);
+	options.setCompileAndGo(true);
+	JSFunction* func = JS_CompileFunction(cx, global,
+		buf, paramCount, paramNames, Code.c_str(), Code.length(), options);
 
 	if (!func)
 		return; // JS will report an error message
@@ -479,10 +483,12 @@ void IGUIObject::ScriptEvent(const CStr& Action)
 	m_pGUI->GetScriptInterface()->SetProperty(mouse.get(), "y", m_pGUI->m_MousePos.y, false);
 	m_pGUI->GetScriptInterface()->SetProperty(mouse.get(), "buttons", m_pGUI->m_MouseButtons, false);
 
-	jsval paramData[] = { mouse.get() };
-
-	jsval result;
-	bool ok = JS_CallFunctionValue(cx, GetJSObject(), (*it).second.get(), ARRAY_SIZE(paramData), paramData, &result);
+	JS::AutoValueVector paramData(cx);
+	paramData.append(mouse.get());
+	JS::RootedObject obj(cx, GetJSObject());
+	JS::RootedValue handlerVal(cx, (*it).second.get());
+	JS::RootedValue result(cx);
+	bool ok = JS_CallFunctionValue(cx, obj, handlerVal, paramData, &result);
 	if (!ok)
 	{
 		// We have no way to propagate the script exception, so just ignore it
@@ -498,13 +504,12 @@ void IGUIObject::ScriptEvent(const CStr& Action, const CScriptValRooted& Argumen
 		
 	JSContext* cx = m_pGUI->GetScriptInterface()->GetContext();
 	JSAutoRequest rq(cx);
-	
-	JSObject* object = GetJSObject();
-
-	jsval arg = Argument.get();
-
-	jsval result;
-	bool ok = JS_CallFunctionValue(cx, object, (*it).second.get(), 1, &arg, &result);
+	JS::AutoValueVector paramData(cx);
+	paramData.append(Argument.get());
+	JS::RootedObject obj(cx, GetJSObject());
+	JS::RootedValue handlerVal(cx, (*it).second.get());
+	JS::RootedValue result(cx);
+	bool ok = JS_CallFunctionValue(cx, obj, handlerVal, paramData, &result);
 	if (!ok)
 	{
 		JS_ReportError(cx, "Errors executing script action \"%s\"", Action.c_str());
@@ -520,7 +525,7 @@ JSObject* IGUIObject::GetJSObject()
 	// not have these objects hang around forever using up memory, though.
 	if (m_JSObject.uninitialised())
 	{
-		JSObject* obj = JS_NewObject(cx, &JSI_IGUIObject::JSI_class, NULL, NULL);
+		JS::RootedObject obj(cx, JS_NewObject(cx, &JSI_IGUIObject::JSI_class, JS::NullPtr(), JS::NullPtr()));
 		m_JSObject = CScriptValRooted(cx, OBJECT_TO_JSVAL(obj));
 		JS_SetPrivate(JSVAL_TO_OBJECT(m_JSObject.get()), this);
 	}

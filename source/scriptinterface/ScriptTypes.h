@@ -53,9 +53,9 @@ typedef unsigned int uint;
 #if MSC_VERSION
 // warnings which are also disabled for the files that include this header
 
-// For the transition from JSBool to bool
+// For the transition from bool to bool
 # pragma warning(disable:4800) // "forcing value to bool 'true' or 'false' (performance warning)
-# pragma warning(disable:4805) // '==' : unsafe mix of type 'JSBool' and type 'bool' in operation
+# pragma warning(disable:4805) // '==' : unsafe mix of type 'bool' and type 'bool' in operation
 
 // warnings only disabled for the SpiderMonkey headers
 # pragma warning(push)
@@ -84,14 +84,14 @@ typedef unsigned int uint;
 //# pragma GCC diagnostic warning "-Wnon-virtual-dtor"
 #endif
 
-#if MOZJS_MAJOR_VERSION != 24
+#if MOZJS_MAJOR_VERSION != 31
 #error Your compiler is trying to use an incorrect major version of the SpiderMonkey library.
 #error The only version that works is the one in the libraries/spidermonkey/ directory,
 #error and it will not work with a typical system-installed version.
 #error Make sure you have got all the right files and include paths.
 #endif
 
-#if MOZJS_MINOR_VERSION != 2
+#if MOZJS_MINOR_VERSION != 0
 #error Your compiler is trying to use an untested minor version of the SpiderMonkey library.
 #error If you are a package maintainer, please make sure to check very carefully that this version does not change
 #error the behaviour of the code executed by SpiderMonkey.

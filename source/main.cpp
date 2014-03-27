@@ -184,8 +184,10 @@ static void PumpEvents()
 		PROFILE2("event");
 		if (g_GUI)
 		{
-			JS::Value tmpVal;
-			ScriptInterface::ToJSVal(g_GUI->GetScriptInterface()->GetContext(), tmpVal, ev);
+			JSContext* cx = g_GUI->GetScriptInterface()->GetContext();
+			JSAutoRequest rq(cx);
+			JS::RootedValue tmpVal(cx);
+			ScriptInterface::ToJSVal(g_GUI->GetScriptInterface()->GetContext(), &tmpVal, ev);
 			std::string data = g_GUI->GetScriptInterface()->StringifyJSON(tmpVal);
 			PROFILE2_ATTR("%s", data.c_str());
 		}

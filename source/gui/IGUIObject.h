@@ -142,9 +142,9 @@ class IGUIObject
 	friend class GUITooltip;
 
 	// Allow getProperty to access things like GetParent()
-	friend JSBool JSI_IGUIObject::getProperty(JSContext* cx, JS::HandleObject obj, JS::HandleId id, JS::MutableHandleValue vp);
-	friend JSBool JSI_IGUIObject::setProperty(JSContext* cx, JS::HandleObject obj, JS::HandleId id, JSBool UNUSED(strict), JS::MutableHandleValue vp);
-	friend JSBool JSI_IGUIObject::getComputedSize(JSContext* cx, uint argc, jsval* vp);
+	friend bool JSI_IGUIObject::getProperty(JSContext* cx, JS::HandleObject obj, JS::HandleId id, JS::MutableHandleValue vp);
+	friend bool JSI_IGUIObject::setProperty(JSContext* cx, JS::HandleObject obj, JS::HandleId id, bool UNUSED(strict), JS::MutableHandleValue vp);
+	friend bool JSI_IGUIObject::getComputedSize(JSContext* cx, uint argc, jsval* vp);
 
 public:
 	IGUIObject();

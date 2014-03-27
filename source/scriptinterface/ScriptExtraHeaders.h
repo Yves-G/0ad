@@ -53,8 +53,10 @@
 #endif
 
 #include "jsfriendapi.h"
-#include "jsdbgapi.h"
+#include "js/OldDebugAPI.h"
+#include "js/Tracer.h"
 #include "js/GCAPI.h"
+#include "js/StructuredClone.h"
 
 #undef signbit
 

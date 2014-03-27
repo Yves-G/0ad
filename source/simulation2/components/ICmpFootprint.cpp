@@ -32,7 +32,7 @@ CScriptVal ICmpFootprint::GetShape_wrapper()
 
 	JSContext* cx = GetSimContext().GetScriptInterface().GetContext();
 
-	JSObject* obj = JS_NewObject(cx, NULL, NULL, NULL);
+	JS::RootedObject obj(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
 	if (!obj)
 		return JSVAL_VOID;
 
@@ -41,12 +41,12 @@ CScriptVal ICmpFootprint::GetShape_wrapper()
 		JS::RootedValue ptype(cx);
 		JS::RootedValue pradius(cx);
 		JS::RootedValue pheight(cx);
-		ScriptInterface::ToJSVal<std::string>(cx, ptype.get(), "circle");
-		ScriptInterface::ToJSVal(cx, pradius.get(), size0);
-		ScriptInterface::ToJSVal(cx, pheight.get(), height);
-		JS_SetProperty(cx, obj, "type", ptype.address());
-		JS_SetProperty(cx, obj, "radius", pradius.address());
-		JS_SetProperty(cx, obj, "height", pheight.address());
+		ScriptInterface::ToJSVal<std::string>(cx, &ptype, "circle");
+		ScriptInterface::ToJSVal(cx, &pradius, size0);
+		ScriptInterface::ToJSVal(cx, &pheight, height);
+		JS_SetProperty(cx, obj, "type", ptype);
+		JS_SetProperty(cx, obj, "radius", pradius);
+		JS_SetProperty(cx, obj, "height", pheight);
 	}
 	else
 	{
@@ -54,14 +54,14 @@ CScriptVal ICmpFootprint::GetShape_wrapper()
 		JS::RootedValue pwidth(cx);
 		JS::RootedValue pdepth(cx);
 		JS::RootedValue pheight(cx);
-		ScriptInterface::ToJSVal<std::string>(cx, ptype.get(), "square");
-		ScriptInterface::ToJSVal(cx, pwidth.get(), size0);
-		ScriptInterface::ToJSVal(cx, pdepth.get(), size1);
-		ScriptInterface::ToJSVal(cx, pheight.get(), height);
-		JS_SetProperty(cx, obj, "type", ptype.address());
-		JS_SetProperty(cx, obj, "width", pwidth.address());
-		JS_SetProperty(cx, obj, "depth", pdepth.address());
-		JS_SetProperty(cx, obj, "height", pheight.address());
+		ScriptInterface::ToJSVal<std::string>(cx, &ptype, "square");
+		ScriptInterface::ToJSVal(cx, &pwidth, size0);
+		ScriptInterface::ToJSVal(cx, &pdepth, size1);
+		ScriptInterface::ToJSVal(cx, &pheight, height);
+		JS_SetProperty(cx, obj, "type", ptype);
+		JS_SetProperty(cx, obj, "width", pwidth);
+		JS_SetProperty(cx, obj, "depth", pdepth);
+		JS_SetProperty(cx, obj, "height", pheight);
 	}
 
 	return OBJECT_TO_JSVAL(obj);

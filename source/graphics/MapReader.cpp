@@ -1240,15 +1240,19 @@ int CMapReader::GenerateMap()
 		shared_ptr<ScriptInterface::StructuredClone> results = m_MapGen->GetResults();
 
 		// Parse data into simulation context
-		CScriptValRooted data(pSimulation2->GetScriptInterface().GetContext(), pSimulation2->GetScriptInterface().ReadStructuredClone(results));
-		if (data.undefined())
+		JSContext* cx = pSimulation2->GetScriptInterface().GetContext();
+		JSAutoRequest rq(cx);
+		JS::RootedValue data(cx); 
+		pSimulation2->GetScriptInterface().ReadStructuredClone(results, &data);
+		
+		if (data.isUndefined())
 		{
 			// RMS failed - return to main menu
 			throw PSERROR_Game_World_MapLoadFailed("Error generating random map.\nCheck application log for details.");
 		}
 		else
 		{
-			m_MapData = data;
+			m_MapData = CScriptValRooted(cx, data);
 		}
 	}
 	else

@@ -344,14 +344,14 @@ jsval CParamNode::ConstructJSVal(JSContext* cx) const
 
 	// Got child nodes - convert this node into a hash-table-style object:
 
-	JSObject* obj = JS_NewObject(cx, NULL, NULL, NULL);
+	JS::RootedObject obj(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
 	if (!obj)
 		return JSVAL_VOID; // TODO: report error
 
 	for (std::map<std::string, CParamNode>::const_iterator it = m_Childs.begin(); it != m_Childs.end(); ++it)
 	{
 		JS::RootedValue childVal(cx, it->second.ConstructJSVal(cx));
-		if (!JS_SetProperty(cx, obj, it->first.c_str(), childVal.address()))
+		if (!JS_SetProperty(cx, obj, it->first.c_str(), childVal))
 			return JSVAL_VOID; // TODO: report error
 	}
 
@@ -363,7 +363,7 @@ jsval CParamNode::ConstructJSVal(JSContext* cx) const
 		if (!str)
 			return JSVAL_VOID; // TODO: report error
 		JS::RootedValue childVal(cx, STRING_TO_JSVAL(str));
-		if (!JS_SetProperty(cx, obj, "_string", childVal.address()))
+		if (!JS_SetProperty(cx, obj, "_string", childVal))
 			return JSVAL_VOID; // TODO: report error
 	}
 

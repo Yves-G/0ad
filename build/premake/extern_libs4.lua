@@ -562,11 +562,11 @@ extern_lib_defs = {
 	},
 	spidermonkey = {
 		compile_settings = function()
-			if _OPTIONS["with-system-mozjs24"] then
+			if _OPTIONS["with-system-mozjs31"] then
 				if not _OPTIONS["android"] then
-					pkgconfig_cflags("mozjs-24")
+					pkgconfig_cflags("mozjs-31")
 				end
-				defines { "WITH_SYSTEM_MOZJS24" }
+				defines { "WITH_SYSTEM_MOZJS31" }
 			else
 				if os.is("windows") then
 					include_dir = "include-win32"
@@ -582,12 +582,12 @@ extern_lib_defs = {
 			end
 		end,
 		link_settings = function()
-			if _OPTIONS["with-system-mozjs24"] then
+			if _OPTIONS["with-system-mozjs31"] then
 				if _OPTIONS["android"] then
-					links { "mozjs-24" }
+					links { "mozjs-31" }
 				else
 					pkgconfig_libs("nspr")
-					pkgconfig_libs("mozjs-24")
+					pkgconfig_libs("mozjs-31")
 				end
 			else
 				if os.is("macosx") then
@@ -595,9 +595,9 @@ extern_lib_defs = {
 					links { "nspr4", "plc4", "plds4" }
 				end
 				configuration "Debug"
-					links { "mozjs24-ps-debug" }
+					links { "mozjs31-ps-debug" }
 				configuration "Release"
-					links { "mozjs24-ps-release" }
+					links { "mozjs31-ps-release" }
 				configuration { }
 				add_source_lib_paths("spidermonkey")
 			end

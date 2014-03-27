@@ -83,8 +83,11 @@ Status SavedGames::Save(const std::wstring& name, const std::wstring& descriptio
 	simulation.GetScriptInterface().SetProperty(metadata.get(), "player", playerID);
 	simulation.GetScriptInterface().SetProperty(metadata.get(), "initAttributes", simulation.GetInitAttributes());
 
-	CScriptVal guiMetadata = simulation.GetScriptInterface().ReadStructuredClone(guiMetadataClone);
-	simulation.GetScriptInterface().SetProperty(metadata.get(), "gui", guiMetadata);
+	JSContext* cx = simulation.GetScriptInterface().GetContext();
+	JSAutoRequest rq(cx);
+	JS::RootedValue guiMetadata(cx);
+	simulation.GetScriptInterface().ReadStructuredClone(guiMetadataClone, &guiMetadata);
+	simulation.GetScriptInterface().SetProperty(metadata.get(), "gui", (JS::HandleValue)guiMetadata);
 
 	simulation.GetScriptInterface().SetProperty(metadata.get(), "description", description);
 	

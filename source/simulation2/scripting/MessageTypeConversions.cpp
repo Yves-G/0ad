@@ -22,37 +22,37 @@
 #include "simulation2/MessageTypes.h"
 
 #define TOJSVAL_SETUP() \
-	JSObject* obj; \
+	JSContext* cx = scriptInterface.GetContext(); \
+	JSAutoRequest rq(cx); \
+	JS::RootedObject obj(cx); \
 	{\
-	JSAutoRequest rq(scriptInterface.GetContext()); \
-	obj = JS_NewObject(scriptInterface.GetContext(), NULL, NULL, NULL); \
+	obj = JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()); \
 	if (!obj) \
 		return JSVAL_VOID; \
 	}
 
 #define SET_MSG_PROPERTY(name) \
 	do { \
-		JSAutoRequest rq(scriptInterface.GetContext()); \
-		JSContext* cx = scriptInterface.GetContext(); \
 		JS::RootedValue prop(cx);\
-		ScriptInterface::ToJSVal(cx, prop.get(), this->name); \
-		if (! JS_SetProperty(cx, obj, #name, prop.address())) \
+		ScriptInterface::ToJSVal(cx, &prop, this->name); \
+		if (! JS_SetProperty(cx, obj, #name, prop)) \
 			return JSVAL_VOID; \
 	} while (0);
 
 #define FROMJSVAL_SETUP() \
-	if ( JSVAL_IS_PRIMITIVE(val)) \
+	if (!val.isObject()) \
 		return NULL; \
-	JSObject* obj = JSVAL_TO_OBJECT(val); \
-	JS::RootedValue prop(scriptInterface.GetContext());
+	JSContext* cx = scriptInterface.GetContext(); \
+	JSAutoRequest rq(cx); \
+	JS::RootedObject obj(cx, &val.toObject()); \
+	JS::RootedValue prop(cx);
 
 #define GET_MSG_PROPERTY(type, name) \
 	type name; \
 	{ \
-	JSAutoRequest rq(scriptInterface.GetContext()); \
-	if (! JS_GetProperty(scriptInterface.GetContext(), obj, #name, prop.address())) \
+	if (! JS_GetProperty(cx, obj, #name, &prop)) \
 		return NULL; \
-	if (! ScriptInterface::FromJSVal(scriptInterface.GetContext(), prop.get(), name)) \
+	if (! ScriptInterface::FromJSVal(cx, prop, name)) \
 		return NULL; \
 	}
 

@@ -52,7 +52,7 @@ struct BuildDirEntListState
 	BuildDirEntListState(JSContext* cx_)
 		: cx(cx_)
 	{
-		filename_array = JS_NewArrayObject(cx, 0, NULL);
+		filename_array = JS_NewArrayObject(cx, JS::HandleValueArray::empty());
 		JS_AddObjectRoot(cx, &filename_array);
 		cur_idx = 0;
 	}
@@ -67,10 +67,12 @@ struct BuildDirEntListState
 static Status BuildDirEntListCB(const VfsPath& pathname, const CFileInfo& UNUSED(fileINfo), uintptr_t cbData)
 {
 	BuildDirEntListState* s = (BuildDirEntListState*)cbData;
-
+	JSAutoRequest rq(s->cx);
+	
+	JS::RootedObject filenameArrayObj(s->cx, s->filename_array);
 	JS::RootedValue val(s->cx);
-	ScriptInterface::ToJSVal( s->cx, val.get(), CStrW(pathname.string()) );
-	JS_SetElement(s->cx, s->filename_array, s->cur_idx++, val.address());
+	ScriptInterface::ToJSVal( s->cx, &val, CStrW(pathname.string()) );
+	JS_SetElement(s->cx, filenameArrayObj, s->cur_idx++, val);
 	return INFO::OK;
 }
 
@@ -156,9 +158,11 @@ CScriptVal JSI_VFS::ReadFile(ScriptInterface::CxPrivate* pCxPrivate, std::wstrin
 	contents.Replace("\r\n", "\n");
 
 	// Decode as UTF-8
-	JS::Value ret;
-	ScriptInterface::ToJSVal( pCxPrivate->pScriptInterface->GetContext(), ret, contents.FromUTF8() );
-	return ret;
+	JSContext* cx = pCxPrivate->pScriptInterface->GetContext();
+	JSAutoRequest rq(cx);
+	JS::RootedValue ret(cx);
+	ScriptInterface::ToJSVal( pCxPrivate->pScriptInterface->GetContext(), &ret, contents.FromUTF8() );
+	return CScriptVal(ret);
 }
 
 
@@ -187,7 +191,8 @@ CScriptVal JSI_VFS::ReadFileLines(ScriptInterface::CxPrivate* pCxPrivate, std::w
 	std::stringstream ss(contents);
 
 	JSContext* cx = pCxPrivate->pScriptInterface->GetContext();
-	JSObject* line_array = JS_NewArrayObject(cx, 0, NULL);
+	JSAutoRequest rq(cx);
+	JS::RootedObject line_array(cx, JS_NewArrayObject(cx, JS::HandleValueArray::empty()));
 
 	std::string line;
 	int cur_line = 0;
@@ -195,8 +200,8 @@ CScriptVal JSI_VFS::ReadFileLines(ScriptInterface::CxPrivate* pCxPrivate, std::w
 	{
 		// Decode each line as UTF-8
 		JS::RootedValue val(cx);
-		ScriptInterface::ToJSVal(cx, val.get(), CStr(line).FromUTF8());
-		JS_SetElement(cx, line_array, cur_line++, val.address());
+		ScriptInterface::ToJSVal(cx, &val, CStr(line).FromUTF8());
+		JS_SetElement(cx, line_array, cur_line++, val);
 	}
 
 	return OBJECT_TO_JSVAL( line_array );

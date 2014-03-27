@@ -20,6 +20,7 @@
 #include "AutoRooters.h"
 
 #include "scriptinterface/ScriptInterface.h"
+#include "scriptinterface/ScriptExtraHeaders.h"
 
 AutoGCRooter::AutoGCRooter(ScriptInterface& scriptInterface)
 	: m_ScriptInterface(scriptInterface)
@@ -52,9 +53,9 @@ void AutoGCRooter::Trace(JSTracer* trc)
 	{
 		for (int j = 0; j < JS_IdArrayLength(m_ScriptInterface.GetContext(), m_IdArrays[i]); ++j)
 		{
-			jsval val = JSVAL_VOID;
+			JS::RootedValue val(m_ScriptInterface.GetContext());
 			JS_IdToValue(m_ScriptInterface.GetContext(), JS_IdArrayGet(m_ScriptInterface.GetContext(), m_IdArrays[i], j), &val);
-			JS_CallValueTracer(trc, &val, "AutoGCRooter id array");
+			JS_CallValueTracer(trc, val.address(), "AutoGCRooter id array");
 		}
 	}
 

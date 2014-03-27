@@ -102,23 +102,24 @@ void CGUIManager::PopPageCB(shared_ptr<ScriptInterface::StructuredClone> args)
 	PopPage();
 	
 	shared_ptr<ScriptInterface> scriptInterface = m_PageStack.back().gui->GetScriptInterface();
-	CScriptVal initDataVal;
+	JSContext* cx = scriptInterface->GetContext();
+	JS::RootedValue initDataVal(cx);
 	if (initDataClone)
-		initDataVal = scriptInterface->ReadStructuredClone(initDataClone);
+		scriptInterface->ReadStructuredClone(initDataClone, &initDataVal);
 	else
 	{
 		LOGERROR(L"Called PopPageCB when initData (which should contain the callback function name) isn't set!");
 		return;
 	}
 	
-	if (!scriptInterface->HasProperty(initDataVal.get(), "callback"))
+	if (!scriptInterface->HasProperty(initDataVal, "callback"))
 	{
 		LOGERROR(L"Called PopPageCB when the callback function name isn't set!");
 		return;
 	}
 	
 	std::string callback;
-	if (!scriptInterface->GetProperty(initDataVal.get(), "callback", callback))
+	if (!scriptInterface->GetProperty(initDataVal, "callback", callback))
 	{
 		LOGERROR(L"Failed to get the callback property as a string from initData in PopPageCB!");
 		return;
@@ -130,10 +131,10 @@ void CGUIManager::PopPageCB(shared_ptr<ScriptInterface::StructuredClone> args)
 		return;
 	}
 
-	CScriptVal argVal;
+	JS::RootedValue argVal(cx);
 	if (args)
-		argVal = scriptInterface->ReadStructuredClone(args);
-	if (!scriptInterface->CallFunctionVoid(scriptInterface->GetGlobalObject(), callback.c_str(), argVal))
+		scriptInterface->ReadStructuredClone(args, &argVal);
+	if (!scriptInterface->CallFunctionVoid(scriptInterface->GetGlobalObject(), callback.c_str(), (JS::HandleValue)argVal))
 	{
 		LOGERROR(L"Failed to call the callback function %hs in the page %ls", callback.c_str(), m_PageStack.back().name.c_str());
 		return;
@@ -233,19 +234,22 @@ void CGUIManager::LoadPage(SGUIPage& page)
 	page.gui->SendEventToAll("load");
 
 	shared_ptr<ScriptInterface> scriptInterface = page.gui->GetScriptInterface();
-	CScriptVal initDataVal;
-	CScriptVal hotloadDataVal;
+	JSContext* cx = scriptInterface->GetContext();
+	JSAutoRequest rq(cx);
+	JS::RootedValue initDataVal(cx);
+	JS::RootedValue hotloadDataVal(cx);
+	
 	if (page.initData) 
-		initDataVal = scriptInterface->ReadStructuredClone(page.initData);
+		scriptInterface->ReadStructuredClone(page.initData, &initDataVal);
 	if (hotloadData)
-		hotloadDataVal = scriptInterface->ReadStructuredClone(hotloadData);
+		scriptInterface->ReadStructuredClone(hotloadData, &hotloadDataVal);
 	
 	// Call the init() function
 	if (!scriptInterface->CallFunctionVoid(
 			scriptInterface->GetGlobalObject(), 
 			"init", 
-			initDataVal, 
-			hotloadDataVal)
+			(JS::HandleValue)initDataVal, 
+			(JS::HandleValue)hotloadDataVal)
 		)
 	{
 		LOGERROR(L"GUI page '%ls': Failed to call init() function", page.name.c_str());
