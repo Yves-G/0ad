@@ -29,6 +29,14 @@
 # define USE_CRT_SET_ALLOC_HOOK
 #endif
 
+#if defined(__GLIBC__) && !defined(NDEBUG)
+//# define USE_GLIBC_MALLOC_HOOK
+# define USE_GLIBC_MALLOC_OVERRIDE
+# include <dlfcn.h>
+# include <malloc.h>
+# include "lib/sysdep/cpu.h"
+#endif
+
 #include <numeric>
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -509,6 +517,7 @@ static intptr_t alloc_count = 0;
 static bool alloc_bootstrapped = false;
 static char alloc_bootstrap_buffer[32]; // sufficient for x86_64
 static bool alloc_has_called_dlsym = false;
+static void (*libc_free)(void*) = NULL;
 // (We'll only be running a single thread at this point so no need for locking these variables)
 
 //#define ALLOC_DEBUG
@@ -527,6 +536,10 @@ void* malloc(size_t sz)
 #ifdef ALLOC_DEBUG
 	printf("### malloc(%d) = %p\n", sz, ret);
 #endif
+
+	if (libc_free == NULL)
+		libc_free = (void (*)(void*)) dlsym(RTLD_NEXT, "free");
+
 	return ret;
 }
 
@@ -570,17 +583,20 @@ void* calloc(size_t nm, size_t sz)
 #ifdef ALLOC_DEBUG
 	printf("### calloc(%d, %d) = %p\n", nm, sz, ret);
 #endif
+
+	if (libc_free == NULL)
+		libc_free = (void (*)(void*)) dlsym(RTLD_NEXT, "free");
+	
 	return ret;
 }
 
 void free(void* ptr)
 {
-	static void (*libc_free)(void*);
-	if (libc_free == NULL)
-	{
-		alloc_has_called_dlsym = true;
-		libc_free = (void (*)(void*)) dlsym(RTLD_NEXT, "free");
-	}
+	// The dlsym call to get the glibc free function can itself cause a call to the free function.
+	// If we put that code here, it could cause an infinite loop.
+	// As a workaround we load get the reference to the glibc free function in our malloc and calloc functions.
+	// We assume that malloc or calloc will always be called before free.
+	ENSURE (libc_free != NULL);
 
 	libc_free(ptr);
 #ifdef ALLOC_DEBUG
