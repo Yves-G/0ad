@@ -165,7 +165,9 @@ JSBool JSI_IGUIObject::getProperty(JSContext* cx, JS::HandleObject obj, JS::Hand
 				JS::RootedValue c(cx);
 				// Attempt to minimise ugliness through macrosity
 				#define P(x) c = JS::NumberValue(colour.x); \
-				if (c.isNull()) return false; JS_SetProperty(cx, obj, #x, c.address())
+				if (c.isNull()) \
+					return false; \
+				JS_SetProperty(cx, obj, #x, c.address())
 					P(r);
 					P(g);
 					P(b);

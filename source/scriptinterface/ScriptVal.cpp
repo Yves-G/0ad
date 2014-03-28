@@ -28,7 +28,7 @@ struct Unrooter
 	{
 		JSAutoRequest rq(cx);
 		JS_RemoveValueRoot(cx, p); delete p;
-    }
+	}
 	JSContext* cx;
 };
 

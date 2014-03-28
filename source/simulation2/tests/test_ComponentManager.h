@@ -685,7 +685,7 @@ public:
 	{
 		CSimContext context;
 		shared_ptr<ScriptRuntime> runtime = ScriptInterface::CreateRuntime();
-		
+
 		CComponentManager man(context, runtime);
 		ScriptTestSetup(man.m_ScriptInterface);
 		man.LoadComponentTypes();
@@ -703,12 +703,12 @@ public:
 
 		man.AddComponent(hnd1, man.LookupCID("TestScript1_values"), testParam);
 		man.AddComponent(hnd2, man.LookupCID("TestScript1_entity"), testParam);
-		
+
 		// TODO: Since the upgrade to SpiderMonkey v24 this test won't be able to correctly represent
 		// non-tree structures because sharp variables were removed (bug 566700).
 		// This also affects the debug serializer and it could make sense to implement correct serialization again.
 		man.AddComponent(hnd3, man.LookupCID("TestScript1_nontree"), testParam);
-		
+
 		man.AddComponent(hnd4, man.LookupCID("TestScript1_custom"), testParam);
 
 		TS_ASSERT_EQUALS(static_cast<ICmpTest1*> (man.QueryInterface(ent1, IID_Test1))->GetX(), 1234);
@@ -798,7 +798,7 @@ entities:\n\
 	{
 		CSimContext context;
 		shared_ptr<ScriptRuntime> runtime = ScriptInterface::CreateRuntime();
-		
+
 		CComponentManager man(context, runtime);
 		man.LoadComponentTypes();
 		TS_ASSERT(man.LoadScript(L"simulation/components/test-serialize.js"));

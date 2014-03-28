@@ -315,7 +315,6 @@ void CBinarySerializerScriptImpl::HandleScriptVal(jsval val)
 			m_Serializer.NumberU8_Unbounded("type", SCRIPT_TYPE_DOUBLE);
 			m_Serializer.NumberDouble_Unbounded("value", d);
 		}
-		
 		break;
 	}
 	case JSTYPE_BOOLEAN:

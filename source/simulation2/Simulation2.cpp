@@ -157,7 +157,6 @@ public:
 	}
 
 	int ProgressiveLoad();
-
 	void Update(int turnLength, const std::vector<SimulationCommand>& commands);
 	static void UpdateComponents(CSimContext& simContext, fixed turnLengthFixed, const std::vector<SimulationCommand>& commands);
 	void Interpolate(float simFrameLength, float frameOffset, float realFrameLength);

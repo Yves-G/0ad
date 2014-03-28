@@ -92,7 +92,7 @@ bool CMapGeneratorWorker::Run()
 	m_ScriptInterface->RegisterFunction<void, CMapGeneratorWorker::MaybeGC>("MaybeGC");
 	m_ScriptInterface->RegisterFunction<std::vector<std::string>, CMapGeneratorWorker::GetCivData>("GetCivData");
 
-	// TODO: This code is a bit ugly because we have to ensure that CScriptValRooted gets destroyed before the ScirptInterface.
+	// TODO: This code is a bit ugly because we have to ensure that CScriptValRooted gets destroyed before the ScriptInterface.
 	// In the future we should work more with the standard JSAPI types for rooting on the stack, which should avoid such problems.
 	bool ret = true;
 	{

@@ -53,7 +53,6 @@ JSBool JSI_GUISize::construct(JSContext* cx, uint argc, jsval* vp)
 {
 	JSObject* obj = JS_NewObject(cx, &JSI_GUISize::JSI_class, NULL, NULL);
 
-	// TODO: ugly with so much repetition...?
 	if (argc == 8)
 	{
 		JS::RootedValue v0(cx, JS_ARGV(cx, vp)[0]);
