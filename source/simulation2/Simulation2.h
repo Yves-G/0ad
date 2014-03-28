@@ -53,7 +53,6 @@ public:
 	~CSimulation2();
 
 	void EnableOOSLog();
-	void Tick();
 	void EnableSerializationTest();
 
 	/**

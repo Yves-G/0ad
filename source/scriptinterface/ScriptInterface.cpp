@@ -775,11 +775,6 @@ void ScriptInterface::ShutDown()
 	JS_ShutDown();
 }
 
-void ScriptInterface::Tick()
-{
-	js::NotifyAnimationActivity(m->m_glob);
-}
-
 void ScriptInterface::SetCallbackData(void* pCBData)
 {
 	m_CxPrivate.pCBData = pCBData;

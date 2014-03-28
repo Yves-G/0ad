@@ -158,7 +158,6 @@ public:
 
 	int ProgressiveLoad();
 
-	void Tick();
 	void Update(int turnLength, const std::vector<SimulationCommand>& commands);
 	static void UpdateComponents(CSimContext& simContext, fixed turnLengthFixed, const std::vector<SimulationCommand>& commands);
 	void Interpolate(float simFrameLength, float frameOffset, float realFrameLength);
@@ -338,11 +337,6 @@ void CSimulation2Impl::ReportSerializationFailure(
 		DumpSerializationTestState(*secondaryStateAfter, path, L"after.b");
 
 	debug_warn(L"Serialization test failure");
-}
-
-void CSimulation2Impl::Tick()
-{
-    m_ComponentManager.Tick();
 }
 
 void CSimulation2Impl::Update(int turnLength, const std::vector<SimulationCommand>& commands)
@@ -644,11 +638,6 @@ CSimulation2::InterfaceList CSimulation2::GetEntitiesWithInterface(int iid)
 const CSimulation2::InterfaceListUnordered& CSimulation2::GetEntitiesWithInterfaceUnordered(int iid)
 {
 	return m->m_ComponentManager.GetEntitiesWithInterfaceUnordered(iid);
-}
-
-void CSimulation2::Tick()
-{
-    m->Tick();
 }
 
 const CSimContext& CSimulation2::GetSimContext() const

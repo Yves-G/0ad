@@ -113,7 +113,6 @@ public:
 		void* pCBData; // meant to be used as the "this" object for callback functions
 	} m_CxPrivate;
 
-	void Tick();
 	void SetCallbackData(void* pCBData);
 	static CxPrivate* GetScriptInterfaceAndCBData(JSContext* cx);
 

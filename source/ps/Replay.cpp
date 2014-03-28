@@ -209,7 +209,6 @@ void CReplayPlayer::Replay()
 				g_Profiler2.IncrementFrameNumber();
 				PROFILE2_ATTR("%d", g_Profiler2.GetFrameNumber());
 
-				game.GetSimulation2()->Tick();
 				game.GetSimulation2()->Update(turnLength, commands);
 				commands.clear();
 			}
