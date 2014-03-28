@@ -334,6 +334,9 @@ public:
 	/**
 	 * Convert a C++ type to a jsval. (This might trigger GC. The return
 	 * value must be rooted if you don't want it to be collected.)
+	 * NOTE: We are passing the JS::Value by reference instead of returning it by value.
+	 * The reason is a memory corruption problem that appears to be caused by a bug in Visual Studio.
+	 * Details here: http://www.wildfiregames.com/forum/index.php?showtopic=17289&p=285921
 	 */
 	template<typename T> static void ToJSVal(JSContext* cx, JS::Value& ret, T const& val);
 
