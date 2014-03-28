@@ -347,14 +347,33 @@ public:
 	void DumpHeap();
 
 	/**
-	 * MaybeGC tries to determine whether garbage collection in cx's runtime would free up enough memory to be worth the amount of time it would take
+	 * MaybeGC tries to determine whether garbage collection in cx's runtime would free up enough memory to be worth the amount of time it would take.
+	 * This calls JS_MaybeGC directly, which does not do incremental GC. Usually you should prefer MaybeIncrementalRuntimeGC.
 	 */
 	void MaybeGC();
 	
+	/**
+	 * MaybeIncrementalRuntimeGC tries to determine whether a runtime-wide garbage collection would free up enough memory to 
+	 * be worth the amount of time it would take. It does this with our own logic and NOT some predefined JSAPI logic because
+	 * such functionality currently isn't available out of the box.
+	 * It does incremental GC which means it will collect one slice each time it's called until the garbage collection is done.
+	 * This can and should be called quite regularly. It shouldn't cost much performance because it tries to run a GC only if 
+	 * necessary.
+	 */
 	void MaybeIncrementalRuntimeGC();
 	
+	/**
+	 * Triggers a full non-incremental garbage collection immediately. That should only be required in special cases and normally
+	 * you should try to use MaybeIncrementalRuntimeGC instead.
+	 */
 	void ForceGC();
 
+	/**
+	 * MathRandom (this function) calls the random number generator assigned to this ScriptInterface instance and
+	 * returns the generated number.
+	 * Math_random (with underscore, not this function) is a global function, but different random number generators can be 
+	 * stored per ScriptInterface. It calls MathRandom of the current ScriptInterface instance.
+	 */
 	bool MathRandom(double& nbr);
 
 	/**
