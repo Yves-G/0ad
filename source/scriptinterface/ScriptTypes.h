@@ -40,6 +40,9 @@
 // Choose the version and navigate to "Options to Request or Suppress Warnings"
 // or for some flags "Options Controlling C++ Dialect".
 #if GCC_VERSION >= 402
+# if GCC_VERSION >= 406 // store user flags
+#  pragma GCC diagnostic push
+# endif
 # pragma GCC diagnostic ignored "-Wunused-parameter"
 # pragma GCC diagnostic ignored "-Wredundant-decls"
 # pragma GCC diagnostic ignored "-Wundef" // Some versions of GCC will still print warnings (see http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53431).
@@ -79,7 +82,10 @@
 # if GCC_VERSION >= 403
 #  pragma GCC diagnostic warning "-Wignored-qualifiers"
 # endif
-//# pragma GCC diagnostic warning "-Wnon-virtual-dtor"
+# if GCC_VERSION >= 406
+// restore user flags (and we don't have to manually restore the warning levels for GCC >= 4.6)
+#  pragma GCC diagnostic pop
+# endif
 #endif
 
 #if MOZJS_MAJOR_VERSION != 24
