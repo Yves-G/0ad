@@ -43,11 +43,11 @@ template<> bool ScriptInterface::FromJSVal<float>(JSContext* cx, jsval v1, float
 {
 	JSAutoRequest rq(cx);
 	JS::RootedValue v(cx, v1);
-	double ret;
+	double tmp;
 	WARN_IF_NOT(v.isNumber(), v);
-	if (!JS::ToNumber(cx, v, &ret))
+	if (!JS::ToNumber(cx, v, &tmp))
 		return false;
-	out = ret;
+	out = tmp;
 	return true;
 }
 
@@ -55,11 +55,9 @@ template<> bool ScriptInterface::FromJSVal<double>(JSContext* cx, jsval v1, doub
 {
 	JSAutoRequest rq(cx);
 	JS::RootedValue v(cx, v1);
-	double ret;
 	WARN_IF_NOT(v.isNumber(), v);
-	if (!JS::ToNumber(cx, v, &ret))
+	if (!JS::ToNumber(cx, v, &out))
 		return false;
-	out = ret;
 	return true;
 }
 
@@ -67,11 +65,9 @@ template<> bool ScriptInterface::FromJSVal<i32>(JSContext* cx, jsval v1, i32& ou
 {
 	JSAutoRequest rq(cx);
 	JS::RootedValue v(cx, v1);
-	int32_t ret;
 	WARN_IF_NOT(v.isNumber(), v);
-	if (!JS::ToInt32(cx, v, &ret))
+	if (!JS::ToInt32(cx, v, &out))
 		return false;
-	out = ret;
 	return true;
 }
 
@@ -79,11 +75,9 @@ template<> bool ScriptInterface::FromJSVal<u32>(JSContext* cx, jsval v1, u32& ou
 {
 	JSAutoRequest rq(cx);
 	JS::RootedValue v(cx, v1);
-	uint32_t ret;
 	WARN_IF_NOT(v.isNumber(), v);
-	if (!JS::ToUint32(cx, v, &ret))
+	if (!JS::ToUint32(cx, v, &out))
 		return false;
-	out = ret;
 	return true;
 }
 
@@ -91,11 +85,9 @@ template<> bool ScriptInterface::FromJSVal<u16>(JSContext* cx, jsval v1, u16& ou
 {
 	JSAutoRequest rq(cx);
 	JS::RootedValue v(cx, v1);
-	uint16_t ret;
 	WARN_IF_NOT(v.isNumber(), v);
-	if (!JS::ToUint16(cx, v, &ret))
+	if (!JS::ToUint16(cx, v, &out))
 		return false;
-	out = ret;
 	return true;
 }
 
@@ -103,11 +95,11 @@ template<> bool ScriptInterface::FromJSVal<u8>(JSContext* cx, jsval v1, u8& out)
 {
 	JSAutoRequest rq(cx);
 	JS::RootedValue v(cx, v1);
-	uint16_t ret;
+	u16 tmp;
 	WARN_IF_NOT(v.isNumber(), v);
-	if (!JS::ToUint16(cx, v, &ret))
+	if (!JS::ToUint16(cx, v, &tmp))
 		return false;
-	out = (u8)ret;
+	out = (u8)tmp;
 	return true;
 }
 
@@ -115,8 +107,8 @@ template<> bool ScriptInterface::FromJSVal<long>(JSContext* cx, jsval v1, long& 
 {
 	JSAutoRequest rq(cx);
 	JS::RootedValue v(cx, v1);
-	int32_t tmp;
-	bool ok = JS::ToInt32(cx, v, &tmp);
+	i64 tmp;
+	bool ok = JS::ToInt64(cx, v, &tmp);
 	out = (long)tmp;
 	return ok;
 }
@@ -125,8 +117,8 @@ template<> bool ScriptInterface::FromJSVal<unsigned long>(JSContext* cx, jsval v
 {
 	JSAutoRequest rq(cx);
 	JS::RootedValue v(cx, v1);
-	int32_t tmp;
-	bool ok = JS::ToInt32(cx, v, &tmp);
+	u64 tmp;
+	bool ok = JS::ToUint64(cx, v, &tmp);
 	out = (unsigned long)tmp;
 	return ok;
 }
@@ -138,12 +130,12 @@ template<> bool ScriptInterface::FromJSVal<size_t>(JSContext* cx, jsval v1, size
 {
 	JSAutoRequest rq(cx);
 	JS::RootedValue v(cx, v1);
-	int temp;
-	if(!FromJSVal<int>(cx, v, temp))
+	int tmp;
+	if(!FromJSVal<int>(cx, v, tmp))
 		return false;
 	if(temp < 0)
 		return false;
-	out = (size_t)temp;
+	out = (size_t)tmp;
 	return true;
 }
 
@@ -151,12 +143,12 @@ template<> bool ScriptInterface::FromJSVal<ssize_t>(JSContext* cx, jsval v1, ssi
 {
 	JSAutoRequest rq(cx);
 	JS::RootedValue v(cx, v1);
-	int temp;
-	if(!FromJSVal<int>(cx, v, temp))
+	int tmp;
+	if(!FromJSVal<int>(cx, v, tmp))
 		return false;
-	if(temp < 0)
+	if(tmp < 0)
 		return false;
-	out = (ssize_t)temp;
+	out = (ssize_t)tmp;
 	return true;
 }
 
@@ -180,11 +172,11 @@ template<> bool ScriptInterface::FromJSVal<std::wstring>(JSContext* cx, jsval v1
 	JSAutoRequest rq(cx);
 	JS::RootedValue v(cx, v1);
 	WARN_IF_NOT(JSVAL_IS_STRING(v) || JSVAL_IS_NUMBER(v), v); // allow implicit number conversions
-	JSString* ret = JS::ToString(cx, v);
-	if (!ret)
+	JSString* str = JS::ToString(cx, v);
+	if (!str)
 		FAIL("Argument must be convertible to a string");
 	size_t length;
-	const jschar* ch = JS_GetStringCharsAndLength(cx, ret, &length);
+	const jschar* ch = JS_GetStringCharsAndLength(cx, str, &length);
 	if (!ch)
 		FAIL("JS_GetStringsCharsAndLength failed"); // out of memory
 	out = std::wstring(ch, ch + length);
@@ -205,13 +197,13 @@ template<> bool ScriptInterface::FromJSVal<std::string>(JSContext* cx, jsval v1,
 	JSAutoRequest rq(cx);
 	JS::RootedValue v(cx, v1);
 	WARN_IF_NOT(v.isString() || v.isNumber(), v); // allow implicit number conversions
-	JSString* ret = JS::ToString(cx, v);
-	if (!ret)
+	JSString* str = JS::ToString(cx, v);
+	if (!str)
 		FAIL("Argument must be convertible to a string");
-	char* ch = JS_EncodeString(cx, ret); // chops off high byte of each jschar
+	char* ch = JS_EncodeString(cx, str); // chops off high byte of each jschar
 	if (!ch)
 		FAIL("JS_EncodeString failed"); // out of memory
-	out = std::string(ch, ch + JS_GetStringLength(ret));
+	out = std::string(ch, ch + JS_GetStringLength(str));
 	JS_free(cx, ch);
 	return true;
 }
@@ -401,7 +393,7 @@ template<typename T> static void ToJSVal_vector(JSContext* cx, JS::MutableHandle
 		ret.set(JS::UndefinedValue());
 		return;
 	}
-	for (uint32_t i = 0; i < val.size(); ++i)
+	for (u32 i = 0; i < val.size(); ++i)
 	{
 		JS::RootedValue el(cx);
 		ScriptInterface::ToJSVal<T>(cx, &el, val[i]);
@@ -420,11 +412,11 @@ template<typename T> static bool FromJSVal_vector(JSContext* cx, jsval v, std::v
 	if (!(JS_IsArrayObject(cx, obj) || JS_IsTypedArrayObject(obj)))
 		FAIL("Argument must be an array");
 	
-	uint32_t length;
+	u32 length;
 	if (!JS_GetArrayLength(cx, obj, &length))
 		FAIL("Failed to get array length");
 	out.reserve(length);
-	for (uint32_t i = 0; i < length; ++i)
+	for (u32 i = 0; i < length; ++i)
 	{
 		JS::RootedValue el(cx);
 		if (!JS_GetElement(cx, obj, i, &el))

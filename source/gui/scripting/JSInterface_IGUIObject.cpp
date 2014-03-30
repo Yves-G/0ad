@@ -167,7 +167,9 @@ bool JSI_IGUIObject::getProperty(JSContext* cx, JS::HandleObject obj, JS::Handle
 				JS::RootedValue c(cx);
 				// Attempt to minimise ugliness through macrosity
 				#define P(x) c = JS::NumberValue(colour.x); \
-				if (c.isNull()) return false; JS_SetProperty(cx, obj, #x, c)
+				if (c.isNull()) \
+					return false; \
+				JS_SetProperty(cx, obj, #x, c)
 					P(r);
 					P(g);
 					P(b);
@@ -278,11 +280,11 @@ bool JSI_IGUIObject::getProperty(JSContext* cx, JS::HandleObject obj, JS::Handle
 				JS::RootedObject obj(cx, JS_NewArrayObject(cx, JS::HandleValueArray::empty()));
 				vp.set(JS::ObjectValue(*obj));
 
-				for (size_t i = 0; i < value.m_Items.size(); ++i)
+				for (u32 i = 0; i < value.m_Items.size(); ++i)
 				{
 					JS::RootedValue val(cx);
 					ScriptInterface::ToJSVal(cx, &val, value.m_Items[i].GetOriginalString());
-					JS_SetElement(cx, obj, (uint32_t)i, val);
+					JS_SetElement(cx, obj, i, val);
 				}
 
 				break;
@@ -434,8 +436,8 @@ bool JSI_IGUIObject::setProperty(JSContext* cx, JS::HandleObject obj, JS::Handle
 
 	case GUIST_int:
 		{
-			int32_t value;
-			if (JS::ToInt32(cx, vp, &value) == true)
+			int value;
+			if (ScriptInterface::FromJSVal(cx, vp, value))
 				GUI<int>::SetSetting(e, propName, value);
 			else
 			{
@@ -544,13 +546,13 @@ bool JSI_IGUIObject::setProperty(JSContext* cx, JS::HandleObject obj, JS::Handle
 
 	case GUIST_CGUIList:
 		{
-			uint length;
+			u32 length;
 			if (vp.isObject() && JS_GetArrayLength(cx, vpObj, &length) == true)
 			{
 				CGUIList list;
 				JS::RootedObject obj(cx, &vp.toObject());
 				
-				for (int i=0; i<(int)length; ++i)
+				for (u32 i=0; i<length; ++i)
 				{
 					JS::RootedValue element(cx);
 					if (! JS_GetElement(cx, obj, i, &element))

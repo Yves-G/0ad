@@ -70,23 +70,23 @@
 void GCSliceCallbackHook(JSRuntime* UNUSED(rt), JS::GCProgress progress, const JS::GCDescription& UNUSED(desc))
 {
 	/*
-     * During non-incremental GC, the GC is bracketed by JSGC_CYCLE_BEGIN/END
-     * callbacks. During an incremental GC, the sequence of callbacks is as
-     * follows:
-     *   JSGC_CYCLE_BEGIN, JSGC_SLICE_END  (first slice)
-     *   JSGC_SLICE_BEGIN, JSGC_SLICE_END  (second slice)
-     *   ...
-     *   JSGC_SLICE_BEGIN, JSGC_CYCLE_END  (last slice)
-     */
-	
-	
+	 * During non-incremental GC, the GC is bracketed by JSGC_CYCLE_BEGIN/END
+	 * callbacks. During an incremental GC, the sequence of callbacks is as
+	 * follows:
+	 *   JSGC_CYCLE_BEGIN, JSGC_SLICE_END  (first slice)
+	 *   JSGC_SLICE_BEGIN, JSGC_SLICE_END  (second slice)
+	 *   ...
+	 *   JSGC_SLICE_BEGIN, JSGC_CYCLE_END  (last slice)
+	*/
+
+
 	if (progress == JS::GC_SLICE_BEGIN)
 	{
 		if (CProfileManager::IsInitialised() && ThreadUtil::IsMainThread())
 			g_Profiler.Start("GCSlice");
 		g_Profiler2.RecordRegionEnter("GCSlice");
 	}
-    else if (progress == JS::GC_SLICE_END)
+	else if (progress == JS::GC_SLICE_END)
 	{
 		if (CProfileManager::IsInitialised() && ThreadUtil::IsMainThread())
 			g_Profiler.Stop();
@@ -98,38 +98,38 @@ void GCSliceCallbackHook(JSRuntime* UNUSED(rt), JS::GCProgress progress, const J
 			g_Profiler.Start("GCSlice");
 		g_Profiler2.RecordRegionEnter("GCSlice");
 	}
-    else if (progress == JS::GC_CYCLE_END)
+	else if (progress == JS::GC_CYCLE_END)
 	{
 		if (CProfileManager::IsInitialised() && ThreadUtil::IsMainThread())
 			g_Profiler.Stop();
     	g_Profiler2.RecordRegionLeave("GCSlice");
 	}
-	
+
 	// The following code can be used to print some information aobut garbage collection
 	// Search for "Nonincremental reason" if there are problems running GC incrementally.
-	/*
+	#if 0
 	if (progress == JS::GCProgress::GC_CYCLE_BEGIN)
 		printf("starting cycle ===========================================\n");
-	//{
-		const jschar* str = desc.formatMessage(rt);
-		int len = 0;
-		
-		for(int i = 0; i < 10000; i++)
-		{
-			len++;
-			if(!str[i])
-				break;
-		}
-		
-		wchar_t outstring[len];
-		
-		for(int i = 0; i < len; i++)
-		{
-			outstring[i] = (wchar_t)str[i];
-		}
-		
-		printf("---------------------------------------\n: %ls \n---------------------------------------\n", outstring);
-	//}*/
+
+	const jschar* str = desc.formatMessage(rt);
+	int len = 0;
+	
+	for(int i = 0; i < 10000; i++)
+	{
+		len++;
+		if(!str[i])
+			break;
+	}
+	
+	wchar_t outstring[len];
+	
+	for(int i = 0; i < len; i++)
+	{
+		outstring[i] = (wchar_t)str[i];
+	}
+	
+	printf("---------------------------------------\n: %ls \n---------------------------------------\n", outstring);
+	#endif
 }
  
 class ScriptRuntime
@@ -368,11 +368,11 @@ private:
 
 		return closure;
 	}
-	
+
 	static void jshook_trace(JSTracer* trc, void* data)
 	{
 		ScriptRuntime* m = static_cast<ScriptRuntime*>(data);
-	
+
 		if (m->m_rooter)
 			m->m_rooter->Trace(trc);
 	}
@@ -571,7 +571,7 @@ bool ProfileStart(JSContext* cx, uint argc, jsval* vp)
 		g_Profiler.StartScript(name);
 
 	g_Profiler2.RecordRegionEnter(name);
-	
+
 	JS_SET_RVAL(cx, vp, JSVAL_VOID);
 	return true;
 }
@@ -609,15 +609,11 @@ bool Math_random(JSContext* cx, uint UNUSED(argc), jsval* vp)
 {
 	double r;
 	if(!ScriptInterface::GetScriptInterfaceAndCBData(cx)->pScriptInterface->MathRandom(r))
-	{
 		return false;
-	}
-	else
-	{
-		jsval rv = JS::NumberValue(r);
-		JS_SET_RVAL(cx, vp, rv);
-		return true;
-	}
+
+	jsval rv = JS::NumberValue(r);
+	JS_SET_RVAL(cx, vp, rv);
+	return true;
 }
 
 } // anonymous namespace
@@ -694,7 +690,7 @@ ScriptInterface_impl::ScriptInterface_impl(const char* nativeScopeName, const sh
 
 	Register("ProfileStart", ::ProfileStart, 1);
 	Register("ProfileStop", ::ProfileStop, 0);
-	
+
 	runtime->RegisterContext(m_cx);
 }
 
@@ -780,11 +776,6 @@ void ScriptInterface::ShutDown()
 	JS_ShutDown();
 }
 
-void ScriptInterface::Tick()
-{
-	js::NotifyAnimationActivity(m->m_glob);
-}
-
 void ScriptInterface::SetCallbackData(void* pCBData)
 {
 	m_CxPrivate.pCBData = pCBData;
@@ -819,7 +810,7 @@ bool ScriptInterface::LoadGlobalScripts()
 			return false;
 		}
 	}
-	
+
 	JSAutoRequest rq(m->m_cx);
 	JS::RootedValue proto(m->m_cx);
 	JS::RootedObject global(m->m_cx, m->m_glob);
@@ -829,7 +820,6 @@ bool ScriptInterface::LoadGlobalScripts()
 		m->m_ScriptValCache[CACHE_VECTOR3DPROTO] = CScriptValRooted(m->m_cx, proto);
 	return true;
 }
-
 
 bool ScriptInterface::ReplaceNondeterministicRNG(boost::rand48& rng)
 {
@@ -1213,9 +1203,9 @@ bool ScriptInterface::FreezeObject(jsval objVal, bool deep)
 	JS::RootedObject obj(m->m_cx, &objVal.toObject());
 
 	if (deep)
-		return JS_DeepFreezeObject(m->m_cx, obj) ? true : false;
+		return JS_DeepFreezeObject(m->m_cx, obj);
 	else
-		return JS_FreezeObject(m->m_cx, obj) ? true : false;
+		return JS_FreezeObject(m->m_cx, obj);
 }
 
 bool ScriptInterface::LoadScript(const VfsPath& filename, const std::string& code)
@@ -1325,7 +1315,8 @@ CScriptValRooted ScriptInterface::ParseJSON(const std::string& string_utf8)
 	std::wstring attrsW = wstring_from_utf8(string_utf8);
  	utf16string string(attrsW.begin(), attrsW.end());
 	JS::RootedValue vp(m->m_cx);
-	JS_ParseJSON(m->m_cx, reinterpret_cast<const jschar*>(string.c_str()), (uint32_t)string.size(), &vp);
+	if (!JS_ParseJSON(m->m_cx, reinterpret_cast<const jschar*>(string.c_str()), (u32)string.size(), &vp))
+		LOGERROR(L"JS_ParseJSON failed!");
 	return CScriptValRooted(m->m_cx, vp);
 }
 
@@ -1354,7 +1345,7 @@ CScriptValRooted ScriptInterface::ReadJSONFile(const VfsPath& path)
 
 struct Stringifier
 {
-	static bool callback(const jschar* buf, uint32_t len, void* data)
+	static bool callback(const jschar* buf, u32 len, void* data)
 	{
 		utf16string str(buf, buf+len);
 		std::wstring strw(str.begin(), str.end());
@@ -1369,7 +1360,7 @@ struct Stringifier
 
 struct StringifierW
 {
-	static bool callback(const jschar* buf, uint32_t len, void* data)
+	static bool callback(const jschar* buf, u32 len, void* data)
 	{
 		utf16string str(buf, buf+len);
 		static_cast<StringifierW*>(data)->stream << std::wstring(str.begin(), str.end());
@@ -1517,7 +1508,7 @@ shared_ptr<ScriptInterface::StructuredClone> ScriptInterface::WriteStructuredClo
 {
 	JSAutoRequest rq(m->m_cx);
 	JS::RootedValue v1(m->m_cx, v);
-	uint64_t* data = NULL;
+	u64* data = NULL;
 	size_t nbytes = 0;
 	if (!JS_WriteStructuredClone(m->m_cx, v1, &data, &nbytes, NULL, NULL, JS::UndefinedHandleValue))
 	{

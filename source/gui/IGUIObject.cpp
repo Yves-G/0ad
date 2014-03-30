@@ -475,7 +475,7 @@ void IGUIObject::ScriptEvent(const CStr& Action)
 
 	JSContext* cx = m_pGUI->GetScriptInterface()->GetContext();
 	JSAutoRequest rq(cx);
-	
+
 	// Set up the 'mouse' parameter
 	CScriptVal mouse;
 	m_pGUI->GetScriptInterface()->Eval("({})", mouse);
@@ -501,7 +501,7 @@ void IGUIObject::ScriptEvent(const CStr& Action, const CScriptValRooted& Argumen
 	std::map<CStr, CScriptValRooted>::iterator it = m_ScriptHandlers.find(Action);
 	if (it == m_ScriptHandlers.end())
 		return;
-		
+
 	JSContext* cx = m_pGUI->GetScriptInterface()->GetContext();
 	JSAutoRequest rq(cx);
 	JS::AutoValueVector paramData(cx);

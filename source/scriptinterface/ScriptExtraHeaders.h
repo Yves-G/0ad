@@ -67,11 +67,9 @@
 # pragma GCC diagnostic warning "-Wunused-parameter"
 # pragma GCC diagnostic warning "-Wredundant-decls"
 # pragma GCC diagnostic warning "-Wnon-virtual-dtor"
-# if GCC_VERSION >= 407
-#  pragma GCC diagnostic warning "-Wunused-local-typedefs" // caused by js/debug.h
-# endif
 # if GCC_VERSION >= 406
-#  pragma GCC diagnostic pop // restore user flags
+// restore user flags (and we don't have to manually restore the warning levels for GCC >= 4.6)
+#  pragma GCC diagnostic pop
 # endif
 #endif
 

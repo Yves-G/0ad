@@ -113,7 +113,6 @@ public:
 		void* pCBData; // meant to be used as the "this" object for callback functions
 	} m_CxPrivate;
 
-	void Tick();
 	void SetCallbackData(void* pCBData);
 	static CxPrivate* GetScriptInterfaceAndCBData(JSContext* cx);
 
@@ -334,6 +333,9 @@ public:
 	/**
 	 * Convert a C++ type to a jsval. (This might trigger GC. The return
 	 * value must be rooted if you don't want it to be collected.)
+	 * NOTE: We are passing the JS::Value by reference instead of returning it by value.
+	 * The reason is a memory corruption problem that appears to be caused by a bug in Visual Studio.
+	 * Details here: http://www.wildfiregames.com/forum/index.php?showtopic=17289&p=285921
 	 */
 	template<typename T> static void ToJSVal(JSContext* cx, JS::MutableHandleValue ret, T const& val);
 
@@ -345,14 +347,33 @@ public:
 	void DumpHeap();
 
 	/**
-	 * MaybeGC tries to determine whether garbage collection in cx's runtime would free up enough memory to be worth the amount of time it would take
+	 * MaybeGC tries to determine whether garbage collection in cx's runtime would free up enough memory to be worth the amount of time it would take.
+	 * This calls JS_MaybeGC directly, which does not do incremental GC. Usually you should prefer MaybeIncrementalRuntimeGC.
 	 */
 	void MaybeGC();
 	
+	/**
+	 * MaybeIncrementalRuntimeGC tries to determine whether a runtime-wide garbage collection would free up enough memory to 
+	 * be worth the amount of time it would take. It does this with our own logic and NOT some predefined JSAPI logic because
+	 * such functionality currently isn't available out of the box.
+	 * It does incremental GC which means it will collect one slice each time it's called until the garbage collection is done.
+	 * This can and should be called quite regularly. It shouldn't cost much performance because it tries to run a GC only if 
+	 * necessary.
+	 */
 	void MaybeIncrementalRuntimeGC();
 	
+	/**
+	 * Triggers a full non-incremental garbage collection immediately. That should only be required in special cases and normally
+	 * you should try to use MaybeIncrementalRuntimeGC instead.
+	 */
 	void ForceGC();
 
+	/**
+	 * MathRandom (this function) calls the random number generator assigned to this ScriptInterface instance and
+	 * returns the generated number.
+	 * Math_random (with underscore, not this function) is a global function, but different random number generators can be 
+	 * stored per ScriptInterface. It calls MathRandom of the current ScriptInterface instance.
+	 */
 	bool MathRandom(double& nbr);
 
 	/**
@@ -368,7 +389,7 @@ public:
 	public:
 		StructuredClone();
 		~StructuredClone();
-		uint64_t* m_Data;
+		u64* m_Data;
 		size_t m_Size;
 	};
 
@@ -377,6 +398,7 @@ public:
 
 private:
 	bool CallFunction_(JS::HandleValue val, const char* name, JS::HandleValueArray argv, JS::MutableHandleValue ret);
+	bool CallFunction_(jsval val, const char* name, uint argc, jsval* argv, jsval& ret);
 	bool Eval_(const char* code, jsval& ret);
 	bool Eval_(const wchar_t* code, jsval& ret);
 	bool SetGlobal_(const char* name, jsval value, bool replace);

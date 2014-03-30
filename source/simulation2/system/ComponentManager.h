@@ -96,8 +96,6 @@ public:
 	void RegisterComponentType(InterfaceId, ComponentTypeId, AllocFunc, DeallocFunc, const char*, const std::string& schema);
 	void RegisterComponentTypeScriptWrapper(InterfaceId, ComponentTypeId, AllocFunc, DeallocFunc, const char*, const std::string& schema);
 
-
-	void Tick() { m_ScriptInterface.Tick(); };
 	/**
 	 * Subscribe the current component type to the given message type.
 	 * Each component's HandleMessage will be called on any BroadcastMessage of this message type,

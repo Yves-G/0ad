@@ -125,7 +125,7 @@ void CStdDeserializer::FreeScriptBackrefs()
 jsval CStdDeserializer::ReadScriptVal(const char* UNUSED(name), JSObject* appendParent)
 {
 	JSContext* cx = m_ScriptInterface.GetContext();
-	
+
 	JSAutoRequest rq(cx);
 
 	uint8_t type;

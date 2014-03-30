@@ -21,6 +21,9 @@ MAKE=${MAKE:="make"}
 
 MAKE_OPTS="${JOBS}"
 
+# We bundle prebuilt binaries for Windows and the .libs for nspr aren't included.
+# If you want to build on Windows, check README.txt and edit the absolute paths 
+# to match your enviroment.
 if [ "${OS}" = "Windows_NT" ]
 then
   NSPR_INCLUDES="-IC:/Projects/0ad/libraries/source/spidermonkey/nspr-4.10.3/nspr/dist/include/nspr"
@@ -110,13 +113,6 @@ else
   LIB_PREFIX=lib
   LIB_SRC_SUFFIX=.so
   LIB_DST_SUFFIX=.so
-  # Fix suffix issue on OpenBSD
-  if [ "`uname -s`" = "OpenBSD" ]
-  then
-    DLL_SRC_SUFFIX=.so
-    LIB_SRC_SUFFIX=.so
-    LIB_DST_SUFFIX=.so
-  fi
 fi
 
 # Copy files into the necessary locations for building and running the game

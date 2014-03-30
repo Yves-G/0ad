@@ -63,7 +63,6 @@ bool JSI_GUISize::construct(JSContext* cx, uint argc, jsval* vp)
 	JSAutoRequest rq(cx);
 	JS::RootedObject obj(cx, JS_NewObject(cx, &JSI_GUISize::JSI_class, JS::NullPtr(), JS::NullPtr()));
 
-	// TODO: ugly with so much repetition...?
 	if (argc == 8)
 	{
 		JS::RootedValue v0(cx, JS_ARGV(cx, vp)[0]);
@@ -292,7 +291,7 @@ bool JSI_GUIMouse::toString(JSContext* cx, uint argc, jsval* vp)
 {
 	UNUSED2(argc);
 
-	int32_t x, y, buttons;
+	i32 x, y, buttons;
 	ScriptInterface* pScriptInterface = ScriptInterface::GetScriptInterfaceAndCBData(cx)->pScriptInterface;
 	pScriptInterface->GetProperty(JS_THIS_VALUE(cx, vp), "x", x);
 	pScriptInterface->GetProperty(JS_THIS_VALUE(cx, vp), "y", y);

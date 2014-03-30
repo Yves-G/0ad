@@ -92,7 +92,7 @@ bool CMapGeneratorWorker::Run()
 	m_ScriptInterface->RegisterFunction<void, CMapGeneratorWorker::MaybeGC>("MaybeGC");
 	m_ScriptInterface->RegisterFunction<std::vector<std::string>, CMapGeneratorWorker::GetCivData>("GetCivData");
 
-	// TODO: This code is a bit ugly because we have to ensure that CScriptValRooted gets destroyed before the ScirptInterface.
+	// TODO: This code is a bit ugly because we have to ensure that CScriptValRooted gets destroyed before the ScriptInterface.
 	// In the future we should work more with the standard JSAPI types for rooting on the stack, which should avoid such problems.
 	bool ret = true;
 	{
@@ -106,14 +106,14 @@ bool CMapGeneratorWorker::Run()
 		else
 		{
 			// Init RNG seed
-			uint32_t seed;
+			u32 seed;
 			if (!m_ScriptInterface->GetProperty(settingsVal.get(), "Seed", seed))
 			{	// No seed specified
 				LOGWARNING(L"CMapGeneratorWorker::Run: No seed value specified - using 0");
 				seed = 0;
 			}
 
-			m_MapGenRNG.seed((int32_t)seed);
+			m_MapGenRNG.seed(seed);
 
 			// Copy settings to global variable
 			if (!m_ScriptInterface->SetProperty(m_ScriptInterface->GetGlobalObject(), "g_MapSettings", settingsVal))

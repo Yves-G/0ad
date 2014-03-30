@@ -241,7 +241,7 @@ void CBinarySerializerScriptImpl::HandleScriptVal(JS::Value valArg)
 		if (!ida)
 			throw PSERROR_Serialize_ScriptError("JS_Enumerate failed");
 
-		m_Serializer.NumberU32_Unbounded("num props", (uint32_t)ida.length());
+		m_Serializer.NumberU32_Unbounded("num props", (u32)ida.length());
 
 		for (size_t i = 0; i < ida.length(); ++i)
 		{
@@ -305,7 +305,7 @@ void CBinarySerializerScriptImpl::HandleScriptVal(JS::Value valArg)
 		
 		double d;
 		d = val.toNumber();
-		int32_t integer;
+		i32 integer;
 		
 		if (JS_DoubleIsInt32(d, &integer))
 		{
@@ -317,7 +317,6 @@ void CBinarySerializerScriptImpl::HandleScriptVal(JS::Value valArg)
 			m_Serializer.NumberU8_Unbounded("type", SCRIPT_TYPE_DOUBLE);
 			m_Serializer.NumberDouble_Unbounded("value", d);
 		}
-		
 		break;
 	}
 	case JSTYPE_BOOLEAN:
@@ -351,7 +350,7 @@ void CBinarySerializerScriptImpl::ScriptString(const char* name, JSString* strin
 #endif
 
 	// Serialize strings directly as UTF-16, to avoid expensive encoding conversions
-	m_Serializer.NumberU32_Unbounded("string length", (uint32_t)length);
+	m_Serializer.NumberU32_Unbounded("string length", (u32)length);
 	m_Serializer.RawBytes(name, (const u8*)chars, length*2);
 }
 
