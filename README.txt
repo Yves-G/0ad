@@ -1,47 +1,25 @@
- 0 A.D. Introductory Information
-=================================
+ ESR31 branch information
+=========================
 
-0 A.D. (pronounced "zero ey-dee") is a free, open-source, cross-platform
-real-time strategy game of ancient warfare.
-
-This is currently an incomplete, under-development version of the game.
-We're always interested in getting more people involved, to help bring the game
-towards completion and to share the interesting experience of developing a
-project of this scope.
-
-There are several ways to contact us and find more information:
-
-  Web site: http://play0ad.com/
-
-  Forums: http://www.wildfiregames.com/forum/
-
-  Trac (development info, bug tracker): http://trac.wildfiregames.com/
-
-  IRC: #0ad on irc.quakenet.org
+This branch contains the changes for updating 0 A.D. to the SpiderMonkey 31 extended support release (ESR).
+ESR31 is still in development and according to the release schedule (https://wiki.mozilla.org/RapidRelease/Calendar)
+it's planned to be release in July 2014.
 
 
----------------------------------------
-Running precompiled binaries on Windows
----------------------------------------
+-------------------
+ Testing the branch
+-------------------
 
-Open the "binaries\system" folder.
+The ESR31 branch currently only works on Linux.
 
-To launch the game: Run pyrogenesis.exe
-
-To launch the map editor: Run Atlas.bat or "pyrogenesis.exe -editor"
-
-
------------------------------------
-Compiling the game from source code
------------------------------------
-
-The instructions for compiling the game on Windows, Linux and OS X are at
+Refer to the 0 A.D. build process here:
 http://trac.wildfiregames.com/wiki/BuildInstructions
 
 
-------------------
-Reporting problems
-------------------
+In addition you need mercurial (hg) to download the current SpiderMonkey version along with the Firefox source.
+The code for downloading the right version from Mozilla Central is in the build.sh script which is called from
+update-workspaces.sh, so you can just run that as part of the normal build process.
 
-Bugs should be reported on Trac. For information on reporting problems
-and finding logs, see http://trac.wildfiregames.com/wiki/ReportingErrors
+Run the game by starting pyrogenesis from binaries/system after the successful build.
+
+
