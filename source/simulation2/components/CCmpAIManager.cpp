@@ -723,6 +723,7 @@ private:
 	{			
 		// Deserialize the game state, to pass to the AI's HandleMessage
 		JSContext* cx = m_ScriptInterface->GetContext();
+		JSAutoRequest rq(cx);
 		JS::RootedValue state(cx);
 		{
 			PROFILE3("AI compute read state");

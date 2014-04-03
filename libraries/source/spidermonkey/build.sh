@@ -36,7 +36,7 @@ else
   NSPR_LIBS="`pkg-config nspr --libs`"
 fi
 
-CONF_OPTS="--enable-threadsafe --enable-shared-js --disable-tests" # --enable-trace-logging"
+CONF_OPTS="--enable-threadsafe --enable-shared-js --disable-tests --disable-exact-rooting --disable-gcgenerational" # --enable-trace-logging"
 
 # If Valgrind looks like it's installed, then set up SM to support it
 # (else the JITs will interact poorly with it)
@@ -61,7 +61,7 @@ else
   cd mozjs31
   hg pull
   # I've tested with this version, but you can try a more recent one if you like
-  hg update 174921:c3b840de1f7b
+  hg update 176097:0e19655e93df
   cd ..
 fi
 

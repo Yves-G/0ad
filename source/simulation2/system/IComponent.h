@@ -56,7 +56,7 @@ public:
 	virtual void Serialize(ISerializer& serialize) = 0;
 	virtual void Deserialize(const CParamNode& paramNode, IDeserializer& deserialize) = 0;
 
-	virtual JSClass* GetJSClass() const;
+	virtual void NewJSObject(ScriptInterface& scriptInterface, JS::MutableHandleObject out) const;
 	virtual jsval GetJSInstance() const;
 
 private:

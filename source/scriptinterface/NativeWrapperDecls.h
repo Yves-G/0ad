@@ -28,14 +28,8 @@
 #define TYPED_ARGS(z, i, data) , T##i a##i
 #define CONVERT_ARG(z, i, data) \
 	T##i a##i; \
-	{ \
-	JS::RootedValue arg(cx); \
 	if (i < argc) \
-		arg = JS_ARGV(cx, vp)[i]; \
-	else \
-		arg = JS::UndefinedValue(); \
-	if (! ScriptInterface::FromJSVal<T##i>(cx, arg, a##i)) return false; \
-	}
+		if (! ScriptInterface::FromJSVal<T##i>(cx, args[i], a##i)) return false; \
 
 // List-generating macros, named roughly after their first list item
 #define TYPENAME_T0_HEAD(z, i) BOOST_PP_REPEAT_##z (i, NUMBERED_LIST_HEAD, typename T) // "typename T0, typename T1, "

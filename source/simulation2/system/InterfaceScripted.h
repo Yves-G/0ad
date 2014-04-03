@@ -24,7 +24,9 @@
 	JSClass class_ICmp##iname = { \
 		"ICmp" #iname, JSCLASS_HAS_PRIVATE, \
 		JS_PropertyStub, JS_DeletePropertyStub, JS_PropertyStub, JS_StrictPropertyStub, \
-		JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub \
+		JS_EnumerateStub, JS_ResolveStub, \
+		JS_ConvertStub, NULL, \
+		NULL, NULL, NULL, NULL \
 	}; \
 	static JSFunctionSpec methods_ICmp##iname[] = {
 
@@ -32,15 +34,12 @@
 		JS_FS_END \
 	}; \
 	void ICmp##iname::InterfaceInit(ScriptInterface& scriptInterface) { \
-		JSContext* cx = scriptInterface.GetContext(); \
-		JSAutoRequest rq(cx); \
-		JS::RootedObject global(cx, JS::CurrentGlobalOrNull(cx)); \
-		if (!global) \
-			printf("ERROR global is null"); \
-		printf("INITIALIZING CLASS class_ICmp" #iname);\
-		ENSURE(NULL != JS_InitClass(cx, global, JS::NullPtr(), &class_ICmp##iname, NULL, 0, NULL, methods_ICmp##iname, NULL, NULL)); \
+		scriptInterface.DefineCustomObjectType(&class_ICmp##iname, NULL, 0, NULL, methods_ICmp##iname, NULL, NULL); \
 	} \
-	JSClass* ICmp##iname::GetJSClass() const { return &class_ICmp##iname; } \
+	void ICmp##iname::NewJSObject(ScriptInterface& scriptInterface, JS::MutableHandleObject out) const\
+	{ \
+		out.set(scriptInterface.CreateCustomObject("ICmp" #iname)); \
+	} \
 	void RegisterComponentInterface_##iname(ScriptInterface& scriptInterface) { \
 		ICmp##iname::InterfaceInit(scriptInterface); \
 	}

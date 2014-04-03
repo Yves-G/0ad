@@ -51,22 +51,8 @@ template<> void ScriptInterface::ToJSVal<IComponent*>(JSContext* cx, JS::Mutable
 
 	// Otherwise we need to construct a wrapper object
 	// (TODO: cache wrapper objects?)
-	JSClass* cls = val->GetJSClass();
-	if (!cls)
-	{
-		// Report as an error, since scripts really shouldn't try to use unscriptable interfaces
-		LOGERROR(L"IComponent does not have a scriptable interface");
-		ret.set(JS::UndefinedValue());
-		return;
-	}
-
-	JS::RootedObject obj(cx, JS_NewObject(cx, cls, JS::NullPtr(), JS::NullPtr()));
-	if (!obj)
-	{
-		LOGERROR(L"Failed to construct IComponent script object");
-		ret.set(JS::UndefinedValue());
-		return;
-	}
+	JS::RootedObject obj(cx);
+	val->NewJSObject(*ScriptInterface::GetScriptInterfaceAndCBData(cx)->pScriptInterface, &obj);
 	JS_SetPrivate(obj, static_cast<void*>(val));
 
 	ret.set(JS::ObjectValue(*obj));
@@ -237,7 +223,7 @@ template<> void ScriptInterface::ToJSVal<CFixedVector2D>(JSContext* cx, JS::Muta
 
 	// apply the Vector2D prototype to the return value
  	ScriptInterface::CxPrivate* pCxPrivate = ScriptInterface::GetScriptInterfaceAndCBData(cx);
- 	JS::RootedObject proto(cx, &pCxPrivate->pScriptInterface->GetCachedValue(ScriptInterface::CACHE_VECTOR3DPROTO).get().toObject());
+ 	JS::RootedObject proto(cx, &pCxPrivate->pScriptInterface->GetCachedValue(ScriptInterface::CACHE_VECTOR2DPROTO).get().toObject());
 	JS::RootedObject obj(cx, JS_NewObject(cx, nullptr, proto, JS::NullPtr()));
 	if (!obj)
 	{

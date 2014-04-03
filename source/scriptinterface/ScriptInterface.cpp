@@ -470,63 +470,71 @@ void ErrorReporter(JSContext* cx, const char* message, JSErrorReport* report)
 
 bool print(JSContext* cx, uint argc, jsval* vp)
 {
+	JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+	JS::CallReceiver rec = JS::CallReceiverFromVp(vp);
 	for (uint i = 0; i < argc; ++i)
 	{
 		std::wstring str;
-		if (!ScriptInterface::FromJSVal(cx, JS_ARGV(cx, vp)[i], str))
+		if (!ScriptInterface::FromJSVal(cx, args[i], str))
 			return false;
 		debug_printf(L"%ls", str.c_str());
 	}
 	fflush(stdout);
-	JS_SET_RVAL(cx, vp, JSVAL_VOID);
+	rec.rval().set(JS::UndefinedValue());
 	return true;
 }
 
 bool logmsg(JSContext* cx, uint argc, jsval* vp)
 {
+	JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+	JS::CallReceiver rec = JS::CallReceiverFromVp(vp);
 	if (argc < 1)
 	{
-		JS_SET_RVAL(cx, vp, JSVAL_VOID);
+		rec.rval().set(JS::UndefinedValue());
 		return true;
 	}
 
 	std::wstring str;
-	if (!ScriptInterface::FromJSVal(cx, JS_ARGV(cx, vp)[0], str))
+	if (!ScriptInterface::FromJSVal(cx, args[0], str))
 		return false;
 	LOGMESSAGE(L"%ls", str.c_str());
-	JS_SET_RVAL(cx, vp, JSVAL_VOID);
+	rec.rval().set(JS::UndefinedValue());
 	return true;
 }
 
 bool warn(JSContext* cx, uint argc, jsval* vp)
 {
+	JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+	JS::CallReceiver rec = JS::CallReceiverFromVp(vp);
 	if (argc < 1)
 	{
-		JS_SET_RVAL(cx, vp, JSVAL_VOID);
+		rec.rval().set(JS::UndefinedValue());
 		return true;
 	}
 
 	std::wstring str;
-	if (!ScriptInterface::FromJSVal(cx, JS_ARGV(cx, vp)[0], str))
+	if (!ScriptInterface::FromJSVal(cx, args[0], str))
 		return false;
 	LOGWARNING(L"%ls", str.c_str());
-	JS_SET_RVAL(cx, vp, JSVAL_VOID);
+	rec.rval().set(JS::UndefinedValue());
 	return true;
 }
 
 bool error(JSContext* cx, uint argc, jsval* vp)
 {
+	JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+	JS::CallReceiver rec = JS::CallReceiverFromVp(vp);
 	if (argc < 1)
 	{
-		JS_SET_RVAL(cx, vp, JSVAL_VOID);
+		rec.rval().set(JS::UndefinedValue());
 		return true;
 	}
 
 	std::wstring str;
-	if (!ScriptInterface::FromJSVal(cx, JS_ARGV(cx, vp)[0], str))
+	if (!ScriptInterface::FromJSVal(cx, args[0], str))
 		return false;
 	LOGERROR(L"%ls", str.c_str());
-	JS_SET_RVAL(cx, vp, JSVAL_VOID);
+	rec.rval().set(JS::UndefinedValue());
 	return true;
 }
 
@@ -534,9 +542,10 @@ bool deepcopy(JSContext* cx, uint argc, jsval* vp)
 {
 	JSAutoRequest rq(cx);
 	JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+	JS::CallReceiver rec = JS::CallReceiverFromVp(vp);
 	if (argc < 1)
 	{
-		args.rval().set(JS::UndefinedValue());
+		rec.rval().set(JS::UndefinedValue());
 		return true;
 	}
 
@@ -544,18 +553,20 @@ bool deepcopy(JSContext* cx, uint argc, jsval* vp)
 	if (!JS_StructuredClone(cx, args[0], &ret, NULL, NULL))
 		return false;
 
-	args.rval().set(ret);
+	rec.rval().set(ret);
 	return true;
 }
 
 bool ProfileStart(JSContext* cx, uint argc, jsval* vp)
 {
+	JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+	JS::CallReceiver rec = JS::CallReceiverFromVp(vp);
 	const char* name = "(ProfileStart)";
 
 	if (argc >= 1)
 	{
 		std::string str;
-		if (!ScriptInterface::FromJSVal(cx, JS_ARGV(cx, vp)[0], str))
+		if (!ScriptInterface::FromJSVal(cx, args[0], str))
 			return false;
 
 		typedef boost::flyweight<
@@ -572,18 +583,19 @@ bool ProfileStart(JSContext* cx, uint argc, jsval* vp)
 
 	g_Profiler2.RecordRegionEnter(name);
 
-	JS_SET_RVAL(cx, vp, JSVAL_VOID);
+	rec.rval().set(JS::UndefinedValue());
 	return true;
 }
 
 bool ProfileStop(JSContext* UNUSED(cx), uint UNUSED(argc), jsval* vp)
 {
+	JS::CallReceiver rec = JS::CallReceiverFromVp(vp);
 	if (CProfileManager::IsInitialised() && ThreadUtil::IsMainThread())
 		g_Profiler.Stop();
 
 	g_Profiler2.RecordRegionLeave("(ProfileStop)");
 
-	JS_SET_RVAL(cx, vp, JSVAL_VOID);
+	rec.rval().set(JS::UndefinedValue());
 	return true;
 }
 
@@ -607,12 +619,12 @@ static double generate_uniform_real(boost::rand48& rng, double min, double max)
 
 bool Math_random(JSContext* cx, uint UNUSED(argc), jsval* vp)
 {
+	JS::CallReceiver rec = JS::CallReceiverFromVp(vp);
 	double r;
 	if(!ScriptInterface::GetScriptInterfaceAndCBData(cx)->pScriptInterface->MathRandom(r))
 		return false;
 
-	jsval rv = JS::NumberValue(r);
-	JS_SET_RVAL(cx, vp, rv);
+	rec.rval().set(JS::NumberValue(r));
 	return true;
 }
 
@@ -948,7 +960,7 @@ void ScriptInterface::DefineCustomObjectType(JSClass *clasp, JSNative constructo
 
 	CustomType type;
 
-	type.m_Object = obj;
+	type.m_Prototype = obj;
 	type.m_Class = clasp;
 	type.m_Constructor = constructor;
 
@@ -962,9 +974,8 @@ JSObject* ScriptInterface::CreateCustomObject(const std::string & typeName)
 	if (it == m_CustomObjectTypes.end())
 		throw PSERROR_Scripting_TypeDoesNotExist();
 
-	JSFunction* ctor = JS_NewFunction(m->m_cx, (*it).second.m_Constructor, 0, 0,
-               JS::NullPtr(), "ctor_fun");
-	return JS_New(m->m_cx, JS_GetFunctionObject(ctor), JS::HandleValueArray::empty());
+	JS::RootedObject prototype(m->m_cx, (*it).second.m_Prototype);
+	return JS_NewObject(m->m_cx, (*it).second.m_Class, prototype, JS::NullPtr());
 }
 
 
@@ -1213,11 +1224,13 @@ bool ScriptInterface::LoadScript(const VfsPath& filename, const std::string& cod
 	JSAutoRequest rq(m->m_cx);
 	JS::RootedObject global(m->m_cx, m->m_glob);
 	utf16string codeUtf16(code.begin(), code.end());
+	
 	uint lineNo = 1;
 
 	JS::CompileOptions options(m->m_cx);
 	//options.setFileAndLine(utf8_from_wstring(filename.string()).c_str(), lineNo);
 	options.setCompileAndGo(true);
+
 	JS::RootedFunction func(m->m_cx,
 		JS_CompileUCFunction(m->m_cx, global, utf8_from_wstring(filename.string()).c_str(), 0, NULL,
 			reinterpret_cast<const jschar*> (codeUtf16.c_str()), (uint)(codeUtf16.length()), options)

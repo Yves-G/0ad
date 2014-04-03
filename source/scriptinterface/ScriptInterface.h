@@ -414,7 +414,7 @@ private:
 	class CustomType
 	{
 	public:
-		JSObject *	m_Object;
+		JSObject *	m_Prototype;
 		JSClass *	m_Class;
 		JSNative 	m_Constructor;
 	};
