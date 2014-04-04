@@ -1228,7 +1228,7 @@ bool ScriptInterface::LoadScript(const VfsPath& filename, const std::string& cod
 	uint lineNo = 1;
 
 	JS::CompileOptions options(m->m_cx);
-	//options.setFileAndLine(utf8_from_wstring(filename.string()).c_str(), lineNo);
+	options.setFileAndLine(utf8_from_wstring(filename.string()).c_str(), lineNo);
 	options.setCompileAndGo(true);
 
 	JS::RootedFunction func(m->m_cx,
