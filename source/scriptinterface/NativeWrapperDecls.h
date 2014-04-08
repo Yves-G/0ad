@@ -28,7 +28,7 @@
 #define TYPED_ARGS(z, i, data) , T##i a##i
 #define CONVERT_ARG(z, i, data) \
 	T##i a##i; \
-	if (i < argc) \
+	if (i < args.length()) \
 		if (! ScriptInterface::FromJSVal<T##i>(cx, args[i], a##i)) return false; \
 
 // List-generating macros, named roughly after their first list item

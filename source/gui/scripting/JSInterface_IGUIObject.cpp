@@ -596,10 +596,9 @@ bool JSI_IGUIObject::setProperty(JSContext* cx, JS::HandleObject obj, JS::Handle
 bool JSI_IGUIObject::construct(JSContext* cx, uint argc, jsval* vp)
 {
 	JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-	JS::CallReceiver rec = JS::CallReceiverFromVp(vp);
 	ScriptInterface* pScriptInterface = ScriptInterface::GetScriptInterfaceAndCBData(cx)->pScriptInterface;
 
-	if (argc == 0)
+	if (args.length() == 0)
 	{
 		JS_ReportError(cx, "GUIObject has no default constructor");
 		return false;
@@ -611,7 +610,7 @@ bool JSI_IGUIObject::construct(JSContext* cx, uint argc, jsval* vp)
 	IGUIObject* guiObject = (IGUIObject*)JSVAL_TO_PRIVATE(args[0]);
 	JS_SetPrivate(obj, guiObject);
 
-	rec.rval().set(JS::ObjectValue(*obj));
+	args.rval().setObject(*obj);
 	return true;
 }
 
@@ -635,7 +634,7 @@ bool JSI_IGUIObject::toString(JSContext* cx, uint argc, jsval* vp)
 	char buffer[256];
 	snprintf(buffer, 256, "[GUIObject: %s]", e->GetName().c_str());
 	buffer[255] = 0;
-	rec.rval().set(JS::StringValue(JS_NewStringCopyZ(cx, buffer)));
+	rec.rval().setString(JS_NewStringCopyZ(cx, buffer));
 	return true;
 }
 
@@ -653,7 +652,7 @@ bool JSI_IGUIObject::focus(JSContext* cx, uint argc, jsval* vp)
 
 	e->GetGUI()->SetFocusedObject(e);
 
-	rec.rval().set(JS::UndefinedValue());
+	rec.rval().setUndefined();
 	return true;
 }
 
@@ -670,7 +669,7 @@ bool JSI_IGUIObject::blur(JSContext* cx, uint argc, jsval* vp)
 
 	e->GetGUI()->SetFocusedObject(NULL);
 
-	rec.rval().set(JS::UndefinedValue());
+	rec.rval().setUndefined();
 	return true;
 }
 

@@ -81,7 +81,7 @@ struct ScriptInterface_NativeMethodWrapper<void, TC> {
 	{ \
 		const char* name = "(unknown)"; \
 		jsval nameval; \
-		nameval = JS_GetReservedSlot( &rec.callee(), 0); \
+		nameval = JS_GetReservedSlot( &args.callee(), 0); \
 		if (!nameval.isUndefined()) \
 			name = static_cast<const char*>(JSVAL_TO_PRIVATE(nameval)); \
 		CProfileSampleScript profile(name); \
@@ -92,14 +92,13 @@ struct ScriptInterface_NativeMethodWrapper<void, TC> {
 	template <typename R, TYPENAME_T0_HEAD(z,i)  R (*fptr) ( ScriptInterface::CxPrivate* T0_TAIL(z,i) )> \
 	bool ScriptInterface::call(JSContext* cx, uint argc, jsval* vp) { \
 		UNUSED2(argc); \
-		JS::CallReceiver rec = JS::CallReceiverFromVp(vp); \
 		JS::CallArgs args = JS::CallArgsFromVp(argc, vp); \
 		SCRIPT_PROFILE \
 		JSAutoRequest rq(cx); \
 		BOOST_PP_REPEAT_##z (i, CONVERT_ARG, ~) \
 		JS::RootedValue rval(cx); \
 		ScriptInterface_NativeWrapper<R>::call(cx, &rval, fptr  A0_TAIL(z,i)); \
-		rec.rval().set(rval); \
+		args.rval().set(rval); \
 		return !ScriptInterface::IsExceptionPending(cx); \
 	}
 BOOST_PP_REPEAT(SCRIPT_INTERFACE_MAX_ARGS, OVERLOADS, ~)
@@ -110,7 +109,6 @@ BOOST_PP_REPEAT(SCRIPT_INTERFACE_MAX_ARGS, OVERLOADS, ~)
 	template <typename R, TYPENAME_T0_HEAD(z,i)  JSClass* CLS, typename TC, R (TC::*fptr) ( T0(z,i) )> \
 	bool ScriptInterface::callMethod(JSContext* cx, uint argc, jsval* vp) { \
 		UNUSED2(argc); \
-		JS::CallReceiver rec = JS::CallReceiverFromVp(vp); \
 		JS::CallArgs args = JS::CallArgsFromVp(argc, vp); \
 		SCRIPT_PROFILE \
 		if (ScriptInterface::GetClass(JS_THIS_OBJECT(cx, vp)) != CLS) return false; \
@@ -120,7 +118,7 @@ BOOST_PP_REPEAT(SCRIPT_INTERFACE_MAX_ARGS, OVERLOADS, ~)
 		BOOST_PP_REPEAT_##z (i, CONVERT_ARG, ~) \
 		JS::RootedValue rval(cx); \
 		ScriptInterface_NativeMethodWrapper<R, TC>::call(cx, &rval, c, fptr  A0_TAIL(z,i)); \
-		rec.rval().set(rval); \
+		args.rval().set(rval); \
 		return !ScriptInterface::IsExceptionPending(cx); \
 	}
 BOOST_PP_REPEAT(SCRIPT_INTERFACE_MAX_ARGS, OVERLOADS, ~)

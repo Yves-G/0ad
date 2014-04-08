@@ -62,40 +62,27 @@ bool JSI_GUISize::construct(JSContext* cx, uint argc, jsval* vp)
 {
 	JSAutoRequest rq(cx);
 	JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-	JS::CallReceiver rec = JS::CallReceiverFromVp(vp);
 	ScriptInterface* pScriptInterface = ScriptInterface::GetScriptInterfaceAndCBData(cx)->pScriptInterface;
 	JS::RootedObject obj(cx, pScriptInterface->CreateCustomObject("GUISize"));
 
-	if (argc == 8)
+	if (args.length() == 8)
 	{
-		JS::RootedValue v0(cx, args[0]);
-		JS::RootedValue v1(cx, args[1]);
-		JS::RootedValue v2(cx, args[2]);
-		JS::RootedValue v3(cx, args[3]);
-		JS::RootedValue v4(cx, args[4]);
-		JS::RootedValue v5(cx, args[5]);
-		JS::RootedValue v6(cx, args[6]);
-		JS::RootedValue v7(cx, args[7]);
-		JS_SetProperty(cx, obj, "left",		v0);
-		JS_SetProperty(cx, obj, "top",		v1);
-		JS_SetProperty(cx, obj, "right",	v2);
-		JS_SetProperty(cx, obj, "bottom",	v3);
-		JS_SetProperty(cx, obj, "rleft",	v4);
-		JS_SetProperty(cx, obj, "rtop",		v5);
-		JS_SetProperty(cx, obj, "rright",	v6);
-		JS_SetProperty(cx, obj, "rbottom",	v7);
+		JS_SetProperty(cx, obj, "left",		args[0]);
+		JS_SetProperty(cx, obj, "top",		args[1]);
+		JS_SetProperty(cx, obj, "right",	args[2]);
+		JS_SetProperty(cx, obj, "bottom",	args[3]);
+		JS_SetProperty(cx, obj, "rleft",	args[4]);
+		JS_SetProperty(cx, obj, "rtop",		args[5]);
+		JS_SetProperty(cx, obj, "rright",	args[6]);
+		JS_SetProperty(cx, obj, "rbottom",	args[7]);
 	}
-	else if (argc == 4)
+	else if (args.length() == 4)
 	{
 		JS::RootedValue zero(cx, JSVAL_ZERO);
-		JS::RootedValue v0(cx, args[0]);
-		JS::RootedValue v1(cx, args[1]);
-		JS::RootedValue v2(cx, args[2]);
-		JS::RootedValue v3(cx, args[3]);
-		JS_SetProperty(cx, obj, "left",		v0);
-		JS_SetProperty(cx, obj, "top",		v1);
-		JS_SetProperty(cx, obj, "right",	v2);
-		JS_SetProperty(cx, obj, "bottom",	v3);
+		JS_SetProperty(cx, obj, "left",		args[0]);
+		JS_SetProperty(cx, obj, "top",		args[1]);
+		JS_SetProperty(cx, obj, "right",	args[2]);
+		JS_SetProperty(cx, obj, "bottom",	args[3]);
 		JS_SetProperty(cx, obj, "rleft",	zero);
 		JS_SetProperty(cx, obj, "rtop",		zero);
 		JS_SetProperty(cx, obj, "rright",	zero);
@@ -114,7 +101,7 @@ bool JSI_GUISize::construct(JSContext* cx, uint argc, jsval* vp)
 		JS_SetProperty(cx, obj, "rbottom",	zero);
 	}
 
-	rec.rval().set(JS::ObjectValue(*obj));
+	args.rval().setObject(*obj);
 	return true;
 }
 
@@ -153,11 +140,11 @@ bool JSI_GUISize::toString(JSContext* cx, uint argc, jsval* vp)
 	}
 	catch (PSERROR_Scripting_ConversionFailed&)
 	{
-		rec.rval().set(JS::StringValue(JS_NewStringCopyZ(cx, "<Error converting value to numbers>")));
+		rec.rval().setString(JS_NewStringCopyZ(cx, "<Error converting value to numbers>"));
 		return true;
 	}
 
-	rec.rval().set(JS::StringValue(JS_NewStringCopyZ(cx, buffer.c_str())));
+	rec.rval().setString(JS_NewStringCopyZ(cx, buffer.c_str()));
 	return true;
 }
 
@@ -193,12 +180,11 @@ bool JSI_GUIColor::construct(JSContext* cx, uint argc, jsval* vp)
 {
 	JSAutoRequest rq(cx);
 	JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-	JS::CallReceiver rec = JS::CallReceiverFromVp(vp);
 	
 	ScriptInterface* pScriptInterface = ScriptInterface::GetScriptInterfaceAndCBData(cx)->pScriptInterface;
 	JS::RootedObject obj(cx, pScriptInterface->CreateCustomObject("GUIColor"));
 
-	if (argc == 4)
+	if (args.length() == 4)
 	{
 		JS_SetProperty(cx, obj, "r", args[0]);
 		JS_SetProperty(cx, obj, "g", args[1]);
@@ -216,7 +202,7 @@ bool JSI_GUIColor::construct(JSContext* cx, uint argc, jsval* vp)
 		JS_SetProperty(cx, obj, "g", c);
 	}
 
-	rec.rval().set(JS::ObjectValue(*obj));
+	args.rval().setObject(*obj);
 	return true;
 }
 
@@ -238,7 +224,7 @@ bool JSI_GUIColor::toString(JSContext* cx, uint argc, jsval* vp)
 		(int)(255.0 * g),
 		(int)(255.0 * b),
 		(int)(255.0 * a));
-	rec.rval().set(JS::StringValue(JS_NewStringCopyZ(cx, buffer)));
+	rec.rval().setString(JS_NewStringCopyZ(cx, buffer));
 	return true;
 }
 
@@ -272,12 +258,11 @@ bool JSI_GUIMouse::construct(JSContext* cx, uint argc, jsval* vp)
 {
 	JSAutoRequest rq(cx);
 	JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-	JS::CallReceiver rec = JS::CallReceiverFromVp(vp);
 	
 	ScriptInterface* pScriptInterface = ScriptInterface::GetScriptInterfaceAndCBData(cx)->pScriptInterface;
 	JS::RootedObject obj(cx, pScriptInterface->CreateCustomObject("GUIMouse"));
 
-	if (argc == 3)
+	if (args.length() == 3)
 	{
 		JS::RootedValue v0(cx, args[0]);
 		JS::RootedValue v1(cx, args[1]);
@@ -294,7 +279,7 @@ bool JSI_GUIMouse::construct(JSContext* cx, uint argc, jsval* vp)
 		JS_SetProperty(cx, obj, "buttons", zero);
 	}
 
-	rec.rval().set(JS::ObjectValue(*obj));
+	args.rval().setObject(*obj);
 	return true;
 }
 
@@ -311,7 +296,7 @@ bool JSI_GUIMouse::toString(JSContext* cx, uint argc, jsval* vp)
 
 	char buffer[256];
 	snprintf(buffer, 256, "%d %d %d", x, y, buttons);
-	rec.rval().set(JS::StringValue(JS_NewStringCopyZ(cx, buffer)));
+	rec.rval().setString(JS_NewStringCopyZ(cx, buffer));
 	return true;
 }
 
