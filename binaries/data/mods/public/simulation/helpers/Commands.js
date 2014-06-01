@@ -38,8 +38,9 @@ function ProcessCommand(player, cmd)
 		break;
 	
 	case "chat":
+	case "aichat":
 		var cmpGuiInterface = Engine.QueryInterface(SYSTEM_ENTITY, IID_GuiInterface);
-		cmpGuiInterface.PushNotification({"type": "chat", "player": player, "message": cmd.message});
+		cmpGuiInterface.PushNotification({"type": cmd.type, "player": player, "message": cmd.message});
 		break;
 		
 	case "cheat":
@@ -90,6 +91,16 @@ function ProcessCommand(player, cmd)
 		GetFormationUnitAIs(entities, player).forEach(function(cmpUnitAI) {
 			cmpUnitAI.Walk(cmd.x, cmd.z, cmd.queued);
 		});
+		break;
+
+	case "walk-to-range":
+		// Only used by the AI
+		for each (var ent in entities)
+		{
+			var cmpUnitAI = Engine.QueryInterface(ent, IID_UnitAI);
+			if(cmpUnitAI)
+				cmpUnitAI.WalkToPointRange(cmd.x, cmd.z, cmd.min, cmd.max, cmd.queued);
+		}
 		break;
 
 	case "attack-walk":
@@ -219,7 +230,10 @@ function ProcessCommand(player, cmd)
 					var queue = Engine.QueryInterface(ent, IID_ProductionQueue);
 					// Check if the building can train the unit
 					if (queue && queue.GetEntitiesList().indexOf(cmd.template) != -1)
-						queue.AddBatch(cmd.template, "unit", +cmd.count, cmd.metadata);
+						if ("metadata" in cmd)
+							queue.AddBatch(cmd.template, "unit", +cmd.count, cmd.metadata);
+						else
+							queue.AddBatch(cmd.template, "unit", +cmd.count);
 				}
 				else if (g_DebugCommands)
 				{
@@ -801,7 +815,8 @@ function TryConstructBuilding(player, cmpPlayer, controlAllUnits, cmd)
 			}
 
 			var cmpGuiInterface = Engine.QueryInterface(SYSTEM_ENTITY, IID_GuiInterface);
-			cmpGuiInterface.PushNotification({ "player": player, "message": ret.message });
+			ret.player = player;
+			cmpGuiInterface.PushNotification(ret);
 			
 			// Remove the foundation because the construction was aborted
 			// move it out of world because it's not destroyed immediately.

@@ -1,5 +1,5 @@
-const PAUSE = "Pause";
-const RESUME = "Resume";
+const PAUSE = translate("Pause");
+const RESUME = translate("Resume");
 
 /*
  * MENU POSITION CONSTANTS
@@ -136,9 +136,9 @@ function resignMenuButton()
 	closeMenu();
 	closeOpenDialogs();
 	pauseGame();
-	var btCaptions = ["Yes", "No"];
+	var btCaptions = [translate("Yes"), translate("No")];
 	var btCode = [resignGame, resumeGame];
-	messageBox(400, 200, "Are you sure you want to resign?", "Confirmation", 0, btCaptions, btCode);
+	messageBox(400, 200, translate("Are you sure you want to resign?"), translate("Confirmation"), 0, btCaptions, btCode);
 }
 
 function exitMenuButton()
@@ -149,27 +149,27 @@ function exitMenuButton()
 	if (g_IsNetworked && g_IsController)
 	{
 		var btCode = [leaveGame, resumeGame];
-		var message = "Are you sure you want to quit? Leaving will disconnect all other players.";
+		var message = translate("Are you sure you want to quit? Leaving will disconnect all other players.");
 	}
 	else if (g_IsNetworked && !g_GameEnded && !g_IsObserver)
 	{
 		var btCode = [networkReturnQuestion, resumeGame];
-		var message = "Are you sure you want to quit?";
+		var message = translate("Are you sure you want to quit?");
 	}
 	else
 	{
 		var btCode = [leaveGame, resumeGame];
-		var message = "Are you sure you want to quit?";
+		var message = translate("Are you sure you want to quit?");
 	}
-	messageBox(400, 200, message, "Confirmation", 0, ["Yes", "No"], btCode);
+	messageBox(400, 200, message, translate("Confirmation"), 0, [translate("Yes"), translate("No")], btCode);
 }
 
 function networkReturnQuestion()
 {
-	var btCaptions = ["I resign", "I will return"];
-	var btCode = [leaveGame, leaveGame];
-	var btArgs = [false, true];
-	messageBox(400, 200, "Do you want to resign or will you return soon?", "Confirmation", 0, btCaptions, btCode, btArgs);
+	var btCaptions = [translate("I will return"), translate("I resign")];
+	var btCode = [leaveGame, resignGame];
+	var btArgs = [true, false];
+	messageBox(400, 200, translate("Do you want to resign or will you return soon?"), translate("Confirmation"), 0, btCaptions, btCode, btArgs);
 }
 
 function openDeleteDialog(selection)
@@ -182,10 +182,11 @@ function openDeleteDialog(selection)
 		Engine.PostNetworkCommand({"type": "delete-entities", "entities": selectionArg});
 	};
 
-	var btCaptions = ["Yes", "No"];
+	var btCaptions = [translate("Yes"), translate("No")];
 	var btCode = [deleteSelectedEntities, resumeGame];
+	var btArgs = [selection, null];
 
-	messageBox(400, 200, "Destroy everything currently selected?", "Delete", 0, btCaptions, btCode, [selection, null]);
+	messageBox(400, 200, translate("Destroy everything currently selected?"), translate("Delete"), 0, btCaptions, btCode, btArgs);
 }
 
 // Menu functions
@@ -197,20 +198,13 @@ function openSave()
 	closeOpenDialogs();
 	pauseGame();
 	var savedGameData = getSavedGameData();
-	Engine.PushGuiPage("page_savegame.xml", {"savedGameData": savedGameData, "callback": "resumeGame"});
+	Engine.PushGuiPage("page_savegame.xml", {"savedGameData":savedGameData, "callback":"resumeGame"});
 }
 
 function openSettings()
 {
-	Engine.GetGUIObjectByName("settingsDialogPanel").hidden = false;
 	pauseGame();
-}
-
-function closeSettings(resume)
-{
-	Engine.GetGUIObjectByName("settingsDialogPanel").hidden = true;
-	if (resume)
-		resumeGame();
+	Engine.PushGuiPage("page_options.xml", {"callback":"resumeGame"});
 }
 
 function openChat()
@@ -228,8 +222,6 @@ function closeChat()
 
 function toggleChatWindow(teamChat)
 {
-	closeSettings();
-
 	var chatWindow = Engine.GetGUIObjectByName("chatDialogPanel");
 	var chatInput = Engine.GetGUIObjectByName("chatInput");
 
@@ -289,10 +281,10 @@ function openDiplomacy()
 		Engine.GetGUIObjectByName("diplomacyPlayerName["+(i-1)+"]").caption = "[color=\"" + playerColor + "\"]" + players[i].name + "[/color]";
 		Engine.GetGUIObjectByName("diplomacyPlayerCiv["+(i-1)+"]").caption = g_CivData[players[i].civ].Name;
 
-		Engine.GetGUIObjectByName("diplomacyPlayerTeam["+(i-1)+"]").caption = (players[i].team < 0) ? "None" : players[i].team+1;
+		Engine.GetGUIObjectByName("diplomacyPlayerTeam["+(i-1)+"]").caption = (players[i].team < 0) ? translateWithContext("team", "None") : players[i].team+1;
 
 		if (i != we)
-			Engine.GetGUIObjectByName("diplomacyPlayerTheirs["+(i-1)+"]").caption = (players[i].isAlly[we] ? "Ally" : (players[i].isNeutral[we] ? "Neutral" : "Enemy"));
+			Engine.GetGUIObjectByName("diplomacyPlayerTheirs["+(i-1)+"]").caption = (players[i].isAlly[we] ? translate("Ally") : (players[i].isNeutral[we] ? translate("Neutral") : translate("Enemy")));
 
 		// Don't display the options for ourself, or if we or the other player aren't active anymore
 		if (i == we || players[we].state != "active" || players[i].state != "active")
@@ -353,25 +345,24 @@ function openDiplomacy()
 			if (setting == "ally")
 			{
 				if (players[we].isAlly[i])
-					button.caption = "x";
+					button.caption = translate("x");
 				else
 					button.caption = "";
 			}
 			else if (setting == "neutral")
 			{
 				if (players[we].isNeutral[i])
-					button.caption = "x";
+					button.caption = translate("x");
 				else
 					button.caption = "";
 			}
 			else // "enemy"
 			{
 				if (players[we].isEnemy[i])
-					button.caption = "x";
+					button.caption = translate("x");
 				else
 					button.caption = "";
 			}
-			
 			button.onpress = (function(e){ return function() { setDiplomacy(e) } })({"player": i, "to": setting});
 			button.hidden = false;
 		}
@@ -392,7 +383,7 @@ function toggleDiplomacy()
 		closeDiplomacy();
 	else
 		openDiplomacy();
-};
+}
 
 function openTrade()
 {
@@ -407,14 +398,12 @@ function openTrade()
 			button[res].label.caption = proba[res] + "%";
 			if (res == selec)
 			{
-				button[res].res.enabled = false;
 				button[res].sel.hidden = false;
 				button[res].up.hidden = true;
 				button[res].dn.hidden = true;
 			}
 			else
 			{
-				button[res].res.enabled = true;
 				button[res].sel.hidden = true;
 				button[res].up.hidden = (proba[res] == 100 || proba[selec] == 0);
 				button[res].dn.hidden = (proba[res] == 0 || proba[selec] == 100);
@@ -445,12 +434,17 @@ function openTrade()
 		var buttonUp = Engine.GetGUIObjectByName("tradeArrowUp["+i+"]");
 		var buttonDn = Engine.GetGUIObjectByName("tradeArrowDn["+i+"]");
 		var iconSel = Engine.GetGUIObjectByName("tradeResourceSelection["+i+"]");
-		button[resource] = { "res": buttonResource, "up": buttonUp, "dn": buttonDn, "label": label, "sel": iconSel };
+		button[resource] = { "up": buttonUp, "dn": buttonDn, "label": label, "sel": iconSel };
 
 		buttonResource.onpress = (function(resource){
 			return function() {
-				if (selec == resource)
-					return;
+				if (Engine.HotkeyIsPressed("session.fulltradeswap"))
+				{
+					for (var ress of RESOURCES)
+						proba[ress] = 0;
+					proba[resource] = 100;
+					Engine.PostNetworkCommand({"type": "set-trading-goods", "tradingGoods": proba});
+				}
 				selec = resource;
 				updateButtons();
 			}
@@ -478,41 +472,126 @@ function openTrade()
 
 	var traderNumber = Engine.GuiInterfaceCall("GetTraderNumber");
 	var caption = "";
-	var comma = "";
 	if (traderNumber.landTrader.total == 0)
-		caption += "0";
+		caption = translate("There are no land traders.");
 	else
 	{
+		var inactive = traderNumber.landTrader.total - traderNumber.landTrader.trading - traderNumber.landTrader.garrisoned;
+		var inactiveString = "";
+		if (inactive > 0)
+			inactiveString = "[color=\"orange\"]" + sprintf(translatePlural("%(numberOfLandTraders)s inactive", "%(numberOfLandTraders)s inactive", inactive), { numberOfLandTraders: inactive }) + "[/color]";
+
 		if (traderNumber.landTrader.trading > 0)
 		{
-			caption += traderNumber.landTrader.trading + " trading"
-			comma = ", ";
+			var openingTradingString = sprintf(translatePlural("There is %(numberTrading)s land trader trading", "There are %(numberTrading)s land traders trading", traderNumber.landTrader.trading), { numberTrading: traderNumber.landTrader.trading });
+			if (traderNumber.landTrader.garrisoned > 0)
+			{
+				var garrisonedString = sprintf(translatePlural("%(numberGarrisoned)s garrisoned on a trading merchant ship", "%(numberGarrisoned)s garrisoned on a trading merchant ship", traderNumber.landTrader.garrisoned), { numberGarrisoned: traderNumber.landTrader.garrisoned });
+				if (inactive > 0)
+				{
+					caption = sprintf(translate("%(openingTradingString)s, %(garrisonedString)s, and %(inactiveString)s."), {
+						openingTradingString: openingTradingString,
+						garrisonedString: garrisonedString,
+						inactiveString: inactiveString
+					});
+				}
+				else
+				{
+					caption = sprintf(translate("%(openingTradingString)s, and %(garrisonedString)s."), {
+						openingTradingString: openingTradingString,
+						garrisonedString: garrisonedString
+					});
+				}
+			}
+			else
+			{
+				if (inactive > 0)
+				{
+					caption = sprintf(translate("%(openingTradingString)s, and %(inactiveString)s."), {
+						openingTradingString: openingTradingString,
+						inactiveString: inactiveString
+					});
+				}
+				else
+				{
+					caption = sprintf(translate("%(openingTradingString)s."), {
+						openingTradingString: openingTradingString,
+					});
+				}
+			}
 		}
-		if (traderNumber.landTrader.garrisoned > 0)
+		else
 		{
-			caption += comma + traderNumber.landTrader.garrisoned + " garrisoned inside ships";
-			comma = ", ";
+			if (traderNumber.landTrader.garrisoned > 0)
+			{
+				var openingGarrisonedString = sprintf(translatePlural("There is %(numberGarrisoned)s land trader garrisoned on a trading merchant ship", "There are %(numberGarrisoned)s land traders garrisoned on a trading merchant ship", traderNumber.landTrader.garrisoned), { numberGarrisoned: traderNumber.landTrader.garrisoned });
+				if (inactive > 0)
+				{
+					caption = sprintf(translate("%(openingGarrisonedString)s, and %(inactiveString)s."), {
+						openingGarrisonedString: openingGarrisonedString,
+						inactiveString: inactiveString
+					});
+				}
+				else
+				{
+					caption = sprintf(translate("%(openingGarrisonedString)s."), {
+						openingGarrisonedString: openingGarrisonedString
+					});
+				}
+			}
+			else
+			{
+				if (inactive > 0)
+				{
+					inactiveString = "[color=\"orange\"]" + sprintf(translatePlural("%(numberOfLandTraders)s land trader inactive", "%(numberOfLandTraders)s land traders inactive", inactive), { numberOfLandTraders: inactive }) + "[/color]";
+					caption = sprintf(translatePlural("There is %(inactiveString)s.", "There are %(inactiveString)s.", inactive), {
+						inactiveString: inactiveString
+					});
+				}
+				// The “else” here is already handled by “if (traderNumber.landTrader.total == 0)” above.
+			}
 		}
-		var inactive = traderNumber.landTrader.total - traderNumber.landTrader.trading - traderNumber.landTrader.garrisoned;
-		if (inactive > 0)
-			caption += comma + "[color=\"orange\"]" + inactive + " inactive[/color]";
 	}
 	Engine.GetGUIObjectByName("landTraders").caption = caption;
 
 	caption = "";
-	comma = "";
 	if (traderNumber.shipTrader.total == 0)
-		caption += "0";
+		caption = translate("There are no merchant ships.");
 	else
 	{
+		var inactive = traderNumber.shipTrader.total - traderNumber.shipTrader.trading;
+		var inactiveString = "";
+		if (inactive > 0)
+			inactiveString = "[color=\"orange\"]" + sprintf(translatePlural("%(numberOfShipTraders)s inactive", "%(numberOfShipTraders)s inactive", inactive), { numberOfShipTraders: inactive }) + "[/color]";
+
 		if (traderNumber.shipTrader.trading > 0)
 		{
-			caption += traderNumber.shipTrader.trading + " trading"
-			comma = ", ";
+			var openingTradingString = sprintf(translatePlural("There is %(numberTrading)s merchant ship trading", "There are %(numberTrading)s merchant ships trading", traderNumber.shipTrader.trading), { numberTrading: traderNumber.shipTrader.trading });
+			if (inactive > 0)
+			{
+				caption = sprintf(translate("%(openingTradingString)s, and %(inactiveString)s."), {
+					openingTradingString: openingTradingString,
+					inactiveString: inactiveString
+				});
+			}
+			else
+			{
+				caption = sprintf(translate("%(openingTradingString)s."), {
+					openingTradingString: openingTradingString,
+				});
+			}
 		}
-		var inactive = traderNumber.shipTrader.total - traderNumber.shipTrader.trading;
-		if (inactive > 0)
-			caption += comma + "[color=\"orange\"]" + inactive + " inactive[/color]";
+		else
+		{
+			if (inactive > 0)
+			{
+				inactiveString = "[color=\"orange\"]" + sprintf(translatePlural("%(numberOfShipTraders)s merchant ship inactive", "%(numberOfShipTraders)s merchant ships inactive", inactive), { numberOfShipTraders: inactive }) + "[/color]";
+				caption = sprintf(translatePlural("There is %(inactiveString)s.", "There are %(inactiveString)s.", inactive), {
+					inactiveString: inactiveString
+				});
+			}
+			// The “else” here is already handled by “if (traderNumber.shipTrader.total == 0)” above.
+		}
 	}
 	Engine.GetGUIObjectByName("shipTraders").caption = caption;
 
@@ -531,7 +610,7 @@ function toggleTrade()
 		closeTrade();
 	else
 		openTrade();
-};
+}
 
 function toggleGameSpeed()
 {
@@ -585,19 +664,21 @@ function openManual()
 	closeMenu();
 	closeOpenDialogs();
 	pauseGame();
-	Engine.PushGuiPage("page_manual.xml", {"page": "intro", "callback": "resumeGame"});
+	Engine.PushGuiPage("page_manual.xml", {"page": "manual/intro", "title":translate("Manual"), "url":"http://trac.wildfiregames.com/wiki/0adManual", "callback": "resumeGame"});
 }
 
 function toggleDeveloperOverlay()
 {
+	// The developer overlay is disabled in ranked games
 	if (Engine.HasXmppClient() && Engine.IsRankedGame())
 		return;
 
 	var devCommands = Engine.GetGUIObjectByName("devCommands");
-	var text = devCommands.hidden ? "opened." : "closed.";
-	submitChatDirectly("The Developer Overlay was " + text);
-	// Update the options dialog
-	Engine.GetGUIObjectByName("developerOverlayCheckbox").checked = devCommands.hidden;
+	if (devCommands.hidden)
+		submitChatDirectly(translate("The Developer Overlay was opened."));
+	else
+		submitChatDirectly(translate("The Developer Overlay was closed."));
+	// Toggle the overlay
 	devCommands.hidden = !devCommands.hidden;
 }
 
@@ -607,12 +688,15 @@ function closeOpenDialogs()
 	closeChat();
 	closeDiplomacy();
 	closeTrade();
-	closeSettings(false);
 }
 
 function formatTributeTooltip(player, resource, amount)
 {
 	var playerColor = player.color.r + " " + player.color.g + " " + player.color.b;
-	return "Tribute " + amount + " " + resource + " to [color=\"" + playerColor + "\"]" + player.name +
-		"[/color]. Shift-click to tribute " + (amount < 500 ? 500 : amount + 500) + ".";
+	return sprintf(translate("Tribute %(resourceAmount)s %(resourceType)s to %(playerName)s. Shift-click to tribute %(greaterAmount)s."), {
+		resourceAmount: amount,
+		resourceType: getLocalizedResourceName(resource, "withinSentence"),
+		playerName: "[color=\"" + playerColor + "\"]" + player.name + "[/color]",
+		greaterAmount: (amount < 500 ? 500 : amount + 500)
+	});
 }

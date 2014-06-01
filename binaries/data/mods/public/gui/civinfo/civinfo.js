@@ -1,6 +1,5 @@
 
 var g_CivData = {};
-var TEXTCOLOR = "white"
 
 function init(settings)
 {
@@ -53,7 +52,7 @@ function initCivNameList()
 // Function to make first char of string big
 function bigFirstLetter(str, size)
 {
-	return '[font="serif-bold-'+(size+6)+'"]' + str[0] + '[/font]' + '[font="serif-bold-'+size+'"]' + str.substring(1) + '[/font]';
+	return '[font="sans-bold-'+(size+6)+'"]' + str[0] + '[/font]' + '[font="sans-bold-'+size+'"]' + str.substring(1) + '[/font]';
 }
 
 // Heading font - bold and mixed caps
@@ -71,79 +70,83 @@ function heading(string, size)
 		if (word.length && word[0].toLowerCase() != word[0])
 			textArray[i] = bigFirstLetter(wordCaps, size);
 		else
-			textArray[i] = '[font="serif-bold-'+size+'"]' + wordCaps + '[/font]';	// TODO: Would not be necessary if we could do nested tags
+			textArray[i] = '[font="sans-bold-'+size+'"]' + wordCaps + '[/font]';	// TODO: Would not be necessary if we could do nested tags
 	}
 	
 	return textArray.join(" ");
 }
 
+function escapeChars(str)
+{
+	return str.replace(/\[/g, "&#91;").replace(/\]/g, "&#93;").replace(/"/g, "&#34;");
+};
+
+function subHeading(obj)
+{
+	var string = "";
+	if (!obj.Name)
+		return string;
+	string += '[color="white"][font="sans-bold-14"]' + obj.Name + '[/font] ';
+	if (obj.History)
+		string += '[icon="iconInfo" tooltip="' + escapeChars(obj.History) + '" tooltip_style="civInfoTooltip"]';
+	if (obj.Description)
+		string += '\n     ' + obj.Description;
+	string += '\n[/color]';
+	return string;
+}
+
 // Called when user selects civ from dropdown
 function selectCiv(code)
 {
+
 	var civInfo = g_CivData[code];
 	
 	if(!civInfo)
-		error("Error loading civ data for \""+code+"\"");
+		error(sprintf("Error loading civ data for \"%(code)s\"", { code: code }));
 
 	// Update civ gameplay display
-	Engine.GetGUIObjectByName("civGameplayHeading").caption = heading(civInfo.Name+" Gameplay", 16);
-
+	Engine.GetGUIObjectByName("civGameplayHeading").caption = heading(sprintf(translate("%(civilization)s Gameplay"), { civilization: civInfo.Name }), 16);
 
 	// Bonuses
-	var bonusCaption = heading("Civilization Bonus"+(civInfo.CivBonuses.length == 1 ? "" : "es"), 12) + '\n';
+	var bonusCaption = heading(translatePlural("Civilization Bonus", "Civilization Bonuses", civInfo.CivBonuses.length), 12) + '\n';
 	
 	for(var i = 0; i < civInfo.CivBonuses.length; ++i)
-	{
-		bonusCaption += '[color="' + TEXTCOLOR + '"][font="serif-bold-14"]' + civInfo.CivBonuses[i].Name + '[/font] [icon="iconInfo" tooltip="'
-                    + civInfo.CivBonuses[i].History + '" tooltip_style="civInfoTooltip"]\n     ' + civInfo.CivBonuses[i].Description + '\n[/color]';
-	}
+		bonusCaption = subHeading(civInfo.CivBonuses[i]);
 
-	bonusCaption += heading("Team Bonus"+(civInfo.TeamBonuses.length == 1 ? "" : "es"), 12) + '\n';
+	bonusCaption += heading(translatePlural("Team Bonus", "Team Bonuses", civInfo.TeamBonuses.length), 12) + '\n';
 	
 	for(var i = 0; i < civInfo.TeamBonuses.length; ++i)
-	{
-		bonusCaption += '[color="' + TEXTCOLOR + '"][font="serif-bold-14"]' + civInfo.TeamBonuses[i].Name + '[/font] [icon="iconInfo" tooltip="'
-                    + civInfo.TeamBonuses[i].History + '" tooltip_style="civInfoTooltip"]\n     ' + civInfo.TeamBonuses[i].Description + '\n[/color]';
-	}
-	
+		bonusCaption += subHeading(civInfo.TeamBonuses[i]);
+
 	Engine.GetGUIObjectByName("civBonuses").caption = bonusCaption;
 
 
 	// Special techs / buildings
-	var techCaption = heading("Special Technologies", 12) + '\n';
+	var techCaption = heading(translate("Special Technologies"), 12) + '\n';
 	
 	for(var i = 0; i < civInfo.Factions.length; ++i)
 	{
 		var faction = civInfo.Factions[i];
 		for(var j = 0; j < faction.Technologies.length; ++j)
-		{
-			techCaption += '[color="' + TEXTCOLOR + '"][font="serif-bold-14"]' + faction.Technologies[j].Name + '[/font] [icon="iconInfo" tooltip="'
-                            + faction.Technologies[j].History + '" tooltip_style="civInfoTooltip"]\n     ' + faction.Technologies[j].Description + '\n[/color]';
-		}
+			techCaption += subHeading(faction.Technologies[j]);
 	}
 
-	techCaption += heading("Special Building"+(civInfo.Structures.length == 1 ? "" : "s"), 12) + '\n';
+	techCaption += heading(translatePlural("Special Building", "Special Buildings", civInfo.Structures.length), 12) + '\n';
 	
 	for(var i = 0; i < civInfo.Structures.length; ++i)
-	{
-		techCaption += '[color="' + TEXTCOLOR + '"][font="serif-bold-14"]' + civInfo.Structures[i].Name + '[/font][/color] [icon="iconInfo" tooltip="'
-                    + civInfo.Structures[i].History + '" tooltip_style="civInfoTooltip"]\n';
-	}
+		techCaption += subHeading(civInfo.Structures[i]);
 	
 	Engine.GetGUIObjectByName("civTechs").caption = techCaption;
 
 
 	// Heroes
-	var heroCaption = heading("Heroes", 12) + '\n';
+	var heroCaption = heading(translate("Heroes"), 12) + '\n';
 	
 	for(var i = 0; i < civInfo.Factions.length; ++i)
 	{
 		var faction = civInfo.Factions[i];
 		for(var j = 0; j < faction.Heroes.length; ++j)
-		{
-			heroCaption += '[color="' + TEXTCOLOR + '"][font="serif-bold-14"]' + faction.Heroes[j].Name + '[/font][/color] [icon="iconInfo" tooltip="'
-                            + faction.Heroes[j].History + '" tooltip_style="civInfoTooltip"]\n';
-		}
+			heroCaption += subHeading(faction.Heroes[j]);
 		heroCaption += '\n';
 	}
 	
@@ -151,6 +154,6 @@ function selectCiv(code)
 
 
 	// Update civ history display
-	Engine.GetGUIObjectByName("civHistoryHeading").caption = heading("History of the " + civInfo.Name, 16);
+	Engine.GetGUIObjectByName("civHistoryHeading").caption = heading(sprintf(translate("History of the %(civilization)s"), { civilization: civInfo.Name }), 16);
 	Engine.GetGUIObjectByName("civHistoryText").caption = civInfo.History;
 }

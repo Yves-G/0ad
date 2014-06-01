@@ -4,7 +4,8 @@ var PETRA = function(m)
 // other map functions
 m.TERRITORY_PLAYER_MASK = 0x3F;
 
-m.createObstructionMap = function(gameState, accessIndex, template){
+m.createObstructionMap = function(gameState, accessIndex, template)
+{
 	var passabilityMap = gameState.getMap();
 	var territoryMap = gameState.ai.territoryMap;
 	
@@ -122,11 +123,11 @@ m.createObstructionMap = function(gameState, accessIndex, template){
 		if (minDist !== undefined && category !== undefined){
 			gameState.getOwnStructures().forEach(function(ent) {
 				if (ent.buildCategory() === category && ent.position()){
-				   var pos = ent.position();
-				   var x = Math.round(pos[0] / gameState.cellSize);
-				   var z = Math.round(pos[1] / gameState.cellSize);
-				   map.addInfluence(x, z, minDist/gameState.cellSize, -255, 'constant');
-			   }
+					var pos = ent.position();
+					var x = Math.round(pos[0] / gameState.cellSize);
+					var z = Math.round(pos[1] / gameState.cellSize);
+					map.addInfluence(x, z, minDist/gameState.cellSize, -255, 'constant');
+				}
 			});
 		}
 	}
@@ -144,6 +145,7 @@ m.createTerritoryMap = function(gameState) {
 	return ret;
 };
 
+// map of our frontier : 2 means narrow border, 1 means large border
 m.createFrontierMap = function(gameState, borderMap)
 {
 	var territory = m.createTerritoryMap(gameState);
@@ -156,7 +158,7 @@ m.createFrontierMap = function(gameState, borderMap)
 
 	for (var j = 0; j < territory.length; ++j)
 	{
-		if (territory.getOwnerIndex(j) !== PlayerID || borderMap.map[j] === 2)
+		if (territory.getOwnerIndex(j) !== PlayerID || (borderMap && borderMap.map[j] > 1))
 			continue;
 		var ix = j%width;
 		var iz = Math.floor(j/width);
@@ -197,19 +199,40 @@ m.createBorderMap = function(gameState)
 {
 	var map = new API3.Map(gameState.sharedScript);
 	var width = map.width;
-	var ic = (width - 1) / 2;
-	var radmax = (ic-2)*(ic-2);	// we assume two inaccessible cells all around 
-	for (var j = 0; j < map.length; ++j)
+	var border = 15;
+	if (gameState.ai.circularMap)
 	{
-		var dx = j%width - ic;
-		var dy = Math.floor(j/width) - ic;
-		var radius = dx*dx + dy*dy;
-		if (radius > radmax)
-			map.map[j] = 2;
-		else if (radius > (ic - 18)*(ic - 18))
-			map.map[j] = 1; 
+		var ic = (width - 1) / 2;
+		var radmax = (ic-3)*(ic-3);	// we assume three inaccessible cells all around 
+		for (var j = 0; j < map.length; ++j)
+		{
+			var dx = j%width - ic;
+			var dy = Math.floor(j/width) - ic;
+			var radius = dx*dx + dy*dy;
+			if (radius > radmax)
+				map.map[j] = 2;
+			else if (radius > (ic - border)*(ic - border))
+				map.map[j] = 1; 
+		}
+	}
+	else
+	{
+		for (var j = 0; j < map.length; ++j)
+		{
+			var ix = j%width;
+			var iy = Math.floor(j/width);
+			if (ix < border || ix >= width - border)
+				map.map[j] = 1; 
+			if (iy < border || iy >= width - border)
+				map.map[j] = 1;
+			if (ix < 3 || ix >= width - 3)	// we assume three inaccessible cells all around
+				map.map[j] = 2; 
+			if (iy < 3 || iy >= width - 3)
+				map.map[j] = 2;
+		}
 	}
 
+//	map.dumpIm("border.png", 5);
 	return map;
 };
 

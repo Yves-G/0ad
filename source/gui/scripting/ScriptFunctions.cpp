@@ -1,4 +1,4 @@
-/* Copyright (C) 2013 Wildfire Games.
+/* Copyright (C) 2014 Wildfire Games.
  * This file is part of 0 A.D.
  *
  * 0 A.D. is free software: you can redistribute it and/or modify
@@ -27,10 +27,12 @@
 #include "gui/IGUIObject.h"
 #include "gui/scripting/JSInterface_GUITypes.h"
 #include "graphics/scripting/JSInterface_GameView.h"
-#include "lib/timer.h"
-#include "lib/utf8.h"
+#include "i18n/L10n.h"
+#include "i18n/scripting/JSInterface_L10n.h"
 #include "lib/svn_revision.h"
 #include "lib/sysdep/sysdep.h"
+#include "lib/timer.h"
+#include "lib/utf8.h"
 #include "lobby/scripting/JSInterface_Lobby.h"
 #include "maths/FixedVector3D.h"
 #include "network/NetClient.h"
@@ -54,7 +56,6 @@
 #include "ps/UserReport.h"
 #include "ps/GameSetup/Atlas.h"
 #include "ps/GameSetup/Config.h"
-#include "ps/ConfigDB.h"
 #include "renderer/scripting/JSInterface_Renderer.h"
 #include "tools/atlas/GameInterface/GameLoop.h"
 
@@ -343,11 +344,32 @@ void AssignNetworkPlayer(ScriptInterface::CxPrivate* UNUSED(pCxPrivate), int pla
 	g_NetServer->AssignPlayer(playerID, guid);
 }
 
+void SetNetworkPlayerStatus(ScriptInterface::CxPrivate* UNUSED(pCxPrivate), std::string guid, int ready)
+{
+	ENSURE(g_NetServer);
+
+	g_NetServer->SetPlayerReady(guid, ready);
+}
+
+void ClearAllPlayerReady (ScriptInterface::CxPrivate* UNUSED(pCxPrivate))
+{
+	ENSURE(g_NetServer);
+
+	g_NetServer->ClearAllPlayerReady();
+}
+
 void SendNetworkChat(ScriptInterface::CxPrivate* UNUSED(pCxPrivate), std::wstring message)
 {
 	ENSURE(g_NetClient);
 
 	g_NetClient->SendChatMessage(message);
+}
+
+void SendNetworkReady(ScriptInterface::CxPrivate* UNUSED(pCxPrivate), int message)
+{
+	ENSURE(g_NetClient);
+
+	g_NetClient->SendReadyMessage(message);
 }
 
 std::vector<CScriptValRooted> GetAIs(ScriptInterface::CxPrivate* pCxPrivate)
@@ -448,6 +470,23 @@ void CameraFollowFPS(ScriptInterface::CxPrivate* UNUSED(pCxPrivate), entity_id_t
 {
 	if (g_Game && g_Game->GetView())
 		g_Game->GetView()->CameraFollow(entityid, true);
+}
+
+/**
+ * Set the data (position, orientation and zoom) of the camera
+ */
+void SetCameraData(ScriptInterface::CxPrivate* UNUSED(pCxPrivate), entity_pos_t x, entity_pos_t y, entity_pos_t z, entity_pos_t rotx, entity_pos_t roty, entity_pos_t zoom)
+{
+	// called from JS; must not fail
+	if(!(g_Game && g_Game->GetWorld() && g_Game->GetView() && g_Game->GetWorld()->GetTerrain()))
+		return;
+
+	CVector3D Pos = CVector3D(x.ToFloat(), y.ToFloat(), z.ToFloat());
+	float RotX = rotx.ToFloat();
+	float RotY = roty.ToFloat();
+	float Zoom = zoom.ToFloat();
+
+	g_Game->GetView()->SetCamera(Pos, RotX, RotY, Zoom);
 }
 
 /// Move camera to a 2D location
@@ -679,28 +718,53 @@ CScriptVal GetGUIObjectByName(ScriptInterface::CxPrivate* UNUSED(pCxPrivate), CS
 //   lib/svn_revision.cpp. it is useful to know when attempting to
 //   reproduce bugs (the main EXE and PDB should be temporarily reverted to
 //   that revision so that they match user-submitted crashdumps).
-CStr GetBuildTimestamp(ScriptInterface::CxPrivate* UNUSED(pCxPrivate), int mode)
+std::wstring GetBuildTimestamp(ScriptInterface::CxPrivate* UNUSED(pCxPrivate), int mode)
 {
 	char buf[200];
-
-	// see function documentation
-	switch(mode)
+	if (mode == -1) // Date, time and revision.
 	{
-	case -1:
-		sprintf_s(buf, ARRAY_SIZE(buf), "%s %s (%ls)", __DATE__, __TIME__, svn_revision);
-		break;
-	case 0:
-		sprintf_s(buf, ARRAY_SIZE(buf), "%s", __DATE__);
-		break;
-	case 1:
-		sprintf_s(buf, ARRAY_SIZE(buf), "%s", __TIME__);
-		break;
-	case 2:
-		sprintf_s(buf, ARRAY_SIZE(buf), "%ls", svn_revision);
-		break;
+		UDate dateTime = L10n::Instance().ParseDateTime(__DATE__ " " __TIME__, "MMM d yyyy HH:mm:ss", Locale::getUS());
+		std::string dateTimeString = L10n::Instance().LocalizeDateTime(dateTime, L10n::DateTime, SimpleDateFormat::DATE_TIME);
+		char svnRevision[32];
+		sprintf_s(svnRevision, ARRAY_SIZE(svnRevision), "%ls", svn_revision);
+		if (strcmp(svnRevision, "custom build") == 0)
+		{
+			// Translation: First item is a date and time, item between parenthesis is the Subversion revision number of the current build.
+			sprintf_s(buf, ARRAY_SIZE(buf), L10n::Instance().Translate("%s (custom build)").c_str(), dateTimeString.c_str());
+		}
+		else
+		{
+			// Translation: First item is a date and time, item between parenthesis is the Subversion revision number of the current build.
+			sprintf_s(buf, ARRAY_SIZE(buf), L10n::Instance().Translate("%s (%ls)").c_str(), dateTimeString.c_str(), svn_revision);
+		}
+	}
+	else if (mode == 0) // Date.
+	{
+		UDate dateTime = L10n::Instance().ParseDateTime(__DATE__, "MMM d yyyy", Locale::getUS());
+		std::string dateTimeString = L10n::Instance().LocalizeDateTime(dateTime, L10n::Date, SimpleDateFormat::MEDIUM);
+		sprintf_s(buf, ARRAY_SIZE(buf), "%s", dateTimeString.c_str());
+	}
+	else if (mode == 1) // Time.
+	{
+		UDate dateTime = L10n::Instance().ParseDateTime(__TIME__, "HH:mm:ss", Locale::getUS());
+		std::string dateTimeString = L10n::Instance().LocalizeDateTime(dateTime, L10n::Time, SimpleDateFormat::MEDIUM);
+		sprintf_s(buf, ARRAY_SIZE(buf), "%s", dateTimeString.c_str());
+	}
+	else if (mode == 2) // Revision.
+	{
+		char svnRevision[32];
+		sprintf_s(svnRevision, ARRAY_SIZE(svnRevision), "%ls", svn_revision);
+		if (strcmp(svnRevision, "custom build") == 0)
+		{
+			sprintf_s(buf, ARRAY_SIZE(buf), "%s", L10n::Instance().Translate("custom build").c_str());
+		}
+		else
+		{
+			sprintf_s(buf, ARRAY_SIZE(buf), "%ls", svn_revision);
+		}
 	}
 
-	return CStr(buf);
+	return wstring_from_utf8(buf);
 }
 
 //-----------------------------------------------------------------------------
@@ -756,7 +820,6 @@ void StartJsTimer(ScriptInterface::CxPrivate* pCxPrivate, unsigned int slot)
 	js_start_times[slot].SetFromTimer();
 }
 
-
 void StopJsTimer(ScriptInterface::CxPrivate* UNUSED(pCxPrivate), unsigned int slot)
 {
 	if (slot >= MAX_JS_TIMERS)
@@ -768,9 +831,6 @@ void StopJsTimer(ScriptInterface::CxPrivate* UNUSED(pCxPrivate), unsigned int sl
 	BillingPolicy_Default()(&js_timer_clients[slot], js_start_times[slot], now);
 	js_start_times[slot].SetToZero();
 }
-
-
-
 } // namespace
 
 
@@ -779,12 +839,13 @@ void GuiScriptingInit(ScriptInterface& scriptInterface)
 {
 	JSI_IGUIObject::init(scriptInterface);
 	JSI_GUITypes::init(scriptInterface);
-	
+
 	JSI_GameView::RegisterScriptFunctions(scriptInterface);
 	JSI_Renderer::RegisterScriptFunctions(scriptInterface);
 	JSI_Console::RegisterScriptFunctions(scriptInterface);
 	JSI_ConfigDB::RegisterScriptFunctions(scriptInterface);
 	JSI_Sound::RegisterScriptFunctions(scriptInterface);
+	JSI_L10n::RegisterScriptFunctions(scriptInterface);
  
 	// VFS (external)
 	scriptInterface.RegisterFunction<CScriptVal, std::wstring, std::wstring, bool, &JSI_VFS::BuildDirEntList>("BuildDirEntList");
@@ -821,7 +882,10 @@ void GuiScriptingInit(ScriptInterface& scriptInterface)
 	scriptInterface.RegisterFunction<CScriptVal, &PollNetworkClient>("PollNetworkClient");
 	scriptInterface.RegisterFunction<void, CScriptVal, &SetNetworkGameAttributes>("SetNetworkGameAttributes");
 	scriptInterface.RegisterFunction<void, int, std::string, &AssignNetworkPlayer>("AssignNetworkPlayer");
+	scriptInterface.RegisterFunction<void, std::string, int, &SetNetworkPlayerStatus>("SetNetworkPlayerStatus");
+	scriptInterface.RegisterFunction<void, &ClearAllPlayerReady>("ClearAllPlayerReady");
 	scriptInterface.RegisterFunction<void, std::wstring, &SendNetworkChat>("SendNetworkChat");
+	scriptInterface.RegisterFunction<void, int, &SendNetworkReady>("SendNetworkReady");
 	scriptInterface.RegisterFunction<std::vector<CScriptValRooted>, &GetAIs>("GetAIs");
 	scriptInterface.RegisterFunction<CScriptValRooted, &GetEngineInfo>("GetEngineInfo");
 
@@ -849,6 +913,7 @@ void GuiScriptingInit(ScriptInterface& scriptInterface)
 	scriptInterface.RegisterFunction<float, &CameraGetZ>("CameraGetZ");
 	scriptInterface.RegisterFunction<void, entity_id_t, &CameraFollow>("CameraFollow");
 	scriptInterface.RegisterFunction<void, entity_id_t, &CameraFollowFPS>("CameraFollowFPS");
+	scriptInterface.RegisterFunction<void, entity_pos_t, entity_pos_t, entity_pos_t, entity_pos_t, entity_pos_t, entity_pos_t, &SetCameraData>("SetCameraData");
 	scriptInterface.RegisterFunction<void, entity_pos_t, entity_pos_t, &CameraMoveTo>("CameraMoveTo");
 	scriptInterface.RegisterFunction<entity_id_t, &GetFollowedEntity>("GetFollowedEntity");
 	scriptInterface.RegisterFunction<bool, std::string, &HotkeyIsPressed_>("HotkeyIsPressed");
@@ -858,7 +923,7 @@ void GuiScriptingInit(ScriptInterface& scriptInterface)
 	scriptInterface.RegisterFunction<bool, &IsPaused>("IsPaused");
 	scriptInterface.RegisterFunction<void, bool, &SetPaused>("SetPaused");
 	scriptInterface.RegisterFunction<int, &GetFps>("GetFPS");
-	scriptInterface.RegisterFunction<CStr, int, &GetBuildTimestamp>("BuildTime");
+	scriptInterface.RegisterFunction<std::wstring, int, &GetBuildTimestamp>("GetBuildTimestamp");
 
 	// User report functions
 	scriptInterface.RegisterFunction<bool, &IsUserReportEnabled>("IsUserReportEnabled");
@@ -884,13 +949,14 @@ void GuiScriptingInit(ScriptInterface& scriptInterface)
 
 	// Lobby functions
 	scriptInterface.RegisterFunction<bool, &JSI_Lobby::HasXmppClient>("HasXmppClient");
+	scriptInterface.RegisterFunction<bool, &JSI_Lobby::IsRankedGame>("IsRankedGame");
+	scriptInterface.RegisterFunction<void, bool, &JSI_Lobby::SetRankedGame>("SetRankedGame");
 #if CONFIG2_LOBBY // Allow the lobby to be disabled
 	scriptInterface.RegisterFunction<void, std::wstring, std::wstring, std::wstring, std::wstring, int, &JSI_Lobby::StartXmppClient>("StartXmppClient");
 	scriptInterface.RegisterFunction<void, std::wstring, std::wstring, &JSI_Lobby::StartRegisterXmppClient>("StartRegisterXmppClient");
 	scriptInterface.RegisterFunction<void, &JSI_Lobby::StopXmppClient>("StopXmppClient");
 	scriptInterface.RegisterFunction<void, &JSI_Lobby::ConnectXmppClient>("ConnectXmppClient");
 	scriptInterface.RegisterFunction<void, &JSI_Lobby::DisconnectXmppClient>("DisconnectXmppClient");
-	scriptInterface.RegisterFunction<void, &JSI_Lobby::RecvXmppClient>("RecvXmppClient");
 	scriptInterface.RegisterFunction<void, &JSI_Lobby::SendGetGameList>("SendGetGameList");
 	scriptInterface.RegisterFunction<void, &JSI_Lobby::SendGetBoardList>("SendGetBoardList");
 	scriptInterface.RegisterFunction<void, &JSI_Lobby::SendGetRatingList>("SendGetRatingList");
@@ -909,9 +975,8 @@ void GuiScriptingInit(ScriptInterface& scriptInterface)
 	scriptInterface.RegisterFunction<void, std::wstring, std::wstring, &JSI_Lobby::LobbyKick>("LobbyKick");
 	scriptInterface.RegisterFunction<void, std::wstring, std::wstring, &JSI_Lobby::LobbyBan>("LobbyBan");
 	scriptInterface.RegisterFunction<std::wstring, std::wstring, &JSI_Lobby::LobbyGetPlayerPresence>("LobbyGetPlayerPresence");
+	scriptInterface.RegisterFunction<std::wstring, std::wstring, &JSI_Lobby::LobbyGetPlayerRole>("LobbyGetPlayerRole");
 	scriptInterface.RegisterFunction<std::wstring, std::wstring, std::wstring, &JSI_Lobby::EncryptPassword>("EncryptPassword");
-	scriptInterface.RegisterFunction<bool, &JSI_Lobby::IsRankedGame>("IsRankedGame");
-	scriptInterface.RegisterFunction<void, bool, &JSI_Lobby::SetRankedGame>("SetRankedGame");
 	scriptInterface.RegisterFunction<std::wstring, &JSI_Lobby::LobbyGetRoomSubject>("LobbyGetRoomSubject");
 #endif // CONFIG2_LOBBY
 }

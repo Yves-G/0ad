@@ -58,6 +58,7 @@
 #include "simulation2/Simulation2.h"
 #include "simulation2/components/ICmpPosition.h"
 #include "simulation2/components/ICmpRangeManager.h"
+#include "lobby/IXmppClient.h"
 
 extern int g_xres, g_yres;
 
@@ -963,6 +964,54 @@ float CGameView::GetCameraZ()
 	return pivot.Z;
 }
 
+float CGameView::GetCameraPosX()
+{
+	return m->PosX.GetValue();
+}
+
+float CGameView::GetCameraPosY()
+{
+	return m->PosY.GetValue();
+}
+
+float CGameView::GetCameraPosZ()
+{
+	return m->PosZ.GetValue();
+}
+
+float CGameView::GetCameraRotX()
+{
+	return m->RotateX.GetValue();
+}
+
+float CGameView::GetCameraRotY()
+{
+	return m->RotateY.GetValue();
+}
+
+float CGameView::GetCameraZoom()
+{
+	return m->Zoom.GetValue();
+}
+
+void CGameView::SetCamera(CVector3D Pos, float RotX, float RotY, float zoom)
+{
+	m->PosX.SetValue(Pos.X);
+	m->PosY.SetValue(Pos.Y);
+	m->PosZ.SetValue(Pos.Z);
+	m->RotateX.SetValue(RotX);
+	m->RotateY.SetValue(RotY);
+	m->Zoom.SetValue(zoom);
+
+	FocusHeight(m, false);
+
+	SetupCameraMatrixNonSmooth(m, &m->ViewCamera.m_Orientation);
+	m->ViewCamera.UpdateFrustum();
+
+	// Break out of following mode so the camera really moves to the target
+	m->FollowEntity = INVALID_ENTITY;
+}
+
 void CGameView::MoveCameraTarget(const CVector3D& target)
 {
 	// Maintain the same orientation and level of zoom, if we can
@@ -1084,7 +1133,9 @@ InReaction CGameView::HandleEvent(const SDL_Event_* ev)
 
 		if (hotkey == "wireframe")
 		{
-			if (g_Renderer.GetModelRenderMode() == SOLID)
+			if (g_XmppClient && g_rankedGame == true)
+				break;
+			else if (g_Renderer.GetModelRenderMode() == SOLID)
 			{
 				g_Renderer.SetTerrainRenderMode(EDGED_FACES);
 				g_Renderer.SetModelRenderMode(EDGED_FACES);

@@ -41,13 +41,12 @@
     </Entities>
   </Builder>
   <Cost>
-    <BuildTime>10</BuildTime>
     <Resources>
       <food>50</food>
     </Resources>
   </Cost>
   <Health>
-    <Max>75</Max>
+    <Max>50</Max>
   </Health>
   <Identity>
     <GenericName>Female Citizen</GenericName>

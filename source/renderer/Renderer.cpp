@@ -1,4 +1,4 @@
-/* Copyright (C) 2013 Wildfire Games.
+/* Copyright (C) 2014 Wildfire Games.
  * This file is part of 0 A.D.
  *
  * 0 A.D. is free software: you can redistribute it and/or modify
@@ -432,7 +432,6 @@ CRenderer::CRenderer()
 	m_ModelRenderMode = SOLID;
 	m_ClearColor[0] = m_ClearColor[1] = m_ClearColor[2] = m_ClearColor[3] = 0;
 
-	m_DisplayFrustum = false;
 	m_DisplayTerrainPriorities = false;
 	m_SkipSubmit = false;
 
@@ -451,6 +450,7 @@ CRenderer::CRenderer()
 	m_Options.m_SmoothLOS = false;
 	m_Options.m_Postproc = false;
 	m_Options.m_ShowSky = false;
+	m_Options.m_DisplayFrustum = false;
 
 	// TODO: be more consistent in use of the config system
 	CFG_GET_VAL("preferglsl", Bool, m_Options.m_PreferGLSL);
@@ -713,6 +713,9 @@ void CRenderer::SetOptionBool(enum Option opt,bool value)
 		case OPT_PARTICLES:
 			m_Options.m_Particles = value;
 			break;
+		case OPT_GENTANGENTS:
+			m_Options.m_GenTangents = value;
+			break;
 		case OPT_PREFERGLSL:
 			m_Options.m_PreferGLSL = value;
 			MakeShadersDirty();
@@ -723,6 +726,15 @@ void CRenderer::SetOptionBool(enum Option opt,bool value)
 			break;
 		case OPT_SHOWSKY:
 			m_Options.m_ShowSky = value;
+			break;
+		case OPT_SMOOTHLOS:
+			m_Options.m_SmoothLOS = value;
+			break;
+		case OPT_POSTPROC:
+			m_Options.m_Postproc = value;
+			break;
+		case OPT_DISPLAYFRUSTUM:
+			m_Options.m_DisplayFrustum = value;
 			break;
 		default:
 			debug_warn(L"CRenderer::SetOptionBool: unknown option");
@@ -757,12 +769,20 @@ bool CRenderer::GetOptionBool(enum Option opt) const
 			return m_Options.m_ShadowPCF;
 		case OPT_PARTICLES:
 			return m_Options.m_Particles;
+		case OPT_GENTANGENTS:
+			return m_Options.m_GenTangents;
 		case OPT_PREFERGLSL:
 			return m_Options.m_PreferGLSL;
 		case OPT_SILHOUETTES:
 			return m_Options.m_Silhouettes;
 		case OPT_SHOWSKY:
 			return m_Options.m_ShowSky;
+		case OPT_SMOOTHLOS:
+			return m_Options.m_SmoothLOS;
+		case OPT_POSTPROC:
+			return m_Options.m_Postproc;
+		case OPT_DISPLAYFRUSTUM:
+			return m_Options.m_DisplayFrustum;
 		default:
 			debug_warn(L"CRenderer::GetOptionBool: unknown option");
 			break;
@@ -1593,7 +1613,7 @@ void CRenderer::RenderSubmissions()
 #endif
 
 	// render debug lines
-	if (m_DisplayFrustum)
+	if (m_Options.m_DisplayFrustum)
 	{
 		DisplayFrustum();
 		m->shadow.RenderDebugBounds();

@@ -140,16 +140,9 @@ AuraManager.prototype.ApplyTemplateModifications = function(valueName, value, pl
 	if (!this.templateModificationsCache[valueName] || !this.templateModificationsCache[valueName][player])
 		return value;
 
-	var rawClasses;
+	var classes = [];
 	if (template && template.Identity)
-	{
-		rawClasses = template.Identity.Classes;
-		rawClasses = "_string" in rawClasses ?  rawClasses._string : "";
-		if (template.Identity.Rank)
-			rawClasses += " " + template.Identity.Rank;
-	} 
-
-	var classes = rawClasses && rawClasses.length ? rawClasses.split(/\s+/) : [];
+		classes = GetIdentityClasses(template.Identity);
 
 	var keyList = [];
 
@@ -172,4 +165,4 @@ AuraManager.prototype.ApplyTemplateModifications = function(valueName, value, pl
 	return value;
 };
 
-Engine.RegisterComponentType(IID_AuraManager, "AuraManager", AuraManager);
+Engine.RegisterSystemComponentType(IID_AuraManager, "AuraManager", AuraManager);

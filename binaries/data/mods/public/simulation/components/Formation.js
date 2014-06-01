@@ -4,6 +4,9 @@ Formation.prototype.Schema =
 	"<element name='FormationName' a:help='Name of the formation'>" +
 		"<text/>" +
 	"</element>" +
+	"<element name='Icon'>" +
+		"<text/>" +
+	"</element>" +
 	"<element name='RequiredMemberCount' a:help='Minimum number of entities the formation should contain'>" +
 		"<data type='nonNegativeInteger'/>" +
 	"</element>" +
@@ -28,6 +31,9 @@ Formation.prototype.Schema =
 		"</element>" +
 	"</optional>" +
 	"<element name='WidthDepthRatio' a:help='Average width/depth, counted in number of units.'>" +
+		"<ref name='nonNegativeDecimal'/>" +
+	"</element>" +
+	"<element name='Sloppyness' a:help='Sloppyness in meters (the max difference between the actual and the perfectly aligned formation position'>" +
 		"<ref name='nonNegativeDecimal'/>" +
 	"</element>" +
 	"<optional>" +
@@ -77,6 +83,7 @@ Formation.prototype.Init = function()
 		"width": +this.template.UnitSeparationWidthMultiplier,
 		"depth": +this.template.UnitSeparationDepthMultiplier
 	};
+	this.sloppyness = +this.template.Sloppyness;
 	this.widthDepthRatio = +this.template.WidthDepthRatio;
 	this.minColumns = +(this.template.MinColumns || 0);
 	this.maxColumns = +(this.template.MaxColumns || 0);
@@ -250,6 +257,12 @@ Formation.prototype.SetInPosition = function(ent)
 	if (this.inPosition.indexOf(ent) != -1)
 		return;
 
+	// Rotate the entity to the right angle
+	var cmpPosition = Engine.QueryInterface(this.entity, IID_Position);
+	var cmpEntPosition = Engine.QueryInterface(ent, IID_Position);
+	if (cmpEntPosition && cmpEntPosition.IsInWorld() && cmpPosition && cmpPosition.IsInWorld)
+		cmpEntPosition.TurnTo(cmpPosition.GetRotation().y);
+
 	this.inPosition.push(ent);
 };
 
@@ -283,9 +296,26 @@ Formation.prototype.SetMembers = function(ents)
 
 	var cmpTemplateManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_TemplateManager);
 	var templateName = cmpTemplateManager.GetCurrentTemplateName(this.entity);
+	// keep the number of entities per pass class to find the most used
+	// For land units, this will be "default", for ship units, it should be "ship"
+	var passClasses = {};
+	var bestPassClassNumber = 0;
+	var bestPassClass = "default";
 
 	for each (var ent in this.members)
 	{
+		var cmpUnitMotion = Engine.QueryInterface(ent,IID_UnitMotion);
+		var passClass = cmpUnitMotion.GetPassabilityClassName();
+		if (passClasses[passClass])
+			var number = passClasses[passClass]++;
+		else
+			var number = passClasses[passClass] = 1;
+		if (number > bestPassClassNumber)
+		{
+			bestPassClass = passClass;
+			bestPassClassNumber = number;
+		}
+
 		var cmpUnitAI = Engine.QueryInterface(ent, IID_UnitAI);
 		cmpUnitAI.SetFormationController(this.entity);
 		cmpUnitAI.SetLastFormationTemplate(templateName);
@@ -297,6 +327,8 @@ Formation.prototype.SetMembers = function(ents)
 			cmpAuras.ApplyFormationBonus(ents);
 		}
 	}
+	var cmpUnitMotion = Engine.QueryInterface(this.entity, IID_UnitMotion);
+	cmpUnitMotion.SetPassabilityClassName(bestPassClass);
 
 	this.offsets = undefined;
 	// Locate this formation controller in the middle of its members
@@ -493,6 +525,8 @@ Formation.prototype.MoveMembersIntoFormation = function(moveCenter, force)
 
 	var xMax = 0;
 	var yMax = 0;
+	var xMin = 0;
+	var yMin = 0;
 
 	for (var i = 0; i < this.offsets.length; ++i)
 	{
@@ -502,27 +536,20 @@ Formation.prototype.MoveMembersIntoFormation = function(moveCenter, force)
 		if (!cmpUnitAI)
 			continue;
 		
-		if (force)
+		var data = 
 		{
-			cmpUnitAI.ReplaceOrder("FormationWalk", {
-				"target": this.entity,
-				"x": offset.x,
-				"z": offset.y
-			});
-		}
-		else
-		{
-			cmpUnitAI.PushOrderFront("FormationWalk", {
-				"target": this.entity,
-				"x": offset.x,
-				"z": offset.y
-			});
-		}
+			"target": this.entity,
+			"x": offset.x,
+			"z": offset.y
+		};
+		cmpUnitAI.AddOrder("FormationWalk", data, !force);
 		xMax = Math.max(xMax, offset.x);
 		yMax = Math.max(yMax, offset.y);
+		xMin = Math.min(xMin, offset.x);
+		yMin = Math.min(yMin, offset.y);
 	}
-	this.width = xMax * 2;
-	this.depth = yMax * 2;
+	this.width = xMax - xMin;
+	this.depth = yMax - yMin;
 };
 
 Formation.prototype.MoveToMembersCenter = function()
@@ -711,7 +738,14 @@ Formation.prototype.ComputeFormationOffsets = function(active, positions)
 					x += side * centerGap / 2;
 				}
 				var column = Math.ceil(n/2) + Math.ceil(c/2) * side;
-				offsets.push(new Vector2D(x, z));
+				var r1 = 0;
+				var r2 = 0;
+				if (this.sloppyness != 0)
+				{
+					r1 = (Math.random() * 2 - 1) * this.sloppyness;
+					r2 = (Math.random() * 2 - 1) * this.sloppyness;
+				}
+				offsets.push(new Vector2D(x + r1, z + r2));
 				offsets[offsets.length - 1].row = r+1;
 				offsets[offsets.length - 1].column = column;
 				left--
@@ -755,7 +789,7 @@ Formation.prototype.ComputeFormationOffsets = function(active, positions)
 		var usedRealPositions = realPositions.splice(-t.length);
 		for each (var entPos in t)
 		{
-			var closestOffsetId = this.TakeClosestOffset(entPos, usedRealPositions);
+			var closestOffsetId = this.TakeClosestOffset(entPos, usedRealPositions, usedOffsets);
 			usedRealPositions.splice(closestOffsetId, 1);
 			newOffsets.push(usedOffsets.splice(closestOffsetId, 1)[0]);
 			newOffsets[newOffsets.length - 1].ent = entPos.ent;
@@ -771,7 +805,7 @@ Formation.prototype.ComputeFormationOffsets = function(active, positions)
  * @param realPositions, the world coordinates of the available offsets
  * @return the index of the closest offset position
  */
-Formation.prototype.TakeClosestOffset = function(entPos, realPositions)
+Formation.prototype.TakeClosestOffset = function(entPos, realPositions, offsets)
 {
 	var pos = entPos.pos;
 	var closestOffsetId = -1;
@@ -785,7 +819,7 @@ Formation.prototype.TakeClosestOffset = function(entPos, realPositions)
 			closestOffsetId = i;
 		}
 	}
-	this.memberPositions[entPos.ent] = {"row": realPositions[closestOffsetId].row, "column": realPositions[closestOffsetId].column};
+	this.memberPositions[entPos.ent] = {"row": offsets[closestOffsetId].row, "column":offsets[closestOffsetId].column};
 	return closestOffsetId;
 };
 
@@ -813,7 +847,8 @@ Formation.prototype.GetEstimatedOrientation = function(pos)
 {
 	var cmpUnitAI = Engine.QueryInterface(this.entity, IID_UnitAI);
 	var r = {"sin": 0, "cos": 1};
-	if (cmpUnitAI.GetCurrentState() == "FORMATIONCONTROLLER.WALKING")
+	var unitAIState = cmpUnitAI.GetCurrentState();
+	if (unitAIState == "FORMATIONCONTROLLER.WALKING" || unitAIState == "FORMATIONCONTROLLER.COMBAT.APPROACHING")
 	{
 		var targetPos = cmpUnitAI.GetTargetPositions();
 		if (!targetPos.length)
@@ -930,7 +965,10 @@ Formation.prototype.OnGlobalEntityRenamed = function(msg)
 		this.offsets = undefined;
 		var cmpNewUnitAI = Engine.QueryInterface(msg.newentity, IID_UnitAI);
 		if (cmpNewUnitAI)
+		{
 			this.members[this.members.indexOf(msg.entity)] = msg.newentity;
+			this.memberPositions[msg.newentity] = this.memberPositions[msg.entity];
+		}
 
 		var cmpOldUnitAI = Engine.QueryInterface(msg.entity, IID_UnitAI);
 		cmpOldUnitAI.SetFormationController(INVALID_ENTITY);
@@ -975,6 +1013,12 @@ Formation.prototype.LoadFormation = function(newTemplate)
 
 	var newFormation = Engine.AddEntity(newTemplate);
 	// apply the info from the old formation to the new one
+
+	var cmpNewPosition = Engine.QueryInterface(newFormation, IID_Position);
+	var cmpPosition = Engine.QueryInterface(this.entity, IID_Position);
+	if (cmpPosition && cmpPosition.IsInWorld() && cmpNewPosition)
+		cmpNewPosition.TurnTo(cmpPosition.GetRotation().y);
+
 	var cmpFormation = Engine.QueryInterface(newFormation, IID_Formation);
 	var cmpNewUnitAI = Engine.QueryInterface(newFormation, IID_UnitAI);
 	cmpFormation.SetMembers(members);

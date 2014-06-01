@@ -12,21 +12,28 @@ m.AttackManager = function(Config)
 	this.attackNumber = 0;
 	this.rushNumber = 0;
 	this.raidNumber = 0;
-	this.upcomingAttacks = { "CityAttack": [], "Rush": [], "Raid": [] };
-	this.startedAttacks = { "CityAttack": [], "Rush": [], "Raid": [] };
+	this.upcomingAttacks = { "Rush": [], "Raid": [], "Attack": [], "HugeAttack": [] };
+	this.startedAttacks = { "Rush": [], "Raid": [], "Attack": [], "HugeAttack": [] };
 	this.debugTime = 0;
 };
 
 // More initialisation for stuff that needs the gameState
-m.AttackManager.prototype.init = function(gameState, queues)
+m.AttackManager.prototype.init = function(gameState, queues, allowRush)
 {
+	this.outOfPlan = gameState.getOwnUnits().filter(API3.Filters.byMetadata(PlayerID, "plan", -1));
+	this.outOfPlan.allowQuickIter();
+	this.outOfPlan.registerUpdates();
+
 	this.maxRushes = 0;
-	if (this.Config.personality.aggressive > 0.9)
-		this.maxRushes = 2
-	else if (this.Config.personality.aggressive > 0.7)
-		this.maxRushes = 1;
-	else
-		this.maxRushes = 0;
+	if (allowRush)
+	{
+		if (this.Config.personality.aggressive > 0.9)
+			this.maxRushes = 2
+		else if (this.Config.personality.aggressive > 0.7)
+			this.maxRushes = 1;
+		else
+			this.maxRushes = 0;
+	}
 };
 
 // Some functions are run every turn
@@ -78,8 +85,8 @@ m.AttackManager.prototype.update = function(gameState, queues, events)
 				{
 					if (this.Config.debug)
 						warn("Attack Manager: " + attack.getType() + " plan " + attack.getName() + " aborted.");
-					if (updateStep === 3)
-						this.attackPlansEncounteredWater = true;
+//					if (updateStep === 3)
+//						this.attackPlansEncounteredWater = true;
 					attack.Abort(gameState, this);
 					this.upcomingAttacks[attackType].splice(i--,1);
 				}
@@ -139,76 +146,76 @@ m.AttackManager.prototype.update = function(gameState, queues, events)
 			// okay so then we'll update the attack.
 			if (attack.isPaused())
 				continue;
-			var remaining = attack.update(gameState,this,events);
+			var remaining = attack.update(gameState,this, events);
 			if (!remaining)
 			{
-				if (this.Config.debug)
+				if (this.Config.debug > 0)
 					warn("Military Manager: " + attack.getType() + " plan " + attack.getName() + " is finished with remaining " + remaining);
 				attack.Abort(gameState);
 				this.startedAttacks[attackType].splice(i--,1);
 			}
 		}
 	}
-	
+
 	// creating plans after updating because an aborted plan might be reused in that case.
 
-	// TODO: remove the limitation to attacks when on water maps.
-	if (!gameState.ai.HQ.waterMap && !this.attackPlansEncounteredWater)
+	if (this.rushNumber < this.maxRushes && gameState.countEntitiesByType(gameState.applyCiv("structures/{civ}_barracks"), true) >= 1)
 	{
-		if (this.rushNumber < this.maxRushes && gameState.countEntitiesByType(gameState.applyCiv("structures/{civ}_barracks"), true) >= 1)
+		if (this.upcomingAttacks["Rush"].length === 0)
 		{
-			if (this.upcomingAttacks["Rush"].length === 0)
-			{ 
-				// we have a barracks and we want to rush, rush.
-				var attackPlan = new m.AttackPlan(gameState, this.Config, this.totalNumber, -1, "Rush");
-				if (this.Config.debug)
+			// we have a barracks and we want to rush, rush.
+			var attackPlan = new m.AttackPlan(gameState, this.Config, this.totalNumber, "Rush");
+			if (!attackPlan.failed)
+			{
+				if (this.Config.debug > 0)
 					warn("Headquarters: Rushing plan " + this.totalNumber + " with maxRushes " + this.maxRushes);
 				this.rushNumber++;
 				this.totalNumber++;
 				this.upcomingAttacks["Rush"].push(attackPlan);
 			}
 		}
-		// if we have a barracks, there's no water, we're at age >= 1 and we've decided to attack.
-		else if (gameState.countEntitiesByType(gameState.applyCiv("structures/{civ}_barracks"), true) >= 1
-			&& (gameState.currentPhase() > 1 || gameState.isResearching(gameState.townPhase())))
+	}
+	else if (this.upcomingAttacks["Attack"].length === 0 && this.upcomingAttacks["HugeAttack"].length === 0
+		&& (this.startedAttacks["Attack"].length + this.startedAttacks["HugeAttack"].length < Math.round(gameState.getPopulationMax()/100)))
+	{
+		if ((gameState.countEntitiesByType(gameState.applyCiv("structures/{civ}_barracks"), true) >= 1
+				&& (gameState.currentPhase() > 1 || gameState.isResearching(gameState.townPhase())))
+			|| !gameState.ai.HQ.baseManagers[1])	// if we have no base ... nothing else to do than attack
 		{
-			if (gameState.countEntitiesByType(gameState.applyCiv("structures/{civ}_dock"), true) === 0 && gameState.ai.HQ.waterMap)
-			{
-				// wait till we get a dock.
-			}
-			else if (this.upcomingAttacks["CityAttack"].length === 0)
-			{
-				if (this.attackNumber < 2)
-					var attackPlan = new m.AttackPlan(gameState, this.Config, this.totalNumber, -1);
-				else
-					var attackPlan = new m.AttackPlan(gameState, this.Config, this.totalNumber, -1, "superSized");
+			if (this.attackNumber < 2 || this.startedAttacks["HugeAttack"].length > 0)
+				var type = "Attack";
+			else
+				var type = "HugeAttack";
 
-				if (attackPlan.failed)
-					this.attackPlansEncounteredWater = true; // hack
-				else
-				{
-					if (this.Config.debug)
-						warn("Military Manager: Creating the plan " + this.totalNumber);
-					this.attackNumber++;
-					this.totalNumber++;
-					this.upcomingAttacks["CityAttack"].push(attackPlan);
-				}
+			var attackPlan = new m.AttackPlan(gameState, this.Config, this.totalNumber, type);
+			if (attackPlan.failed)
+				this.attackPlansEncounteredWater = true; // hack
+			else
+			{
+				if (this.Config.debug > 0)
+					warn("Military Manager: Creating the plan " + type + "  " + this.totalNumber);
+				this.attackNumber++;
+				this.totalNumber++;
+				this.upcomingAttacks[type].push(attackPlan);
 			}
 		}
+	}
 
-		if (this.upcomingAttacks["Raid"].length === 0 && gameState.ai.HQ.defenseManager.targetList.length)
+	if (this.upcomingAttacks["Raid"].length === 0 && gameState.ai.HQ.defenseManager.targetList.length)
+	{
+		var target = undefined;
+		for each (var targetId in gameState.ai.HQ.defenseManager.targetList)
 		{
-			var target = undefined;
-			for each (var targetId in gameState.ai.HQ.defenseManager.targetList)
-			{
-				target = gameState.getEntityById(targetId);
-				if (target)
-					break;
-			}
+			target = gameState.getEntityById(targetId);
 			if (target)
+				break;
+		}
+		if (target)
+		{
+			// prepare a raid against this target
+			var attackPlan = new m.AttackPlan(gameState, this.Config, this.totalNumber, "Raid", target.owner(), target);
+			if (!attackPlan.failed)
 			{
-				// prepare a raid against this target
-				var attackPlan = new m.AttackPlan(gameState, this.Config, this.totalNumber, target.owner(), "Raid");
 				if (this.Config.debug > 0)
 					warn("Headquarters: Raiding plan " + this.totalNumber);
 				this.raidNumber++;

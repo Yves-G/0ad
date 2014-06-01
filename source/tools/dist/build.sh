@@ -22,6 +22,9 @@ rm -rf export-win32
 svn export ${SVNWC} export-unix
 svn export --native-eol CRLF ${SVNWC} export-win32
 
+# Only include translations for a subset of languages
+find export-{unix,win32}/binaries/data/ -name "*.po" | grep -v '.*/\(ca\|cs\|de\|en_GB\|es\|fr\|gd\|gl\|it\|nl\|pt_PT\|pt_BR\)\.[A-Za-z0-9_.]\+\.po' | xargs rm
+
 # Update the svn_revision, so these builds can be identified
 echo L\"${SVNREV}-release\" > export-unix/build/svn_revision/svn_revision.txt
 echo L\"${SVNREV}-release\" > export-win32/build/svn_revision/svn_revision.txt
@@ -37,8 +40,8 @@ ln -Tsf export-unix ${PREFIX}
 tar cf $PREFIX-unix-build.tar \
 	--exclude='*.bat' --exclude='*.dll' --exclude='*.exe' --exclude='*.lib' \
 	--exclude='libraries/source/fcollada/src/FCollada/FColladaTest' \
-	--exclude='libraries/source/spidermonkey/include-win32' \
-	${PREFIX}/{source,build,libraries/source,binaries/system/readme.txt,binaries/data/tests,binaries/data/mods/_test.*,*.txt}
+	--exclude='libraries/source/spidermonkey/include-win32-*' \
+	${PREFIX}/{source,build,libraries/source,binaries/system/readme.txt,binaries/data/l10n,binaries/data/tests,binaries/data/mods/_test.*,*.txt}
 tar cf $PREFIX-unix-data.tar \
 	--exclude='binaries/data/config/dev.cfg' \
 	 ${PREFIX}/binaries/data/{config,mods/public/public.zip,tools}

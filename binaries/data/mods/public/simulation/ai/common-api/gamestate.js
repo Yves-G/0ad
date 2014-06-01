@@ -19,6 +19,7 @@ m.GameState.prototype.init = function(SharedScript, state, player) {
 	this.EntCollecNames = SharedScript._entityCollectionsName;
 	this.EntCollec = SharedScript._entityCollections;
 	this.timeElapsed = SharedScript.timeElapsed;
+	this.circularMap = SharedScript.circularMap;
 	this.templates = SharedScript._templates;
 	this.techTemplates = SharedScript._techTemplates;
 	this.entities = SharedScript.entities;
@@ -159,6 +160,8 @@ m.GameState.prototype.cityPhase = function()
 {
 	if (this.playerData.civ == "athen")
 		return "phase_city_athen";
+	else if (this.playerData.civ == "celt")
+		return "phase_city_gauls";
 	return "phase_city_generic";
 };
 
@@ -518,6 +521,10 @@ m.GameState.prototype.getResourceSupplies = function(resource){
 
 m.GameState.prototype.getHuntableSupplies = function(){
 	return this.updatingGlobalCollection("resource-hunt", m.Filters.isHuntable(), this.getEntities(), true);
+};
+
+m.GameState.prototype.getFishableSupplies = function(){
+	return this.updatingGlobalCollection("resource-fish", m.Filters.isFishable(), this.getEntities(), true);
 };
 
 // This returns only units from buildings.

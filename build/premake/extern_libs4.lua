@@ -16,6 +16,7 @@ else
 end
 -- directory for shared, bundled libraries
 libraries_source_dir = rootdir.."/libraries/source/"
+third_party_source_dir = rootdir.."/source/third_party/"
 
 local function add_default_lib_paths(extern_lib)
 	libdirs { libraries_dir .. extern_lib .. "/lib" }
@@ -31,6 +32,10 @@ end
 
 local function add_source_include_paths(extern_lib)
 	includedirs { libraries_source_dir .. extern_lib .. "/include" }
+end
+
+local function add_third_party_include_paths(extern_lib)
+	includedirs { third_party_source_dir .. extern_lib .. "/include" }
 end
 
 
@@ -247,15 +252,6 @@ extern_lib_defs = {
 			})
 		end,
 	},
-	boost_signals = {
-		link_settings = function()
-			add_default_links({
-				android_names = { "boost_signals-gcc-mt" },
-				unix_names = { os.findlib("boost_signals-mt") and "boost_signals-mt" or "boost_signals" },
-				osx_names = { "boost_signals-mt" },
-			})
-		end,
-	},
 	comsuppw = {
 		link_settings = function()
 			add_default_links({
@@ -355,6 +351,58 @@ extern_lib_defs = {
 				add_default_links({
 					win_names  = { "gloox-1.0" },
 					unix_names = { "gloox" },
+				})
+			end
+		end,
+	},
+	iconv = {
+		compile_settings = function()
+			if os.is("windows") then
+				add_default_include_paths("iconv")
+				defines { "HAVE_ICONV_CONST" }
+				defines { "LIBICONV_STATIC" }
+			end
+		end,
+		link_settings = function()
+			if os.is("windows") then
+				add_default_lib_paths("iconv")
+			end
+			add_default_links({
+				win_names  = { "iconv" },
+				-- TODO: glibc provides symbols for this, so we should only include that (and depend on libiconv) on non-glibc unix
+				--unix_names = { "iconv" },
+				dbg_suffix = "",
+			})
+		end,
+	},
+	icu = {
+		compile_settings = function()
+			if os.is("windows") then
+				add_default_include_paths("icu")
+			elseif os.is("macosx") then
+				-- Support ICU_CONFIG for overriding the default PATH-based icu-config
+				icu_config_path = os.getenv("ICU_CONFIG")
+				if not icu_config_path then
+					icu_config_path = "icu-config"
+				end
+				pkgconfig_cflags(nil, icu_config_path.." --cppflags")
+			end
+		end,
+		link_settings = function()
+			if os.is("windows") then
+				add_default_lib_paths("icu")
+			end
+			if os.is("macosx") then
+				icu_config_path = os.getenv("ICU_CONFIG")
+				if not icu_config_path then
+					icu_config_path = "gloox-config"
+				end
+				pkgconfig_libs(nil, icu_config_path.." --ldflags-searchpath --ldflags-libsonly --ldflags-system")
+			else
+				add_default_links({
+					win_names  = { "icuuc", "icuin" },
+					unix_names = { "icui18n", "icuuc" },
+					dbg_suffix = "",
 				})
 			end
 		end,
@@ -601,6 +649,11 @@ extern_lib_defs = {
 				configuration { }
 				add_source_lib_paths("spidermonkey")
 			end
+		end,
+	},
+	tinygettext = {
+		compile_settings = function()
+			add_third_party_include_paths("tinygettext")
 		end,
 	},
 	valgrind = {

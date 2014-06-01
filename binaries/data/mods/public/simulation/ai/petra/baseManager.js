@@ -129,14 +129,14 @@ m.BaseManager.prototype.checkEvents = function (gameState, events, queues)
 			var ent = gameState.getEntityById(evt.newentity);
 			if (ent === undefined)
 				continue;
+
+			if (evt.newentity === evt.entity)  // repaired building
+				continue;
 			
 			if (ent.getMetadata(PlayerID,"base") == this.ID)
 			{
 				if (ent.resourceDropsiteTypes() && !ent.hasClass("Elephant"))
 					this.assignResourceToDropsite(gameState, ent);
-				if (ent.resourceDropsiteTypes() && !ent.hasClass("Elephant") && this.Config.debug)
-					for each (var ress in ent.resourceDropsiteTypes())
-						warn(" DPresource " + ress + " = " + this.getResourceLevel(gameState, ress));
 			}
 		}
 	}
@@ -189,8 +189,9 @@ m.BaseManager.prototype.assignResourceToDropsite = function (gameState, dropsite
 				return;
 			if (supply.hasClass("Field"))     // fields are treated separately
 				return;
-			// quickscope accessibility check
-			if (!gameState.ai.accessibility.pathAvailable(gameState, dropsite.position(), supply.position(),false, true))
+			// quick accessibility check
+			var index = gameState.ai.accessibility.getAccessValue(supply.position());
+			if (index !== self.accessIndex)
 				return;
 
 			var dist = API3.SquareVectorDistance(supply.position(), dropsite.position());
@@ -245,7 +246,7 @@ m.BaseManager.prototype.removeDropsite = function (gameState, ent)
 			if (!supply[i].ent || !gameState.getEntityById(supply[i].id))
 				supply.splice(i--, 1);
 			// resource assigned to the removed dropsite, remove it
-			else if (supply["dropsite"] === entId)
+			else if (supply[i].dropsite === entId)
 				supply.splice(i--, 1);
 		}
 	};
@@ -261,7 +262,8 @@ m.BaseManager.prototype.removeDropsite = function (gameState, ent)
 	return;
 };
 
-// Returns the position of the best place to build a new dropsite for the specified resource
+// Returns the position of the best place to build a new dropsite for the specified resource 
+// TODO check dropsites of other bases ... may-be better to do a simultaneous liste of dp and foundations
 m.BaseManager.prototype.findBestDropsiteLocation = function(gameState, resource)
 {
 	
@@ -423,7 +425,8 @@ m.BaseManager.prototype.checkResourceLevels = function (gameState, queues)
 			}
 			else if(gameState.ai.HQ.canBuild(gameState, "structures/{civ}_field"))	// let's see if we need to add new farms.
 			{
-				if (numFound < 2 && numFound + numQueue < 3)
+				if ((!gameState.ai.HQ.saveResources && numFound < 2 && numFound + numQueue < 3) ||
+					(gameState.ai.HQ.saveResources && numFound < 1 && numFound + numQueue < 2))
 					queues.field.addItem(new m.ConstructionPlan(gameState, "structures/{civ}_field", { "base" : this.ID }));
 			}
 		}
@@ -494,6 +497,16 @@ m.BaseManager.prototype.getGatherRates = function(gameState, currentRates)
 		{
 			units = this.workers.filter(API3.Filters.byMetadata(PlayerID, "subrole", "hunter"));
 			units.forEach(function (ent) {
+				if (ent.isIdle())
+					return;
+				var gRate = ent.currentGatherRate()
+				if (gRate !== undefined)
+					currentRates[i] += Math.log(1+gRate)/1.1;
+			});
+			units = this.workers.filter(API3.Filters.byMetadata(PlayerID, "subrole", "fisher"));
+			units.forEach(function (ent) {
+				if (ent.isIdle())
+					return;
 				var gRate = ent.currentGatherRate()
 				if (gRate !== undefined)
 					currentRates[i] += Math.log(1+gRate)/1.1;
@@ -509,7 +522,7 @@ m.BaseManager.prototype.assignRolelessUnits = function(gameState)
 	var roleless = this.units.filter(API3.Filters.not(API3.Filters.byHasMetadata(PlayerID, "role")));
 	var self = this;
 	roleless.forEach(function(ent) {
-		if (ent.hasClass("Worker") || ent.hasClass("CitizenSoldier"))
+		if (ent.hasClass("Worker") || ent.hasClass("CitizenSoldier") || ent.hasClass("FishingBoat"))
 			ent.setMetadata(PlayerID, "role", "worker");
 		else if (ent.hasClass("Support") && ent.hasClass("Elephant"))
 			ent.setMetadata(PlayerID, "role", "worker");
@@ -562,17 +575,20 @@ m.BaseManager.prototype.reassignIdleWorkers = function(gameState)
 	var idleWorkers = gameState.updatingCollection("idle-workers-base-" + this.ID, filter, this.workers);
 
 	var self = this;
-	if (idleWorkers.length) {
+	if (idleWorkers.length)
+	{
 		idleWorkers.forEach(function(ent)
 		{
 			// Check that the worker isn't garrisoned
 			if (ent.position() === undefined)
 				return;
 			// Support elephant can only be builders
-			if (ent.hasClass("Support") && ent.hasClass("Elephant")) {
+			if (ent.hasClass("Support") && ent.hasClass("Elephant"))
+			{
 				ent.setMetadata(PlayerID, "subrole", "idle");
 				return;
 			}
+
 			if (ent.hasClass("Worker"))
 			{
 				if (self.anchor && self.anchor.needsRepair() === true)
@@ -580,13 +596,22 @@ m.BaseManager.prototype.reassignIdleWorkers = function(gameState)
 				else
 				{
 					var types = gameState.ai.HQ.pickMostNeededResources(gameState);
-					ent.setMetadata(PlayerID, "subrole", "gatherer");
-					ent.setMetadata(PlayerID, "gather-type", types[0]);
-					m.AddTCRessGatherer(gameState, types[0]);
+					for (var i = 0; i < types.length; ++i)
+					{
+						var lastFailed = gameState.ai.HQ.lastFailedGather[types[i]];
+						if (lastFailed && gameState.ai.playedTurn - lastFailed < 20)
+							continue;
+						ent.setMetadata(PlayerID, "subrole", "gatherer");
+						ent.setMetadata(PlayerID, "gather-type", types[i]);
+						m.AddTCRessGatherer(gameState, types[i]);
+						break;
+					}
 				}
 			}
 			else if (ent.hasClass("Cavalry"))
 				ent.setMetadata(PlayerID, "subrole", "hunter");
+			else if (ent.hasClass("FishingBoat"))
+				ent.setMetadata(PlayerID, "subrole", "fisher");
 		});
 	}
 };
@@ -606,7 +631,15 @@ m.BaseManager.prototype.gatherersByType = function(gameState, type)
 // They are idled immediatly and their subrole set to idle.
 m.BaseManager.prototype.pickBuilders = function(gameState, workers, number)
 {
-	var availableWorkers = this.workers.filter(API3.Filters.not(API3.Filters.byClass("Cavalry"))).toEntityArray();
+	var availableWorkers = this.workers.filter(function (ent) {
+		if (ent.getMetadata(PlayerID, "plan") === -2 || ent.getMetadata(PlayerID, "plan") === -3)
+			return false;
+		if (ent.getMetadata(PlayerID, "transport") !== undefined)
+			return false;
+		if (ent.hasClass("Cavalry") || ent.hasClass("Ship") || ent.position() === undefined)
+			return false;
+		return true;
+	}).toEntityArray();
 	availableWorkers.sort(function (a,b) {
 		var vala = 0, valb = 0;
 		if (a.getMetadata(PlayerID, "subrole") == "builder")
@@ -614,16 +647,16 @@ m.BaseManager.prototype.pickBuilders = function(gameState, workers, number)
 		if (b.getMetadata(PlayerID, "subrole") == "builder")
 			valb = 100;
 		if (a.getMetadata(PlayerID, "subrole") == "idle")
-			vala = -20;
+			vala = -50;
 		if (b.getMetadata(PlayerID, "subrole") == "idle")
+			valb = -50;
+		if (a.getMetadata(PlayerID, "plan") === undefined)
+			vala = -20;
+		if (b.getMetadata(PlayerID, "plan") === undefined)
 			valb = -20;
-		if (a.getMetadata(PlayerID, "plan") != undefined)
-			vala = -100;
-		if (b.getMetadata(PlayerID, "plan") != undefined)
-			valb = -100;
 		return (vala - valb);
 	});
-	var needed = Math.min(number, availableWorkers.length);
+	var needed = Math.min(number, availableWorkers.length - 3);
 	for (var i = 0; i < needed; ++i)
 	{
 		availableWorkers[i].stopMoving();
@@ -654,7 +687,7 @@ m.BaseManager.prototype.assignToFoundations = function(gameState, noRepair)
 	if (!foundations.length && !damagedBuildings.length){
 		return;
 	}
-	var workers = this.workers.filter(API3.Filters.not(API3.Filters.byClass("Cavalry")));
+	var workers = this.workers.filter(API3.Filters.not(API3.Filters.or(API3.Filters.byClass("Cavalry"), API3.Filters.byClass("Ship"))));
 	var builderWorkers = this.workersBySubrole(gameState, "builder");
 	var idleBuilderWorkers = this.workersBySubrole(gameState, "builder").filter(API3.Filters.isIdle());
 
@@ -702,7 +735,7 @@ m.BaseManager.prototype.assignToFoundations = function(gameState, noRepair)
 		
 		var assigned = gameState.getOwnEntitiesByMetadata("target-foundation", target.id()).length;
 		var targetNB = this.Config.Economy.targetNumBuilders;	// TODO: dynamic that.
-		if (target.hasClass("House"))
+		if (target.hasClass("House") || target.hasClass("Market"))
 			targetNB *= 2;
 		else if (target.hasClass("Barracks") || target.hasClass("Tower"))
 			targetNB = 4;
@@ -799,12 +832,14 @@ m.BaseManager.prototype.assignToFoundations = function(gameState, noRepair)
 
 m.BaseManager.prototype.update = function(gameState, queues, events)
 {
+	if (this.anchor && this.anchor.getMetadata(PlayerID, "access") !== this.accessIndex)
+		warn(" probleme avec accessIndex " + this.accessIndex + " et metadata " + this.anchor.getMetadata(PlayerID, "access"));
+
 	Engine.ProfileStart("Base update - base " + this.ID);
-	var self = this;
-	
+
 	this.checkResourceLevels(gameState, queues);
 	this.assignToFoundations(gameState);
-	
+
 	if (this.constructing && this.anchor)
 	{
 		var owner = gameState.ai.HQ.territoryMap.getOwner(this.anchor.position());
@@ -821,22 +856,22 @@ m.BaseManager.prototype.update = function(gameState, queues, events)
 		}
 	}
 
-
 	if (gameState.ai.playedTurn % 2 === 0)
 		this.setWorkersIdleByPriority(gameState);
 
 	this.assignRolelessUnits(gameState);
-		
+	
 	// should probably be last to avoid reallocations of units that would have done stuffs otherwise.
 	this.reassignIdleWorkers(gameState);
 
 	// TODO: do this incrementally a la defense.js
+	var self = this;
 	this.workers.forEach(function(ent) {
 		if (!ent.getMetadata(PlayerID, "worker-object"))
 			ent.setMetadata(PlayerID, "worker-object", new m.Worker(ent));
 		ent.getMetadata(PlayerID, "worker-object").update(self, gameState);
 	});
-		
+
 	Engine.ProfileStop();
 };
 

@@ -6,6 +6,8 @@
 		"mace": "Andreia",
 		"spart": "Andreia",
 		"athen": "Andreia",
+		"ptol": "Andreia",
+		"sele": "Andreia",
 		"rome": "Fortitudo"
 	},
 	"description": "Guard units have uncommon bravery and valor in battle.",
@@ -16,8 +18,8 @@
 	"researchTime": 40,
 	"tooltip": "Guard units have uncommon courage and valor in battle. Champions +2 attack.",
 	"modifications": [
-		{"value": "Attack/Melee/Hack", "add": 2.0, "affects": ["Champion Melee"]},
-		{"value": "Attack/Ranged/Pierce", "add": 2.0, "affects": ["Champion Ranged"]}
+		{"value": "Attack/Melee/Hack", "add": 2.0, "affects": "Champion Melee"},
+		{"value": "Attack/Ranged/Pierce", "add": 2.0, "affects": "Champion Ranged"}
 	],
 	"soundComplete": "interface/alarm/alarm_upgradearmory.xml"
 }

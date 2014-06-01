@@ -51,9 +51,9 @@ m.Template = m.Class({
 	},
 
 	classes: function() {
-		if (!this.get("Identity") || !this.get("Identity/Classes") || !this.get("Identity/Classes/_string"))
+		if (!this.get("Identity"))
 			return undefined;
-		return this.get("Identity/Classes/_string").split(/\s+/);
+		return m.GetIdentityClasses(this._template.Identity);
 	},
 	
 	requiredTech: function() {
@@ -389,6 +389,24 @@ m.Template = m.Class({
 			return undefined;
 		return this.get("GarrisonHolder/Max");
 	},
+
+	getDefaultArrow: function() {
+		if (!this.get("BuildingAI"))
+			return undefined;
+		return +this.get("BuildingAI/DefaultArrowCount");
+	},
+
+	getArrowMultiplier: function() {
+		if (!this.get("BuildingAI"))
+			return undefined;
+		return +this.get("BuildingAI/GarrisonArrowMultiplier");
+	},
+
+	buffHeal: function() {
+		if (!this.get("GarrisonHolder"))
+			return undefined;
+		return this.get("GarrisonHolder/BuffHeal");
+	},
 	
 	/**
 	 * Returns whether this is an animal that is too difficult to hunt.
@@ -403,15 +421,15 @@ m.Template = m.Class({
 	},
 
 	isHuntable: function() {     // used by Petra
-		if (!this.get("UnitAI") || !this.get("UnitAI/NaturalBehaviour"))
+		if(!this.get("ResourceSupply") || !this.get("ResourceSupply/KillBeforeGather"))
 			return false;
 
 		// special case: rabbits too difficult to hunt for such a small food amount
 		if (this.get("Identity") && this.get("Identity/SpecificName") && this.get("Identity/SpecificName") === "Rabbit")
 			return false;
 
-		// do not hunt retaliating animals.
-		return !(this.get("UnitAI/NaturalBehaviour") === "violent" ||
+		// do not hunt retaliating animals (animals without UnitAI are dead animals)
+		return !this.get("UnitAI") || !(this.get("UnitAI/NaturalBehaviour") === "violent" ||
 			this.get("UnitAI/NaturalBehaviour") === "aggressive" ||
 			this.get("UnitAI/NaturalBehaviour") === "defensive");
 	},
@@ -672,6 +690,8 @@ m.Entity = m.Class({
 		return undefined;
 	},
 
+	isGarrisonHolder: function() { return this.get("GarrisonHolder") },
+
 	garrisoned: function() { return new m.EntityCollection(this._ai, this._entity.garrisoned); },
 	
 	canGarrisonInside: function() { return this._entity.garrisoned.length < this.garrisonMax(); },
@@ -681,6 +701,12 @@ m.Entity = m.Class({
 	move: function(x, z, queued) {
 		queued = queued || false;
 		Engine.PostCommand(PlayerID,{"type": "walk", "entities": [this.id()], "x": x, "z": z, "queued": queued });
+		return this;
+	},
+
+	moveToRange: function(x, z, min, max, queued) {
+		queued = queued || false;
+		Engine.PostCommand(PlayerID,{"type": "walk-to-range", "entities": [this.id()], "x": x, "z": z, "min": min, "max": max, "queued": queued });
 		return this;
 	},
 	
@@ -715,8 +741,9 @@ m.Entity = m.Class({
 		return this;
 	},
 
-	garrison: function(target) {
-		Engine.PostCommand(PlayerID,{"type": "garrison", "entities": [this.id()], "target": target.id(),"queued": false});
+	garrison: function(target, queued) {
+		queued = queued || false;
+		Engine.PostCommand(PlayerID,{"type": "garrison", "entities": [this.id()], "target": target.id(),"queued": queued});
 		return this;
 	},
 
@@ -725,6 +752,23 @@ m.Entity = m.Class({
 		return this;
 	},
 	
+	// moveApart from a point in the opposite direction with a distance dist
+	moveApart: function(point, dist) {
+		if (this.position() !== undefined) {
+			var direction = [this.position()[0] - point[0], this.position()[1] - point[1]];
+			var norm = m.VectorDistance(point, this.position());
+			if (norm === 0)
+				direction = [1, 0];
+			else
+			{
+				direction[0] /= norm;
+				direction[1] /= norm;
+			}			
+			Engine.PostCommand(PlayerID,{"type": "walk", "entities": [this.id()], "x": this.position()[0] + direction[0]*dist, "z": this.position()[1] + direction[1]*dist, "queued": false});
+		}
+		return this;
+	},
+
 	// Flees from a unit in the opposite direction.
 	flee: function(unitToFleeFrom) {
 		if (this.position() !== undefined && unitToFleeFrom.position() !== undefined) {

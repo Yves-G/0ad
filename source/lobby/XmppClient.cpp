@@ -22,8 +22,6 @@
 #include "lib/utf8.h"
 
 // Debug
-// TODO: Use builtin error/warning/logging functions.
-#include <iostream>
 #include "ps/CLogger.h"
 
 // Gloox
@@ -106,7 +104,7 @@ XmppClient::XmppClient(const std::string& sUsername, const std::string& sPasswor
 
 	m_client->registerConnectionListener( this );
 	m_client->setPresence(gloox::Presence::Available, -1);
-	m_client->disco()->setVersion( "Pyrogenesis", "0.0.15" );
+	m_client->disco()->setVersion( "Pyrogenesis", "0.0.17" );
 	m_client->disco()->setIdentity( "client", "bot" );
 	m_client->setCompression(false);
 
@@ -845,6 +843,20 @@ void XmppClient::GetPresence(const std::string& nick, std::string& presence)
 		presence = m_PlayerMap[nick][0];
 	else
 		presence = "offline";
+}
+
+/**
+ * Get the current xmpp role of the given nick.
+ *
+ * @param nick Nickname to look up presence for
+ * @param role Variable to store the role in
+ */
+void XmppClient::GetRole(const std::string& nick, std::string& role)
+{
+	if (m_PlayerMap.find(nick) != m_PlayerMap.end())
+		role = m_PlayerMap[nick][2];
+	else
+		role = "";
 }
 
 /*****************************************************

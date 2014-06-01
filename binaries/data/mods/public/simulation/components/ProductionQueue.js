@@ -108,7 +108,7 @@ ProductionQueue.prototype.CalculateEntitiesList = function()
 	var upgradeTemplate = function(templateName)
 	{
 		var template = cmpTemplateManager.GetTemplate(templateName);
-		while (template.Promotion !== undefined)
+		while (template && template.Promotion !== undefined)
 		{
 			var requiredXp = ApplyValueModificationsToTemplate("Promotion/RequiredXp", +template.Promotion.RequiredXp, playerID, template);
 			if (requiredXp > 0)
@@ -342,7 +342,7 @@ ProductionQueue.prototype.AddBatch = function(templateName, type, count, metadat
 	}
 	else
 	{
-		var notification = {"player": cmpPlayer.GetPlayerID(), "message": "The production queue is full."};
+		var notification = {"player": cmpPlayer.GetPlayerID(), "message": markForTranslation("The production queue is full."), "translateMessage": true };
 		var cmpGUIInterface = Engine.QueryInterface(SYSTEM_ENTITY, IID_GuiInterface);
 		cmpGUIInterface.PushNotification(notification);
 	}
@@ -537,7 +537,7 @@ ProductionQueue.prototype.SpawnUnits = function(templateName, count, metadata)
 	if (cmpRallyPoint)
 	{
 		var data = cmpRallyPoint.GetData()[0];
-		if (data && data.target == this.entity && data.command == "garrison")
+		if (data && data.target && data.target == this.entity && data.command == "garrison")
 			cmpAutoGarrison = Engine.QueryInterface(this.entity, IID_GarrisonHolder);
 	}
 
