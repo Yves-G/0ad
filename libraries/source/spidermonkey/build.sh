@@ -54,16 +54,34 @@ CONF_OPTS="${CONF_OPTS} \
 echo "SpiderMonkey build options: ${CONF_OPTS}"
 echo ${CONF_OPTS}
 
+# Check if we are already using the unified repository structure for Mozilla's multiple repositories.
+# Delete the whole SpiderMonkey checkout in this case and make a fresh checkout.
+if [ ! -f ".mozjshgstructure2" ]; then
+	# delete mozjs31 folder
+	rm -rf mozjs31
+fi
+
 # Download the current development version from the mozilla-central repository
 if [ ! -d "mozjs31" ]; then
-  hg clone http://hg.mozilla.org/mozilla-central/ mozjs31
-else
+  # create a flag to indicate that we are already using the new structure with Mozilla's multiple repositories in a unified Mercurial repository
+  touch .mozjshgstructure2
+  
+  hg init mozjs31
+  cp hgrc mozjs31/.hg/
   cd mozjs31
-  hg pull
-  # I've tested with this version, but you can try a more recent one if you like
-  hg update 176097:0e19655e93df
   cd ..
 fi
+
+cd mozjs31
+hg pull release
+hg pull beta
+hg pull aurora
+hg pull central
+# I've tested with this version, but you can try a more recent one if you like.
+# Identify the current head of a repository with e.g. "hg identify -r default central" (using release, beta, aurora or central respectively).
+hg update 176097:0e19655e93df
+cd ..
+
 
 # Apply patches if needed
 #patch -p0 < name_of_thepatch.diff
