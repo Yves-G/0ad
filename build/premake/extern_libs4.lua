@@ -586,14 +586,9 @@ extern_lib_defs = {
 				if _OPTIONS["android"] then
 					links { "mozjs-31" }
 				else
-					pkgconfig_libs("nspr")
 					pkgconfig_libs("mozjs-31")
 				end
 			else
-				if os.is("macosx") then
-					add_default_lib_paths("nspr")
-					links { "nspr4", "plc4", "plds4" }
-				end
 				configuration "Debug"
 					links { "mozjs31-ps-debug" }
 				configuration "Release"

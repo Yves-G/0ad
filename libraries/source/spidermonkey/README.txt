@@ -13,14 +13,7 @@ change the behaviour of the scripts executed by SpiderMonkey.
 
 Building on Linux:
 ------------------
-To build SpiderMonkey for use in 0 A.D. on Linux, you need libnspr4-dev, which
-should be installed from the distribution's package management system.
-As an alternative you can build nspr yourself, but we don't provide a guide for
-that here. When you have nspr, just run build.sh.
-
-NSPR ist available here: 
-https://ftp.mozilla.org/pub/mozilla.org/nspr/releases/
-
+Execute update-workspaces.sh which runs build.sh.
 
 Building on Mac OS X:
 ---------------------
