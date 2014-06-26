@@ -273,7 +273,7 @@ GuiInterface.prototype.GetEntityState = function(player, ent)
 	{
 		ret.garrisonHolder = {
 			"entities": cmpGarrisonHolder.GetEntities(),
-			"allowedClasses": cmpGarrisonHolder.GetAllowedClassesList(),
+			"allowedClasses": cmpGarrisonHolder.GetAllowedClasses(),
 			"capacity": cmpGarrisonHolder.GetCapacity(),
 			"garrisonedEntitiesCount": cmpGarrisonHolder.GetGarrisonedEntitiesCount()
 		};
@@ -288,6 +288,7 @@ GuiInterface.prototype.GetEntityState = function(player, ent)
 			"hasWorkOrders": cmpUnitAI.HasWorkOrders(),
 			"canGuard": cmpUnitAI.CanGuard(),
 			"isGuarding": cmpUnitAI.IsGuardOf(),
+			"possibleStances": cmpUnitAI.GetPossibleStances(),
 		};
 		// Add some information needed for ungarrisoning
 		if (cmpUnitAI.IsGarrisoned() && ret.player !== undefined)
@@ -338,6 +339,7 @@ GuiInterface.prototype.GetExtendedEntityState = function(player, ent)
 		"buildingAI": null,
 		"healer": null,
 		"obstruction": null,
+		"turretParent":null,
 		"promotion": null,
 		"resourceCarrying": null,
 		"resourceDropsite": null,
@@ -396,6 +398,12 @@ GuiInterface.prototype.GetExtendedEntityState = function(player, ent)
 		ret.armour = cmpArmour.GetArmourStrengths();
 	}
 
+	var cmpAuras = Engine.QueryInterface(ent, IID_Auras)
+	if (cmpAuras)
+	{
+		ret.auras = cmpAuras.GetDescriptions();
+	}
+
 	var cmpBuildingAI = Engine.QueryInterface(ent, IID_BuildingAI);
 	if (cmpBuildingAI)
 	{
@@ -415,6 +423,10 @@ GuiInterface.prototype.GetExtendedEntityState = function(player, ent)
 			"controlGroup2": cmpObstruction.GetControlGroup2(),
 		};
 	}
+
+	var cmpPosition = Engine.QueryInterface(ent, IID_Position);
+	if (cmpPosition && cmpPosition.GetTurretParent() != INVALID_ENTITY)
+		ret.turretParent = cmpPosition.GetTurretParent();
 
 	var cmpResourceSupply = Engine.QueryInterface(ent, IID_ResourceSupply);
 	if (cmpResourceSupply)
@@ -525,7 +537,15 @@ GuiInterface.prototype.GetTemplateData = function(player, extendedName)
 			};
 		}
 	}
-	
+
+	if (template.Auras)
+	{
+		ret.auras = {};
+		for each (var aura in template.Auras)
+			if (aura.AuraName)
+				ret.auras[aura.AuraName] = aura.AuraDescription || null;
+	}
+
 	if (template.BuildRestrictions)
 	{
 		// required properties
@@ -724,6 +744,9 @@ GuiInterface.prototype.GetTechnologyData = function(player, name)
 
 GuiInterface.prototype.IsTechnologyResearched = function(player, tech)
 {
+	if (!tech)
+		return true;
+
 	var cmpTechnologyManager = QueryPlayerIDInterface(player, IID_TechnologyManager);
 	
 	if (!cmpTechnologyManager)
@@ -824,6 +847,13 @@ GuiInterface.prototype.GetTimeNotifications = function(playerID)
 
 GuiInterface.prototype.PushNotification = function(notification)
 {
+	if (!notification.type || notification.type == "text")
+	{
+		if (!notification.duration)
+			notification.duration = 10000;
+		this.AddTimeNotification(notification);
+		return;
+	}
 	this.notifications.push(notification);
 };
 
@@ -1675,88 +1705,12 @@ GuiInterface.prototype.GetFoundationSnapData = function(player, data)
 		if (minDistEntitySnapData != null)
 			return minDistEntitySnapData;
 	}
-	
+
 	if (template.BuildRestrictions.Category == "Dock")
 	{
-		// warning: copied almost identically in helpers/command.js , "GetDockAngle".
-		var cmpTerrain = Engine.QueryInterface(SYSTEM_ENTITY, IID_Terrain);
-		var cmpWaterManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_WaterManager);
-		if (!cmpTerrain || !cmpWaterManager)
-		{
-			return false;
-		}
-		
-		// Get footprint size
-		var halfSize = 0;
-		if (template.Footprint.Square)
-		{
-			halfSize = Math.max(template.Footprint.Square["@depth"], template.Footprint.Square["@width"])/2;
-		}
-		else if (template.Footprint.Circle)
-		{
-			halfSize = template.Footprint.Circle["@radius"];
-		}
-		
-		/* Find direction of most open water, algorithm:
-		 *	1. Pick points in a circle around dock
-		 *	2. If point is in water, add to array
-		 *	3. Scan array looking for consecutive points
-		 *	4. Find longest sequence of consecutive points
-		 *	5. If sequence equals all points, no direction can be determined,
-		 *		expand search outward and try (1) again
-		 *	6. Calculate angle using average of sequence
-		 */
-		const numPoints = 16;
-		for (var dist = 0; dist < 4; ++dist)
-		{
-			var waterPoints = [];
-			for (var i = 0; i < numPoints; ++i)
-			{
-				var angle = (i/numPoints)*2*Math.PI;
-				var d = halfSize*(dist+1);
-				var nx = data.x - d*Math.sin(angle);
-				var nz = data.z + d*Math.cos(angle);
-				
-				if (cmpTerrain.GetGroundLevel(nx, nz) < cmpWaterManager.GetWaterLevel(nx, nz))
-				{
-					waterPoints.push(i);
-				}
-			}
-			var consec = [];
-			var length = waterPoints.length;
-			for (var i = 0; i < length; ++i)
-			{
-				var count = 0;
-				for (var j = 0; j < (length-1); ++j)
-				{
-					if (((waterPoints[(i + j) % length]+1) % numPoints) == waterPoints[(i + j + 1) % length])
-					{
-						++count;
-					}
-					else
-					{
-						break;
-					}
-				}
-				consec[i] = count;
-			}
-			var start = 0;
-			var count = 0;
-			for (var c in consec)
-			{
-				if (consec[c] > count)
-				{
-					start = c;
-					count = consec[c];
-				}
-			}
-			
-			// If we've found a shoreline, stop searching
-			if (count != numPoints-1)
-			{
-				return {"x": data.x, "z": data.z, "angle": -(((waterPoints[start] + consec[start]/2) % numPoints)/numPoints*2*Math.PI)};
-			}
-		}
+		var angle = GetDockAngle(template, data.x, data.z);
+		if (angle !== undefined)
+			return {"x": data.x, "z": data.z, "angle": angle};
 	}
 
 	return false;

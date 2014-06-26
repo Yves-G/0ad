@@ -87,6 +87,24 @@ m.Worker.prototype.update = function(baseManager, gameState)
 				}
 			}
 		}
+		else if (this.ent.unitAIState() === "INDIVIDUAL.RETURNRESOURCE.APPROACHING"
+			&& gameState.ai.playedTurn % 10 === 0)
+		{
+			// Check from time to time that UnitAI does not send us to an inaccessible dropsite
+			var dropsite = gameState.getEntityById(this.ent.unitAIOrderData()[0]["target"]);
+			if (dropsite && dropsite.position())
+			{
+				var access = gameState.ai.accessibility.getAccessValue(this.ent.position());
+				var goalAccess = dropsite.getMetadata(PlayerID, "access");
+				if (!goalAccess || dropsite.hasClass("Elephant"))
+				{
+					goalAccess = gameState.ai.accessibility.getAccessValue(dropsite.position());
+					dropsite.setMetadata(PlayerID, "access", goalAccess);
+				}
+				if (access !== goalAccess)
+					this.returnResources(gameState);
+			}
+		}
 	}
 	else if (subrole === "builder")
 	{	
@@ -105,18 +123,23 @@ m.Worker.prototype.update = function(baseManager, gameState)
 		}
 		else
 		{
-			var startIndex = gameState.ai.accessibility.getAccessValue(this.ent.position());
-			var endIndex = gameState.ai.accessibility.getAccessValue(target.position());
-			if (startIndex === endIndex)
+			var access = gameState.ai.accessibility.getAccessValue(this.ent.position());
+			var goalAccess = target.getMetadata(PlayerID, "access");
+			if (!goalAccess)
+			{
+				goalAccess = gameState.ai.accessibility.getAccessValue(target.position());
+				target.setMetadata(PlayerID, "access", goalAccess);
+			}
+			if (access === goalAccess)
 				this.ent.repair(target);
 			else
-				gameState.ai.HQ.navalManager.requireTransport(gameState, this.ent, startIndex, endIndex, target.position());
+				gameState.ai.HQ.navalManager.requireTransport(gameState, this.ent, access, goalAccess, target.position());
 		}
 	}
 	else if (subrole === "hunter")
 	{
 		var lastHuntSearch = this.ent.getMetadata(PlayerID, "lastHuntSearch");
-		if (this.ent.isIdle() && (!lastHuntSearch || (gameState.ai.playedTurn - lastHuntSearch) > 20))
+		if (this.ent.isIdle() && (!lastHuntSearch || (gameState.ai.elapsedTime - lastHuntSearch) > 20))
 		{
 			if (!this.startHunting(gameState))
 			{
@@ -141,15 +164,36 @@ m.Worker.prototype.update = function(baseManager, gameState)
 					}
 				}
 				if (nowhereToHunt)
-					this.ent.setMetadata(PlayerID, "lastHuntSearch", gameState.ai.playedTurn);
+					this.ent.setMetadata(PlayerID, "lastHuntSearch", gameState.ai.elapsedTime);
 			}
 		}
-		else if (this.ent.unitAIState().split(".")[1] === "GATHER" || this.ent.unitAIState().split(".")[1] === "RETURNRESOURCE")
+		else if (gameState.ai.playedTurn % 10 === 0)  // Perform some checks from time to time
 		{
-			// we may have drifted towards ennemy territory during the hunt, if yes go home
-			var territoryOwner = gameState.ai.HQ.territoryMap.getOwner(this.ent.position());
-			if (territoryOwner != 0 && !gameState.isPlayerAlly(territoryOwner))  // player is its own ally
-				this.startHunting(gameState);
+			if (this.ent.unitAIState().split(".")[1] === "GATHER"
+				|| this.ent.unitAIState().split(".")[1] === "RETURNRESOURCE")
+			{
+				// we may have drifted towards ennemy territory during the hunt, if yes go home
+				var territoryOwner = gameState.ai.HQ.territoryMap.getOwner(this.ent.position());
+				if (territoryOwner != 0 && !gameState.isPlayerAlly(territoryOwner))  // player is its own ally
+					this.startHunting(gameState);
+				else if (this.ent.unitAIState() === "INDIVIDUAL.RETURNRESOURCE.APPROACHING")
+				{
+					// Check that UnitAI does not send us to an inaccessible dropsite
+					var dropsite = gameState.getEntityById(this.ent.unitAIOrderData()[0]["target"]);
+					if (dropsite && dropsite.position())
+					{
+						var access = gameState.ai.accessibility.getAccessValue(this.ent.position());
+						var goalAccess = dropsite.getMetadata(PlayerID, "access");
+						if (!goalAccess || dropsite.hasClass("Elephant"))
+						{
+							goalAccess = gameState.ai.accessibility.getAccessValue(dropsite.position());
+							dropsite.setMetadata(PlayerID, "access", goalAccess);
+						}
+						if (access !== goalAccess)
+							this.returnResources(gameState);
+					}
+				}
+			}
 		}
 	}
 	else if (subrole === "fisher")
@@ -511,9 +555,10 @@ m.Worker.prototype.startHunting = function(gameState, position)
 		if (!isCavalry && dist > 25000)
 			return;
 
-		// some simple check for chickens: if they're in a inaccessible square, we won't gather from them.
-		// TODO: make sure this works with rounding.
-		if (supply.footprintRadius() < 1)
+		// some simple accessibility check: if they're in an inaccessible square, we won't gather from them.
+		// (happen only at start of the game, as animals should not be able to walk to an inaccessible area)
+		// TODO as the animal can move, check again from time to time
+		if (supply.setMetadata(PlayerID, "inaccessible") === undefined)
 		{
 			var fakeMap = new API3.Map(gameState.sharedScript, gameState.getMap().data);
 			var mapPos = fakeMap.gamePosToMapPos(supply.position());
@@ -521,9 +566,10 @@ m.Worker.prototype.startHunting = function(gameState, position)
 			if (gameState.sharedScript.passabilityClasses["pathfinderObstruction"] & gameState.getMap().data[id])
 			{
 				supply.setMetadata(PlayerID, "inaccessible", true)
-				warn("on a trouve un poulet inaccessible");
 				return;
 			}
+			else
+				supply.setMetadata(PlayerID, "inaccessible", false)
 		}
 
 		// Avoid ennemy territory
@@ -568,7 +614,7 @@ m.Worker.prototype.startFishing = function(gameState)
 	var resources = gameState.getFishableSupplies();
 	if (resources.length === 0)
 	{
-		gameState.ai.HQ.navalManager.resetFishingBoats();
+		gameState.ai.HQ.navalManager.resetFishingBoats(gameState);
 		this.ent.destroy();
 		return false;
 	}
@@ -742,15 +788,17 @@ m.Worker.prototype.moveAway = function(baseManager, gameState){
 	var pos = this.ent.position();
 	var dist = Math.min();
 	var destination = pos;
-	for (var i = 0; i < gatherers.length; ++i)
+	for (var gatherer of gatherers)
 	{
-		if (gatherers[i].isIdle())
+		if (!gatherer.position() || gatherer.getMetadata(PlayerID, "transport") !== undefined)
 			continue;
-		var distance = API3.SquareVectorDistance(pos, gatherers[i].position());
+		if (gatherer.isIdle())
+			continue;
+		var distance = API3.SquareVectorDistance(pos, gatherer.position());
 		if (distance > dist)
 			continue;
 		dist = distance;
-		destination = gatherers[i].position();
+		destination = gatherer.position();
 	}
 	this.ent.move(destination[0], destination[1]);
 };

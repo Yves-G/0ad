@@ -40,9 +40,9 @@ m.AttackManager.prototype.init = function(gameState, queues, allowRush)
 // Others once in a while
 m.AttackManager.prototype.update = function(gameState, queues, events)
 {
-	if (this.Config.debug == 2 &&  gameState.getTimeElapsed() > this.debugTime + 60000)
+	if (this.Config.debug == 2 &&  gameState.ai.elapsedTime > this.debugTime + 60)
 	{
-		this.debugTime = gameState.getTimeElapsed();
+		this.debugTime = gameState.ai.elapsedTime;
 		warn(" upcoming attacks =================");
 		for (var attackType in this.upcomingAttacks)
 		{
@@ -69,12 +69,12 @@ m.AttackManager.prototype.update = function(gameState, queues, events)
 		for (var i = 0; i < this.upcomingAttacks[attackType].length; ++i)
 		{
 			var attack = this.upcomingAttacks[attackType][i];
-			attack.checkEvents(gameState, events, queues);
+			attack.checkEvents(gameState, events);
 
 			// okay so we'll get the support plan
 			if (!attack.isStarted())
 			{
-				var updateStep = attack.updatePreparation(gameState, this,events);
+				var updateStep = attack.updatePreparation(gameState, events);
 					
 				// now we're gonna check if the preparation time is over
 				if (updateStep === 1 || attack.isPaused() )
@@ -142,11 +142,11 @@ m.AttackManager.prototype.update = function(gameState, queues, events)
 		for (var i = 0; i < this.startedAttacks[attackType].length; ++i)
 		{
 			var attack = this.startedAttacks[attackType][i];
-			attack.checkEvents(gameState, events, queues);
+			attack.checkEvents(gameState, events);
 			// okay so then we'll update the attack.
 			if (attack.isPaused())
 				continue;
-			var remaining = attack.update(gameState,this, events);
+			var remaining = attack.update(gameState, events);
 			if (!remaining)
 			{
 				if (this.Config.debug > 0)
@@ -204,7 +204,7 @@ m.AttackManager.prototype.update = function(gameState, queues, events)
 	if (this.upcomingAttacks["Raid"].length === 0 && gameState.ai.HQ.defenseManager.targetList.length)
 	{
 		var target = undefined;
-		for each (var targetId in gameState.ai.HQ.defenseManager.targetList)
+		for (var targetId of gameState.ai.HQ.defenseManager.targetList)
 		{
 			target = gameState.getEntityById(targetId);
 			if (target)

@@ -1,5 +1,6 @@
 Engine.LoadComponentScript("interfaces/Attack.js");
 Engine.LoadComponentScript("interfaces/AlertRaiser.js");
+Engine.LoadComponentScript("interfaces/Auras.js");
 Engine.LoadComponentScript("interfaces/Barter.js");
 Engine.LoadComponentScript("interfaces/Builder.js");
 Engine.LoadComponentScript("interfaces/DamageReceiver.js");
@@ -364,6 +365,7 @@ AddMock(10, IID_Identity, {
 });
 
 AddMock(10, IID_Position, {
+	GetTurretParent: function() {return INVALID_ENTITY;},
 	GetPosition: function() {
 		return {x:1, y:2, z:3};
 	},
@@ -417,6 +419,7 @@ TS_ASSERT_UNEVAL_EQUALS(cmp.GetExtendedEntityState(-1, 10), {
 	buildingAI: null,
 	healer: null,
 	obstruction: null,
+	turretParent: null,
 	promotion: null,
 	resourceCarrying: null,
 	resourceDropsite: null,

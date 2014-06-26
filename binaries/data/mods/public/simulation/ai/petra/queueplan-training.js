@@ -37,6 +37,19 @@ m.TrainingPlan.prototype.canStart = function(gameState)
 
 m.TrainingPlan.prototype.start = function(gameState)
 {
+	if (this.metadata && this.metadata.trainer)
+	{
+		var metadata = {};
+		for (var key in this.metadata)
+			if (key !== "trainer")
+				metadata[key] = this.metadata[key];
+		var trainer = gameState.getEntityById(this.metadata.trainer);
+		if (trainer)
+			trainer.train(this.type, this.number, metadata);
+		this.onStart(gameState);
+		return;
+	}
+
 	if (this.metadata && this.metadata.sea)
 		var trainers = gameState.findTrainers(this.type).filter(API3.Filters.byMetadata(PlayerID, "sea", this.metadata.sea)).toEntityArray();
 	else if (this.metadata && this.metadata.base)
@@ -57,17 +70,17 @@ m.TrainingPlan.prototype.start = function(gameState)
 			var aa = a.trainingQueueTime();
 			var bb = b.trainingQueueTime();
 			if (a.hasClass("Civic") && !supportUnit)
-				aa += 0.9;
+				aa += 10;
 			if (b.hasClass("Civic") && !supportUnit)
-				bb += 0.9;
+				bb += 10;
 			if (wantedIndex)
 			{
 				var aBase = a.getMetadata(PlayerID, "base");
 				if (!aBase || gameState.ai.HQ.baseManagers[aBase].accessIndex !== wantedIndex)
-					aa += 2.0;
+					aa += 30;
 				var bBase = b.getMetadata(PlayerID, "base");
 				if (!bBase || gameState.ai.HQ.baseManagers[bBase].accessIndex !== wantedIndex)
-					bb += 2.0;
+					bb += 30;
 			}
 			return (aa - bb);
 		});

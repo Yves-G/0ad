@@ -51,7 +51,7 @@ m.BaseManager.prototype.init = function(gameState, unconstructed)
 	this.dropsites = {};
 	this.dropsiteSupplies = {};
 	this.gatherers = {};
-	for each (var type in this.Config.resources)
+	for (var type of this.Config.resources)
 	{
 		this.dropsiteSupplies[type] = {"nearby": [], "medium": [], "faraway": []};
 		this.gatherers[type] = {"nextCheck": 0, "used": 0, "lost": 0};
@@ -267,28 +267,30 @@ m.BaseManager.prototype.removeDropsite = function (gameState, ent)
 m.BaseManager.prototype.findBestDropsiteLocation = function(gameState, resource)
 {
 	
-	var storeHousePlate = gameState.getTemplate(gameState.applyCiv("structures/{civ}_storehouse"));
+	var template = gameState.getTemplate(gameState.applyCiv("structures/{civ}_storehouse"));
 
 	// This builds a map. The procedure is fairly simple. It adds the resource maps
 	//	(which are dynamically updated and are made so that they will facilitate DP placement)
 	// Then checks for a good spot in the territory. If none, and town/city phase, checks outside
 	// The AI will currently not build a CC if it wouldn't connect with an existing CC.
-	
-	var obstructions = m.createObstructionMap(gameState, this.accessIndex, storeHousePlate);
+
+	var obstructions = m.createObstructionMap(gameState, this.accessIndex, template);
 	obstructions.expandInfluences();
 	
-	var locateMap = new API3.Map(gameState.sharedScript);
-
 	var DPFoundations = gameState.getOwnFoundations().filter(API3.Filters.byType(gameState.applyCiv("foundation|structures/{civ}_storehouse")));
 
 	var ccEnts = gameState.getOwnEntities().filter(API3.Filters.byClass("CivCentre")).toEntityArray();
-	
-	// TODO: might be better to check dropsites someplace else.
-	// loop over this in this.terrytoryindices. It's usually a little too much, but it's always enough.
-	var width = locateMap.width;
+
+	var width = obstructions.width;
+	var bestIdx = undefined;
+	var bestVal = undefined;
+	var radius = Math.ceil(template.obstructionRadius() / gameState.cellSize);
+
 	for (var p = 0; p < this.territoryIndices.length; ++p)
 	{
 		var j = this.territoryIndices[p];
+		if (obstructions.map[j] <= radius)  // check room around
+			continue;
 		
 		// we add 3 times the needed resource and once the other two (not food)
 		var total = 0;
@@ -341,7 +343,7 @@ m.BaseManager.prototype.findBestDropsiteLocation = function(gameState, resource)
 		if (total == 0)
 			continue;
 
-		for each (var cc in ccEnts)
+		for (var cc of ccEnts)
 		{
 			var ccPos = cc.position();
 			if (!ccPos)
@@ -355,22 +357,23 @@ m.BaseManager.prototype.findBestDropsiteLocation = function(gameState, resource)
 			else if (dist < 6400)
 				total /= 2;
 		}
+		if (total == 0)
+			continue;
 
-		locateMap.map[j] = total;
+		if (bestVal !== undefined && total < bestVal)
+			continue;
+		bestVal = total;
+		bestIdx = j;
 	}
-	
-	var best = locateMap.findBestTile(2, obstructions);
-	var bestIdx = best[0];
 
 	if (this.Config.debug == 2)
-		warn(" for dropsite best is " + best[1]);
+		warn(" for dropsite best is " + bestVal);
 
-	var quality = best[1];
-	if (quality <= 0)
-		return {"quality": quality, "pos": [0, 0]};
+	if (bestVal <= 0)
+		return {"quality": bestVal, "pos": [0, 0]};
 	var x = ((bestIdx % width) + 0.5) * gameState.cellSize;
 	var z = (Math.floor(bestIdx / width) + 0.5) * gameState.cellSize;
-	return {"quality": quality, "pos": [x, z]};
+	return {"quality": bestVal, "pos": [x, z]};
 };
 
 m.BaseManager.prototype.getResourceLevel = function (gameState, type)
@@ -378,7 +381,7 @@ m.BaseManager.prototype.getResourceLevel = function (gameState, type)
 	var count = 0;
 	var check = {};
 	var nearby = this.dropsiteSupplies[type]["nearby"];
-	for each (var supply in nearby)
+	for (var supply of nearby)
 	{
 		if (check[supply.id])    // avoid double counting as same resource can appear several time
 			continue;
@@ -386,7 +389,7 @@ m.BaseManager.prototype.getResourceLevel = function (gameState, type)
 		count += supply.ent.resourceSupplyAmount();
 	}
 	var medium = this.dropsiteSupplies[type]["medium"];
-	for each (var supply in medium)
+	for (var supply of medium)
 	{
 		if (check[supply.id])
 			continue;
@@ -399,7 +402,7 @@ m.BaseManager.prototype.getResourceLevel = function (gameState, type)
 // check our resource levels and react accordingly
 m.BaseManager.prototype.checkResourceLevels = function (gameState, queues)
 {
-	for each (var type in this.Config.resources)
+	for (var type of this.Config.resources)
 	{
 		if (type == "food")
 		{
@@ -450,13 +453,15 @@ m.BaseManager.prototype.checkResourceLevels = function (gameState, queues)
 					{
 						var newDP = this.findBestDropsiteLocation(gameState, type);
 						if (newDP.quality > 50 && gameState.ai.HQ.canBuild(gameState, "structures/{civ}_storehouse"))
-						{
 							queues.dropsites.addItem(new m.ConstructionPlan(gameState, "structures/{civ}_storehouse", { "base": this.ID }, newDP.pos));
-							if (!gameState.isResearched("gather_capacity_wheelbarrow") && !gameState.isResearching("gather_capacity_wheelbarrow"))
-								queues.minorTech.addItem(new m.ResearchPlan(gameState, "gather_capacity_wheelbarrow"));
+						else if (gameState.countFoundationsByType(gameState.ai.HQ.bBase[0], true) === 0 && queues.civilCentre.length() === 0)
+						{
+							// No good dropsite, try to build a new base if no base already planned,
+							// and if not possible, be less strict on dropsite quality
+							if (!gameState.ai.HQ.buildNewBase(gameState, queues, type) && newDP.quality > Math.min(25, 50*0.15/ratio)
+								&& gameState.ai.HQ.canBuild(gameState, "structures/{civ}_storehouse"))
+								queues.dropsites.addItem(new m.ConstructionPlan(gameState, "structures/{civ}_storehouse", { "base": this.ID }, newDP.pos));
 						}
-						else
-							gameState.ai.HQ.buildNewBase(gameState, queues, type);
 					}
 					this.gatherers[type].nextCheck = gameState.ai.playedTurn + 20;
 					this.gatherers[type].used = 0;
@@ -540,12 +545,12 @@ m.BaseManager.prototype.setWorkersIdleByPriority = function(gameState)
 	var resources = gameState.ai.queueManager.getAvailableResources(gameState);
 
 	var avgOverdraft = 0;
-	for each (var type in resources.types)
+	for (var type of resources.types)
 		avgOverdraft += resources[type];
 	avgOverdraft /= 4;
 
 	var mostNeeded = gameState.ai.HQ.pickMostNeededResources(gameState);
-	for each (var type in resources.types)
+	for (var type of resources.types)
 	{
 		if (type === mostNeeded[0])
 			continue;
@@ -796,7 +801,8 @@ m.BaseManager.prototype.assignToFoundations = function(gameState, noRepair)
 	for (var i in damagedBuildings)
 	{
 		var target = damagedBuildings[i];
-		if (gameState.defcon() < 5)
+		var underAttack = false;  // TODO define the condition of under attack
+		if (underAttack)
 		{
 			if (target.healthLevel() > 0.5 || !target.hasClass("CivCentre") || !target.hasClass("StoneWall"))
 				continue;
@@ -814,9 +820,7 @@ m.BaseManager.prototype.assignToFoundations = function(gameState, noRepair)
 		{
 			if (builderWorkers.length + addedWorkers < targetNB*2)
 			{	
-				var nonBuilderWorkers = workers.filter(function(ent) { return (ent.getMetadata(PlayerID, "subrole") !== "builder" && ent.position() !== undefined); });
-				if (gameState.defcon() < 5)
-					nonBuilderWorkers = workers.filter(function(ent) { return (ent.getMetadata(PlayerID, "subrole") !== "builder" && ent.hasClass("Female") && ent.position() !== undefined); });
+				var nonBuilderWorkers = workers.filter(function(ent) { return (ent.getMetadata(PlayerID, "subrole") !== "builder" && ent.position() !== undefined && ent.getMetadata(PlayerID, "transport") === undefined); });
 				var nearestNonBuilders = nonBuilderWorkers.filterNearest(target.position(), targetNB/3 - assigned);
 				
 				nearestNonBuilders.forEach(function(ent) {

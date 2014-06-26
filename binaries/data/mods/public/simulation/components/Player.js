@@ -42,7 +42,6 @@ Player.prototype.Init = function()
 		"metal": markForTranslation("Metal"),
 		"stone": markForTranslation("Stone"),
 	}
-	Engine.QueryInterface(SYSTEM_ENTITY, IID_EndGameManager).CheckConquestCriticalEntities();
 };
 
 Player.prototype.SetPlayerID = function(id)
@@ -244,7 +243,7 @@ Player.prototype.SubtractResourcesOrNotify = function(amounts)
 			warn("Localisation: Strings are not localised for more than 4 resources");
 
 		var notification = {
-			"player": this.playerID,
+			"players": [this.playerID],
 			"message": msg,
 			"parameters": parameters,
 			"translateMessage": true,
@@ -586,9 +585,6 @@ Player.prototype.OnGlobalOwnershipChanged = function(msg)
 		if (!cmpFoundation && cmpIdentity && cmpIdentity.HasClass("ConquestCritical"))
 			this.conquestCriticalEntitiesCount--;
 
-		if (this.conquestCriticalEntitiesCount == 0) // end game when needed
-			Engine.QueryInterface(SYSTEM_ENTITY, IID_EndGameManager).CheckConquestCriticalEntities();
-
 		if (cmpCost)
 			this.popUsed -= cmpCost.GetPopCost();
 
@@ -641,7 +637,7 @@ Player.prototype.OnPlayerDefeated = function(msg)
 	cmpRangeManager.SetLosRevealAll(this.playerID, true);
 
 	// Send a chat message notifying of the player's defeat.
-	var notification = {"type": "defeat", "player": this.playerID};
+	var notification = {"type": "defeat", "players": [this.playerID]};
 	var cmpGUIInterface = Engine.QueryInterface(SYSTEM_ENTITY, IID_GuiInterface);
 	cmpGUIInterface.PushNotification(notification);
 };
@@ -649,7 +645,6 @@ Player.prototype.OnPlayerDefeated = function(msg)
 Player.prototype.OnDiplomacyChanged = function()
 {
 	this.UpdateSharedLos();
-	Engine.QueryInterface(SYSTEM_ENTITY, IID_EndGameManager).CheckConquestCriticalEntities();
 };
 
 Player.prototype.SetCheatsEnabled = function(flag)
@@ -698,7 +693,7 @@ Player.prototype.TributeResource = function(player, amounts)
 	if (cmpTheirStatisticsTracker)
 		cmpTheirStatisticsTracker.IncreaseTributesReceivedCounter(total);
 
-	var notification = {"type": "tribute", "player": player, "player1": this.playerID, "amounts": amounts};
+	var notification = {"type": "tribute", "players": [player], "donator": this.playerID, "amounts": amounts};
 	var cmpGUIInterface = Engine.QueryInterface(SYSTEM_ENTITY, IID_GuiInterface);
 	if (cmpGUIInterface)
 		cmpGUIInterface.PushNotification(notification);

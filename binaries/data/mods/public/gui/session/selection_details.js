@@ -311,6 +311,16 @@ function displaySingle(entState, template)
 		iconTooltip += "[/font]";
 	}
 
+	if (template.auras)
+	{
+		for (var auraName in template.auras)
+		{
+			iconTooltip += "\n[font=\"sans-bold-13\"]" + translate(auraName) + "[/font]";
+			if (template.auras[auraName])
+				iconTooltip += ": " + translate(template.auras[auraName]);
+		}
+	}
+
 	if (template.tooltip)
 		iconTooltip += "\n[font=\"sans-13\"]" + template.tooltip + "[/font]";
 
@@ -418,8 +428,5 @@ function updateSelectionDetails()
 	{
 		// Fill out commands panel for specific unit selected (or first unit of primary group)
 		updateUnitCommands(entState, supplementalDetailsPanel, commandsPanel, selection);
-		// Show panels
-		supplementalDetailsPanel.hidden = false;
-		commandsPanel.hidden = false;
 	}
 }

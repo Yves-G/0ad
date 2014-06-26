@@ -223,17 +223,14 @@ function init(initData, hotloadData)
 	{
 		g_Selection.selected = hotloadData.selection;
 	}
-	else
-	{
-		// Starting for the first time:
-		initMusic();
-		if (!g_IsObserver){
-			var civMusic = g_CivData[g_Players[Engine.GetPlayerID()].civ].Music;
-			global.music.storeTracks(civMusic);
-		}
-		global.music.setState(global.music.states.PEACE);
-		playRandomAmbient("temperate");
+	// Starting for the first time:
+	initMusic();
+	if (!g_IsObserver){
+		var civMusic = g_CivData[g_Players[Engine.GetPlayerID()].civ].Music;
+		global.music.storeTracks(civMusic);
 	}
+	global.music.setState(global.music.states.PEACE);
+	playRandomAmbient("temperate");
 
 	if (Engine.ConfigDB_GetValue("user", "gui.session.timeelapsedcounter") === "true")
 		Engine.GetGUIObjectByName("timeElapsedCounter").hidden = false;
@@ -680,14 +677,8 @@ function updateGroups()
 		button.onpress = (function(i) { return function() { performGroup((Engine.HotkeyIsPressed("selection.add") ? "add" : "select"), i); } })(i);
 		button.ondoublepress = (function(i) { return function() { performGroup("snap", i); } })(i);
 		button.onpressright = (function(i) { return function() { performGroup("breakUp", i); } })(i);
+		setPanelObjectPosition(button, i, 1);
 	}
-	var numButtons = i;
-	var rowLength = 1;
-	var numRows = Math.ceil(numButtons / rowLength);
-	var buttonSideLength = Engine.GetGUIObjectByName("unit"+guiName+"Button[0]").size.bottom;
-	var buttonSpacer = buttonSideLength+1;
-	for (var i = 0; i < numRows; i++)
-		layoutButtonRow(i, guiName, buttonSideLength, buttonSpacer, rowLength*i, rowLength*(i+1) );
 }
 
 function updateDebug()

@@ -3,11 +3,10 @@
 const DEFAULT_NETWORKED_MAP = "Acropolis 01";
 const DEFAULT_OFFLINE_MAP = "Acropolis 01";
 
+const VICTORY_DEFAULTIDX = 1;
+
 // TODO: Move these somewhere like simulation\data\game_types.json, Atlas needs them too
 // Translation: Type of victory condition.
-const VICTORY_TEXT = [translateWithContext("victory", "Conquest"), translateWithContext("victory", "Wonder"), translateWithContext("victory", "None")];
-const VICTORY_DATA = ["conquest", "wonder", "endless"];
-const VICTORY_DEFAULTIDX = 0;
 const POPULATION_CAP = ["50", "100", "150", "200", "250", "300", translate("Unlimited")];
 const POPULATION_CAP_DATA = [50, 100, 150, 200, 250, 300, 10000];
 const POPULATION_CAP_DEFAULTIDX = 5;
@@ -67,12 +66,6 @@ var g_CivData = {};
 
 var g_MapFilters = [];
 
-// Warn about the AI's nonexistent naval map support.
-var g_NavalWarning = "\n\n" + sprintf(
-	translate("%(warning)s The AI does not support naval maps and may cause severe performance issues. Naval maps are recommended to be played with human opponents only. Nonetheless, Petra has now an experimental support for naval maps."),
-	{ warning: "[font=\"sans-bold-12\"][color=\"orange\"]" + translate("Warning:") + "[/color][/font]" }
-);
-
 // Current number of assigned human players.
 var g_AssignedCount = 0;
 
@@ -121,7 +114,7 @@ function init(attribs)
 // Called after the map data is loaded and cached
 function initMain()
 {
-	// Load AI list and hide deprecated AIs
+	// Load AI list
 	g_AIs = Engine.GetAIs();
 
 	// Sort AIs by displayed name
@@ -157,6 +150,8 @@ function initMain()
 	mapFilters.list = getFilterNames();
 	mapFilters.list_data = getFilterIds();
 	g_GameAttributes.mapFilter = "default";
+
+
 
 	// Setup controls for host only
 	if (g_IsController)
@@ -221,12 +216,16 @@ function initMain()
 		}
 
 		var victoryConditions = Engine.GetGUIObjectByName("victoryCondition");
-		victoryConditions.list = VICTORY_TEXT;
-		victoryConditions.list_data = VICTORY_DATA;
+		var victories = getVictoryConditions();
+		victoryConditions.list = victories.text;
+		victoryConditions.list_data = victories.data;
 		victoryConditions.onSelectionChange = function()
 		{	// Update attributes so other players can see change
 			if (this.selected != -1)
-				g_GameAttributes.settings.GameType = VICTORY_DATA[this.selected];
+			{
+				g_GameAttributes.settings.GameType = victories.data[this.selected];
+				g_GameAttributes.settings.VictoryScripts = victories.scripts[this.selected];
+			}
 
 			if (!g_IsInGuiUpdate)
 				updateGameAttributes();
@@ -284,6 +283,8 @@ function initMain()
 			// Update attributes so other players can see change
 			g_GameAttributes.settings.RatingEnabled = this.checked;
 			Engine.SetRankedGame(this.checked);
+			Engine.GetGUIObjectByName("enableCheats").enabled = !this.checked;
+			Engine.GetGUIObjectByName("lockTeams").enabled = !this.checked;
 			if (!g_IsInGuiUpdate)
 				updateGameAttributes();
 		};
@@ -291,7 +292,6 @@ function initMain()
 	else
 	{
 		// If we're a network client, disable all the map controls
-		// TODO: make them look visually disabled so it's obvious why they don't work
 		Engine.GetGUIObjectByName("mapTypeSelection").hidden = true;
 		Engine.GetGUIObjectByName("mapTypeText").hidden = false;
 		Engine.GetGUIObjectByName("mapFilterSelection").hidden = true;
@@ -307,7 +307,7 @@ function initMain()
 		// TODO: Shouldn't players be able to choose their own assignment?
 		for (var i = 0; i < MAX_PLAYERS; ++i)
 		{
-			Engine.GetGUIObjectByName("playerAssignment["+i+"]").enabled = false;
+			Engine.GetGUIObjectByName("playerAssignment["+i+"]").hidden = true;
 			Engine.GetGUIObjectByName("playerCiv["+i+"]").hidden = true;
 			Engine.GetGUIObjectByName("playerTeam["+i+"]").hidden = true;
 		}
@@ -333,7 +333,10 @@ function initMain()
 		{
 			Engine.GetGUIObjectByName("optionRating").hidden = false;
 			Engine.GetGUIObjectByName("enableRating").checked = Engine.IsRankedGame();
-			g_GameAttributes.settings.RatingEnabled = true;
+			g_GameAttributes.settings.RatingEnabled = Engine.IsRankedGame();
+			// We force locked teams and disabled cheats in ranked games.
+			Engine.GetGUIObjectByName("enableCheats").enabled = !Engine.IsRankedGame();
+			Engine.GetGUIObjectByName("lockTeams").enabled = !Engine.IsRankedGame();
 		}
 		if (g_IsController)
 		{
@@ -398,6 +401,9 @@ function initMain()
 		// to allow easy keyboard selection of maps
 		Engine.GetGUIObjectByName("mapSelection").focus();
 	}
+	// Sync g_GameAttributes to everyone.
+	if (g_IsController)
+		updateGameAttributes();
 }
 
 function handleNetMessage(message)
@@ -426,7 +432,18 @@ function handleNetMessage(message)
 
 	case "gamesetup":
 		if (message.data) // (the host gets undefined data on first connect, so skip that)
+		{
 			g_GameAttributes = message.data;
+
+			// Validate some settings for rated games.
+			if (g_GameAttributes.settings.RatingEnabled)
+			{
+				// Cheats can never be on in rated games.
+				g_GameAttributes.settings.CheatsEnabled = false;
+				// Teams must be locked in rated games.
+				g_GameAttributes.settings.LockTeams = true;
+			}
+		}
 
 		onGameAttributesChange();
 		break;
@@ -906,6 +923,10 @@ function launchGame()
 	if (g_GameAttributes.map == "random")
 		selectMap(Engine.GetGUIObjectByName("mapSelection").list_data[Math.floor(Math.random() *
 			(Engine.GetGUIObjectByName("mapSelection").list.length - 1)) + 1]);
+	if (!g_GameAttributes.settings.TriggerScripts)
+		g_GameAttributes.settings.TriggerScripts = g_GameAttributes.settings.VictoryScripts;
+	else
+		g_GameAttributes.settings.TriggerScripts = g_GameAttributes.settings.VictoryScripts.concat(g_GameAttributes.settings.TriggerScripts);
 	g_GameStarted = true;
 	g_GameAttributes.settings.mapType = g_GameAttributes.mapType;
 	var numPlayers = g_GameAttributes.settings.PlayerData.length;
@@ -1040,14 +1061,16 @@ function onGameAttributesChange()
 	var startingResourcesText = Engine.GetGUIObjectByName("startingResourcesText");
 	var gameSpeedText = Engine.GetGUIObjectByName("gameSpeedText");
 
+	// We have to check for undefined on these properties as not all maps define them.
 	var sizeIdx = (mapSettings.Size !== undefined && g_MapSizes.tiles.indexOf(mapSettings.Size) != -1 ? g_MapSizes.tiles.indexOf(mapSettings.Size) : g_MapSizes["default"]);
 	var speedIdx = (g_GameAttributes.gameSpeed !== undefined && g_GameSpeeds.speeds.indexOf(g_GameAttributes.gameSpeed) != -1) ? g_GameSpeeds.speeds.indexOf(g_GameAttributes.gameSpeed) : g_GameSpeeds["default"];
-	var victoryIdx = (mapSettings.GameType !== undefined && VICTORY_DATA.indexOf(mapSettings.GameType) != -1 ? VICTORY_DATA.indexOf(mapSettings.GameType) : VICTORY_DEFAULTIDX);
-	enableCheats.checked = (g_GameAttributes.settings.CheatsEnabled === undefined || !g_GameAttributes.settings.CheatsEnabled ? false : true)
+	var victories = getVictoryConditions();
+	var victoryIdx = (mapSettings.GameType !== undefined && victories.data.indexOf(mapSettings.GameType) != -1 ? victories.data.indexOf(mapSettings.GameType) : VICTORY_DEFAULTIDX);
+	enableCheats.checked = (mapSettings.CheatsEnabled === undefined || !mapSettings.CheatsEnabled ? false : true)
 	enableCheatsText.caption = (enableCheats.checked ? "Yes" : "No");
-	if (g_GameAttributes.settings.RatingEnabled !== undefined)
+	if (mapSettings.RatingEnabled !== undefined)
 	{
-		enableRating.checked = g_GameAttributes.settings.RatingEnabled;
+		enableRating.checked = mapSettings.RatingEnabled;
 		Engine.SetRankedGame(enableRating.checked);
 		enableRatingText.caption = (enableRating.checked ? "Yes" : "No");
 	}
@@ -1119,7 +1142,7 @@ function onGameAttributesChange()
 			mapSizeText.caption = g_MapSizes.names[sizeIdx];
 			revealMapText.caption = (mapSettings.RevealMap ? translate("Yes") : translate("No"));
 			exploreMapText.caption = (mapSettings.ExporeMap ? translate("Yes") : translate("No"));
-			victoryConditionText.caption = VICTORY_TEXT[victoryIdx];
+			victoryConditionText.caption = victories.text[victoryIdx];
 			lockTeamsText.caption = (mapSettings.LockTeams ? translate("Yes") : translate("No"));
 		}
 
@@ -1175,7 +1198,7 @@ function onGameAttributesChange()
 
 			revealMapText.caption = (mapSettings.RevealMap ? translate("Yes") : translate("No"));
 			exploreMapText.caption = (mapSettings.ExploreMap ? translate("Yes") : translate("No"));
-			victoryConditionText.caption = VICTORY_TEXT[victoryIdx];
+			victoryConditionText.caption = victories.text[victoryIdx];
 			lockTeamsText.caption = (mapSettings.LockTeams ? translate("Yes") : translate("No"));
 		}
 
@@ -1206,7 +1229,7 @@ function onGameAttributesChange()
 		mapSizeText.caption = translate("Default");
 		revealMapText.caption = (mapSettings.RevealMap ? translate("Yes") : translate("No"));
 		exploreMapText.caption = (mapSettings.ExploreMap ? translate("Yes") : translate("No"));
-		victoryConditionText.caption = VICTORY_TEXT[victoryIdx];
+		victoryConditionText.caption = victories.text[victoryIdx];
 		lockTeamsText.caption = (mapSettings.LockTeams ? translate("Yes") : translate("No"));
 		Engine.GetGUIObjectByName("populationCap").selected = POPULATION_CAP_DEFAULTIDX;
 
@@ -1230,9 +1253,6 @@ function onGameAttributesChange()
 	// Load the description from the map file, if there is one
 	var description = mapSettings.Description ? translate(mapSettings.Description) : translate("Sorry, no description available.");
 
-	if (g_GameAttributes.mapFilter == "naval")
-		description += g_NavalWarning;
-
 	// Describe the number of players
 	var playerString = sprintf(translatePlural("%(number)s player. %(description)s", "%(number)s players. %(description)s", numPlayers), { number: numPlayers, description: description });
 
@@ -1246,6 +1266,8 @@ function onGameAttributesChange()
 			continue;
 
 		var pName = Engine.GetGUIObjectByName("playerName["+i+"]");
+		var pAssignment = Engine.GetGUIObjectByName("playerAssignment["+i+"]");
+		var pAssignmentText = Engine.GetGUIObjectByName("playerAssignmentText["+i+"]");
 		var pCiv = Engine.GetGUIObjectByName("playerCiv["+i+"]");
 		var pCivText = Engine.GetGUIObjectByName("playerCivText["+i+"]");
 		var pTeam = Engine.GetGUIObjectByName("playerTeam["+i+"]");
@@ -1265,8 +1287,11 @@ function onGameAttributesChange()
 		var civ = getSetting(pData, pDefs, "Civ");
 
 		// For clients or scenarios, hide some player dropdowns
+		// TODO: Allow clients to choose their own civ and team
 		if (!g_IsController || g_GameAttributes.mapType == "scenario")
 		{
+			pAssignmentText.hidden = false;
+			pAssignment.hidden = true;
 			pCivText.hidden = false;
 			pCiv.hidden = true;
 			pTeamText.hidden = false;
@@ -1277,9 +1302,12 @@ function onGameAttributesChange()
 			else
 				pCivText.caption = g_CivData[civ].Name;
 			pTeamText.caption = (team !== undefined && team >= 0) ? team+1 : "-";
+			pAssignmentText.caption = pAssignment.list[pAssignment.selected];
 		}
 		else if (g_GameAttributes.mapType != "scenario")
 		{
+			pAssignmentText.hidden = true;
+			pAssignment.hidden = false;
 			pCivText.hidden = true;
 			pCiv.hidden = false;
 			pTeamText.hidden = true;
@@ -1406,7 +1434,10 @@ function updatePlayerList()
 				if (aiId in aiAssignments)
 					selection = aiAssignments[aiId];
 				else
+				{
+					g_GameAttributes.settings.PlayerData[playerSlot].AI = "";
 					warn(sprintf("AI \"%(id)s\" not present. Defaulting to unassigned.", { id: aiId }));
+				}
 			}
 
 			if (!selection)
@@ -1438,12 +1469,14 @@ function updatePlayerList()
 		}
 
 		var assignBox = Engine.GetGUIObjectByName("playerAssignment["+i+"]");
+		var assignBoxText = Engine.GetGUIObjectByName("playerAssignmentText["+i+"]");
 		assignBox.list = hostNameList;
 		assignBox.list_data = hostGuidList;
 		if (assignBox.selected != selection)
 			assignBox.selected = selection;
+		assignBoxText.caption = hostNameList[selection];
 
-		if (g_IsNetworked && g_IsController)
+		if (g_IsController)
 		{
 			assignBox.onselectionchange = function ()
 			{
@@ -1452,47 +1485,28 @@ function updatePlayerList()
 					var guid = hostGuidList[this.selected];
 					if (guid == "")
 					{
-						// Unassign any host from this player slot
-						Engine.AssignNetworkPlayer(playerID, "");
+						if (g_IsNetworked)
+							// Unassign any host from this player slot
+							Engine.AssignNetworkPlayer(playerID, "");
 						// Remove AI from this player slot
 						g_GameAttributes.settings.PlayerData[playerSlot].AI = "";
 					}
 					else if (guid.substr(0, 3) == "ai:")
 					{
-						// Unassign any host from this player slot
-						Engine.AssignNetworkPlayer(playerID, "");
+						if (g_IsNetworked)
+							// Unassign any host from this player slot
+							Engine.AssignNetworkPlayer(playerID, "");
 						// Set the AI for this player slot
 						g_GameAttributes.settings.PlayerData[playerSlot].AI = guid.substr(3);
 					}
 					else
 						swapPlayers(guid, playerSlot);
 
-					Engine.SetNetworkGameAttributes(g_GameAttributes);
+					if (g_IsNetworked)
+						Engine.SetNetworkGameAttributes(g_GameAttributes);
+					else
+						updatePlayerList();
 					updateReadyUI();
-				}
-			};
-		}
-		else if (!g_IsNetworked)
-		{
-			assignBox.onselectionchange = function ()
-			{
-				if (!g_IsInGuiUpdate)
-				{
-					var guid = hostGuidList[this.selected];
-					if (guid == "")
-					{
-						// Remove AI from this player slot
-						g_GameAttributes.settings.PlayerData[playerSlot].AI = "";
-					}
-					else if (guid.substr(0, 3) == "ai:")
-					{
-						// Set the AI for this player slot
-						g_GameAttributes.settings.PlayerData[playerSlot].AI = guid.substr(3);
-					}
-					else
-						swapPlayers(guid, playerSlot);
-
-					updatePlayerList();
 				}
 			};
 		}
@@ -1674,9 +1688,9 @@ function updateReadyUI()
 	}
 
 	// The host is not allowed to start until everyone is ready.
-	var startGameButton = Engine.GetGUIObjectByName("startGame");
 	if (g_IsNetworked && g_IsController)
 	{
+		var startGameButton = Engine.GetGUIObjectByName("startGame");
 		startGameButton.enabled = allReady;
 		// Add a explanation on to the tooltip if disabled.
 		var disabledIndex = startGameButton.tooltip.indexOf('Disabled');
@@ -1824,4 +1838,19 @@ function sendRegisterGameStanza()
 		"players":players
 	};
 	Engine.SendRegisterGame(gameData);
+}
+
+function getVictoryConditions()
+{
+	var r = {};
+	r.text = [translate("None")];
+	r.data = ["endless"];
+	r.scripts = [[]];
+	for (var vc in g_VictoryConditions)
+	{
+		r.data.push(vc);
+		r.text.push(g_VictoryConditions[vc].name);
+		r.scripts.push(g_VictoryConditions[vc].scripts);
+	}
+	return r;
 }

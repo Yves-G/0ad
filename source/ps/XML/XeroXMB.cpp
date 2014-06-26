@@ -1,4 +1,4 @@
-/* Copyright (C) 2011 Wildfire Games.
+/* Copyright (C) 2014 Wildfire Games.
  * This file is part of 0 A.D.
  *
  * 0 A.D. is free software: you can redistribute it and/or modify
@@ -20,11 +20,13 @@
 #include "Xeromyces.h"
 
 #include "lib/byte_order.h"	// FOURCC_LE
-#include "ps/utf16string.h"
 
 // external linkage (also used by Xeromyces.cpp)
 const char* HeaderMagicStr = "XMB0";
 const char* UnfinishedHeaderMagicStr = "XMBu";
+// Arbitrary version number - change this if we update the code and
+// need to invalidate old users' caches
+const u32 XMBVersion = 3;
 
 // Warning: May contain traces of pointer abuse
 
@@ -39,6 +41,11 @@ bool XMBFile::Initialise(const char* FileData)
 		return false;
 	ENSURE(!strcmp(Header, HeaderMagicStr) && "Invalid XMB header!");
 
+	u32 Version = *(u32*)m_Pointer;
+	m_Pointer += 4;
+	if (Version != XMBVersion)
+		return false;
+
 	int i;
 
 	// FIXME Check that m_Pointer doesn't end up past the end of the buffer
@@ -50,11 +57,11 @@ bool XMBFile::Initialise(const char* FileData)
 	// Build a std::map of all the names->ids
 	u32 ElementNameCount = *(u32*)m_Pointer; m_Pointer += 4;
 	for (i = 0; i < ElementNameCount; ++i)
-		m_ElementNames[ReadZStrA()] = i;
+		m_ElementNames[ReadZStr8()] = i;
 
 	u32 AttributeNameCount = *(u32*)m_Pointer; m_Pointer += 4;
 	for (i = 0; i < AttributeNameCount; ++i)
-		m_AttributeNames[ReadZStrA()] = i;
+		m_AttributeNames[ReadZStr8()] = i;
 #else
 	// Ignore all the names for now, and skip over them
 	// (remembering the position of the first)
@@ -72,7 +79,7 @@ bool XMBFile::Initialise(const char* FileData)
 	return true;	// success
 }
 
-std::string XMBFile::ReadZStrA()
+std::string XMBFile::ReadZStr8()
 {
 	int Length = *(int*)m_Pointer;
 	m_Pointer += 4;
@@ -199,7 +206,7 @@ CStr8 XMBElement::GetText() const
 	if (m_Pointer == NULL || *(int*)(m_Pointer + 20) == 0)
 		return CStr8();
 
-	return CStrW(utf16string((utf16_t*)(m_Pointer + 28))).ToUTF8();
+	return CStr8(m_Pointer + 28);
 }
 
 int XMBElement::GetLineNumber() const
@@ -265,7 +272,7 @@ CStr8 XMBAttributeList::GetNamedItem(const int AttributeName) const
 	for (int i = 0; i < Count; ++i)
 	{
 		if (*(int*)Pos == AttributeName)
-			return CStrW(utf16string((utf16_t*)(Pos+8))).ToUTF8();
+			return CStr8(Pos+8);
 		Pos += 8 + *(int*)(Pos+4); // Skip over the string
 	}
 
@@ -297,5 +304,5 @@ XMBAttribute XMBAttributeList::Item(const int id)
 	m_LastItemID = id;
 	m_LastPointer = Pos;
 
-	return XMBAttribute(*(int*)Pos, CStrW(utf16string( (const utf16_t*)(Pos+8) )).ToUTF8());
+	return XMBAttribute(*(int*)Pos, CStr8(Pos+8));
 }

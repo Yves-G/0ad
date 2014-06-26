@@ -148,6 +148,20 @@ CMessage* CMessageProgressiveLoad::FromJSVal(ScriptInterface& UNUSED(scriptInter
 
 ////////////////////////////////
 
+jsval CMessageDeserialized::ToJSVal(ScriptInterface& UNUSED(scriptInterface)) const
+{
+	LOGWARNING(L"CMessageDeserialized::ToJSVal not implemented");
+	return JSVAL_VOID;
+}
+
+CMessage* CMessageDeserialized::FromJSVal(ScriptInterface& UNUSED(scriptInterface), jsval UNUSED(val))
+{
+	LOGWARNING(L"CMessageDeserialized::FromJSVal not implemented");
+	return NULL;
+}
+
+////////////////////////////////
+
 jsval CMessageCreate::ToJSVal(ScriptInterface& scriptInterface) const
 {
 	TOJSVAL_SETUP();
@@ -224,6 +238,20 @@ CMessage* CMessagePositionChanged::FromJSVal(ScriptInterface& scriptInterface, j
 
 ////////////////////////////////
 
+jsval CMessageInterpolatedPositionChanged::ToJSVal(ScriptInterface& UNUSED(scriptInterface)) const
+{
+	LOGWARNING(L"CMessageInterpolatedPositionChanged::ToJSVal not implemented");
+	return JSVAL_VOID;
+}
+
+CMessage* CMessageInterpolatedPositionChanged::FromJSVal(ScriptInterface& UNUSED(scriptInterface), jsval UNUSED(val))
+{
+	LOGWARNING(L"CMessageInterpolatedPositionChanged::FromJSVal not implemented");
+	return NULL;
+}
+
+////////////////////////////////
+
 jsval CMessageTerritoryPositionChanged::ToJSVal(ScriptInterface& scriptInterface) const
 {
 	TOJSVAL_SETUP();
@@ -291,6 +319,19 @@ jsval CMessageWaterChanged::ToJSVal(ScriptInterface& scriptInterface) const
 CMessage* CMessageWaterChanged::FromJSVal(ScriptInterface& UNUSED(scriptInterface), jsval UNUSED(val))
 {
 	return new CMessageWaterChanged();
+}
+
+////////////////////////////////
+
+jsval CMessageObstructionMapShapeChanged::ToJSVal(ScriptInterface& scriptInterface) const
+{
+	TOJSVAL_SETUP();
+	return OBJECT_TO_JSVAL(obj);
+}
+
+CMessage* CMessageObstructionMapShapeChanged::FromJSVal(ScriptInterface& UNUSED(scriptInterface), jsval UNUSED(val))
+{
+	return new CMessageObstructionMapShapeChanged();
 }
 
 ////////////////////////////////

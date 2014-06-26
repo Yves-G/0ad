@@ -6,7 +6,7 @@ var PETRA = function(m)
  * When a unit is ordered to garrison, it must be done through this.garrison() function so that
  * an object in this.holders is created. This object contains an array with the entities
  * in the process of being garrisoned. To have all garrisoned units, we must add those in holder.garrisoned().
- * Futhermore garrison units have a metadata garrison described the reason of this garrison (protection, transport, ...)
+ * Futhermore garrison units have a metadata garrisonType describing its reason (protection, transport, ...)
  */
 
 m.GarrisonManager = function()
@@ -24,10 +24,10 @@ m.GarrisonManager.prototype.update = function(gameState, queues)
 		var holder = gameState.getEntityById(id);
 		if (!holder)    // this holder was certainly destroyed. Let's remove it
 		{
-			for each (var entId in this.holders[id])
+			for (var entId of this.holders[id])
 			{
 				var ent = gameState.getEntityById(entId);
-				if (ent && ent.getMetadata(PlayerID, "garrison-holder") === id)
+				if (ent && ent.getMetadata(PlayerID, "garrisonHolder") === id)
 					this.leaveGarrison(ent);
 			}
 			this.holders[id] = undefined;
@@ -51,9 +51,12 @@ m.GarrisonManager.prototype.update = function(gameState, queues)
 		if (!holder.position())     // could happen with siege unit inside a ship
 			continue;
 
-		if (gameState.ai.playedTurn - holder.getMetadata(PlayerID, "lastUpdate") > 5)
+		if (gameState.ai.playedTurn - holder.getMetadata(PlayerID, "holderUpdate") > 5)
 		{
-			var range = holder.attackRange("Ranged").max;
+			if (holder.attackRange("Ranged"))
+				var range = holder.attackRange("Ranged").max;
+			else
+				var range = 80;
 			var enemiesAround = gameState.getEnemyEntities().toEntityArray().some(function(ent) {
 				if (!ent.position() || ent.owner() === 0)
 					return false;
@@ -65,7 +68,7 @@ m.GarrisonManager.prototype.update = function(gameState, queues)
 
 			var healer = holder.buffHeal();
 
-			for each (var entId in holder._entity.garrisoned)
+			for (var entId of holder._entity.garrisoned)
 			{
 				var ent = gameState.getEntityById(entId);
 				if (!this.keepGarrisoned(ent, holder, enemiesAround))
@@ -76,14 +79,14 @@ m.GarrisonManager.prototype.update = function(gameState, queues)
 				var ent = gameState.getEntityById(list[j]);
 				if (this.keepGarrisoned(ent, holder, enemiesAround))
 					continue;
-				if (ent.getMetadata(PlayerID, "garrison-holder") === id)
+				if (ent.getMetadata(PlayerID, "garrisonHolder") === id)
 					this.leaveGarrison(ent);
 				list.splice(j--, 1);
 			}
 			if (this.numberOfGarrisonedUnits(holder) === 0)
 				this.holders[id] = undefined;
 			else
-				holder.setMetadata(PlayerID, "lastUpdate", gameState.ai.playedTurn);
+				holder.setMetadata(PlayerID, "holderUpdate", gameState.ai.playedTurn);
 		}
 	}
 };
@@ -103,15 +106,10 @@ m.GarrisonManager.prototype.garrison = function(gameState, ent, holder, type)
 	if (this.numberOfGarrisonedUnits(holder) >= holder.garrisonMax())
 		return;
 
-	if (!this.holders[holder.id()])
-	{
-		this.holders[holder.id()] = [ent.id()];
-		holder.setMetadata(PlayerID, "lastUpdate", gameState.ai.playedTurn);
-	}
-	else
-		this.holders[holder.id()].push(ent.id());
+	this.registerHolder(gameState, holder);
+	this.holders[holder.id()].push(ent.id());
 
-	if (gameState.ai.HQ.Config.debug > 0)
+	if (gameState.ai.HQ.Config.debug > 1)
 	{
 		warn("garrison unit " + ent.genericName() + " in " + holder.genericName() + " with type " + type);
 		warn(" we try to garrison a unit with plan " + ent.getMetadata(PlayerID, "plan") + " and role " + ent.getMetadata(PlayerID, "role")
@@ -123,12 +121,12 @@ m.GarrisonManager.prototype.garrison = function(gameState, ent, holder, type)
 	else
 		ent.setMetadata(PlayerID, "plan", -3);
 	ent.setMetadata(PlayerID, "subrole", "garrisoning");
-	ent.setMetadata(PlayerID, "garrison-holder", holder.id());
-	ent.setMetadata(PlayerID, "garrison-type", type);
+	ent.setMetadata(PlayerID, "garrisonHolder", holder.id());
+	ent.setMetadata(PlayerID, "garrisonType", type);
 	ent.garrison(holder);
 };
 
-// This is the end of the pre-garrison state, either because the entity really garrsioned
+// This is the end of the pre-garrison state, either because the entity is really garrisoned
 // or because it has changed its order (i.e. because the garrisonHolder was destroyed).
 m.GarrisonManager.prototype.leaveGarrison = function(ent)
 {
@@ -137,12 +135,12 @@ m.GarrisonManager.prototype.leaveGarrison = function(ent)
 		ent.setMetadata(PlayerID, "plan", -1);
 	else
 		ent.setMetadata(PlayerID, "plan", undefined);
-	ent.setMetadata(PlayerID, "garrison-holder", undefined);
+	ent.setMetadata(PlayerID, "garrisonHolder", undefined);
 };
 
 m.GarrisonManager.prototype.keepGarrisoned = function(ent, holder, enemiesAround)
 {
-	switch (ent.getMetadata(PlayerID, "garrison-type"))
+	switch (ent.getMetadata(PlayerID, "garrisonType"))
 	{
 		case 'force':           // force the ungarrisoning
 			return false;
@@ -158,9 +156,18 @@ m.GarrisonManager.prototype.keepGarrisoned = function(ent, holder, enemiesAround
 		default:
 			if (ent.getMetadata(PlayerID, "onBoard") === "onBoard")  // transport is not (yet ?) managed by garrisonManager 
 				return true;
-			warn("unknown type in garrisonManager " + ent.getMetadata(PlayerID, "garrison-type"));
+			warn("unknown type in garrisonManager " + ent.getMetadata(PlayerID, "garrisonType"));
 			return true;
 	}
+};
+
+// Add this holder in the list managed by the garrisonManager
+m.GarrisonManager.prototype.registerHolder = function(gameState, holder)
+{
+	if (this.holders[holder.id()])    // already registered
+		return;
+	this.holders[holder.id()] = [];
+	holder.setMetadata(PlayerID, "holderUpdate", gameState.ai.playedTurn);
 };
 
 return m;

@@ -46,7 +46,7 @@ m.Config = function() {
 		"advanced" : {
 			"default" : [],
 			"athen" : [ "structures/{civ}_gymnasion", "structures/{civ}_prytaneion", "structures/{civ}_theatron" ],
-			"brit" : [ "structures/{civ}_crannog", "structures/{civ}_rotarymill" ],
+			"brit" : [ "structures/{civ}_rotarymill" ],
 			"cart" : [ "structures/{civ}_embassy_celtic",
 					"structures/{civ}_embassy_iberian", "structures/{civ}_embassy_italiote" ],
 			"gaul" : [ "structures/{civ}_tavern" ],
@@ -59,12 +59,17 @@ m.Config = function() {
 			"rome" : [ "structures/{civ}_army_camp" ],
 			"sele" : [ "structures/{civ}_library" ],
 			"spart" : [ "structures/{civ}_syssiton", "structures/{civ}_theatron" ]
+		},
+		"naval" : {
+			"default" : [],
+//			"brit" : [ "structures/{civ}_crannog" ],
+			"cart" : [ "structures/{civ}_super_dock" ]
 		}
 	};
 
 	this.priorities = 
 	{
-		"villager" : 30,	// should be slightly lower than the citizen soldier one because otherwise they get all the food
+		"villager" : 30,      // should be slightly lower than the citizen soldier one to not get all the food
 		"citizenSoldier" : 60,
 		"trader" : 50,
 		"ships" : 70,
@@ -76,7 +81,8 @@ m.Config = function() {
 		"defenseBuilding" : 70,
 		"civilCentre" : 950,
 		"majorTech" : 700,
-		"minorTech" : 40
+		"minorTech" : 40,
+		"emergency" : 1000    // used only in emergency situations, should be the highest one 
 	};
 
 	this.personality =

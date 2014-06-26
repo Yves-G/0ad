@@ -1,4 +1,4 @@
-/* Copyright (C) 2012 Wildfire Games.
+/* Copyright (C) 2014 Wildfire Games.
  * This file is part of 0 A.D.
  *
  * 0 A.D. is free software: you can redistribute it and/or modify
@@ -68,12 +68,8 @@ PSRETURN CXeromyces::Load(const PIVFS& vfs, const VfsPath& filename)
 
 	CCacheLoader cacheLoader(vfs, L".xmb");
 
-	// Arbitrary version number - change this if we update the code and
-	// need to invalidate old users' caches
-	u32 version = 1;
-
 	VfsPath xmbPath;
-	Status ret = cacheLoader.TryLoadingCached(filename, MD5(), version, xmbPath);
+	Status ret = cacheLoader.TryLoadingCached(filename, MD5(), XMBVersion, xmbPath);
 
 	if (ret == INFO::OK)
 	{
@@ -277,11 +273,10 @@ static void OutputElement(const xmlNodePtr node, WriteBuffer& writeBuffer,
 	else
 	{
 		// Write length and line number and null-terminated text
-		utf16string textW = CStr8(text).FromUTF8().utf16();
-		u32 nodeLen = u32(4 + 2*(textW.length()+1));
+		u32 nodeLen = u32(4 + text.length()+1);
 		writeBuffer.Append(&nodeLen, 4);
 		writeBuffer.Append(&linenum, 4);
-		writeBuffer.Append((void*)textW.c_str(), nodeLen-4);
+		writeBuffer.Append((void*)text.c_str(), nodeLen-4);
 	}
 
 	// Output attributes
@@ -290,11 +285,10 @@ static void OutputElement(const xmlNodePtr node, WriteBuffer& writeBuffer,
 		writeBuffer.Append(&attributeIDs[(const char*)attr->name], 4);
 
 		xmlChar* value = xmlNodeGetContent(attr->children);
-		utf16string textW = CStr8((const char*)value).FromUTF8().utf16();
-		xmlFree(value);
-		u32 attrLen = u32(2*(textW.length()+1));
+		u32 attrLen = u32(xmlStrlen(value)+1);
 		writeBuffer.Append(&attrLen, 4);
-		writeBuffer.Append((void*)textW.c_str(), attrLen);
+		writeBuffer.Append((void*)value, attrLen);
+		xmlFree(value);
 	}
 
 	// Go back and fill in the child-element offset
@@ -315,6 +309,8 @@ PSRETURN CXeromyces::CreateXMB(const xmlDocPtr doc, WriteBuffer& writeBuffer)
 {
 	// Header
 	writeBuffer.Append(UnfinishedHeaderMagicStr, 4);
+	// Version
+	writeBuffer.Append(&XMBVersion, 4);
 
 	std::set<std::string>::iterator it;
 	u32 i;
