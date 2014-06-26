@@ -120,7 +120,7 @@ void CBinarySerializerScriptImpl::HandleScriptVal(JS::Value valArg)
 
 			// Now handle its array buffer
 			// this may be a backref, since ArrayBuffers can be shared by multiple views
-			JS::RootedValue bufferVal(cx, JS::ObjectValue(*JS_GetArrayBufferViewBuffer(obj)));
+			JS::RootedValue bufferVal(cx, JS::ObjectValue(*JS_GetArrayBufferViewBuffer(cx, obj)));
 			HandleScriptVal(bufferVal);
 			break;
 		}

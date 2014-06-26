@@ -46,20 +46,14 @@
 struct BuildDirEntListState
 {
 	JSContext* cx;
-	JSObject* filename_array;
+	JS::PersistentRooted<JSObject*> filename_array;
 	int cur_idx;
 
 	BuildDirEntListState(JSContext* cx_)
-		: cx(cx_)
+		: cx(cx_), 
+		filename_array(cx, JS_NewArrayObject(cx, JS::HandleValueArray::empty())),
+		cur_idx(0)
 	{
-		filename_array = JS_NewArrayObject(cx, JS::HandleValueArray::empty());
-		JS_AddObjectRoot(cx, &filename_array);
-		cur_idx = 0;
-	}
-
-	~BuildDirEntListState()
-	{
-		JS_RemoveObjectRoot(cx, &filename_array);
 	}
 };
 

@@ -21,52 +21,36 @@
 #include "ScriptVal.h"
 
 
-struct Unrooter
+CScriptValRooted::CScriptValRooted(JSContext* cx, jsval val) : m_IsInitialized(true)
 {
-	Unrooter(JSContext* cx) : cx(cx) { }
-	void operator()(jsval* p)
-	{
-		JSAutoRequest rq(cx);
-		JS_RemoveValueRoot(cx, p); delete p;
-	}
-	JSContext* cx;
-};
-
-CScriptValRooted::CScriptValRooted(JSContext* cx, jsval val)
-{
-	JSAutoRequest rq(cx);
-	jsval* p = new jsval(val);
-	JS_AddNamedValueRoot(cx, p, "CScriptValRooted");
-	m_Val = boost::shared_ptr<jsval>(p, Unrooter(cx));
+	m_Val.reset(new JS::PersistentRooted<JS::Value>(cx, val));
 }
 
-CScriptValRooted::CScriptValRooted(JSContext* cx, CScriptVal val)
+CScriptValRooted::CScriptValRooted(JSContext* cx, CScriptVal val) : m_IsInitialized(true)
 {
-	JSAutoRequest rq(cx);
-	jsval* p = new jsval(val.get());
-	JS_AddNamedValueRoot(cx, p, "CScriptValRooted");
-	m_Val = boost::shared_ptr<jsval>(p, Unrooter(cx));
+	m_Val.reset(new JS::PersistentRooted<JS::Value>(cx, val.get()));
 }
 
 jsval CScriptValRooted::get() const
 {
-	if (!m_Val)
-		return JSVAL_VOID;
-	return *m_Val;
+	if (m_Val)
+		return m_Val->get();
+	return JS::UndefinedValue();
 }
 
 jsval& CScriptValRooted::getRef() const
 {
 	ENSURE(m_Val);
-	return *m_Val;
+	return m_Val->get();
+
 }
 
 bool CScriptValRooted::undefined() const
 {
-	return (!m_Val || JSVAL_IS_VOID(*m_Val));
+	return !(m_Val && !m_Val->get().isNull());
 }
 
 bool CScriptValRooted::uninitialised() const
 {
-	return !m_Val;
+	return !m_IsInitialized;
 }

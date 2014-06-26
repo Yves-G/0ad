@@ -42,6 +42,10 @@ public:
 
 	virtual void SetSerializablePrototypes(std::map<std::wstring, JSObject*>& prototypes);
 	
+	static void Trace(JSTracer *trc, void *data);
+    
+	void TraceMember(JSTracer *trc);
+	
 protected:
 	virtual void Get(const char* name, u8* data, size_t len);
 
@@ -54,7 +58,8 @@ private:
 	virtual u32 ReserveScriptBackref();
 	virtual void SetReservedScriptBackref(u32 tag, JSObject* obj);
 	void FreeScriptBackrefs();
-	std::map<u32, JSObject*> m_ScriptBackrefs; // vector would be nice but maintaining JS roots would be harder
+	std::vector<JS::Heap<JSObject*> > m_ScriptBackrefs;
+
 	ScriptInterface& m_ScriptInterface;
 
 	std::istream& m_Stream;

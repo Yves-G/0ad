@@ -30,11 +30,24 @@
 CStdDeserializer::CStdDeserializer(ScriptInterface& scriptInterface, std::istream& stream) :
 	m_ScriptInterface(scriptInterface), m_Stream(stream)
 {
+	JS_AddExtraGCRootsTracer(m_ScriptInterface.GetJSRuntime(), CStdDeserializer::Trace, this);
 }
 
 CStdDeserializer::~CStdDeserializer()
 {
 	FreeScriptBackrefs();
+	JS_RemoveExtraGCRootsTracer(m_ScriptInterface.GetJSRuntime(), CStdDeserializer::Trace, this);
+}
+
+void CStdDeserializer::Trace(JSTracer *trc, void *data)
+{
+	reinterpret_cast<CStdDeserializer*>(data)->TraceMember(trc);
+}
+
+void CStdDeserializer::TraceMember(JSTracer *trc)
+{
+	for(size_t i=0; i<m_ScriptBackrefs.size(); i++)
+		JS_CallHeapObjectTracer(trc, &m_ScriptBackrefs[i], "StdDeserializer::m_ScriptBackrefs");
 }
 
 void CStdDeserializer::Get(const char* name, u8* data, size_t len)
@@ -81,42 +94,31 @@ void CStdDeserializer::RequireBytesInStream(size_t numBytes)
 
 void CStdDeserializer::AddScriptBackref(JSObject* obj)
 {
-	std::pair<std::map<u32, JSObject*>::iterator, bool> it = m_ScriptBackrefs.insert(std::make_pair((u32)m_ScriptBackrefs.size()+1, obj));
-	ENSURE(it.second);
-	if (!JS_AddObjectRoot(m_ScriptInterface.GetContext(), &it.first->second))
-		throw PSERROR_Deserialize_ScriptError("JS_AddRoot failed");
+	m_ScriptBackrefs.push_back(JS::Heap<JSObject*>(obj));
 }
 
 JSObject* CStdDeserializer::GetScriptBackref(u32 tag)
 {
-	std::map<u32, JSObject*>::const_iterator it = m_ScriptBackrefs.find(tag);
-	if (it == m_ScriptBackrefs.end())
-		return NULL;
-	return it->second;
+	tag--; // TODO: remove when the serializer is also adjusted (uses tag numbering starting with 1 currently)
+	ENSURE(m_ScriptBackrefs.size() > tag);
+	return m_ScriptBackrefs[tag];
 }
 
 u32 CStdDeserializer::ReserveScriptBackref()
 {
-	AddScriptBackref(NULL);
+	m_ScriptBackrefs.push_back(JS::Heap<JSObject*>());
 	return m_ScriptBackrefs.size();
 }
 
 void CStdDeserializer::SetReservedScriptBackref(u32 tag, JSObject* obj)
 {
-	std::pair<std::map<u32, JSObject*>::iterator, bool> it = m_ScriptBackrefs.insert(std::make_pair(tag, obj));
-	ENSURE(!it.second);
+	tag--; // TODO: remove when the serializer is also adjusted (uses tag numbering starting with 1 currently)
+	ENSURE(m_ScriptBackrefs[tag].get() == nullptr);
+	m_ScriptBackrefs[tag] = JS::Heap<JSObject*>(obj);
 }
 
 void CStdDeserializer::FreeScriptBackrefs()
 {
-	JSContext* cx = m_ScriptInterface.GetContext();
-	JSAutoRequest rq(cx);
-	
-	std::map<u32, JSObject*>::iterator it = m_ScriptBackrefs.begin();
-	for (; it != m_ScriptBackrefs.end(); ++it)
-	{
-		JS_RemoveObjectRoot(m_ScriptInterface.GetContext(), &it->second);
-	}
 	m_ScriptBackrefs.clear();
 }
 

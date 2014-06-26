@@ -46,10 +46,11 @@ private:
 	jsval m_Val;
 };
 
+// TODO: This type should probably be replaced by types from the JSAPI
 class CScriptValRooted
 {
 public:
-	CScriptValRooted() { }
+	CScriptValRooted() : m_IsInitialized(false) { }
 	CScriptValRooted(JSContext* cx, jsval val);
 	CScriptValRooted(JSContext* cx, CScriptVal val);
 
@@ -75,7 +76,8 @@ public:
 	bool uninitialised() const;
 
 private:
-	boost::shared_ptr<jsval> m_Val;
+	shared_ptr<JS::PersistentRooted<JS::Value> > m_Val;
+	bool m_IsInitialized;
 };
 
 #endif // INCLUDED_SCRIPTVAL

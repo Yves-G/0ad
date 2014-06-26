@@ -401,9 +401,9 @@ private:
 	bool CallFunction_(jsval val, const char* name, uint argc, jsval* argv, jsval& ret);
 	bool Eval_(const char* code, jsval& ret);
 	bool Eval_(const wchar_t* code, jsval& ret);
-	bool SetGlobal_(const char* name, jsval value, bool replace);
-	bool SetProperty_(jsval obj, const char* name, jsval value, bool readonly, bool enumerate);
-	bool SetProperty_(jsval obj, const wchar_t* name, jsval value, bool readonly, bool enumerate);
+	bool SetGlobal_(const char* name, JS::HandleValue value, bool replace);
+	bool SetProperty_(jsval obj, const char* name, JS::HandleValue value, bool readonly, bool enumerate);
+	bool SetProperty_(jsval obj, const wchar_t* name, JS::HandleValue value, bool readonly, bool enumerate);
 	bool SetPropertyInt_(jsval obj, int name, jsval value, bool readonly, bool enumerate);
 	bool GetProperty_(jsval obj, const char* name, JS::MutableHandleValue out);
 	bool GetPropertyInt_(jsval obj, int name, JS::MutableHandleValue value);
