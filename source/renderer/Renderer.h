@@ -1,4 +1,4 @@
-/* Copyright (C) 2013 Wildfire Games.
+/* Copyright (C) 2014 Wildfire Games.
  * This file is part of 0 A.D.
  *
  * 0 A.D. is free software: you can redistribute it and/or modify
@@ -89,9 +89,21 @@ public:
 		OPT_WATERSHADOW,
 		OPT_SHADOWPCF,
 		OPT_PARTICLES,
+		OPT_GENTANGENTS,
 		OPT_PREFERGLSL,
 		OPT_SILHOUETTES,
-		OPT_SHOWSKY
+		OPT_SHOWSKY,
+		OPT_SMOOTHLOS,
+		OPT_POSTPROC,
+		OPT_DISPLAYFRUSTUM,
+	};
+
+	enum CullGroup {
+		CULL_DEFAULT,
+		CULL_SHADOWS,
+		CULL_REFLECTIONS,
+		CULL_REFRACTIONS,
+		CULL_MAX
 	};
 
 	enum RenderPath {
@@ -152,6 +164,7 @@ public:
 		bool m_SmoothLOS;
 		bool m_ShowSky;
 		bool m_Postproc;
+		bool m_DisplayFrustum;
 	} m_Options;
 
 	struct Caps {
@@ -349,22 +362,23 @@ protected:
 	void Submit(SOverlayQuad* overlay);
 	void Submit(CModelDecal* decal);
 	void Submit(CParticleEmitter* emitter);
+	void Submit(SOverlaySphere* overlay);
 	void SubmitNonRecursive(CModel* model);
 	//END: Implementation of SceneCollector
 
 	// render any batched objects
-	void RenderSubmissions();
+	void RenderSubmissions(const CBoundingBoxAligned& waterScissor);
 
 	// patch rendering stuff
-	void RenderPatches(const CShaderDefines& context, const CFrustum* frustum = 0);
+	void RenderPatches(const CShaderDefines& context, int cullGroup);
 
 	// model rendering stuff
-	void RenderModels(const CShaderDefines& context, const CFrustum* frustum = 0);
-	void RenderTransparentModels(const CShaderDefines& context, ETransparentMode transparentMode, const CFrustum* frustum = 0);
+	void RenderModels(const CShaderDefines& context, int cullGroup);
+	void RenderTransparentModels(const CShaderDefines& context, int cullGroup, ETransparentMode transparentMode, bool disableFaceCulling);
 
 	void RenderSilhouettes(const CShaderDefines& context);
 
-	void RenderParticles();
+	void RenderParticles(int cullGroup);
 
 	// shadow rendering stuff
 	void RenderShadowMap(const CShaderDefines& context);
@@ -373,11 +387,14 @@ protected:
 	SScreenRect RenderReflections(const CShaderDefines& context, const CBoundingBoxAligned& scissor);
 	SScreenRect RenderRefractions(const CShaderDefines& context, const CBoundingBoxAligned& scissor);
 
+	void ComputeReflectionCamera(CCamera& camera, const CBoundingBoxAligned& scissor) const;
+	void ComputeRefractionCamera(CCamera& camera, const CBoundingBoxAligned& scissor) const;
+
 	// debugging
 	void DisplayFrustum();
 
 	// enable oblique frustum clipping with the given clip plane
-	void SetObliqueFrustumClipping(const CVector4D& clipPlane);
+	void SetObliqueFrustumClipping(CCamera& camera, const CVector4D& clipPlane) const;
 
 	void ReloadShaders();
 	void RecomputeSystemShaderDefines();
@@ -417,6 +434,7 @@ protected:
 
 	// only valid inside a call to RenderScene
 	Scene* m_CurrentScene;
+	int m_CurrentCullGroup;
 
 	// color used to clear screen in BeginFrame
 	float m_ClearColor[4];
@@ -445,14 +463,6 @@ protected:
 	 * m_SkyManager: the SkyManager object used for sky textures and settings
 	 */
 	SkyManager* m_SkyManager;
-
-	/**
-	 * m_DisplayFrustum: Render the cull frustum and other data that may be interesting
-	 * to evaluate culling and shadow map calculations
-	 *
-	 * Can be controlled from JS via renderer.displayFrustum
-	 */
-	bool m_DisplayFrustum;
 
 	/**
 	 * Enable rendering of terrain tile priority text overlay, for debugging.

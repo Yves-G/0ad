@@ -44,7 +44,7 @@ function messageBox (mbWidth, mbHeight, mbMessage, mbTitle, mbMode, mbButtonCapt
 	if (g_messageBoxBtnFunctions && g_messageBoxBtnFunctions.length != 0)
 	{
 		warn("A messagebox was called when a previous callback function is still set, aborting!");
-		return;	
+		return;
 	}
 
 	g_messageBoxBtnFunctions = mbBtnCode;
@@ -61,14 +61,20 @@ function messageBox (mbWidth, mbHeight, mbMessage, mbTitle, mbMode, mbButtonCapt
 	}
 	if (mbBtnCode)
 		initData.callback = "g_messageBoxCallbackFunction";
-		
 
 	Engine.PushGuiPage("page_msgbox.xml", initData);
 }
 
 // ====================================================================
 
+
+function openURL(url)
+{
+	Engine.OpenURL(url);
+	messageBox(600, 200, sprintf(translate("Opening %(url)s\n in default web browser. Please wait...."), { url: url }), translate("Opening page"), 2);
+}
+
 function updateFPS()
 {	
-	Engine.GetGUIObjectByName("fpsCounter").caption = "FPS: " + Engine.GetFPS();
+	Engine.GetGUIObjectByName("fpsCounter").caption = sprintf(translate("FPS: %(fps)s"), { fps: Engine.GetFPS() });
 }

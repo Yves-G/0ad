@@ -36,7 +36,12 @@ Player.prototype.Init = function()
 	this.cheatsEnabled = false;
 	this.cheatTimeMultiplier = 1;
 	this.heroes = [];
-	Engine.QueryInterface(SYSTEM_ENTITY, IID_EndGameManager).CheckConquestCriticalEntities();
+	this.resourceNames = {
+		"food": markForTranslation("Food"),
+		"wood": markForTranslation("Wood"),
+		"metal": markForTranslation("Metal"),
+		"stone": markForTranslation("Stone"),
+	}
 };
 
 Player.prototype.SetPlayerID = function(id)
@@ -212,10 +217,43 @@ Player.prototype.SubtractResourcesOrNotify = function(amounts)
 	// If we don't have enough resources, send a notification to the player
 	if (amountsNeeded)
 	{
-		var formatted = [];
+		var parameters = {};
+		var i = 0;
 		for (var type in amountsNeeded)
-			formatted.push(amountsNeeded[type] + " " + type[0].toUpperCase() + type.substr(1) );
-		var notification = {"player": this.playerID, "message": "Insufficient resources - " + formatted.join(", ")};
+		{
+			i++;
+			parameters["resourceType"+i] = this.resourceNames[type];
+			parameters["resourceAmount"+i] = amountsNeeded[type];
+		}
+
+		var msg = "";
+		// when marking strings for translations, you need to include the actual string,
+		// not some way to derive the string
+		if (i < 1)
+			warn("Amounts needed but no amounts given?");
+		else if (i == 1)
+			msg = markForTranslation("Insufficient resources - %(resourceAmount1)s %(resourceType1)s");
+		else if (i == 2)
+			msg = markForTranslation("Insufficient resources - %(resourceAmount1)s %(resourceType1)s, %(resourceAmount2)s %(resourceType2)s");
+		else if (i == 3)
+			msg = markForTranslation("Insufficient resources - %(resourceAmount1)s %(resourceType1)s, %(resourceAmount2)s %(resourceType2)s, %(resourceAmount3)s %(resourceType3)s");
+		else if (i == 4)
+			msg = markForTranslation("Insufficient resources - %(resourceAmount1)s %(resourceType1)s, %(resourceAmount2)s %(resourceType2)s, %(resourceAmount3)s %(resourceType3)s, %(resourceAmount4)s %(resourceType4)s");
+		else
+			warn("Localisation: Strings are not localised for more than 4 resources");
+
+		var notification = {
+			"players": [this.playerID],
+			"message": msg,
+			"parameters": parameters,
+			"translateMessage": true,
+			"translateParameters": {
+				"resourceType1": "withinSentence",
+				"resourceType2": "withinSentence",
+				"resourceType3": "withinSentence",
+				"resourceType4": "withinSentence",
+			},
+		};
 		var cmpGUIInterface = Engine.QueryInterface(SYSTEM_ENTITY, IID_GuiInterface);
 		cmpGUIInterface.PushNotification(notification);
 		return false;
@@ -540,14 +578,12 @@ Player.prototype.OnGlobalOwnershipChanged = function(msg)
 
 	var cmpIdentity = Engine.QueryInterface(msg.entity, IID_Identity);
 	var cmpCost = Engine.QueryInterface(msg.entity, IID_Cost);
+	var cmpFoundation = Engine.QueryInterface(msg.entity, IID_Foundation);
 
 	if (msg.from == this.playerID)
 	{
-		if (cmpIdentity && cmpIdentity.HasClass("ConquestCritical"))
+		if (!cmpFoundation && cmpIdentity && cmpIdentity.HasClass("ConquestCritical"))
 			this.conquestCriticalEntitiesCount--;
-
-		if (this.conquestCriticalEntitiesCount == 0) // end game when needed
-			Engine.QueryInterface(SYSTEM_ENTITY, IID_EndGameManager).CheckConquestCriticalEntities();
 
 		if (cmpCost)
 			this.popUsed -= cmpCost.GetPopCost();
@@ -562,7 +598,7 @@ Player.prototype.OnGlobalOwnershipChanged = function(msg)
 	}
 	if (msg.to == this.playerID)
 	{
-		if (cmpIdentity && cmpIdentity.HasClass("ConquestCritical"))
+		if (!cmpFoundation && cmpIdentity && cmpIdentity.HasClass("ConquestCritical"))
 			this.conquestCriticalEntitiesCount++;
 
 		if (cmpCost)
@@ -601,7 +637,7 @@ Player.prototype.OnPlayerDefeated = function(msg)
 	cmpRangeManager.SetLosRevealAll(this.playerID, true);
 
 	// Send a chat message notifying of the player's defeat.
-	var notification = {"type": "defeat", "player": this.playerID};
+	var notification = {"type": "defeat", "players": [this.playerID]};
 	var cmpGUIInterface = Engine.QueryInterface(SYSTEM_ENTITY, IID_GuiInterface);
 	cmpGUIInterface.PushNotification(notification);
 };
@@ -609,7 +645,6 @@ Player.prototype.OnPlayerDefeated = function(msg)
 Player.prototype.OnDiplomacyChanged = function()
 {
 	this.UpdateSharedLos();
-	Engine.QueryInterface(SYSTEM_ENTITY, IID_EndGameManager).CheckConquestCriticalEntities();
 };
 
 Player.prototype.SetCheatsEnabled = function(flag)
@@ -658,7 +693,7 @@ Player.prototype.TributeResource = function(player, amounts)
 	if (cmpTheirStatisticsTracker)
 		cmpTheirStatisticsTracker.IncreaseTributesReceivedCounter(total);
 
-	var notification = {"type": "tribute", "player": player, "player1": this.playerID, "amounts": amounts};
+	var notification = {"type": "tribute", "players": [player], "donator": this.playerID, "amounts": amounts};
 	var cmpGUIInterface = Engine.QueryInterface(SYSTEM_ENTITY, IID_GuiInterface);
 	if (cmpGUIInterface)
 		cmpGUIInterface.PushNotification(notification);

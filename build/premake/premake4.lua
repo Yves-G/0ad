@@ -268,13 +268,6 @@ function project_set_build_flags()
 					}
 				end
 
-				if arch == "x86" or arch == "amd64" then
-					buildoptions {
-						-- enable SSE intrinsics
-						"-msse"
-					}
-				end
-
 				if os.is("linux") or os.is("bsd") then
 					linkoptions { "-Wl,--no-undefined", "-Wl,--as-needed" }
 				end
@@ -282,8 +275,12 @@ function project_set_build_flags()
 				if arch == "x86" then
 					buildoptions {
 						-- To support intrinsics like __sync_bool_compare_and_swap on x86
-						-- we need to set -march to something that supports them
-						"-march=i686"
+						-- we need to set -march to something that supports them (i686).
+						-- We use pentium3 to also enable other features like mmx and sse,
+						-- while tuning for generic to have good performance on every
+						-- supported CPU.
+						-- Note that all these features are already supported on amd64.
+						"-march=pentium3 -mtune=generic"
 					}
 				end
 			end
@@ -539,6 +536,12 @@ function setup_static_lib_project (project_name, rel_source_dirs, extern_libs, e
 	end
 end
 
+function setup_third_party_static_lib_project (project_name, rel_source_dirs, extern_libs, extra_params)
+
+	setup_static_lib_project(project_name, rel_source_dirs, extern_libs, extra_params)
+	includedirs { source_root .. "third_party/" .. project_name .. "/include/" .. project_name }
+end
+
 function setup_shared_lib_project (project_name, rel_source_dirs, extern_libs, extra_params)
 
 	local target_type = "SharedLib"
@@ -582,6 +585,28 @@ function setup_all_libs ()
 		table.insert(extern_libs, "miniupnpc")
 	end
 	setup_static_lib_project("network", source_dirs, extern_libs, {})
+
+	source_dirs = {
+		"third_party/tinygettext/src",
+	}
+	extern_libs = {
+		"iconv",
+		"boost",
+	}
+	setup_third_party_static_lib_project("tinygettext", source_dirs, extern_libs, { } )
+	
+	-- it's an external library and we don't want to modify its source to fix warnings, so we just disable them to avoid noise in the compile output
+	if _ACTION == "vs2005" or _ACTION == "vs2008" or _ACTION == "vs2010" or _ACTION == "vs2012" or _ACTION == "vs2013" then
+		buildoptions { 
+			"/wd4127",
+			"/wd4309",
+			"/wd4800",
+			"/wd4100",
+			"/wd4996",
+			"/wd4099",
+			"/wd4503"
+		}
+	end
 
 
 	if not _OPTIONS["without-lobby"] then
@@ -670,6 +695,8 @@ function setup_all_libs ()
 		"soundmanager/scripting",
 		"maths",
 		"maths/scripting",
+		"i18n",
+		"i18n/scripting"
 	}
 	extern_libs = {
 		"spidermonkey",
@@ -680,6 +707,9 @@ function setup_all_libs ()
 		"boost",
 		"enet",
 		"libcurl",
+		"tinygettext",
+		"icu",
+		"iconv",
 	}
 	
 	if not _OPTIONS["without-audio"] then
@@ -724,13 +754,17 @@ function setup_all_libs ()
 
 	source_dirs = {
 		"gui",
-		"gui/scripting"
+		"gui/scripting",
+		"i18n"
 	}
 	extern_libs = {
 		"spidermonkey",
 		"sdl",	-- key definitions
 		"opengl",
 		"boost",
+		"tinygettext",
+		"icu",
+		"iconv",
 	}
 	if not _OPTIONS["without-audio"] then
 		table.insert(extern_libs, "openal")
@@ -855,6 +889,9 @@ used_extern_libs = {
 	"comsuppw",
 	"enet",
 	"libcurl",
+	"tinygettext",
+	"icu",
+	"iconv",
 
 	"valgrind",
 }
@@ -998,6 +1035,9 @@ function setup_atlas_project(project_name, target_type, rel_source_dirs, rel_inc
 		buildoptions { "-rdynamic", "-fPIC" }
 		linkoptions { "-fPIC", "-rdynamic" }
 
+		-- warnings triggered by wxWidgets
+		buildoptions { "-Wno-unused-local-typedefs" }
+
 	elseif os.is("macosx") then
 		-- install_name settings aren't really supported yet by premake, but there are plans for the future.
 		-- we currently use this hack to work around some bugs with wrong install_names.
@@ -1026,6 +1066,7 @@ function setup_atlas_projects()
 		"../../../third_party/jsonspirit"
 	},{	-- extern_libs
 		"boost",
+		"iconv",
 		"libxml2",
 		"wxwidgets"
 	},{	-- extra_params
@@ -1067,9 +1108,9 @@ function setup_atlas_projects()
 
 	atlas_extern_libs = {
 		"boost",
-		"boost_signals",
 		"comsuppw",
 		--"ffmpeg", -- disabled for now because it causes too many build difficulties
+		"iconv",
 		"libxml2",
 		"sdl",	-- key definitions
 		"wxwidgets",
@@ -1213,6 +1254,7 @@ function setup_collada_projects()
 	},{	-- include
 	},{	-- extern_libs
 		"fcollada",
+		"iconv",
 		"libxml2"
 	},{	-- extra_params
 	})

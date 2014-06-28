@@ -30,6 +30,11 @@ Identity.prototype.Schema =
 		"</element>" +
 	"</optional>" +
 	"<optional>" +
+		"<element name='GateConversionTooltip'>" +
+			"<text/>" +
+		"</element>" +
+	"</optional>" +
+	"<optional>" +
 		"<element name='Rollover'>" +
 			"<text/>" +
 		"</element>" +
@@ -50,6 +55,14 @@ Identity.prototype.Schema =
 	"</optional>" +
 	"<optional>" +
 		"<element name='Classes' a:help='Optional list of space-separated classes applying to this entity. Choices include: Unit, Infantry, Melee, Cavalry, Ranged, Mechanical, Ship, Siege, Champion, Hero, Elephant, Chariot, Mercenary, Spear, Sword, Bow, Javelin, Sling, Support, Animal, Domestic, Organic, Structure, Civic, CivCentre, Economic, Defensive, Gates, Wall, BarterMarket, Village, Town, City, ConquestCritical, Worker, Female, Healer, Slave, CitizenSoldier, Trade, Market, NavalMarket, Warship, SeaCreature, ForestPlant, DropsiteFood, DropsiteWood, DropsiteStone, DropsiteMetal, GarrisonTower, GarrisonFortress'>" +
+			"<attribute name='datatype'>" +
+				"<value>tokens</value>" +
+			"</attribute>" +
+			"<text/>" +
+		"</element>" +
+	"</optional>" +
+	"<optional>" +
+		"<element name='VisibleClasses' a:help='Optional list of space-separated classes applying to this entity. These classes will also be visible in various GUI elements, if the classes need spaces. Underscores will be replaced with spaces.'>" +
 			"<attribute name='datatype'>" +
 				"<value>tokens</value>" +
 			"</attribute>" +
@@ -94,11 +107,12 @@ Identity.prototype.GetRank = function()
 
 Identity.prototype.GetClassesList = function()
 {
-	if (this.template.Classes && "_string" in this.template.Classes)
-		return ( this.template.Classes._string + " " + this.GetRank() ).split(/\s+/);
-	if (this.GetRank().length)
-		return [this.GetRank()];
-	return [];
+	return GetIdentityClasses(this.template);
+};
+
+Identity.prototype.GetVisibleClassesList = function()
+{
+	return GetVisibleIdentityClasses(this.template);
 };
 
 Identity.prototype.HasClass = function(name)
@@ -113,10 +127,7 @@ Identity.prototype.GetFormationsList = function()
 		var string = this.template.Formations._string;
 		return string.split(/\s+/);
 	}
-	else
-	{
-		return [];
-	}
+	return [];
 };
 
 Identity.prototype.CanUseFormation = function(template)

@@ -40,7 +40,7 @@
     <Height>8.0</Height>
   </Footprint>
   <GarrisonHolder>
-    <Max>5</Max>
+    <Max>2</Max>
     <EjectHealth>0.1</EjectHealth>
     <EjectClassesOnDestroy datatype="tokens">Unit</EjectClassesOnDestroy>
     <List datatype="tokens">Support Infantry</List>
@@ -54,7 +54,7 @@
   <Identity>
     <GenericName>Wall Turret</GenericName>
     <Tooltip>Shoots arrows. Garrison to defend a city wall against attackers.</Tooltip>
-    <Classes datatype="tokens">Defensive -ConquestCritical StoneWall Tower</Classes>
+    <Classes datatype="tokens">-ConquestCritical StoneWall Tower</Classes>
     <Icon>structures/tower.png</Icon>
     <RequiredTechnology>phase_town</RequiredTechnology>
   </Identity>

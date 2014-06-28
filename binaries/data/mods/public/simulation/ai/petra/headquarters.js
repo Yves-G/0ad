@@ -20,17 +20,14 @@ m.HQ = function(Config)
 	
 	this.targetNumBuilders = this.Config.Economy.targetNumBuilders; // number of workers we want building stuff
 
-	this.dockStartTime = this.Config.Economy.dockStartTime * 1000;
-	
-	this.dockFailed = false;	// sanity check
-	this.waterMap = false;	// set by the aegis.js file.
-	
 	this.econState = "growth";	// existing values: growth, townPhasing.
 	this.phaseStarted = undefined;
 
 	// cache the rates.
 	this.wantedRates = { "food": 0, "wood": 0, "stone":0, "metal": 0 };
 	this.currentRates = { "food": 0, "wood": 0, "stone":0, "metal": 0 };
+	this.lastFailedGather = { "wood": undefined, "stone": undefined, "metal": undefined }; 
+
 
 	// this means we'll have about a big third of women, and thus we can maximize resource gathering rates.
 	this.femaleRatio = this.Config.Economy.femaleRatio;
@@ -39,17 +36,17 @@ m.HQ = function(Config)
 	this.stopBuilding = []; // list of buildings to stop (temporarily) production because no room
 
 	this.towerStartTime = 0;
-	this.towerLapseTime = this.Config.Military.towerLapseTime * 1000;
+	this.towerLapseTime = this.Config.Military.towerLapseTime;
 	this.fortressStartTime = 0;
-	this.fortressLapseTime = this.Config.Military.fortressLapseTime * 1000;
+	this.fortressLapseTime = this.Config.Military.fortressLapseTime;
 
 	this.baseManagers = {};
 	this.attackManager = new m.AttackManager(this.Config);
 	this.defenseManager = new m.DefenseManager(this.Config);
 	this.tradeManager = new m.TradeManager(this.Config);
-	this.navalManager = new m.NavalManager();
-
-	this.boostedSoldiers = undefined;
+	this.navalManager = new m.NavalManager(this.Config);
+	this.researchManager = new m.ResearchManager(this.Config);
+	this.garrisonManager = new m.GarrisonManager();
 };
 
 // More initialisation for stuff that needs the gameState
@@ -62,6 +59,45 @@ m.HQ.prototype.init = function(gameState, queues)
 	this.borderMap = m.createBorderMap(gameState);
 	// initialize frontier map. Each cell is 2 if on the near frontier, 1 on the frontier and 0 otherwise
 	this.frontierMap = m.createFrontierMap(gameState, this.borderMap);
+	// list of allowed regions
+	this.allowedRegions = {};
+
+	// try to determine if we have a water map
+	this.navalMap = false;
+	this.navalRegions = [];
+
+	var totalSize = gameState.getMap().width * gameState.getMap().width;
+	var minLandSize = Math.floor(0.2*totalSize);
+	var minWaterSize = Math.floor(0.3*totalSize);
+	for (var i = 0; i < gameState.ai.accessibility.regionSize.length; ++i)
+	{
+		if (i === gameState.ai.myIndex)
+			this.allowedRegions[i] = true;
+		else if (gameState.ai.accessibility.regionType[i] === "land" && gameState.ai.accessibility.regionSize[i] > 20)
+		{
+			var seaIndex = this.getSeaIndex(gameState, gameState.ai.myIndex, i);
+			if (!seaIndex)
+				continue;
+			this.allowedRegions[i] = true;
+			if (gameState.ai.accessibility.regionSize[i] > minLandSize)
+			{
+				this.navalMap = true;
+				if (this.navalRegions.indexOf(seaIndex) === -1)
+					this.navalRegions.push(seaIndex);
+			}
+		}
+		else if (gameState.ai.accessibility.regionType[i] === "water" && gameState.ai.accessibility.regionSize[i] > minWaterSize)
+		{
+			this.navalMap = true;
+			if (this.navalRegions.indexOf(i) === -1)
+				this.navalRegions.push(i);
+		}
+	}
+	if (this.Config.debug > 0)
+	{
+		for (var region in this.allowedRegions)
+			warn(" >>> zone " + region + " taille " + gameState.ai.accessibility.regionSize[region]);
+	}
 
 	if (this.Config.difficulty === 0)
 		this.targetNumWorkers = Math.max(1, Math.min(40, Math.floor(gameState.getPopulationMax())));
@@ -71,13 +107,7 @@ m.HQ.prototype.init = function(gameState, queues)
 		this.targetNumWorkers = Math.max(1, Math.min(120,Math.floor(gameState.getPopulationMax()/3.0)));
 
 	// Let's get our initial situation here.
-	// TODO: improve on this.
-	// TODO: aknowledge bases, assign workers already.
-	var ents = gameState.getEntities().filter(API3.Filters.byOwner(PlayerID));
-	var ccEnts = ents.filter(API3.Filters.byClass("CivCentre")).toEntityArray();
-	
-	var workersNB = ents.filter(API3.Filters.byClass("Worker")).length;
-	
+	var ccEnts = gameState.getOwnStructures().filter(API3.Filters.byClass("CivCentre")).toEntityArray();	
 	for (var i = 0; i < ccEnts.length; ++i)
 	{
 		this.baseManagers[i+1] = new m.BaseManager(this.Config);
@@ -86,13 +116,13 @@ m.HQ.prototype.init = function(gameState, queues)
 	}
 	this.updateTerritories(gameState);
 
-	if (this.baseManagers[1])     // Affects units in the different bases
+	if (this.baseManagers[1])     // Affects entities in the different bases
 	{
 		var self = this;
 		var width = gameState.getMap().width;
-		ents.forEach( function (ent) {
+		gameState.getOwnEntities().forEach( function (ent) {
 			if (ent.hasClass("Trader"))
-				this.tradeManager.assignTrader(ent);
+				self.tradeManager.assignTrader(ent);
 			var pos = ent.position();
 			if (!pos)
 			{
@@ -101,16 +131,17 @@ m.HQ.prototype.init = function(gameState, queues)
 				self.baseManagers[1].assignEntity(ent);
 				return;
 			}
+			ent.setMetadata(PlayerID, "access", gameState.ai.accessibility.getAccessValue(ent.position()));
 			var x = Math.round(pos[0] / gameState.cellSize);
 			var z = Math.round(pos[1] / gameState.cellSize);
 			var id = x + width*z;
-			for (var i in self.baseManagers)
+			for each (var base in self.baseManagers)
 			{
-				if (self.baseManagers[i].territoryIndices.indexOf(id) === -1)
+				if (base.territoryIndices.indexOf(id) === -1)
 					continue;
-				self.baseManagers[i].assignEntity(ent);
+				base.assignEntity(ent);
 				if (ent.resourceDropsiteTypes() && !ent.hasClass("Elephant"))
-					self.baseManagers[i].assignResourceToDropsite(gameState, ent);
+					base.assignResourceToDropsite(gameState, ent);
 				return;
 			}
 			// entity outside our territory, assign it to base 1
@@ -128,13 +159,55 @@ m.HQ.prototype.init = function(gameState, queues)
 	{
 		var newDP = this.baseManagers[1].findBestDropsiteLocation(gameState, "wood");
 		if (newDP.quality > 40 && this.canBuild(gameState, "structures/{civ}_storehouse"))
-		{
 			queues.dropsites.addItem(new m.ConstructionPlan(gameState, "structures/{civ}_storehouse", { "base": 1 }, newDP.pos));
-			queues.minorTech.addItem(new m.ResearchPlan(gameState, "gather_capacity_wheelbarrow"));
-		}
 	}
 
-	this.attackManager.init(gameState, queues);
+	// adapt our starting strategy to the available resources
+	// - if on a small island, favor fishing and require less fields to save room for buildings
+	var startingSize = 0;
+	for (var region in this.allowedRegions)
+	{
+		for each (var base in this.baseManagers)
+		{
+			if (!base.anchor || base.accessIndex !== +region)
+				continue;
+			startingSize += gameState.ai.accessibility.regionSize[region];
+			break;
+		}
+	}
+	if (this.Config.debug > 0)
+		warn("starting size " + startingSize + "(cut at 1500 for fish pushing)");
+	if (startingSize < 1500)
+	{
+		this.Config.Economy.popForDock = Math.min(this.Config.Economy.popForDock, 16);
+		this.Config.Economy.initialFields = Math.min(this.Config.Economy.initialFields, 3);
+		this.Config.Economy.targetNumFishers = Math.max(this.Config.Economy.targetNumFishers, 2);
+	}
+	// - count the available wood resource, and allow rushes only if enough (we should otherwise favor expansion)
+	var startingWood = gameState.getResources()["wood"];
+	var check = {};
+	for (var proxim of ["nearby", "medium", "faraway"])
+	{
+		for each (var base in this.baseManagers)
+		{
+			for each (var supply in base.dropsiteSupplies["wood"][proxim])
+			{
+				if (check[supply.id])    // avoid double counting as same resource can appear several time
+					continue;
+				check[supply.id] = true;
+				startingWood += supply.ent.resourceSupplyAmount();
+			}
+		}
+	}
+	if (this.Config.debug > 0)
+		warn("startingWood: " + startingWood + "(cut at 8500 for no rush and 6000 for saveResources)");
+	if (startingWood < 6000)
+	{
+		this.saveResources = true;
+		this.Config.Economy.initialFields = Math.min(this.Config.Economy.initialFields, 2);
+	}
+
+	this.attackManager.init(gameState, queues, (startingWood > 8500));  // rush allowed 3rd argument = true
 	this.navalManager.init(gameState, queues);
 	this.defenseManager.init(gameState);
 	this.tradeManager.init(gameState);
@@ -154,81 +227,131 @@ m.HQ.prototype.init = function(gameState, queues)
 	else
 		this.bAdvanced = this.Config.buildings.advanced['default'];
 	
-	if (civ in this.Config.buildings.fort)
-		this.bFort = this.Config.buildings.fort[civ];
-	else
-		this.bFort = this.Config.buildings.fort['default'];
-	
 	for (var i in this.bBase)
 		this.bBase[i] = gameState.applyCiv(this.bBase[i]);
 	for (var i in this.bAdvanced)
 		this.bAdvanced[i] = gameState.applyCiv(this.bAdvanced[i]);
-	for (var i in this.bFort)
-		this.bFort[i] = gameState.applyCiv(this.bFort[i]);
+};
+
+// returns the sea index linking regions 1 and region 2 (supposed to be different land region)
+// otherwise return undefined
+// for the moment, only the case land-sea-land is supported
+m.HQ.prototype.getSeaIndex = function (gameState, index1, index2)
+{
+	var path = gameState.ai.accessibility.getTrajectToIndex(index1, index2);
+	if (path && path.length === 3 && gameState.ai.accessibility.regionType[path[1]] === "water")
+		return path[1];
+	else
+	{
+		if (this.Config.debug > 0)
+		{
+			warn("bad path from " + index1 + " to " + index2 + " ??? " + uneval(path));
+			warn(" regionLinks start " + uneval(gameState.ai.accessibility.regionLinks[index1]));
+			warn(" regionLinks end   " + uneval(gameState.ai.accessibility.regionLinks[index2]));
+		}
+		return undefined;
+	}
 };
 
 m.HQ.prototype.checkEvents = function (gameState, events, queues)
 {
-	// TODO: probably check stuffs like a base destruction.
 	var CreateEvents = events["Create"];
-	var ConstructionEvents = events["ConstructionFinished"];
-	for (var i in CreateEvents)
+	for (var evt of CreateEvents)
 	{
-		var evt = CreateEvents[i];
 		// Let's check if we have a building set to create a new base.
-		if (evt && evt.entity)
+		var ent = gameState.getEntityById(evt.entity);
+		if (!ent || !ent.isOwn(PlayerID))
+			continue;
+			
+		if (ent.getMetadata(PlayerID, "base") === -1)
 		{
-			var ent = gameState.getEntityById(evt.entity);
-			
-			if (ent === undefined)
-				continue; // happens when this message is right before a "Destroy" one for the same entity.
-			
-			if (ent.isOwn(PlayerID) && ent.getMetadata(PlayerID, "base") === -1)
+			// Okay so let's try to create a new base around this.
+			var bID = m.playerGlobals[PlayerID].uniqueIDBases;
+			this.baseManagers[bID] = new m.BaseManager(this.Config);
+			this.baseManagers[bID].init(gameState, true);
+			this.baseManagers[bID].setAnchor(gameState, ent);
+
+			// Let's get a few units out there to build this.
+			var builders = this.bulkPickWorkers(gameState, bID, 10);
+			if (builders !== false)
 			{
-				// Okay so let's try to create a new base around this.
-				var bID = m.playerGlobals[PlayerID].uniqueIDBases;
-				this.baseManagers[bID] = new m.BaseManager(this.Config);
-				this.baseManagers[bID].init(gameState, true);
-				this.baseManagers[bID].setAnchor(gameState, ent);
-				
-				// Let's get a few units out there to build this.
-				var builders = this.bulkPickWorkers(gameState, bID, 10);
-				if (builders !== false)
-				{
-					builders.forEach(function (worker) {
-						worker.setMetadata(PlayerID, "base", bID);
-						worker.setMetadata(PlayerID, "subrole", "builder");
-						worker.setMetadata(PlayerID, "target-foundation", ent.id());
-					});
-				}
+				builders.forEach(function (worker) {
+					worker.setMetadata(PlayerID, "base", bID);
+					worker.setMetadata(PlayerID, "subrole", "builder");
+					worker.setMetadata(PlayerID, "target-foundation", ent.id());
+				});
 			}
 		}
 	}
-	for (var i in ConstructionEvents)
+
+	var ConstructionEvents = events["ConstructionFinished"];
+	for (var evt of ConstructionEvents)
 	{
-		var evt = ConstructionEvents[i];
 		// Let's check if we have a building set to create a new base.
 		// TODO: move to the base manager.
 		if (evt.newentity)
 		{
 			var ent = gameState.getEntityById(evt.newentity);
+			if (!ent || !ent.isOwn(PlayerID))
+				continue;
 
-			if (ent === undefined)
-				continue; // happens when this message is right before a "Destroy" one for the same entity.
-			
-			if (ent.isOwn(PlayerID))
+			if (ent.getMetadata(PlayerID, "baseAnchor") == true)
 			{
-				if (ent.getMetadata(PlayerID, "baseAnchor") == true)
-				{
-					var base = ent.getMetadata(PlayerID, "base");
-					if (this.baseManagers[base].constructing)
-						this.baseManagers[base].constructing = false;
-					this.baseManagers[base].anchor = ent;
-					this.baseManagers[base].buildings.updateEnt(ent);
-					this.updateTerritories(gameState);
-				}
-				else if (ent.hasTerritoryInfluence())
-					this.updateTerritories(gameState);
+				var base = ent.getMetadata(PlayerID, "base");
+				if (this.baseManagers[base].constructing)
+					this.baseManagers[base].constructing = false;
+				this.baseManagers[base].anchor = ent;
+				this.baseManagers[base].buildings.updateEnt(ent);
+				this.updateTerritories(gameState);
+				// let us hope this new base will fix our resource shortage
+				// TODO check it really does so
+				this.saveResources = undefined;
+			}
+			else if (ent.hasTerritoryInfluence())
+				this.updateTerritories(gameState);
+		}
+	}
+
+	// deal with the different rally points of training units: the rally point is set when the training starts
+	// for the time being, only autogarrison is used
+
+	var TrainingEvents = events["TrainingStarted"];
+	for (var evt of TrainingEvents)
+	{
+		var ent = gameState.getEntityById(evt.entity);
+		if (!ent || !ent.isOwn(PlayerID))
+			continue;
+
+		if (!ent._entity.trainingQueue || !ent._entity.trainingQueue.length)
+			continue;
+		var metadata = ent._entity.trainingQueue[0].metadata;
+		if (metadata.garrisonType)
+			ent.setRallyPoint(ent, "garrison");  // trained units will autogarrison
+		else
+			ent.unsetRallyPoint();
+	}
+
+	var TrainingEvents = events["TrainingFinished"];
+	for (var evt of TrainingEvents)
+	{
+		for (var entId of evt.entities)
+		{
+			var ent = gameState.getEntityById(entId);
+			if (!ent || !ent.isOwn(PlayerID))
+				continue;
+
+			if (!ent.position())
+			{
+				// we are autogarrisoned, check that the holder is registered in the garrisonManager
+				var holderId = ent.unitAIOrderData()[0]["target"];
+				var holder = gameState.getEntityById(holderId);
+				if (holder)
+					this.garrisonManager.registerHolder(gameState, holder);
+			}
+			else if (ent.getMetadata(PlayerID, "garrisonType"))
+			{
+				// we were supposed to be autogarrisoned, but this has failed (may-be full)
+				ent.getMetadata(PlayerID, "garrisonType", undefined);
 			}
 		}
 	}
@@ -257,7 +380,6 @@ m.HQ.prototype.OnCityPhase = function(gameState)
 // TODO: also there are several things that could be greatly improved here.
 m.HQ.prototype.trainMoreWorkers = function(gameState, queues)
 {
-	// Get some data.
 	// Count the workers in the world and in progress
 	var numFemales = gameState.countEntitiesAndQueuedByType(gameState.applyCiv("units/{civ}_support_female_citizen"), true);
 
@@ -275,44 +397,50 @@ m.HQ.prototype.trainMoreWorkers = function(gameState, queues)
 			numInTraining += item.count;
 		});
 	});
+
+	// Adapt the batch size of the first queued workers and females to the present population
+	// to ease a possible recovery if our population was drastically reduced by an attack
+	if (numWorkers < 12)
+		var size = 1;
+	else
+		var size =  Math.min(5, Math.ceil(numWorkers / 10));
+	if (queues.villager.queue[0])
+		queues.villager.queue[0].number = Math.min(queues.villager.queue[0].number, size);
+	if (queues.citizenSoldier.queue[0])
+		queues.citizenSoldier.queue[0].number = Math.min(queues.citizenSoldier.queue[0].number, size);
+
 	var numQueuedF = queues.villager.countQueuedUnits();
 	var numQueuedS = queues.citizenSoldier.countQueuedUnits();
 	var numQueued = numQueuedS + numQueuedF;
 	var numTotal = numWorkers + numQueued;
 
-	// If we have too few, train more
-	// should plan enough to always have females…
-	// TODO: 15 here should be changed to something more sensible, such as nb of producing buildings.
-	if (!this.boostedSoldiers)
-	{
-		if (numTotal > this.targetNumWorkers || (numTotal >= this.Config.Economy.popForTown 
-			&& gameState.currentPhase() === 1 && !gameState.isResearching(gameState.townPhase())))
-			return;
-		if (numQueued > 50 || (numQueuedF > 20 && numQueuedS > 20) || numInTraining > 15)
-			return;
-	}
-	else if (numQueuedS > 20)
-			return;
+	if (this.saveResources && numTotal > this.Config.Economy.popForTown + 10)
+		return;
+	if (numTotal > this.targetNumWorkers || (numTotal >= this.Config.Economy.popForTown 
+		&& gameState.currentPhase() === 1 && !gameState.isResearching(gameState.townPhase())))
+		return;
+	if (numQueued > 50 || (numQueuedF > 20 && numQueuedS > 20) || numInTraining > 15)
+		return;
 
-	// default template and size
+	// default template
 	var template = gameState.applyCiv("units/{civ}_support_female_citizen");
-	var size = Math.min(5, Math.ceil(numTotal / 10));
+	// anticipate the optimal batch size when this queue will start
+	if (numTotal < 12)
+		var size = 1;
+	else
+		var size = Math.min(5, Math.ceil(numTotal / 10));
 
 	// Choose whether we want soldiers instead.
-	if ((numFemales+numQueuedF)/numTotal > this.femaleRatio || this.boostedSoldiers)
+	if ((numFemales+numQueuedF) > 8 && (numFemales+numQueuedF)/numTotal > this.femaleRatio)
 	{
-		if (numTotal < 35)
-			template = this.findBestTrainableUnit(gameState, ["CitizenSoldier", "Infantry"], [ ["cost",1], ["speed",0.5], ["costsResource", 0.5, "stone"], ["costsResource", 0.5, "metal"]]);
+		if (numTotal < 45)
+			template = this.findBestTrainableUnit(gameState, ["CitizenSoldier", "Infantry"], [ ["cost", 1], ["speed", 0.5], ["costsResource", 0.5, "stone"], ["costsResource", 0.5, "metal"]]);
 		else
-			template = this.findBestTrainableUnit(gameState, ["CitizenSoldier", "Infantry"], [ ["strength",1] ]);
-		if (!template && this.boostedSoldiers)
-			return;
+			template = this.findBestTrainableUnit(gameState, ["CitizenSoldier", "Infantry"], [ ["strength", 1] ]);
 		if (!template)
 			template = gameState.applyCiv("units/{civ}_support_female_citizen");
 	}
 
-	// TODO: perhaps assign them a default resource and check the base according to that.
-	
 	// base "0" means "auto"
 	if (template === gameState.applyCiv("units/{civ}_support_female_citizen"))
 		queues.villager.addItem(new m.TrainingPlan(gameState, template, { "role": "worker", "base": 0 }, size, size));
@@ -321,12 +449,41 @@ m.HQ.prototype.trainMoreWorkers = function(gameState, queues)
 };
 
 // picks the best template based on parameters and classes
-m.HQ.prototype.findBestTrainableUnit = function(gameState, classes, parameters) {
+m.HQ.prototype.findBestTrainableUnit = function(gameState, classes, requirements)
+{
 	var units = gameState.findTrainableUnits(classes);
 	
 	if (units.length === 0)
 		return undefined;
-	
+
+	var parameters = requirements.slice();
+	var remainingResources = this.getTotalResourceLevel(gameState);    // resources (estimation) still gatherable in our territory
+	var availableResources = gameState.ai.queueManager.getAvailableResources(gameState); // available (gathered) resources
+	for (var type in remainingResources)
+	{
+		if (type === "food")
+			continue;
+		if (availableResources[type] > 800)
+			continue;
+		if (remainingResources[type] > 800)
+			continue;
+		else if (remainingResources[type] > 400)
+			var costsResource = 0.6;
+		else
+			var costsResource = 0.2;
+		var toAdd = true;
+		for (var param of parameters)
+		{
+			if (param[0] !== "costsResource" || param[2] !== type)
+				continue; 			
+			param[1] = Math.min( param[1], costsResource );
+			toAdd = false;
+			break;
+		}
+		if (toAdd)
+			parameters.push( [ "costsResource", costsResource, type ] );
+	}
+
 	units.sort(function(a, b) {// }) {
 		var aDivParam = 0, bDivParam = 0;
 		var aTopParam = 0, bTopParam = 0;
@@ -374,48 +531,6 @@ m.HQ.prototype.findBestTrainableUnit = function(gameState, classes, parameters) 
 	return units[0][0];
 };
 
-// Tries to research any available tech
-// Only one at once. Also does military tech (selection is completely random atm)
-// TODO: Lots, lots, lots here.
-m.HQ.prototype.tryResearchTechs = function(gameState, queues)
-{
-	if (gameState.currentPhase() < 2 || queues.minorTech.length() !== 0)
-		return;
-
-	var possibilities = gameState.findAvailableTech();
-	for (var i = 0; i < possibilities.length; ++i)
-	{
-		var techName = possibilities[i][0];
-		if (techName.indexOf("attack_tower_watch") !== -1 || techName.indexOf("gather_mining_servants") !== -1 ||
-			techName.indexOf("gather_mining_shaftmining") !== -1)
-		{
-			queues.minorTech.addItem(new m.ResearchPlan(gameState, techName));
-			return;
-		}
-	}
-
-	if (gameState.currentPhase() < 3)
-		return;
-
-	// remove some tech not yet used by this AI
-	for (var i = 0; i < possibilities.length; ++i)
-	{
-		var techName = possibilities[i][0];
-		if (techName.indexOf("heal_rate") !== -1 || techName.indexOf("heal_range") !== -1 ||
-			techName.indexOf("heal_temple") !== -1 || techName.indexOf("unlock_females_house") !== -1)
-			possibilities.splice(i--, 1);
-		// temporary hack for upgrade problem TODO fix that
-		else if (techName.slice(0, 12) === "upgrade_rank")
-			possibilities.splice(i--, 1);
-	}
-	if (possibilities.length === 0)
-		return;
-	// randomly pick one. No worries about pairs in that case.
-	var p = Math.floor((Math.random()*possibilities.length));
-	queues.minorTech.addItem(new m.ResearchPlan(gameState, possibilities[p][0]));
-};
-
-
 // returns an entity collection of workers through BaseManager.pickBuilders
 // TODO: when same accessIndex, sort by distance
 m.HQ.prototype.bulkPickWorkers = function(gameState, newBaseID, number)
@@ -424,7 +539,7 @@ m.HQ.prototype.bulkPickWorkers = function(gameState, newBaseID, number)
 	if (!accessIndex)
 		return false;
 	// sorting bases by whether they are on the same accessindex or not.
-	var baseBest = m.AssocArraytoArray(this.baseManagers).sort(function (a,b) {
+	var baseBest = API3.AssocArraytoArray(this.baseManagers).sort(function (a,b) {
 		if (a.accessIndex === accessIndex && b.accessIndex !== accessIndex)
 			return -1;
 		else if (b.accessIndex === accessIndex && a.accessIndex !== accessIndex)
@@ -449,12 +564,12 @@ m.HQ.prototype.bulkPickWorkers = function(gameState, newBaseID, number)
 	return workers;
 };
 
-m.HQ.prototype.GetTotalResourceLevel = function(gameState)
+m.HQ.prototype.getTotalResourceLevel = function(gameState)
 {
 	var total = { "food": 0, "wood": 0, "stone": 0, "metal": 0 };
-	for (var i in this.baseManagers)
+	for each (var base in this.baseManagers)
 		for (var type in total)
-			total[type] += this.baseManagers[i].getResourceLevel(gameState, type);
+			total[type] += base.getResourceLevel(gameState, type);
 
 	return total;
 };
@@ -466,8 +581,8 @@ m.HQ.prototype.GetCurrentGatherRates = function(gameState)
 	for (var type in this.wantedRates)
 		this.currentRates[type] = 0;
 	
-	for (var i in this.baseManagers)
-		this.baseManagers[i].getGatherRates(gameState, this.currentRates);
+	for each (var base in this.baseManagers)
+		base.getGatherRates(gameState, this.currentRates);
 
 	return this.currentRates;
 };
@@ -502,81 +617,62 @@ m.HQ.prototype.pickMostNeededResources = function(gameState)
 	return types;
 };
 
-// If all the CC's are destroyed then build a new one
-// TODO: rehabilitate.
-m.HQ.prototype.buildNewCC= function(gameState, queues)
-{
-    var numCCs = gameState.countEntitiesAndQueuedByType(gameState.applyCiv(this.bBase[0]), true);
-	numCCs += queues.civilCentre.length();
-
-	// no use trying to lay foundations that will be destroyed
-	if (gameState.defcon() > 2)
-		for (var i = numCCs; i < 1; i++) {
-			gameState.ai.queueManager.clear();
-			this.baseNeed["food"] = 0;
-			this.baseNeed["wood"] = 50;
-			this.baseNeed["stone"] = 50;
-			this.baseNeed["metal"] = 50;
-			queues.civilCentre.addItem(new m.ConstructionPlan(gameState, this.bBase[0]));
-		}
-	return (gameState.countEntitiesByType(gameState.applyCiv(this.bBase[0]), true) == 0 && gameState.currentPhase() > 1);
-};
-
 // Returns the best position to build a new Civil Centre
 // Whose primary function would be to reach new resources of type "resource".
-m.HQ.prototype.findEconomicCCLocation = function(gameState, resource)
+m.HQ.prototype.findEconomicCCLocation = function(gameState, template, resource, fromStrategic)
 {	
 	// This builds a map. The procedure is fairly simple. It adds the resource maps
 	//	(which are dynamically updated and are made so that they will facilitate DP placement)
 	// Then checks for a good spot in the territory. If none, and town/city phase, checks outside
 	// The AI will currently not build a CC if it wouldn't connect with an existing CC.
 
-	// create an empty map
-	var locateMap = new API3.Map(gameState.sharedScript);
-	locateMap.setMaxVal(255);
+	Engine.ProfileStart("findEconomicCCLocation");
+
 	// obstruction map
-	var obstructions = m.createObstructionMap(gameState, 0);
+	var obstructions = m.createObstructionMap(gameState, 0, template);
 	obstructions.expandInfluences();
 
 	var ccEnts = gameState.getEntities().filter(API3.Filters.byClass("CivCentre")).toEntityArray();
-	var dpEnts = gameState.getOwnDropsites().toEntityArray();
+	var dpEnts = gameState.getOwnDropsites().filter(API3.Filters.not(API3.Filters.byClassesOr(["CivCentre", "Elephant"]))).toEntityArray();
+	var ccList = [];
+	for (var cc of ccEnts)
+		ccList.push({"pos": cc.position(), "ally": gameState.isPlayerAlly(cc.owner())});
+	var dpList = [];
+	for (var dp of dpEnts)
+		dpList.push({"pos": dp.position()});
 
-	for (var j = 0; j < locateMap.length; ++j)
-	{
-		// We check for our other CCs: the distance must not be too big. Anything bigger will result in scrapping.
-		// This ensures territorial continuity.
-		
-		var norm = 0.5;   // TODO adjust it, knowing that we will sum 5 maps
+	var width = this.territoryMap.width;
+	var radius = Math.ceil(template.obstructionRadius() / gameState.cellSize);
+	var bestIdx = undefined;
+	var bestVal = undefined;
+
+	for (var j = 0; j < this.territoryMap.length; ++j)
+	{	
 		if (this.territoryMap.getOwnerIndex(j) !== 0 || this.borderMap.map[j] === 2)
-		{
-			norm = 0;
 			continue;
-		}
-		else if (this.borderMap.map[j] === 1)	// disfavor the borders of the map
-			norm *= 0.5;
-
-		var pos = [j%locateMap.width+0.5, Math.floor(j/locateMap.width)+0.5];
-		pos = [gameState.cellSize*pos[0], gameState.cellSize*pos[1]];
 		// We require that it is accessible from our starting position
-		// TODO modify when naval maps
-		if (gameState.ai.accessibility.getAccessValue(pos) !== gameState.ai.myIndex)
-		{
-			norm = 0;
+		var index = gameState.ai.accessibility.landPassMap[j];
+		if (!this.allowedRegions[index])
 			continue;
-		}
+		// and with enough room around to build the cc
+		if (obstructions.map[j] <= radius)
+			continue;
 
+		var norm = 0.5;   // TODO adjust it, knowing that we will sum 5 maps
 		// checking distance to other cc
+		var pos = [j%width+0.5, Math.floor(j/width)+0.5];
+		pos = [gameState.cellSize*pos[0], gameState.cellSize*pos[1]];
 		var minDist = Math.min();
-		for each (var cc in ccEnts)
+
+		for (var cc of ccList)
 		{
-			var ccPos = cc.position();
-			var dist = API3.SquareVectorDistance(ccPos, pos);
+			var dist = API3.SquareVectorDistance(cc.pos, pos);
 			if (dist < 14000)    // Reject if too near from any cc
 			{
 				norm = 0
 				break;
 			}
-			if (!gameState.isPlayerAlly(cc.owner()))
+			if (!cc.ally)
 				continue;
 			if (dist < 20000)    // Reject if too near from an allied cc
 			{
@@ -590,188 +686,246 @@ m.HQ.prototype.findEconomicCCLocation = function(gameState, resource)
 		}
 		if (norm == 0)
 			continue;
-		if (minDist > 170000 && !this.waterMap)   // Reject if too far from any allied cc (-> not connected)
-			continue;
-		else if (minDist > 130000)                // Disfavor if quite far from any allied cc
-			norm *= 0.5;
-
-		for each (var dp in dpEnts)
+		if (minDist > 170000 && !this.navalMap)   // Reject if too far from any allied cc (-> not connected)
 		{
-			if (dp.hasClass("Elephant"))
-				continue;
-			var dpPos = dp.position();
-			var dist = API3.SquareVectorDistance(dpPos, pos);
+			norm = 0;
+			continue;
+		}
+		else if (minDist > 130000)     // Disfavor if quite far from any allied cc
+		{
+			if (this.navalMap)
+			{
+				if (minDist > 250000)
+					norm *= 0.5;
+				else
+					norm *= 0.8;
+			}
+			else
+				norm *= 0.5;
+		}
+
+		for (var dp of dpList)
+		{
+			var dist = API3.SquareVectorDistance(dp.pos, pos);
 			if (dist < 3600)
 			{
 				norm = 0;
-				continue;
+				break;
 			}
 			else if (dist < 6400)
 				norm *= 0.5;
 		}
 		if (norm == 0)
 			continue;
+
+		if (this.borderMap.map[j] === 1)	// disfavor the borders of the map
+			norm *= 0.5;
 		
 		var val = 2*gameState.sharedScript.CCResourceMaps[resource].map[j]
 			+ gameState.sharedScript.CCResourceMaps["wood"].map[j]
 			+ gameState.sharedScript.CCResourceMaps["stone"].map[j]
 			+ gameState.sharedScript.CCResourceMaps["metal"].map[j];
 		val *= norm;
-		if (val > 255)
-			val = 255;
-		locateMap.map[j] = val;
-	}
-	
-	
-	var best = locateMap.findBestTile(6, obstructions);
-	var bestIdx = best[0];
 
-	if (m.DebugEnabled())
+		if (bestVal !== undefined && val < bestVal)
+			continue;
+		bestVal = val;
+		bestIdx = j;
+	}
+
+	Engine.ProfileStop();
+
+/*	if (m.DebugEnabled())
 	{
 		gameState.sharedScript.CCResourceMaps["wood"].dumpIm("woodMap.png", 300);
 		gameState.sharedScript.CCResourceMaps["stone"].dumpIm("stoneMap.png", 300);
 		gameState.sharedScript.CCResourceMaps["metal"].dumpIm("metalMap.png", 300);
 		locateMap.dumpIm("cc_placement_base_" + best[1] + ".png",300);
 		obstructions.dumpIm("cc_placement_base_" + best[1] + "_obs.png", 20);
-	}
+	} */
 
+	var cut = 60;
+	if (fromStrategic)  // be less restrictive
+		cut = 30;
 	if (this.Config.debug)
-		warn("on a trouve une base avec best (cut=60) = " + best[1]);
+		warn("on a trouve une base avec best (cut=" + cut + ") = " + bestVal);
 	// not good enough.
-	if (best[1] < 60)
+	if (bestVal < cut)
 		return false;
 	
-	var bestIdx = best[0];
-	var x = ((bestIdx % locateMap.width) + 0.5) * gameState.cellSize;
-	var z = (Math.floor(bestIdx / locateMap.width) + 0.5) * gameState.cellSize;
-	if (this.Config.debug)
-		warn(" avec accessIndex " + gameState.ai.myIndex + " new " + gameState.ai.accessibility.getAccessValue([x,z]));
+	var x = (bestIdx%width + 0.5) * gameState.cellSize;
+	var z = (Math.floor(bestIdx/width) + 0.5) * gameState.cellSize;
+
+	// Define a minimal number of wanted ships in the seas reaching this new base
+	var index = gameState.ai.accessibility.landPassMap[bestIdx];
+	for each (var base in this.baseManagers)
+	{
+		if (base.anchor && base.accessIndex !== index)
+		{
+			var sea = this.getSeaIndex(gameState, base.accessIndex, index);
+			if (sea !== undefined)
+				this.navalManager.setMinimalTransportShips(gameState, sea, 1);
+		}
+	}
+
 	return [x,z];
 };
 
 // Returns the best position to build a new Civil Centre
 // Whose primary function would be to assure territorial continuity with our allies
-m.HQ.prototype.findStrategicCCLocation = function(gameState)
+m.HQ.prototype.findStrategicCCLocation = function(gameState, template)
 {	
 	// This builds a map. The procedure is fairly simple.
-	// We minimize the Sum((dist-300)**2) where the sum is on all allied CC
+	// We minimize the Sum((dist-300)**2) where the sum is on the three nearest allied CC
 	// with the constraints that all CC have dist > 200 and at least one have dist < 400
 	// This needs at least 2 CC. Otherwise, go back to economic CC.
 
 	// TODO add CC foundations (needed for allied)
 	var ccEnts = gameState.getEntities().filter(API3.Filters.byClass("CivCentre")).toEntityArray();
+	var ccList = [];
 	var numAllyCC = 0;
-	for each (var cc in ccEnts)
-		if (gameState.isPlayerAlly(cc.owner()))
-			numAllyCC += 1;
+	for (var cc of ccEnts)
+	{
+		var ally = gameState.isPlayerAlly(cc.owner());
+		ccList.push({"pos": cc.position(), "ally": ally});
+		if (ally)
+			++numAllyCC;
+	}
 	if (numAllyCC < 2)
-		return this.findEconomicCCLocation(gameState, "wood");
+		return this.findEconomicCCLocation(gameState, template, "wood", true);
+
+	Engine.ProfileStart("findStrategicCCLocation");
 
 	// obstruction map
-	var obstructions = m.createObstructionMap(gameState, 0);
+	var obstructions = m.createObstructionMap(gameState, 0, template);
 	obstructions.expandInfluences();
 
-	var map = {};
 	var width = this.territoryMap.width;
+	var radius =  Math.ceil(template.obstructionRadius() / gameState.cellSize);
+	var bestIdx = undefined;
+	var bestVal = undefined;
+	var currentVal, delta;
+	var distcc0, distcc1, distcc2;
 
 	for (var j = 0; j < this.territoryMap.length; ++j)
 	{
 		if (this.territoryMap.getOwnerIndex(j) !== 0 || this.borderMap.map[j] === 2)
 			continue;
-
-		var ix = j%width;
-		var iy = Math.floor(j/width);
-		var pos = [ix+0.5, iy+0.5];
-		pos = [gameState.cellSize*pos[0], gameState.cellSize*pos[1]];
 		// We require that it is accessible from our starting position
-		// TODO modify when naval maps
-		if (gameState.ai.accessibility.getAccessValue(pos) !== gameState.ai.myIndex)
+		var index = gameState.ai.accessibility.landPassMap[j];
+		if (!this.allowedRegions[index])
+			continue;
+		// and with enough room around to build the cc
+		if (obstructions.map[j] <= radius)
 			continue;
 
 		// checking distances to other cc
+		var pos = [j%width+0.5, Math.floor(j/width)+0.5];
+		pos = [gameState.cellSize*pos[0], gameState.cellSize*pos[1]];
 		var minDist = Math.min();
-		var sumDelta = 0;
-		for each (var cc in ccEnts)
+		distcc0 = undefined;
+
+		for (var cc of ccList)
 		{
-			var ccPos = cc.position();
-			var dist = API3.SquareVectorDistance(ccPos, pos);
+			var dist = API3.SquareVectorDistance(cc.pos, pos);
 			if (dist < 14000)    // Reject if too near from any cc
 			{
 				minDist = 0;
 				break;
 			}
-			if (!gameState.isPlayerAlly(cc.owner()))
+			if (!cc.ally)
 				continue;
 			if (dist < 40000)    // Reject if quite near from ally cc
 			{
 				minDist = 0;
 				break;
 			}
-			var delta = Math.sqrt(dist) - 300;
-			if (cc.owner === PlayerID)     // small preference territory continuity with our territory
-				delta = 1.05*delta;    // rather than ally one
-			sumDelta += delta*delta;
 			if (dist < minDist)
 				minDist = dist;
+
+			if (!distcc0 || dist < distcc0)
+			{
+				distcc2 = distcc1;
+				distcc1 = distcc0;
+				distcc0 = dist;
+			}
+			else if (!distcc1 || dist < distcc1)
+			{
+				distcc2 = distcc1;
+				distcc1 = dist;
+			}
+			else if (!distcc2 || dist < distcc2)
+				distcc2 = dist;
 		}
-		if (minDist < 1 || minDist > 160000)
+		if (minDist < 1 || (minDist > 170000 && !this.navalMap))
 			continue;
-		
-		map[j] = 10 + sumDelta;
+
+		delta = Math.sqrt(distcc0) - 300;  // favor a distance of 300
+		currentVal = delta*delta;
+		delta = Math.sqrt(distcc1) - 300;
+		currentVal += delta*delta;
+		if (distcc2)
+		{
+			delta = Math.sqrt(distcc2) - 300;
+			currentVal += delta*delta;
+		}
 		// disfavor border of the map
 		if (this.borderMap.map[j] === 1)
-			map[j] = map[j] + 10000;
-	}
+			currentVal += 10000;		
 
-	var bestIdx = undefined;
-	var bestVal = undefined;
-	var radius = 6;
-	for (var i in map)
-	{
-		if (obstructions.map[+i] <= radius)
+		if (bestVal !== undefined && currentVal > bestVal)
 			continue;
-		var v = map[i];
-		if (bestVal !== undefined && v > bestVal)
-			continue;
-		bestVal = v;
-		bestIdx = i;
+		bestVal = currentVal;
+		bestIdx = j;
 	}
 
 	if (this.Config.debug > 0)
 		warn("We've found a strategic base with bestVal = " + bestVal);	
+
+	Engine.ProfileStop();
 
 	if (bestVal === undefined)
 		return undefined;
 
 	var x = (bestIdx%width + 0.5) * gameState.cellSize;
 	var z = (Math.floor(bestIdx/width) + 0.5) * gameState.cellSize;
+
+	// Define a minimal number of wanted ships in the seas reaching this new base
+	var index = gameState.ai.accessibility.landPassMap[bestIdx];
+	for each (var base in this.baseManagers)
+	{
+		if (base.anchor && base.accessIndex !== index)
+		{
+			var sea = this.getSeaIndex(gameState, base.accessIndex, index);
+			if (sea !== undefined)
+				this.navalManager.setMinimalTransportShips(gameState, sea, 1);
+		}
+	}
+
 	return [x,z];
 };
 
 // Returns the best position to build a new market: if the allies already have a market, build it as far as possible
 // from it, although not in our border to be able to defend it easily. If no allied market, our second market will
 // follow the same logic
+// TODO check that it is on same accessIndex
 m.HQ.prototype.findMarketLocation = function(gameState, template)
 {
-	// TODO may-be keep allied foundation, hoping it will be finished soon
-	var filter = API3.Filters.and(API3.Filters.byClass("Market"), API3.Filters.not(API3.Filters.isFoundation()));
-	var markets = gameState.getAllyEntities().filter(filter).toEntityArray();
+	var markets = gameState.getAllyEntities().filter(API3.Filters.byClass("Market")).toEntityArray();
 	if (!markets.length)
-		markets = gameState.getOwnStructures().filter(filter).toEntityArray();
+		markets = gameState.getOwnStructures().filter(API3.Filters.byClass("Market")).toEntityArray();
 
-	if (!markets.length)
-	{
-		// this is the first market. We need to know in which direction we will expand
-		// but for the time being, place it arbitrarily by the ConstructionPlan
+	if (!markets.length)	// this is the first market. For the time being, place it arbitrarily by the ConstructionPlan
 		return [-1, -1, -1];
-	}
 
 	// obstruction map
-	var obstructions = m.createObstructionMap(gameState, 0);
+	var obstructions = m.createObstructionMap(gameState, 0, template);
 	obstructions.expandInfluences();
 
-	var map = {};
 	var width = this.territoryMap.width;
+	var bestIdx = undefined;
+	var bestVal = undefined;
+	var radius = Math.ceil(template.obstructionRadius() / gameState.cellSize);
 
 	for (var j = 0; j < this.territoryMap.length; ++j)
 	{
@@ -780,45 +934,41 @@ m.HQ.prototype.findMarketLocation = function(gameState, template)
 			continue;
 		if (this.basesMap.map[j] === 0)   // inaccessible cell
 			continue;
+		if (obstructions.map[j] <= radius)  // check room around
+			continue;
+		var index = gameState.ai.accessibility.landPassMap[j];
+		if (!this.allowedRegions[index])
+			continue;
 
-		var ix = j%width;
-		var iy = Math.floor(j/width);
-		var pos = [ix+0.5, iy+0.5];
+		var pos = [j%width+0.5, Math.floor(j/width)+0.5];
 		pos = [gameState.cellSize*pos[0], gameState.cellSize*pos[1]];
-
 		// checking distances to other markets
 		var maxDist = 0;
-		for each (var market in markets)
+		for (var market of markets)
 		{
+			if (template.hasClass("Dock") && market.hasClass("Dock"))
+			{
+				// TODO check that there are on the same sea. For the time being, we suppose it is true
+			}
+			else if (gameState.ai.accessibility.getAccessValue(market.position()) !== index)
+				continue;
 			var dist = API3.SquareVectorDistance(market.position(), pos);
 			if (dist > maxDist)
 				maxDist = dist;
 		}
 		if (maxDist == 0)
 			continue;
-
-		map[j] = maxDist;
-	}
-
-	var bestIdx = undefined;
-	var bestVal = undefined;
-	var radius = Math.ceil(template.obstructionRadius() / gameState.cellSize);
-	for (var i in map)
-	{
-		if (obstructions.map[+i] <= radius)
+		if (bestVal !== undefined && maxDist < bestVal)
 			continue;
-		var v = map[i];
-		if (bestVal !== undefined && v < bestVal)
-			continue;
-		bestVal = v;
-		bestIdx = i;
+		bestVal = maxDist;
+		bestIdx = j;
 	}
 
 	if (this.Config.debug > 0)
 		warn("We found a market position with bestVal = " + bestVal);	
 
-	if (bestVal === undefined)
-		return undefined;
+	if (bestVal === undefined)  // no constraints. For the time being, place it arbitrarily by the ConstructionPlan
+		return [-1, -1, -1];
 
 	var x = (bestIdx%width + 0.5) * gameState.cellSize;
 	var z = (Math.floor(bestIdx/width) + 0.5) * gameState.cellSize;
@@ -837,11 +987,17 @@ m.HQ.prototype.findDefensiveLocation = function(gameState, template)
 	var enemyStructures = gameState.getEnemyStructures().filter(API3.Filters.byClassesOr(["CivCentre", "Fortress", "Tower"])).toEntityArray();
 
 	// obstruction map
-	var obstructions = m.createObstructionMap(gameState, 0);
+	var obstructions = m.createObstructionMap(gameState, 0, template);
 	obstructions.expandInfluences();
 
-	var map = {};
 	var width = this.territoryMap.width;
+	var bestIdx = undefined;
+	var bestVal = undefined;
+	if (template.hasClass("Fortress"))
+		var radius = Math.floor(template.obstructionRadius() / gameState.cellSize) + 2;
+	else
+		var radius = Math.ceil(template.obstructionRadius() / gameState.cellSize);
+
 	for (var j = 0; j < this.territoryMap.length; ++j)
 	{
 		// do not try if well inside or outside territory
@@ -851,14 +1007,14 @@ m.HQ.prototype.findDefensiveLocation = function(gameState, template)
 			continue;
 		if (this.basesMap.map[j] === 0)   // inaccessible cell
 			continue;
+		if (obstructions.map[j] <= radius)  // check room around
+			continue;
 
-		var ix = j%width;
-		var iy = Math.floor(j/width);
-		var pos = [ix+0.5, iy+0.5];
+		var pos = [j%width+0.5, Math.floor(j/width)+0.5];
 		pos = [gameState.cellSize*pos[0], gameState.cellSize*pos[1]];
 		// checking distances to other structures
 		var minDist = Math.min();
-		for each (var str in enemyStructures)
+		for (var str of enemyStructures)
 		{
 			if (str.foundationProgress() !== undefined)
 				continue;
@@ -877,42 +1033,27 @@ m.HQ.prototype.findDefensiveLocation = function(gameState, template)
 		if (minDist < 0)
 			continue;
 
-		for each (var str in ownStructures)
+		for (var str of ownStructures)
 		{
+			var strPos = str.position();
+			if (!strPos)
+				continue;
+			var dist = API3.SquareVectorDistance(strPos, pos);
 			if ((template.hasClass("Tower") && str.hasClass("Tower")) || (template.hasClass("Fortress") && str.hasClass("Fortress")))
+				var cutDist = 4225; //  TODO check on true buildrestrictions instead of this 65*65
+			else
+				var cutDist = 900;  //  30*30   TODO maybe increase it
+			if (dist < cutDist)
 			{
-				var strPos = str.position();
-				if (!strPos)
-					continue;
-				var dist = API3.SquareVectorDistance(strPos, pos);
-				if (dist < 4225) //  TODO check on true buildrestrictions instead of this 65*65 
-				{
-					minDist = -1;
-					break;
-				}
+				minDist = -1;
+				break;
 			}
 		}
 		if (minDist < 0)
 			continue;
-		
-		map[j] = minDist;
-	}
-
-	var bestIdx = undefined;
-	var bestVal = undefined;
-	if (template.hasClass("Fortress"))
-		var radius = Math.floor(template.obstructionRadius() / gameState.cellSize) + 2;
-	else
-		var radius = Math.ceil(template.obstructionRadius() / gameState.cellSize);
-
-	for (var j in map)
-	{
-		if (obstructions.map[+j] <= radius)
+		if (bestVal !== undefined && minDist > bestVal)
 			continue;
-		var v = map[j];
-		if (bestVal !== undefined && v > bestVal)
-			continue;
-		bestVal = v;
+		bestVal = minDist;
 		bestIdx = j;
 	}
 
@@ -932,9 +1073,6 @@ m.HQ.prototype.buildTemple = function(gameState, queues)
 	if (!this.canBuild(gameState, "structures/{civ}_temple"))
 		return;
 	queues.economicBuilding.addItem(new m.ConstructionPlan(gameState, "structures/{civ}_temple"));
-	// add the health regeneration to the research we want.
-	if (!gameState.isResearched("health_regen_units") && !gameState.isResearching("health_regen_units"))
-		queues.minorTech.addItem(new m.ResearchPlan(gameState, "health_regen_units"));
 };
 
 m.HQ.prototype.buildMarket = function(gameState, queues)
@@ -954,8 +1092,10 @@ m.HQ.prototype.buildFarmstead = function(gameState, queues)
 	// Only build one farmstead for the time being ("DropsiteFood" does not refer to CCs)
 	if (gameState.countEntitiesAndQueuedByType(gameState.applyCiv("structures/{civ}_farmstead"), true) > 0)
 		return;
-	// Wait to have at least one house before the farmstead
-	if (gameState.countEntitiesByType(gameState.applyCiv("foundation|structures/{civ}_house"), true) == 0)
+	// Wait to have at least one dropsite and house before the farmstead
+	if (gameState.countEntitiesAndQueuedByType(gameState.applyCiv("structures/{civ}_storehouse"), true) == 0)
+		return;
+	if (gameState.countEntitiesAndQueuedByType(gameState.applyCiv("structures/{civ}_house"), true) == 0)
 		return;
 	if (queues.economicBuilding.countQueuedUnitsWithClass("DropsiteFood") > 0)
 		return;
@@ -963,209 +1103,6 @@ m.HQ.prototype.buildFarmstead = function(gameState, queues)
 		return;
 
 	queues.economicBuilding.addItem(new m.ConstructionPlan(gameState, "structures/{civ}_farmstead"));
-	// add the farming plough to the research we want.
-	if (!gameState.isResearched("gather_farming_plows") && !gameState.isResearching("gather_farming_plows"))
-		queues.minorTech.addItem(new m.ResearchPlan(gameState, "gather_farming_plows"));
-};
-
-// TODO: generic this, probably per-base
-m.HQ.prototype.buildDock = function(gameState, queues)
-{
-	if (!this.waterMap || this.dockFailed)
-		return;
-	if (gameState.getTimeElapsed() > this.dockStartTime) {
-		if (queues.economicBuilding.countQueuedUnitsWithClass("NavalMarket") === 0 &&
-			gameState.countEntitiesAndQueuedByType(gameState.applyCiv("structures/{civ}_dock"), true) === 0) {
-			var tp = ""
-			if (gameState.civ() == "cart" && gameState.currentPhase() > 1)
-				tp = "structures/{civ}_super_dock";
-			else if (gameState.civ() !== "cart")
-				tp = "structures/{civ}_dock";
-			if (tp !== "" && this.canBuild(gameState, tp))
-			{
-				var remaining = this.navalManager.getUnconnectedSeas(gameState, this.baseManagers[1].accessIndex);
-				queues.economicBuilding.addItem(new m.ConstructionPlan(gameState, tp, { "base": 1, "sea": remaining[0] }));
-			}
-		}
-	}
-};
-
-// Try to barter unneeded resources for needed resources.
-// once per turn because the info doesn't update between a turn and fixing isn't worth it.
-m.HQ.prototype.tryBartering = function(gameState)
-{
-	var markets = gameState.getOwnEntitiesByType(gameState.applyCiv("structures/{civ}_market"), true).toEntityArray();
-
-	if (markets.length === 0)
-		return false;
-
-	// Available resources after account substraction
-	var available = gameState.ai.queueManager.getAvailableResources(gameState);
-	var needs = gameState.ai.queueManager.currentNeeds(gameState);
-
-	var rates = this.GetCurrentGatherRates(gameState)
-
-	var prices = gameState.getBarterPrices();
-	// calculates conversion rates
-	var getBarterRate = function (prices,buy,sell) { return Math.round(100 * prices["sell"][sell] / prices["buy"][buy]); };
-
-	// loop through each queues checking if we could barter and help finishing a queue quickly.
-	for each (var buy in needs.types)
-	{
-		if (needs[buy] == 0 || needs[buy] < rates[buy]*30) // check if our rate allows to gather it fast enough
-			continue;
-
-		// pick the best resource to barter.
-		var bestToSell = undefined;
-		var bestRate = 0;
-		for each (var sell in needs.types)
-		{
-			if (sell === buy)
-				continue;
-			if (needs[sell] > 0 || available[sell] < 500)    // do not sell if we need it or do not have enough buffer
-				continue;
-
-			var barterRateMin = 70;
-			if (available[sell] > 1000)
-				barterRateMin = 50;
-
-			if (sell === "food")
-				barterRateMin -= 40;
-			else if (buy === "food")
-				barterRateMin += 20;
-
-			var barterRate = getBarterRate(prices, buy, sell);
-			if (barterRate > bestRate && barterRate > barterRateMin)
-			{
-				bestRate = barterRate;
-				bestToSell = sell;
-			}
-		}
-		if (bestToSell !== undefined)
-		{
-			markets[0].barter(buy, bestToSell, 100);
-			if (this.Config.debug > 0)
-				warn("Necessity bartering: sold " + bestToSell +" for " + buy + " >> need sell " + needs[bestToSell]
-					 + " need buy " + needs[buy] + " rate buy " + rates[buy] + " available sell " + available[bestToSell]
-					 + " available buy " + available[buy] + " barterRate " + bestRate);
-			return true;
-		}
-	}
-
-	// now do contingency bartering, selling food to buy finite resources (and annoy our ennemies by increasing prices)
-	if (available["food"] < 1000 || needs["food"] > 0)
-		return false;
-	var bestToBuy = undefined;
-	var bestChoice = 0;
-	for each (var buy in needs.types)
-	{
-		if (buy === "food")
-			continue;
-		var barterRate = getBarterRate(prices, buy, "food");
-		if (barterRate < 80)
-			continue;
-		var choice = barterRate / (100 + available[buy]);
-		if (choice > bestChoice)
-		{
-			bestChoice = choice;
-			bestToBuy = buy;
-		}
-	}
-	if (bestToBuy !== undefined)
-	{
-		markets[0].barter(bestToBuy, "food", 100);
-		if (this.Config.debug > 0)
-			warn("Contingency bartering: sold food for " + bestToBuy + " available sell " + available["food"]
-				 + " available buy " + available[bestToBuy] + " barterRate " + getBarterRate(prices, bestToBuy, "food"));
-		return true;
-	}
-
-	return false;
-};
-
-// Try to setup trade routes  TODO complete it
-// TODO use also docks (should be counted in Class("Market"), but may be build one when necessary
-m.HQ.prototype.buildTradeRoute = function(gameState, queues)
-{
-	var market1 = gameState.getOwnStructures().filter(API3.Filters.and(API3.Filters.byClass("Market"), API3.Filters.not(API3.Filters.isFoundation()))).toEntityArray();
-	var market2 = gameState.getAllyEntities().filter(API3.Filters.and(API3.Filters.byClass("Market"), API3.Filters.not(API3.Filters.isFoundation()))).toEntityArray();
-	if (market1.length < 1)  // We have to wait  ... the first market will be built when needed conditions are satisfied 
-		return false;
-
-	var needed = 2;
-	if (market2.length > 0)
-		var needed = 1;
-	if (market1.length < needed)
-	{
-		// TODO what to do if market1 is invalid ??? should not happen
-		if (!market1[0] || !market1[0].position())
-			return false;
-		// We require at least two finished bases
-		if (!this.baseManagers[2] || this.baseManagers[2].constructing)
-			return false;
-		if (queues.economicBuilding.countQueuedUnitsWithClass("Market") > 0 ||
-			gameState.countEntitiesAndQueuedByType(gameState.applyCiv("structures/{civ}_market"), true) >= needed)
-			return false;
-		if (!this.canBuild(gameState, "structures/{civ}_market"))
-			return false;
-		// We have to build a second market ... try to put it as far as possible from the first one
-		// TODO improve, for the time being, we affect it to the farthest base
-		var marketBase =  market1[0].getMetadata(PlayerID, "base");
-		var distmax = -1;
-		var base = -1;
-		for (var i in this.baseManagers)
-		{
-			if (marketBase === +i)
-				continue;
-			if (!this.baseManagers[i].anchor || !this.baseManagers[i].anchor.position())
-				continue;
-			var dist = API3.SquareVectorDistance(market1[0].position(), this.baseManagers[i].anchor.position());
-			if (dist < distmax)
-				continue;
-			distmax = dist;
-			base = +i;
-		}
-		if (distmax > 0)
-		{
-			if (this.Config.debug > 1)
-				warn(" a second market will be built in base " + base);
-			// TODO build also docks when better
-			queues.economicBuilding.addItem(new m.ConstructionPlan(gameState, "structures/{civ}_market", { "base": base }));
-		}
-		return false;
-	}
-
-	if (market2.length === 0)
-		market2 = market1;
-	var distmax = -1;
-	var imax = -1;
-	var jmax = -1;
-	for each (var m1 in market1)
-	{
-		if (!m1.position())
-			continue;
-		for each (var m2 in market2)
-		{
-			if (m1.id() === m2.id())
-				continue;
-			if (!m2.position())
-				continue;
-			var dist = API3.SquareVectorDistance(m1.position(), m2.position());
-			if (dist < distmax)
-				continue;
-			distmax = dist;
-			this.tradeManager.setTradeRoute(m1, m2);
-		}
-	}
-	if (distmax < 0)
-	{
-		if (this.Config.debug)
-			warn("no trade route possible");
-		return false;
-	}
-	if (this.Config.debug)
-		warn("one trade route set");
-	return true;
 };
 
 // build more houses if needed.
@@ -1182,7 +1119,7 @@ m.HQ.prototype.buildMoreHouses = function(gameState,queues)
 		// make the difficulty available to the isGo function without having to pass it as argument
 		var difficulty = this.Config.difficulty;
 		var self = this;
-		// change the starting condition to "less than 15 slots left".
+		// change the starting condition according to the situation.
 		plan.isGo = function (gameState) {
 			if (!self.canBuild(gameState, "structures/{civ}_house"))
 				return false;
@@ -1191,14 +1128,12 @@ m.HQ.prototype.buildMoreHouses = function(gameState,queues)
 			var HouseNb = gameState.countEntitiesByType(gameState.applyCiv("foundation|structures/{civ}_house"), true);
 
 			var freeSlots = 0;
-			// TODO get this info from PopulationBonus of houses
-			if (gameState.civ() == "gaul" || gameState.civ() == "brit" || gameState.civ() == "iber" ||
-				gameState.civ() == "maur" || gameState.civ() == "ptol")
-				var popBonus = 5;
-			else
-				var popBonus = 10;
+			// TODO how to modify with tech
+			var popBonus = gameState.getTemplate(gameState.applyCiv("structures/{civ}_house")).getPopulationBonus();
 			freeSlots = gameState.getPopulationLimit() + HouseNb*popBonus - gameState.getPopulation();
-			if (gameState.getPopulation() > 55 && difficulty > 1)
+			if (self.saveResources)
+				return (freeSlots <= 10);
+			else if (gameState.getPopulation() > 55 && difficulty > 1)
 				return (freeSlots <= 21);
 			else if (gameState.getPopulation() >= 30 && difficulty > 0)
 				return (freeSlots <= 15);
@@ -1210,8 +1145,16 @@ m.HQ.prototype.buildMoreHouses = function(gameState,queues)
 
 	if (numPlanned > 0 && this.econState == "townPhasing")
 	{
-		var houseQueue = queues.house.queue;
 		var count = gameState.getOwnStructures().filter(API3.Filters.byClass("Village")).length;
+		var index = this.stopBuilding.indexOf(gameState.applyCiv("structures/{civ}_house"));
+		if (count < 5 && index !== -1)
+		{
+			if (this.Config.debug > 0)
+				warn("no room to place a house ... try to be less restrictive");
+			this.stopBuilding.splice(index, 1);
+			this.requireHouses = true;
+		}
+		var houseQueue = queues.house.queue;
 		for (var i = 0; i < numPlanned; ++i)
 		{
 			if (houseQueue[i].isGo(gameState))
@@ -1223,6 +1166,33 @@ m.HQ.prototype.buildMoreHouses = function(gameState,queues)
 			}
 		}
 	}
+
+	if (this.requireHouses && gameState.getOwnStructures().filter(API3.Filters.byClass("Village")).length >= 5)
+		this.requireHouses = undefined;
+
+	// When population limit too tight
+	//    - if no room to build, try to improve with technology
+	//    - otherwise increase temporarily the priority of houses
+	var HouseNb = gameState.countEntitiesByType(gameState.applyCiv("foundation|structures/{civ}_house"), true);
+	var freeSlots = 0;
+	var popBonus = gameState.getTemplate(gameState.applyCiv("structures/{civ}_house")).getPopulationBonus();
+	freeSlots = gameState.getPopulationLimit() + HouseNb*popBonus - gameState.getPopulation();
+	if (freeSlots < 5)
+	{
+		var index = this.stopBuilding.indexOf(gameState.applyCiv("structures/{civ}_house"));
+		if (index !== -1)
+		{
+			if (this.Config.debug > 0)
+				warn("no room to place a house ... try to improve with technology");
+			this.researchManager.researchPopulationBonus(gameState, queues);
+		}
+		else if (index === -1)
+			var priority = 2*this.Config.priorities.house;
+	}
+	else
+		var priority = this.Config.priorities.house;
+	if (priority && priority !== gameState.ai.queueManager.getPriority("house"))
+		gameState.ai.queueManager.changePriority("house", priority);
 };
 
 // checks the status of the territory expansion. If no new economic bases created, build some strategic ones.
@@ -1240,8 +1210,11 @@ m.HQ.prototype.checkBaseExpansion = function(gameState,queues)
 	}
 	// then expand if we have lots of units
 	var numUnits = 	gameState.getOwnUnits().length;
-	var numCCs = gameState.countEntitiesByType(gameState.applyCiv(this.bBase[0]), true);
-	if (Math.floor(numUnits/60) >= numCCs)
+	var numCCs = gameState.countEntitiesByType(this.bBase[0], true);
+	var popForBase = this.Config.Economy.popForTown + 20;
+	if (this.saveResources)
+		popForBase = this.Config.Economy.popForTown + 5;
+	if (Math.floor(numUnits/popForBase) >= numCCs)
 	{
 		if (this.Config.debug > 1)
 			warn("try to build a new base because of population " + numUnits + " for " + numCCs + " CCs");
@@ -1253,7 +1226,7 @@ m.HQ.prototype.buildNewBase = function(gameState, queues, type)
 {
 	if (gameState.currentPhase() === 1 && !gameState.isResearching(gameState.townPhase()))
 		return false;
-	if (gameState.countFoundationsByType(gameState.applyCiv(this.bBase[0]), true) !== 0 || queues.civilCentre.length() !== 0)
+	if (gameState.countFoundationsByType(this.bBase[0], true) > 0 || queues.civilCentre.length() > 0)
 		return false;
 	if (!this.canBuild(gameState, this.bBase[0]))
 		return false;
@@ -1268,39 +1241,54 @@ m.HQ.prototype.buildNewBase = function(gameState, queues, type)
 // Deals with building fortresses and towers along our border with enemies.
 m.HQ.prototype.buildDefenses = function(gameState, queues)
 {
+	if (this.saveResources)
+		return;
+
 	if (gameState.currentPhase() > 2 || gameState.isResearching(gameState.cityPhase()))
 	{
 		// try to build fortresses
-		if (queues.defenseBuilding.length() === 0 && this.canBuild(gameState, this.bFort[0]))
+		var fortressType = "structures/{civ}_fortress";
+		if (gameState.civ() === "celt")
 		{
-			var numFortresses = 0;
-			for (var i in this.bFort)
-				numFortresses += gameState.countEntitiesAndQueuedByType(gameState.applyCiv(this.bFort[i]), true);
-
-			if (gameState.getTimeElapsed() > (1 + 0.05*numFortresses)*this.fortressLapseTime + this.fortressStartTime)
+			if (Math.random() > 0.5)
+				fortressType = "structures/{civ}_fortress_b";
+			else
+				fortressType = "structures/{civ}_fortress_g";
+		}
+		if (queues.defenseBuilding.length() === 0 && this.canBuild(gameState, fortressType))
+		{
+			if (gameState.civ() !== "celt")
+				var numFortresses = gameState.countEntitiesAndQueuedByType(gameState.applyCiv("structures/{civ}_fortress"), true);
+			else
+				var numFortresses = gameState.countEntitiesAndQueuedByType(gameState.applyCiv("structures/{civ}_fortress_b"), true)
+					+ gameState.countEntitiesAndQueuedByType(gameState.applyCiv("structures/{civ}_fortress_g"), true);
+			if (gameState.ai.elapsedTime > (1 + 0.10*numFortresses)*this.fortressLapseTime + this.fortressStartTime)
 			{
-				this.fortressStartTime = gameState.getTimeElapsed();
-				// TODO should affect it to the right base
-				queues.defenseBuilding.addItem(new m.ConstructionPlan(gameState, this.bFort[0]));
+				this.fortressStartTime = gameState.ai.elapsedTime;
+				queues.defenseBuilding.addItem(new m.ConstructionPlan(gameState, fortressType));
 			}
 		}
 
 		// let's add a siege building plan to the current attack plan if there is none currently.
 		var numSiegeBuilder = 0;
-		if (gameState.civ() === "mace")
-			numSiegeBuilder = gameState.countEntitiesByType(gameState.applyCiv("siege_workshop"), true);
-		else
-			for (var i in this.bFort)
-				numSiegeBuilder += gameState.countEntitiesByType(gameState.applyCiv(this.bFort[i]), true);
-
+		if (gameState.civ() !== "celt" && gameState.civ() !== "mace" && gameState.civ() !== "maur")
+			numSiegeBuilder += gameState.countEntitiesByType(gameState.applyCiv("structures/{civ}_fortress"), true);
+		if (gameState.civ() === "celt")
+			numSiegeBuilder += (gameState.countEntitiesByType(gameState.applyCiv("structures/{civ}_fortress_b"), true)
+				+ gameState.countEntitiesByType(gameState.applyCiv("structures/{civ}_fortress_g"), true));
+		if (gameState.civ() === "mace" || gameState.civ() === "maur" || gameState.civ() === "rome")
+			numSiegeBuilder += gameState.countEntitiesByType(this.bAdvanced[0], true);
 		if (numSiegeBuilder > 0)
 		{
-			if (this.attackManager.upcomingAttacks["CityAttack"].length !== 0)
-			{
-				var attack = this.attackManager.upcomingAttacks["CityAttack"][0];
-				if (!attack.unitStat["Siege"])
-					attack.addSiegeUnits(gameState);
-			}
+			var attack = undefined;
+			// There can only be one upcoming attack
+			if (this.attackManager.upcomingAttacks["Attack"].length !== 0)
+				var attack = this.attackManager.upcomingAttacks["Attack"][0];
+			else if (this.attackManager.upcomingAttacks["HugeAttack"].length !== 0)
+				var attack = this.attackManager.upcomingAttacks["HugeAttack"][0];
+
+			if (attack && !attack.unitStat["Siege"])
+				attack.addSiegeUnits(gameState);
 		}
 	}
 
@@ -1310,9 +1298,9 @@ m.HQ.prototype.buildDefenses = function(gameState, queues)
 		return;	
 
 	var numTowers = gameState.countEntitiesAndQueuedByType(gameState.applyCiv("structures/{civ}_defense_tower"), true);
-	if (gameState.getTimeElapsed() > (1 + 0.05*numTowers)*this.towerLapseTime + this.towerStartTime)
+	if (gameState.ai.elapsedTime > (1 + 0.10*numTowers)*this.towerLapseTime + this.towerStartTime)
 	{
-		this.towerStartTime = gameState.getTimeElapsed();
+		this.towerStartTime = gameState.ai.elapsedTime;
 		queues.defenseBuilding.addItem(new m.ConstructionPlan(gameState, "structures/{civ}_defense_tower"));
 	}
 	// TODO  otherwise protect markets and civilcentres
@@ -1323,6 +1311,9 @@ m.HQ.prototype.buildBlacksmith = function(gameState, queues)
 	if (gameState.getPopulation() < this.Config.Military.popForBlacksmith 
 		|| queues.militaryBuilding.length() !== 0
 		|| gameState.countEntitiesAndQueuedByType(gameState.applyCiv("structures/{civ}_blacksmith"), true) > 0)
+		return;
+	// build a market before the blacksmith
+	if (gameState.countEntitiesAndQueuedByType(gameState.applyCiv("structures/{civ}_market"), true) == 0)
 		return;
 
 	if (this.canBuild(gameState, "structures/{civ}_blacksmith"))
@@ -1335,70 +1326,57 @@ m.HQ.prototype.buildBlacksmith = function(gameState, queues)
 // TODO: building placement is bad. Choice of buildings is also fairly dumb.
 m.HQ.prototype.constructTrainingBuildings = function(gameState, queues)
 {
-	var workersNumber = gameState.getOwnEntitiesByRole("worker", true).filter(API3.Filters.not(API3.Filters.byHasMetadata(PlayerID, "plan"))).length;
-
-	var barrackNb = gameState.countEntitiesAndQueuedByType(gameState.applyCiv("structures/{civ}_barracks"), true);
-	var bestBase = this.findBestBaseForMilitary(gameState);
-
-	if (this.canBuild(gameState, "structures/{civ}_barracks"))
+	if (this.canBuild(gameState, "structures/{civ}_barracks") && queues.militaryBuilding.length() === 0)
 	{
+		var barrackNb = gameState.countEntitiesAndQueuedByType(gameState.applyCiv("structures/{civ}_barracks"), true);
 		// first barracks.
-		if (workersNumber > this.Config.Military.popForBarracks1 || (this.econState == "townPhasing" && gameState.getOwnStructures().filter(API3.Filters.byClass("Village")).length < 5))
+		if (barrackNb === 0 && (gameState.getPopulation() > this.Config.Military.popForBarracks1 ||
+			(this.econState == "townPhasing" && gameState.getOwnStructures().filter(API3.Filters.byClass("Village")).length < 5)))
 		{
-			if (barrackNb + queues.militaryBuilding.length() < 1)
-			{
-				var plan = new m.ConstructionPlan(gameState, "structures/{civ}_barracks", { "base" : bestBase });
-				plan.onStart = function(gameState) { gameState.ai.queueManager.changePriority("militaryBuilding", 130); };
-				queues.militaryBuilding.addItem(plan);
-			}
+			var priority = this.Config.priorities.militaryBuilding;
+			gameState.ai.queueManager.changePriority("militaryBuilding", 2*priority);
+			var preferredBase = this.findBestBaseForMilitary(gameState);
+			var plan = new m.ConstructionPlan(gameState, "structures/{civ}_barracks", { "preferredBase": preferredBase });
+			plan.onStart = function(gameState) { gameState.ai.queueManager.changePriority("militaryBuilding", priority); };
+			queues.militaryBuilding.addItem(plan);
 		}
-
-		// second barracks.
-		if (barrackNb < 2 && workersNumber > this.Config.Military.popForBarracks2)
-			if (queues.militaryBuilding.length() < 1)
-				queues.militaryBuilding.addItem(new m.ConstructionPlan(gameState, "structures/{civ}_barracks", { "base" : bestBase }));
-
-		// third barracks (optional 4th/5th for some civs as they rely on barracks more.)
-		if (barrackNb === 2 && barrackNb + queues.militaryBuilding.length() < 3 && workersNumber > 125)
-			if (queues.militaryBuilding.length() === 0)
-			{
-				queues.militaryBuilding.addItem(new m.ConstructionPlan(gameState, "structures/{civ}_barracks", { "base" : bestBase }));
-				if (gameState.civ() == "gaul" || gameState.civ() == "brit" || gameState.civ() == "iber")
-				{
-					queues.militaryBuilding.addItem(new m.ConstructionPlan(gameState, "structures/{civ}_barracks", { "base" : bestBase }));
-					queues.militaryBuilding.addItem(new m.ConstructionPlan(gameState, "structures/{civ}_barracks", { "base" : bestBase }));
-				}
-			}
+		// second barracks, then 3rd barrack, and optional 4th for some civs as they rely on barracks more.
+		else if (barrackNb === 1 && gameState.getPopulation() > this.Config.Military.popForBarracks2)
+		{
+			var preferredBase = this.findBestBaseForMilitary(gameState);
+			queues.militaryBuilding.addItem(new m.ConstructionPlan(gameState, "structures/{civ}_barracks", { "preferredBase": preferredBase }));
+		}
+		else if (barrackNb === 2 && gameState.getPopulation() > this.Config.Military.popForBarracks2 + 20)
+		{
+			var preferredBase = this.findBestBaseForMilitary(gameState);
+			queues.militaryBuilding.addItem(new m.ConstructionPlan(gameState, "structures/{civ}_barracks", { "preferredBase": preferredBase }));
+		}
+		else if (barrackNb === 3 && gameState.getPopulation() > this.Config.Military.popForBarracks2 + 50
+			&& (gameState.civ() == "gaul" || gameState.civ() == "brit" || gameState.civ() == "iber"))
+		{
+			var preferredBase = this.findBestBaseForMilitary(gameState);
+			queues.militaryBuilding.addItem(new m.ConstructionPlan(gameState, "structures/{civ}_barracks", { "preferredBase": preferredBase }));
+		}
 	}
 
 	//build advanced military buildings
-	if (workersNumber >= this.Config.Military.popForBarracks2 - 15 && gameState.currentPhase() > 2){
-		if (queues.militaryBuilding.length() === 0)
-		{
-			var inConst = 0;
-			for (var i in this.bAdvanced)
-				inConst += gameState.countFoundationsByType(gameState.applyCiv(this.bAdvanced[i]));
-			if (inConst == 0 && this.bAdvanced && this.bAdvanced.length !== 0)
-			{
-				var i = Math.floor(Math.random() * this.bAdvanced.length);
-				if (gameState.countEntitiesAndQueuedByType(gameState.applyCiv(this.bAdvanced[i]), true) < 1 &&
-					this.canBuild(gameState, this.bAdvanced[i]))
-					queues.militaryBuilding.addItem(new m.ConstructionPlan(gameState, this.bAdvanced[i], { "base" : bestBase }));
-			}
-		}
-	}
-	// build second advanced building except for some civs.
-	if (gameState.currentPhase() > 2 && gameState.civ() !== "gaul" && gameState.civ() !== "brit" && gameState.civ() !== "iber" && workersNumber > 130)
+	if (gameState.currentPhase() > 2 && gameState.getPopulation() > 80 && queues.militaryBuilding.length() === 0 && this.bAdvanced.length !== 0)
 	{
-		var Const = 0;
-		for (var i in this.bAdvanced)
-			Const += gameState.countEntitiesByType(gameState.applyCiv(this.bAdvanced[i]), true);
-		if (inConst == 1)
+		var nAdvanced = 0;
+		for (var advanced of this.bAdvanced)
+			nAdvanced += gameState.countEntitiesAndQueuedByType(advanced, true);
+
+		if (nAdvanced === 0 || (nAdvanced < this.bAdvanced.length && gameState.getPopulation() > 120))
 		{
-			var i = Math.floor(Math.random() * this.bAdvanced.length);
-			if (gameState.countEntitiesAndQueuedByType(gameState.applyCiv(this.bAdvanced[i]), true) < 1 &&
-				this.canBuild(gameState, this.bAdvanced[i]))
-				queues.militaryBuilding.addItem(new m.ConstructionPlan(gameState, this.bAdvanced[i], { "base" : bestBase }));
+			for (var advanced of this.bAdvanced)
+			{
+				if (gameState.countEntitiesAndQueuedByType(advanced, true) < 1 && this.canBuild(gameState, advanced))
+				{
+					var preferredBase = this.findBestBaseForMilitary(gameState);
+					queues.militaryBuilding.addItem(new m.ConstructionPlan(gameState, advanced, { "preferredBase": preferredBase }));
+					break;
+				}
+			}
 		}
 	}
 };
@@ -1411,48 +1389,149 @@ m.HQ.prototype.findBestBaseForMilitary = function(gameState)
 	var ccEnts = gameState.getEntities().filter(API3.Filters.byClass("CivCentre")).toEntityArray();
 	var bestBase = 1;
 	var distMin = Math.min();
-	for each (var cc in ccEnts)
+	for (var cce of ccEnts)
 	{
-		if (cc.owner() != PlayerID)
+		if (gameState.isPlayerAlly(cce.owner()))
 			continue;
-		for each (var cce in ccEnts)
+		for (var cc of ccEnts)
 		{
-			if (gameState.isPlayerAlly(cce.owner()))
+			if (cc.owner() != PlayerID)
 				continue;
 			var dist = API3.SquareVectorDistance(cc.position(), cce.position());
-			if (dist < distMin)
-			{
-			    bestBase = cc.getMetadata(PlayerID, "base");
-			    distMin = dist;
-			}
+			if (dist > distMin)
+				continue;
+			bestBase = cc.getMetadata(PlayerID, "base");
+			distMin = dist;
 		}
 	}
 	return bestBase;
 };
 
-m.HQ.prototype.boostSoldiers = function(gameState, val, emergency)
+/**
+ * train with highest priority ranged infantry in the nearest civil centre from a given set of positions
+ * and garrison them there for defense
+ */  
+m.HQ.prototype.trainEmergencyUnits = function(gameState, positions)
 {
-	if (this.boostedSoldiers && this.boostedSoldiers >= val)
-		return;
-	if (!this.boostedSoldiers)
-		this.nominalSoldierPriority = this.Config.priorities.citizenSoldier;
-	this.boostedSoldiers = val;
-	gameState.ai.queueManager.changePriority("citizenSoldier", val);
-	if (!emergency)
+	var available = gameState.ai.queueManager.getAvailableResources(gameState);
+	var total = gameState.getResources();
+	var distcut = 20000;
+
+	var nearestAnchor = undefined;
+	var templateAnchor = undefined;
+	var distmin = undefined;
+	var rangedUnit = false;
+	for (var pos of positions)
+	{
+		var access = gameState.ai.accessibility.getAccessValue(pos);
+		// check nearest base anchor
+		for each (var base in this.baseManagers)
+		{
+			if (!base.anchor || !base.anchor.position())
+				continue;
+			if (base.anchor.getMetadata(PlayerID, "access") !== access)
+				continue;
+			var trainables = base.anchor.trainableEntities();
+			if (!trainables)     // base still in construction
+				continue;
+			var queue = base.anchor._entity.trainingQueue
+			if (queue)
+			{
+				var time = 0;
+				for (var item of queue)
+					if (item.progress > 0 || (item.metadata && item.metadata.trainer))
+						time += item.timeRemaining;
+				if (time/1000 > 5)
+					continue;
+			}
+			var templateFound = undefined;
+			for (var trainable of trainables)
+			{
+				var template = gameState.getTemplate(trainable);
+				if (!template.hasClass("Infantry") || !template.hasClass("Ranged")
+					|| !template.hasClass("CitizenSoldier"))
+					continue;
+				if (!total.canAfford(new API3.Resources(template.cost())))
+				{
+					if (rangedUnit)
+						continue;
+					// if we still have no ranged units, but can afford a melee unit, let's try it
+					var template = gameState.getTemplate(trainable);
+					if (!template.hasClass("Infantry") || !template.hasClass("Melee")
+						|| !template.hasClass("CitizenSoldier"))
+						continue;
+					if (!total.canAfford(new API3.Resources(template.cost())))
+						continue;
+				}
+				else
+					rangedUnit = true;
+				templateFound = [trainable, template];
+				if (rangedUnit)
+					break;
+			}
+			if (!templateFound)
+				continue;
+			var dist = API3.SquareVectorDistance(base.anchor.position(), pos);
+			if (nearestAnchor && dist > distmin)
+				continue;
+			distmin = dist;
+			nearestAnchor = base.anchor;
+			templateAnchor = templateFound;
+		}
+	}
+	if (!nearestAnchor || distmin > distcut)
 		return;
 
-	//  Emergency: reset accounts from all other queues
-	for (var p in gameState.ai.queueManager.queues)
-		if (p != "citizenSoldier")
+	var autogarrison = rangedUnit;
+	var numGarrisoned = this.garrisonManager.numberOfGarrisonedUnits(nearestAnchor);
+	if (nearestAnchor._entity.trainingQueue)
+	{
+		for (var item of nearestAnchor._entity.trainingQueue)
+		{
+			if (item.metadata && item.metadata["garrisonType"])
+				numGarrisoned += item.count;
+			else if (!item.progress || !item.metadata || !item.metadata.trainer)
+				nearestAnchor.stopProduction(item.id);
+		}
+	}
+	if (rangedUnit && numGarrisoned >= nearestAnchor.garrisonMax())
+	{
+		// No more room to garrison ... favor a melee unit
+		autogarrison = false;
+		var trainables = nearestAnchor.trainableEntities();
+		for (var trainable of trainables)
+		{
+			var template = gameState.getTemplate(trainable);
+			if (!template.hasClass("Infantry") || !template.hasClass("Melee")
+				|| !template.hasClass("CitizenSoldier"))
+				continue;
+			if (!total.canAfford(new API3.Resources(template.cost())))
+				continue;
+			templateAnchor = [trainable, template];
+			break;
+		}
+	}
+	// Check first if we can afford it without touching other the accounts
+	// and if not, take some of ther accounted resources
+	// TODO substract only what is needed instead of reset and sort the queues
+	var cost = new API3.Resources(templateAnchor[1].cost());
+	if (!available.canAfford(cost))
+	{
+		for (var p in gameState.ai.queueManager.queues)
+		{
+			// TODO substract only what is needed instead of reseting
+			// and do a better sorting of queues
+			available.add(gameState.ai.queueManager.accounts[p]);
 			gameState.ai.queueManager.accounts[p].reset();
-};
-
-m.HQ.prototype.unboostSoldiers = function(gameState)
-{
-	if (!this.boostedSoldiers)
-		return;
-	gameState.ai.queueManager.changePriority("citizenSoldier", this.nominalSoldierPriority);
-	this.boostedSoldiers = undefined;
+			if (available.canAfford(cost))
+				break;
+		}
+	}
+	gameState.ai.queueManager.accounts["emergency"].add(cost);
+	var metadata = { "role": "worker", "base": nearestAnchor.getMetadata(PlayerID, "base"), "trainer": nearestAnchor.id() };
+	if (autogarrison)
+		metadata.garrisonType = "protection";
+	gameState.ai.queues.emergency.addItem(new m.TrainingPlan(gameState, templateAnchor[0], metadata, 1, 1));
 };
 
 m.HQ.prototype.canBuild = function(gameState, structure)
@@ -1503,18 +1582,18 @@ m.HQ.prototype.updateTerritories = function(gameState)
 		}
 		else if (this.basesMap.map[j] === 0)
 		{
+			var index = gameState.ai.accessibility.landPassMap[j];
+			if (!this.allowedRegions[index])
+				continue;
 			var distmin = Math.min();
 			var baseID = undefined;
-			var ix = j%width;
-			var iy = Math.floor(j/width);
-
-			var pos = [ix+0.5, iy+0.5];
+			var pos = [j%width+0.5, Math.floor(j/width)+0.5];
 			pos = [gameState.cellSize*pos[0], gameState.cellSize*pos[1]];
 			for each (var base in this.baseManagers)
 			{
 				if (!base.anchor || !base.anchor.position())
 					continue;
-				if (base.accessIndex !== gameState.ai.accessibility.getAccessValue(pos))
+				if (base.accessIndex !== index)
 					continue;
 				var dist = API3.SquareVectorDistance(base.anchor.position(), pos);
 				if (dist >= distmin)
@@ -1535,8 +1614,6 @@ m.HQ.prototype.updateTerritories = function(gameState)
 	if (!expansion)
 		return;
 	// We've increased our territory, so we may have some new room to build
-	if (this.Config.debug > 1)
-		warn(" buildings stopped " + uneval(this.stopBuilding));
 	this.stopBuilding = [];
 };
 
@@ -1576,6 +1653,23 @@ m.HQ.prototype.ungarrisonAll = function(gameState) {
 	});
 };
 
+// Count gatherers returning resources in the number of gatherers of resourceSupplies
+// to prevent the AI always reaffecting idle workers to these resourceSupplies (specially in naval maps).
+m.HQ.prototype.assignGatherers = function(gameState)
+{
+	for each (var base in this.baseManagers)
+	{
+		base.workers.forEach( function (worker) {
+			if (worker.unitAIState().split(".")[1] !== "RETURNRESOURCE")
+				return;
+			var orders = worker.unitAIOrderData();
+			if (orders.length < 2 || !orders[1].target || orders[1].target !== worker.getMetadata(PlayerID, "supply"))
+				return;
+			m.AddTCGatherer(gameState, orders[1].target);
+		});
+	}
+};
+
 // Some functions are run every turn
 // Others once in a while
 m.HQ.prototype.update = function(gameState, queues, events)
@@ -1587,22 +1681,21 @@ m.HQ.prototype.update = function(gameState, queues, events)
 	if (this.Config.debug > 0)
 	{
 		gameState.getOwnUnits().forEach (function (ent) {
-		    return;
-			if (!ent.isIdle())
+			if (!ent.hasClass("CitizenSoldier") || ent.hasClass("Cavalry"))
+				return;
+			if (!ent.position())
+				return;
+			var idlePos = ent.setMetadata(PlayerID, "idlePos");
+			if (idlePos === undefined || idlePos[0] !== ent.position()[0] || idlePos[1] !== ent.position()[1])
 			{
-				ent.setMetadata(PlayerID, "lastIdle", undefined);
+				ent.setMetadata(PlayerID, "idlePos", ent.position());
+				ent.setMetadata(PlayerID, "idleTim", gameState.ai.playedTurn);
 				return;
 			}
-			if (ent.hasClass("Animal"))
+			if (gameState.ai.playedTurn - ent.getMetadata(PlayerID, "idleTim") < 50)
 				return;
-			if (!ent.getMetadata(PlayerID, "lastIdle"))
-			{
-				ent.setMetadata(PlayerID, "lastIdle", gameState.ai.playedTurn);
-				return;
-			}
-			if (gameState.ai.playedTurn - ent.getMetadata(PlayerID, "lastIdle") < 20)
-				return;
-			warn(" unit idle since " + (gameState.ai.playedTurn-ent.getMetadata(PlayerID, "lastIdle")) + " turns");
+			warn(" unit idle since " + (gameState.ai.playedTurn-ent.getMetadata(PlayerID, "idleTim")) + " turns");
+			warn(" unitai state " + ent.unitAIState());
 			warn(" >>> base " + ent.getMetadata(PlayerID, "base"));
 			warn(" >>> role " + ent.getMetadata(PlayerID, "role"));
 			warn(" >>> subrole " + ent.getMetadata(PlayerID, "subrole"));
@@ -1610,11 +1703,14 @@ m.HQ.prototype.update = function(gameState, queues, events)
 			warn(" >>> target-foundation " + ent.getMetadata(PlayerID, "target-foundation"));
 			warn(" >>> PartOfArmy " + ent.getMetadata(PlayerID, "PartOfArmy"));
 			warn(" >>> plan " + ent.getMetadata(PlayerID, "plan"));
-			ent.setMetadata(PlayerID, "lastIdle", gameState.ai.playedTurn);
+			warn(" >>> transport " + ent.getMetadata(PlayerID, "transport"));
+			ent.setMetadata(PlayerID, "idleTim", gameState.ai.playedTurn);
 		});
 	}
 
-	this.checkEvents(gameState,events,queues);
+	this.checkEvents(gameState, events, queues);
+
+	this.researchManager.checkPhase(gameState, queues);
 
 	// TODO find a better way to update
 	if (this.phaseStarted && gameState.currentPhase() === this.phaseStarted)
@@ -1625,18 +1721,19 @@ m.HQ.prototype.update = function(gameState, queues, events)
 	else if (gameState.ai.playedTurn - this.lastTerritoryUpdate > 100)
 		this.updateTerritories(gameState);
 
-	this.trainMoreWorkers(gameState, queues);
+	if (this.baseManagers[1])
+	{
+		this.trainMoreWorkers(gameState, queues);
 
-	if (gameState.ai.playedTurn % 2 === 0)
-		this.buildMoreHouses(gameState,queues);
-	else
-		this.buildFarmstead(gameState, queues);
+		if (gameState.ai.playedTurn % 2 === 1)
+			this.buildMoreHouses(gameState,queues);
 
-	if (this.waterMap)
-		this.buildDock(gameState, queues);
+		if (gameState.ai.playedTurn % 4 === 2 && !this.saveResources)
+			this.buildFarmstead(gameState, queues);
 
-	if (queues.minorTech.length() === 0 && gameState.ai.playedTurn % 5 === 1)
-		this.tryResearchTechs(gameState,queues);
+		if (queues.minorTech.length() === 0 && gameState.ai.playedTurn % 5 === 1)
+			this.researchManager.update(gameState, queues);
+	}
 
 	if (gameState.currentPhase() > 1)
 	{
@@ -1644,26 +1741,27 @@ m.HQ.prototype.update = function(gameState, queues, events)
 		if (this.Config.difficulty > 0 && gameState.ai.playedTurn % 10 === 7)
 			this.checkBaseExpansion(gameState, queues);
 
-		this.buildMarket(gameState, queues);
-		this.buildBlacksmith(gameState, queues);
-		this.buildTemple(gameState, queues);
+		if (!this.saveResources)
+		{
+			this.buildMarket(gameState, queues);
+			this.buildBlacksmith(gameState, queues);
+			this.buildTemple(gameState, queues);
+		}
 
 		if (this.Config.difficulty > 1)
-		{
-			this.tryBartering(gameState);
-			if (!this.tradeManager.hasTradeRoute() && gameState.ai.playedTurn % 5 === 2)
-				this.buildTradeRoute(gameState, queues);
 			this.tradeManager.update(gameState, queues);
-		}
 	}
 
+	this.garrisonManager.update(gameState, events);
 	this.defenseManager.update(gameState, events);
 
-	this.constructTrainingBuildings(gameState, queues);
+	if (!this.saveResources)
+		this.constructTrainingBuildings(gameState, queues);
 
 	if (this.Config.difficulty > 0)
 		this.buildDefenses(gameState, queues);
 
+	this.assignGatherers(gameState);
 	for (var i in this.baseManagers)
 	{
 		this.baseManagers[i].checkEvents(gameState, events, queues);
@@ -1675,7 +1773,7 @@ m.HQ.prototype.update = function(gameState, queues, events)
 	
 	if (this.Config.difficulty > 0)
 		this.attackManager.update(gameState, queues, events);
-	
+
 	Engine.ProfileStop();	// Heaquarters update
 };
 

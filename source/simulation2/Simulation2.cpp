@@ -95,56 +95,8 @@ public:
 	static void ResetComponentState(CComponentManager& componentManager, bool skipScriptedComponents, bool skipAI)
 	{
 		componentManager.ResetState();
-
-		CParamNode noParam;
-		CComponentManager::ComponentTypeId cid;
-
 		componentManager.InitSystemEntity();
-		CEntityHandle systemEntity = componentManager.GetSystemEntity();
-
-		// Add native system components:
-		componentManager.AddComponent(systemEntity, CID_TemplateManager, noParam);
-
-		componentManager.AddComponent(systemEntity, CID_CommandQueue, noParam);
-		componentManager.AddComponent(systemEntity, CID_ObstructionManager, noParam);
-		componentManager.AddComponent(systemEntity, CID_ParticleManager, noParam);
-		componentManager.AddComponent(systemEntity, CID_Pathfinder, noParam);
-		componentManager.AddComponent(systemEntity, CID_ProjectileManager, noParam);
-		componentManager.AddComponent(systemEntity, CID_RangeManager, noParam);
-		componentManager.AddComponent(systemEntity, CID_SoundManager, noParam);
-		componentManager.AddComponent(systemEntity, CID_Terrain, noParam);
-		componentManager.AddComponent(systemEntity, CID_TerritoryManager, noParam);
-		componentManager.AddComponent(systemEntity, CID_WaterManager, noParam);
-
-		// Add scripted system components:
-		if (!skipScriptedComponents)
-		{
-			// TODO: Load this from a file to allow modders to add scripted components
-			// without having to recompile.
-#define LOAD_SCRIPTED_COMPONENT(name) \
-			cid = componentManager.LookupCID(name); \
-			if (cid == CID__Invalid) \
-				LOGERROR(L"Can't find component type " L##name); \
-			componentManager.AddComponent(systemEntity, cid, noParam)
-
-			LOAD_SCRIPTED_COMPONENT("AIInterface");
-			LOAD_SCRIPTED_COMPONENT("AuraManager");
-			LOAD_SCRIPTED_COMPONENT("Barter");
-			LOAD_SCRIPTED_COMPONENT("EndGameManager");
-			LOAD_SCRIPTED_COMPONENT("GuiInterface");
-			LOAD_SCRIPTED_COMPONENT("PlayerManager");
-			LOAD_SCRIPTED_COMPONENT("TechnologyTemplateManager");
-			LOAD_SCRIPTED_COMPONENT("Timer");
-			LOAD_SCRIPTED_COMPONENT("ValueModificationManager");
-
-#undef LOAD_SCRIPTED_COMPONENT
-
-			if (!skipAI)
-			{
-				componentManager.AddComponent(systemEntity, CID_AIManager, noParam);
-			}
-		
-		}
+		componentManager.AddSystemComponents(skipScriptedComponents, skipAI);
 	}
 
 	static bool LoadDefaultScripts(CComponentManager& componentManager, std::set<VfsPath>* loadedScripts);
@@ -750,6 +702,19 @@ void CSimulation2::LoadMapSettings()
 
 	if (!m->m_StartupScript.empty())
 		GetScriptInterface().LoadScript(L"map startup script", m->m_StartupScript);
+	
+	// Load the trigger script after we have loaded the simulation and the map.
+	if (GetScriptInterface().HasProperty(m->m_MapSettings.get(), "TriggerScripts"))
+	{
+		std::vector<std::string> scriptNames;
+		GetScriptInterface().GetProperty(m->m_MapSettings.get(), "TriggerScripts", scriptNames);
+		for (u32 i = 0; i < scriptNames.size(); i++)
+		{
+			std::string scriptName = "maps/" + scriptNames[i];
+			LOGMESSAGE(L"Loading trigger script '%hs'", scriptName.c_str());
+			m->m_ComponentManager.LoadScript(scriptName.data());
+		}
+	}
 }
 
 int CSimulation2::ProgressiveLoad()
@@ -904,12 +869,15 @@ std::string CSimulation2::ReadJSON(VfsPath path)
 std::string CSimulation2::GetAIData()
 {
 	ScriptInterface& scriptInterface = GetScriptInterface();
+	JSContext* cx = scriptInterface.GetContext();
+	JSAutoRequest rq(cx);
+	
 	std::vector<CScriptValRooted> aiData = ICmpAIManager::GetAIs(scriptInterface);
 	
 	// Build single JSON string with array of AI data
-	CScriptValRooted ais;
-	if (!scriptInterface.Eval("({})", ais) || !scriptInterface.SetProperty(ais.get(), "AIData", aiData))
+	JS::RootedValue ais(cx);
+	if (!scriptInterface.Eval("({})", &ais) || !scriptInterface.SetProperty(ais, "AIData", aiData))
 		return std::string();
 	
-	return scriptInterface.StringifyJSON(ais.get());
+	return scriptInterface.StringifyJSON(ais);
 }

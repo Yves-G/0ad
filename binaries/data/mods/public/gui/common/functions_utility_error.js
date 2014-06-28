@@ -18,8 +18,8 @@ function cancelOnError(msg)
 		Engine.PushGuiPage("page_msgbox.xml", {
 			width: 500,
 			height: 200,
-			message: '[font="serif-bold-18"]' + msg + '[/font]',
-			title: "Loading Aborted",
+			message: '[font="sans-bold-18"]' + msg + '[/font]',
+			title: translate("Loading Aborted"),
 			mode: 2
 		});
 	}

@@ -1,5 +1,6 @@
 Engine.LoadComponentScript("interfaces/Attack.js");
 Engine.LoadComponentScript("interfaces/AlertRaiser.js");
+Engine.LoadComponentScript("interfaces/Auras.js");
 Engine.LoadComponentScript("interfaces/Barter.js");
 Engine.LoadComponentScript("interfaces/Builder.js");
 Engine.LoadComponentScript("interfaces/DamageReceiver.js");
@@ -357,12 +358,14 @@ AddMock(10, IID_Health, {
 
 AddMock(10, IID_Identity, {
 	GetClassesList: function() { return ["class1", "class2"]; },
+	GetVisibleClassesList: function() { return ["class3", "class4"]; },
 	GetRank: function() { return "foo"; },
 	GetSelectionGroupName: function() { return "Selection Group Name"; },
 	HasClass: function() { return true; },
 });
 
 AddMock(10, IID_Position, {
+	GetTurretParent: function() {return INVALID_ENTITY;},
 	GetPosition: function() {
 		return {x:1, y:2, z:3};
 	},
@@ -380,23 +383,46 @@ AddMock(10, IID_Position, {
 TS_ASSERT_UNEVAL_EQUALS(cmp.GetEntityState(-1, 10), {
 	id: 10,
 	template: "example",
+	alertRaiser: null,
+	buildEntities: ["test1", "test2"],
 	identity: {
 		rank: "foo",
 		classes: ["class1", "class2"],
+		visibleClasses: ["class3", "class4"],
 		selectionGroupName: "Selection Group Name",
 	},
+	foundation: null,
+	garrisonHolder: null,
+	gate: null,
+	guard: null,
+	pack: null,
+	player: -1,
 	position: {x:1, y:2, z:3},
+	production: null,
+	rallyPoint: null,
 	rotation: {x:4, y:5, z:6},
+	trader: null,
+	unitAI: null,
+	visibility: "visible",
 	hitpoints: 50,
 	maxHitpoints: 60,
 	needsRepair: false,
 	needsHeal: true,
-	buildEntities: ["test1", "test2"],
-	visibility: "visible",
 });
 
 TS_ASSERT_UNEVAL_EQUALS(cmp.GetExtendedEntityState(-1, 10), {
+	armour: null,
+	attack: null,
 	barterMarket: {
 		prices: { "buy": {"food":150}, "sell": {"food":25} },
 	},
+	buildingAI: null,
+	healer: null,
+	obstruction: null,
+	turretParent: null,
+	promotion: null,
+	resourceCarrying: null,
+	resourceDropsite: null,
+	resourceGatherRates: null,
+	resourceSupply: null,
 });

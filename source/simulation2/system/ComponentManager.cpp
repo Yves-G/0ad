@@ -1,4 +1,4 @@
-/* Copyright (C) 2013 Wildfire Games.
+/* Copyright (C) 2014 Wildfire Games.
  * This file is part of 0 A.D.
  *
  * 0 A.D. is free software: you can redistribute it and/or modify
@@ -19,6 +19,7 @@
 
 #include "ComponentManager.h"
 
+#include "DynamicSubscription.h"
 #include "IComponent.h"
 #include "ParamNode.h"
 #include "SimContext.h"
@@ -70,6 +71,8 @@ CComponentManager::CComponentManager(CSimContext& context, shared_ptr<ScriptRunt
 	if (!skipScriptFunctions)
 	{
 		m_ScriptInterface.RegisterFunction<void, int, std::string, CScriptVal, CComponentManager::Script_RegisterComponentType> ("RegisterComponentType");
+		m_ScriptInterface.RegisterFunction<void, int, std::string, CScriptVal, CComponentManager::Script_RegisterSystemComponentType> ("RegisterSystemComponentType");
+		m_ScriptInterface.RegisterFunction<void, int, std::string, CScriptVal, CComponentManager::Script_ReRegisterComponentType> ("ReRegisterComponentType");
 		m_ScriptInterface.RegisterFunction<void, std::string, CComponentManager::Script_RegisterInterface> ("RegisterInterface");
 		m_ScriptInterface.RegisterFunction<void, std::string, CComponentManager::Script_RegisterMessageType> ("RegisterMessageType");
 		m_ScriptInterface.RegisterFunction<void, std::string, CScriptVal, CComponentManager::Script_RegisterGlobal> ("RegisterGlobal");
@@ -137,13 +140,14 @@ bool CComponentManager::LoadScript(const VfsPath& filename, bool hotload)
 	m_CurrentlyHotloading = hotload;
 	CVFSFile file;
 	PSRETURN loadOk = file.Load(g_VFS, filename);
-	ENSURE(loadOk == PSRETURN_OK); // TODO
+	if (loadOk != PSRETURN_OK) // VFS will log the failed file and the reason
+		return false;
 	std::string content = file.DecodeUTF8(); // assume it's UTF-8
 	bool ok = m_ScriptInterface.LoadScript(filename, content);
 	return ok;
 }
 
-void CComponentManager::Script_RegisterComponentType(ScriptInterface::CxPrivate* pCxPrivate, int iid, std::string cname, CScriptVal ctor)
+void CComponentManager::Script_RegisterComponentType_Common(ScriptInterface::CxPrivate* pCxPrivate, int iid, std::string cname, CScriptVal ctor, bool reRegister, bool systemComponent)
 {
 	CComponentManager* componentManager = static_cast<CComponentManager*> (pCxPrivate->pCBData);
 	JSContext* cx = componentManager->m_ScriptInterface.GetContext();
@@ -163,15 +167,22 @@ void CComponentManager::Script_RegisterComponentType(ScriptInterface::CxPrivate*
 	ComponentTypeId cid = componentManager->LookupCID(cname);
 	if (cid == CID__Invalid)
 	{
+		if (reRegister)
+		{
+			componentManager->m_ScriptInterface.ReportError("ReRegistering component type that was not registered before"); // TODO: report the actual name
+			return;
+		}
 		// Allocate a new cid number
 		cid = componentManager->m_NextScriptComponentTypeId++;
 		componentManager->m_ComponentTypeIdsByName[cname] = cid;
+		if (systemComponent)
+			componentManager->MarkScriptedComponentForSystemEntity(cid);
 	}
 	else
 	{
 		// Component type is already loaded, so do hotloading:
 
-		if (!componentManager->m_CurrentlyHotloading)
+		if (!componentManager->m_CurrentlyHotloading && !reRegister)
 		{
 			componentManager->m_ScriptInterface.ReportError("Registering component type with already-registered name"); // TODO: report the actual name
 			return;
@@ -182,7 +193,7 @@ void CComponentManager::Script_RegisterComponentType(ScriptInterface::CxPrivate*
 		// We can only replace scripted component types, not native ones
 		if (ctPrevious.type != CT_Script)
 		{
-			componentManager->m_ScriptInterface.ReportError("Hotloading script component type with same name as native component");
+			componentManager->m_ScriptInterface.ReportError("Loading script component type with same name as native component");
 			return;
 		}
 
@@ -301,6 +312,26 @@ void CComponentManager::Script_RegisterComponentType(ScriptInterface::CxPrivate*
 			}
 		}
 	}
+}
+
+void CComponentManager::Script_RegisterComponentType(ScriptInterface::CxPrivate* pCxPrivate, int iid, std::string cname, CScriptVal ctor)
+{
+	CComponentManager* componentManager = static_cast<CComponentManager*> (pCxPrivate->pCBData);
+	componentManager->Script_RegisterComponentType_Common(pCxPrivate, iid, cname, ctor, false, false);
+	componentManager->m_ScriptInterface.SetGlobal(cname.c_str(), ctor, componentManager->m_CurrentlyHotloading);
+}
+
+void CComponentManager::Script_RegisterSystemComponentType(ScriptInterface::CxPrivate* pCxPrivate, int iid, std::string cname, CScriptVal ctor)
+{
+	CComponentManager* componentManager = static_cast<CComponentManager*> (pCxPrivate->pCBData);
+	componentManager->Script_RegisterComponentType_Common(pCxPrivate, iid, cname, ctor, false, true);
+	componentManager->m_ScriptInterface.SetGlobal(cname.c_str(), ctor, componentManager->m_CurrentlyHotloading);
+}
+
+void CComponentManager::Script_ReRegisterComponentType(ScriptInterface::CxPrivate* pCxPrivate, int iid, std::string cname, CScriptVal ctor)
+{
+	CComponentManager* componentManager = static_cast<CComponentManager*> (pCxPrivate->pCBData);
+	componentManager->Script_RegisterComponentType_Common(pCxPrivate, iid, cname, ctor, true, false);
 }
 
 void CComponentManager::Script_RegisterInterface(ScriptInterface::CxPrivate* pCxPrivate, std::string name)
@@ -508,6 +539,11 @@ void CComponentManager::RegisterComponentTypeScriptWrapper(InterfaceId iid, Comp
 	// TODO: merge with RegisterComponentType
 }
 
+void CComponentManager::MarkScriptedComponentForSystemEntity(CComponentManager::ComponentTypeId cid)
+{
+	m_ScriptedSystemComponents.push_back(cid);
+}
+
 void CComponentManager::RegisterMessageType(MessageTypeId mtid, const char* name)
 {
 	m_MessageTypeIdsByName[name] = mtid;
@@ -530,6 +566,50 @@ void CComponentManager::SubscribeGloballyToMessageType(MessageTypeId mtid)
 	std::vector<ComponentTypeId>& types = m_GlobalMessageSubscriptions[mtid];
 	types.push_back(m_CurrentComponent);
 	std::sort(types.begin(), types.end()); // TODO: just sort once at the end of LoadComponents
+}
+
+void CComponentManager::FlattenDynamicSubscriptions()
+{
+	std::map<MessageTypeId, CDynamicSubscription>::iterator it;
+	for (it = m_DynamicMessageSubscriptionsNonsync.begin();
+	     it != m_DynamicMessageSubscriptionsNonsync.end(); ++it)
+	{
+		it->second.Flatten();
+	}
+}
+
+void CComponentManager::DynamicSubscriptionNonsync(MessageTypeId mtid, IComponent* component, bool enable)
+{
+	if (enable)
+	{
+		bool newlyInserted = m_DynamicMessageSubscriptionsNonsyncByComponent[component].insert(mtid).second;
+		if (newlyInserted)
+			m_DynamicMessageSubscriptionsNonsync[mtid].Add(component);
+	}
+	else
+	{
+		size_t numRemoved = m_DynamicMessageSubscriptionsNonsyncByComponent[component].erase(mtid);
+		if (numRemoved)
+			m_DynamicMessageSubscriptionsNonsync[mtid].Remove(component);
+	}
+}
+
+void CComponentManager::RemoveComponentDynamicSubscriptions(IComponent* component)
+{
+	std::map<IComponent*, std::set<MessageTypeId> >::iterator it = m_DynamicMessageSubscriptionsNonsyncByComponent.find(component);
+	if (it == m_DynamicMessageSubscriptionsNonsyncByComponent.end())
+		return;
+
+	std::set<MessageTypeId>::iterator mtit;
+	for (mtit = it->second.begin(); mtit != it->second.end(); ++mtit)
+	{
+		m_DynamicMessageSubscriptionsNonsync[*mtit].Remove(component);
+
+		// Need to flatten the subscription lists immediately to avoid dangling IComponent* references
+		m_DynamicMessageSubscriptionsNonsync[*mtit].Flatten();
+	}
+
+	m_DynamicMessageSubscriptionsNonsyncByComponent.erase(it);
 }
 
 CComponentManager::ComponentTypeId CComponentManager::LookupCID(const std::string& cname) const
@@ -597,6 +677,33 @@ bool CComponentManager::AddComponent(CEntityHandle ent, ComponentTypeId cid, con
 
 	component->Init(paramNode);
 	return true;
+}
+
+void CComponentManager::AddSystemComponents(bool skipScriptedComponents, bool skipAI)
+{
+	CParamNode noParam;
+	AddComponent(m_SystemEntity, CID_TemplateManager, noParam);
+	AddComponent(m_SystemEntity, CID_CommandQueue, noParam);
+	AddComponent(m_SystemEntity, CID_ObstructionManager, noParam);
+	AddComponent(m_SystemEntity, CID_ParticleManager, noParam);
+	AddComponent(m_SystemEntity, CID_Pathfinder, noParam);
+	AddComponent(m_SystemEntity, CID_ProjectileManager, noParam);
+	AddComponent(m_SystemEntity, CID_RangeManager, noParam);
+	AddComponent(m_SystemEntity, CID_SoundManager, noParam);
+	AddComponent(m_SystemEntity, CID_Terrain, noParam);
+	AddComponent(m_SystemEntity, CID_TerritoryManager, noParam);
+	AddComponent(m_SystemEntity, CID_UnitRenderer, noParam);
+	AddComponent(m_SystemEntity, CID_WaterManager, noParam);
+
+	// Add scripted system components:
+	if (!skipScriptedComponents)
+	{
+
+		for (uint32_t i = 0; i < m_ScriptedSystemComponents.size(); ++i)
+			AddComponent(m_SystemEntity, m_ScriptedSystemComponents[i], noParam);
+		if (!skipAI)
+			AddComponent(m_SystemEntity, CID_AIManager, noParam);
+	}
 }
 
 IComponent* CComponentManager::ConstructComponent(CEntityHandle ent, ComponentTypeId cid)
@@ -768,6 +875,10 @@ void CComponentManager::FlushDestroyedComponents()
 		std::vector<entity_id_t> queue;
 		queue.swap(m_DestructionQueue);
 
+		// Flatten all the dynamic subscriptions to ensure there are no dangling
+		// references in the 'removed' lists to components we're going to delete
+		FlattenDynamicSubscriptions();
+
 		for (std::vector<entity_id_t>::iterator it = queue.begin(); it != queue.end(); ++it)
 		{
 			entity_id_t ent = *it;
@@ -784,6 +895,7 @@ void CComponentManager::FlushDestroyedComponents()
 				if (eit != iit->second.end())
 				{
 					eit->second->Deinit();
+					RemoveComponentDynamicSubscriptions(eit->second);
 					m_ComponentTypesById[iit->first].dealloc(eit->second);
 					iit->second.erase(ent);
 					handle.GetComponentCache()->interfaces[m_ComponentTypesById[iit->first].iid] = NULL;
@@ -854,7 +966,7 @@ const CComponentManager::InterfaceListUnordered& CComponentManager::GetEntitiesW
 	return m_ComponentsByInterface[iid];
 }
 
-void CComponentManager::PostMessage(entity_id_t ent, const CMessage& msg) const
+void CComponentManager::PostMessage(entity_id_t ent, const CMessage& msg)
 {
 	// Send the message to components of ent, that subscribed locally to this message
 	std::map<MessageTypeId, std::vector<ComponentTypeId> >::const_iterator it;
@@ -879,7 +991,7 @@ void CComponentManager::PostMessage(entity_id_t ent, const CMessage& msg) const
 	SendGlobalMessage(ent, msg);
 }
 
-void CComponentManager::BroadcastMessage(const CMessage& msg) const
+void CComponentManager::BroadcastMessage(const CMessage& msg)
 {
 	// Send the message to components of all entities that subscribed locally to this message
 	std::map<MessageTypeId, std::vector<ComponentTypeId> >::const_iterator it;
@@ -904,7 +1016,7 @@ void CComponentManager::BroadcastMessage(const CMessage& msg) const
 	SendGlobalMessage(INVALID_ENTITY, msg);
 }
 
-void CComponentManager::SendGlobalMessage(entity_id_t ent, const CMessage& msg) const
+void CComponentManager::SendGlobalMessage(entity_id_t ent, const CMessage& msg)
 {
 	// (Common functionality for PostMessage and BroadcastMessage)
 
@@ -937,8 +1049,17 @@ void CComponentManager::SendGlobalMessage(entity_id_t ent, const CMessage& msg) 
 				eit->second->HandleMessage(msg, true);
 		}
 	}
-}
 
+	// Send the message to component instances that dynamically subscribed to this message
+	std::map<MessageTypeId, CDynamicSubscription>::iterator dit = m_DynamicMessageSubscriptionsNonsync.find(msg.GetType());
+	if (dit != m_DynamicMessageSubscriptionsNonsync.end())
+	{
+		dit->second.Flatten();
+		const std::vector<IComponent*>& dynamic = dit->second.GetComponents();
+		for (size_t i = 0; i < dynamic.size(); i++)
+			dynamic[i]->HandleMessage(msg, false);
+	}
+}
 
 std::string CComponentManager::GenerateSchema()
 {

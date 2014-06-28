@@ -5,7 +5,7 @@
     <Territory>own neutral</Territory>
     <Distance>
       <FromClass>Colony</FromClass>
-      <MinDistance>100</MinDistance>
+      <MinDistance>120</MinDistance>
     </Distance>
   </BuildRestrictions>
   <Cost>
@@ -17,7 +17,7 @@
     </Resources>
   </Cost>
   <Footprint>
-    <Square width="25.0" depth="25.0"/>
+    <Square width="25.5" depth="25.5"/>
     <Height>12.0</Height>
   </Footprint>
   <Health>
@@ -32,12 +32,12 @@
     <History>The Seleucid kings invited Greeks, Macedonians, Galatians (Gauls), Cretans, and Thracians alike to settle in within the vast territories of the empire. They settled in military colonies called cleruchies (klēroukhia). Under this arrangement, the settlers were given a plot of land, or a kleros, and in return were required to serve in the great king's army when called to duty. This created a upper-middle class of military settlers who owed their livelihoods and fortunes to the Syrian kings and helped grow the available manpower for the imperial Seleucid army. A side effect of this system was that it drained the Greek homeland of military-aged men, a contributing factor to Greece's eventual conquest by Rome.</History>
     <Tooltip>This is the Seleucid expansion building, similar to Civic Centers for other factions. It is weaker and carries a smaller territory influence, but is cheaper and built faster.
 - Train settler-soldiers of various nationalities.
-- Min. distance from other Military Colonies: 100 meters.</Tooltip>
+- Min. distance from other Military Colonies: 120 meters.</Tooltip>
     <Icon>structures/military_settlement.png</Icon>
     <RequiredTechnology>phase_town</RequiredTechnology>
   </Identity>
   <Obstruction>
-    <Static width="20.0" depth="20.0"/>
+    <Static width="23.0" depth="23.0"/>
   </Obstruction>
   <ProductionQueue>
     <Entities datatype="tokens">
@@ -68,7 +68,7 @@
     <Radius>80</Radius>
   </TerritoryInfluence>
   <VisualActor>
-    <Actor>structures/macedonians/barracks.xml</Actor>
+    <Actor>structures/ptolemies/settlement.xml</Actor>
     <FoundationActor>structures/fndn_5x5.xml</FoundationActor>
   </VisualActor>
 </Entity>

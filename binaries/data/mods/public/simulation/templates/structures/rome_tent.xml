@@ -28,7 +28,7 @@
     <Civ>rome</Civ>
     <GenericName>Tent</GenericName>
     <SpecificName>Tabernāculum</SpecificName>
-    <Classes datatype="tokens">-Village</Classes>
+    <VisibleClasses datatype="tokens">-Village</VisibleClasses>
 	<Tooltip>A temporary shelter for soldiers. +5 population bonus.</Tooltip>
   </Identity>
   <Obstruction>
@@ -40,7 +40,8 @@
       -units/{civ}_support_female_citizen_house
     </Entities>
     <Technologies datatype="tokens">
-      -unlock_females_house
+      -pair_house_01
+      -pair_house_02
     </Technologies>
   </ProductionQueue>
   <Sound>

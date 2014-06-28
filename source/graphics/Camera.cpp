@@ -89,9 +89,9 @@ void CCamera::UpdateFrustum(const CBoundingBoxAligned& scissor)
 
 	MatFinal = m_ProjMat * MatView;
 
-	// get the RIGHT plane
 	m_ViewFrustum.SetNumPlanes(6);
 
+	// get the RIGHT plane
 	m_ViewFrustum.m_aPlanes[0].m_Norm.X = scissor[1].X*MatFinal._41 - MatFinal._11;
 	m_ViewFrustum.m_aPlanes[0].m_Norm.Y = scissor[1].X*MatFinal._42 - MatFinal._12;
 	m_ViewFrustum.m_aPlanes[0].m_Norm.Z = scissor[1].X*MatFinal._43 - MatFinal._13;
@@ -126,11 +126,16 @@ void CCamera::UpdateFrustum(const CBoundingBoxAligned& scissor)
 	m_ViewFrustum.m_aPlanes[5].m_Norm.Y = -scissor[0].Z*MatFinal._42 + MatFinal._32;
 	m_ViewFrustum.m_aPlanes[5].m_Norm.Z = -scissor[0].Z*MatFinal._43 + MatFinal._33;
 	m_ViewFrustum.m_aPlanes[5].m_Dist   = -scissor[0].Z*MatFinal._44 + MatFinal._34;
+
+	for (size_t i = 0; i < 6; ++i)
+		m_ViewFrustum.m_aPlanes[i].Normalize();
 }
 
 void CCamera::ClipFrustum(const CPlane& clipPlane)
 {
-	m_ViewFrustum.AddPlane(clipPlane);
+	CPlane normClipPlane = clipPlane;
+	normClipPlane.Normalize();
+	m_ViewFrustum.AddPlane(normClipPlane);
 }
 
 void CCamera::SetViewPort(const SViewPort& viewport)

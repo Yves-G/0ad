@@ -326,6 +326,7 @@ public:
 		// The whole map should be visible to Gaia by default, else e.g. animals
 		// will get confused when trying to run from enemies
 		m_LosRevealAll.resize(MAX_LOS_PLAYER_ID+2,false);
+		m_LosRevealAll[0] = true;
 		m_SharedLosMasks.resize(MAX_LOS_PLAYER_ID+2,0);
 
 		m_LosCircular = false;
@@ -1428,6 +1429,21 @@ public:
 	virtual u32 GetSharedLosMask(player_id_t player)
 	{
 		return m_SharedLosMasks[player];
+	}
+
+	void ExploreAllTiles(player_id_t p)
+	{
+		for (u16 j = 0; j < m_TerrainVerticesPerSide; ++j)
+		{
+			for (u16 i = 0; i < m_TerrainVerticesPerSide; ++i)
+			{
+				if (LosIsOffWorld(i,j))
+					continue;
+				u32 &explored = m_ExploredVertices.at(p);
+				explored += !(m_LosState[i + j*m_TerrainVerticesPerSide] & (LOS_EXPLORED << (2*(p-1))));
+				m_LosState[i + j*m_TerrainVerticesPerSide] |= (LOS_EXPLORED << (2*(p-1)));
+			}
+		}
 	}
 
 	void UpdateTerritoriesLos()

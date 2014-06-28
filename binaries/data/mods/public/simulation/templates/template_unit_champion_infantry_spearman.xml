@@ -36,12 +36,12 @@
   <Cost>
     <Resources>
       <food>50</food>
-      <metal>80</metal>
+      <metal>75</metal>
     </Resources>
   </Cost>
   <Identity>
     <GenericName>Champion Spearman</GenericName>
-    <Classes datatype="tokens">Melee Spear</Classes>
+    <VisibleClasses datatype="tokens">Melee Spear</VisibleClasses>
 	<Tooltip>Classes: Champion Melee Infantry Spearman.
 Counters: 2x vs. All Cavalry.
 Countered by: Skirmishers, Swordsmen, and Cavalry Archers.</Tooltip>

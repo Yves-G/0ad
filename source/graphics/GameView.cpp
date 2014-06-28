@@ -58,6 +58,7 @@
 #include "simulation2/Simulation2.h"
 #include "simulation2/components/ICmpPosition.h"
 #include "simulation2/components/ICmpRangeManager.h"
+#include "lobby/IXmppClient.h"
 
 extern int g_xres, g_yres;
 
@@ -476,15 +477,6 @@ void CGameView::BeginFrame()
 	{
 		// Set up cull camera
 		m->CullCamera = m->ViewCamera;
-
-		// One way to fix shadows popping in at the edge of the screen is to widen the culling frustum so that
-		// objects aren't culled as early. The downside is that objects will get rendered even though they appear
-		// off screen, which is somewhat inefficient. A better solution would be to decouple shadow map rendering
-		// from model rendering; as it is now, a shadow map is only rendered if its associated model is to be
-		// rendered.
-		// (See http://trac.wildfiregames.com/ticket/504)
-		m->CullCamera.SetProjection(m->ViewNear, m->ViewFar, GetCullFOV());
-		m->CullCamera.UpdateFrustum();
 	}
 	g_Renderer.SetSceneCamera(m->ViewCamera, m->CullCamera);
 
@@ -522,51 +514,7 @@ void CGameView::EnumerateObjects(const CFrustum& frustum, SceneCollector* c)
 			}
 
 			if (!m->Culling || frustum.IsBoxVisible (CVector3D(0,0,0), bounds)) {
-				//c->Submit(patch);
-
-				// set the renderstate for this patch
-				patch->setDrawState(true);
-
-				// set the renderstate for the neighbors
-				CPatch *nPatch;
-
-				nPatch = pTerrain->GetPatch(i-1,j-1);
-				if(nPatch) nPatch->setDrawState(true);
-
-				nPatch = pTerrain->GetPatch(i,j-1);
-				if(nPatch) nPatch->setDrawState(true);
-
-				nPatch = pTerrain->GetPatch(i+1,j-1);
-				if(nPatch) nPatch->setDrawState(true);
-
-				nPatch = pTerrain->GetPatch(i-1,j);
-				if(nPatch) nPatch->setDrawState(true);
-
-				nPatch = pTerrain->GetPatch(i+1,j);
-				if(nPatch) nPatch->setDrawState(true);
-
-				nPatch = pTerrain->GetPatch(i-1,j+1);
-				if(nPatch) nPatch->setDrawState(true);
-
-				nPatch = pTerrain->GetPatch(i,j+1);
-				if(nPatch) nPatch->setDrawState(true);
-
-				nPatch = pTerrain->GetPatch(i+1,j+1);
-				if(nPatch) nPatch->setDrawState(true);
-			}
-		}
-	}
-
-	// draw the patches
-	for (ssize_t j=0; j<patchesPerSide; j++)
-	{
-		for (ssize_t i=0; i<patchesPerSide; i++)
-		{
-			CPatch* patch=pTerrain->GetPatch(i,j);	// can't fail
-			if(patch->getDrawState() == true)
-			{
 				c->Submit(patch);
-				patch->setDrawState(false);
 			}
 		}
 	}
@@ -774,7 +722,7 @@ void CGameView::Update(const float deltaRealTime)
 		{
 			// Get the most recent interpolated position
 			float frameOffset = m->Game->GetSimulation2()->GetLastFrameOffset();
-			CMatrix3D transform = cmpPosition->GetInterpolatedTransform(frameOffset, false);
+			CMatrix3D transform = cmpPosition->GetInterpolatedTransform(frameOffset);
 			CVector3D pos = transform.GetTranslation();
 
 			if (m->FollowFirstPerson)
@@ -963,6 +911,54 @@ float CGameView::GetCameraZ()
 	return pivot.Z;
 }
 
+float CGameView::GetCameraPosX()
+{
+	return m->PosX.GetValue();
+}
+
+float CGameView::GetCameraPosY()
+{
+	return m->PosY.GetValue();
+}
+
+float CGameView::GetCameraPosZ()
+{
+	return m->PosZ.GetValue();
+}
+
+float CGameView::GetCameraRotX()
+{
+	return m->RotateX.GetValue();
+}
+
+float CGameView::GetCameraRotY()
+{
+	return m->RotateY.GetValue();
+}
+
+float CGameView::GetCameraZoom()
+{
+	return m->Zoom.GetValue();
+}
+
+void CGameView::SetCamera(CVector3D Pos, float RotX, float RotY, float zoom)
+{
+	m->PosX.SetValue(Pos.X);
+	m->PosY.SetValue(Pos.Y);
+	m->PosZ.SetValue(Pos.Z);
+	m->RotateX.SetValue(RotX);
+	m->RotateY.SetValue(RotY);
+	m->Zoom.SetValue(zoom);
+
+	FocusHeight(m, false);
+
+	SetupCameraMatrixNonSmooth(m, &m->ViewCamera.m_Orientation);
+	m->ViewCamera.UpdateFrustum();
+
+	// Break out of following mode so the camera really moves to the target
+	m->FollowEntity = INVALID_ENTITY;
+}
+
 void CGameView::MoveCameraTarget(const CVector3D& target)
 {
 	// Maintain the same orientation and level of zoom, if we can
@@ -1053,11 +1049,6 @@ float CGameView::GetFOV() const
 	return m->ViewFOV;
 }
 
-float CGameView::GetCullFOV() const
-{
-	return m->ViewFOV + DEGTORAD(6.0f);	//add 6 degrees to the default FOV for use with the culling frustum;
-}
-
 void CGameView::SetCameraProjection()
 {
 	m->ViewCamera.SetProjection(m->ViewNear, m->ViewFar, m->ViewFOV);
@@ -1084,7 +1075,9 @@ InReaction CGameView::HandleEvent(const SDL_Event_* ev)
 
 		if (hotkey == "wireframe")
 		{
-			if (g_Renderer.GetModelRenderMode() == SOLID)
+			if (g_XmppClient && g_rankedGame == true)
+				break;
+			else if (g_Renderer.GetModelRenderMode() == SOLID)
 			{
 				g_Renderer.SetTerrainRenderMode(EDGED_FACES);
 				g_Renderer.SetModelRenderMode(EDGED_FACES);

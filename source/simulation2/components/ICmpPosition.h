@@ -1,4 +1,4 @@
-/* Copyright (C) 2013 Wildfire Games.
+/* Copyright (C) 2014 Wildfire Games.
  * This file is part of 0 A.D.
  *
  * 0 A.D. is free software: you can redistribute it and/or modify
@@ -23,6 +23,8 @@
 #include "simulation2/helpers/Position.h"
 #include "maths/FixedVector3D.h"
 #include "maths/FixedVector2D.h"
+
+#include <set>
 
 class CMatrix3D;
 
@@ -59,6 +61,26 @@ class ICmpPosition : public IComponent
 {
 public:
 	/**
+	 * Set this as a turret of an other entity
+	 */
+	virtual void SetTurretParent(entity_id_t parent, CFixedVector3D offset) = 0;
+
+	/**
+	 * Get the turret parent of this entity
+	 */
+	virtual entity_id_t GetTurretParent() = 0;
+
+	/**
+	 * Has to be called to update the simulation position of the turret
+	 */
+	virtual void UpdateTurretPosition() = 0;
+
+	/**
+	 * Get the list of turrets to read or edit
+	 */
+	virtual std::set<entity_id_t>* GetTurrets() = 0;
+
+	/**
 	 * Returns true if the entity currently exists at a defined position in the world.
 	 */
 	virtual bool IsInWorld() = 0;
@@ -94,15 +116,47 @@ public:
 	virtual entity_pos_t GetHeightOffset() = 0;
 
 	/**
-	 * Set the vertical position as a fixed, absolute value.
-	 * Will stay at this height until the next call to SetHeightFixed or SetHeightOffset.
+	 * Set the vertical position above the map zero point
 	 */
 	virtual void SetHeightFixed(entity_pos_t y) = 0;
+
+	/**
+	 * Returns the vertical offset above the map zero point
+	 */
+	virtual entity_pos_t GetHeightFixed() = 0;
+
+	/**
+	 * Returns true iff the entity will follow the terrain height (possibly with an offset)
+	 */
+	virtual bool IsHeightRelative() = 0;
+
+	/**
+	 * When set to true, the entity will follow the terrain height (possibly with an offset)
+	 * When set to false, it's height won't change automatically
+	 */
+	virtual void SetHeightRelative(bool flag) = 0;
 
 	/**
 	 * Returns whether the entity floats on water.
 	 */
 	virtual bool IsFloating() = 0;
+
+	/**
+	 * Set the entity to float on water
+	 */
+	virtual void SetFloating(bool flag) = 0;
+
+	/**
+	 * Set the entity to float on water, in a non-network-synchronised visual-only way.
+	 * (This is to support the 'floating' flag in actor XMLs.)
+	 */
+	virtual void SetActorFloating(bool flag) = 0;
+
+	/**
+	 * Set construction progress of the model, this affects the rendered position of the model.
+	 * 0.0 will be fully underground, 1.0 will be fully visible, 0.5 will be half underground.
+	 */
+	virtual void SetConstructionProgress(fixed progress) = 0;
 
 	/**
 	 * Returns the current x,y,z position (no interpolation).
@@ -176,7 +230,7 @@ public:
 	 * Get the current interpolated transform matrix, for rendering.
 	 * Must not be called unless IsInWorld is true.
 	 */
-	virtual CMatrix3D GetInterpolatedTransform(float frameOffset, bool forceFloating) = 0;
+	virtual CMatrix3D GetInterpolatedTransform(float frameOffset) = 0;
 
 	DECLARE_INTERFACE_TYPE(Position)
 };

@@ -22,6 +22,8 @@
 #include "simulation2/system/InterfaceScripted.h"
 
 BEGIN_INTERFACE_WRAPPER(Position)
+DEFINE_INTERFACE_METHOD_2("SetTurretParent", void, ICmpPosition, SetTurretParent, entity_id_t, CFixedVector3D)
+DEFINE_INTERFACE_METHOD_0("GetTurretParent", entity_id_t, ICmpPosition, GetTurretParent)
 DEFINE_INTERFACE_METHOD_0("IsInWorld", bool, ICmpPosition, IsInWorld)
 DEFINE_INTERFACE_METHOD_0("MoveOutOfWorld", void, ICmpPosition, MoveOutOfWorld)
 DEFINE_INTERFACE_METHOD_2("MoveTo", void, ICmpPosition, MoveTo, entity_pos_t, entity_pos_t)
@@ -30,7 +32,12 @@ DEFINE_INTERFACE_METHOD_2("JumpTo", void, ICmpPosition, JumpTo, entity_pos_t, en
 DEFINE_INTERFACE_METHOD_1("SetHeightOffset", void, ICmpPosition, SetHeightOffset, entity_pos_t)
 DEFINE_INTERFACE_METHOD_0("GetHeightOffset", entity_pos_t, ICmpPosition, GetHeightOffset)
 DEFINE_INTERFACE_METHOD_1("SetHeightFixed", void, ICmpPosition, SetHeightFixed, entity_pos_t)
+DEFINE_INTERFACE_METHOD_0("GetHeightFixed", entity_pos_t, ICmpPosition, GetHeightFixed)
+DEFINE_INTERFACE_METHOD_0("IsHeightRelative", bool, ICmpPosition, IsHeightRelative)
+DEFINE_INTERFACE_METHOD_1("SetHeightRelative", void, ICmpPosition, SetHeightRelative, bool)
 DEFINE_INTERFACE_METHOD_0("IsFloating", bool, ICmpPosition, IsFloating)
+DEFINE_INTERFACE_METHOD_1("SetFloating", void, ICmpPosition, SetFloating, bool)
+DEFINE_INTERFACE_METHOD_1("SetConstructionProgress", void, ICmpPosition, SetConstructionProgress, fixed)
 DEFINE_INTERFACE_METHOD_0("GetPosition", CFixedVector3D, ICmpPosition, GetPosition)
 DEFINE_INTERFACE_METHOD_0("GetPosition2D", CFixedVector2D, ICmpPosition, GetPosition2D)
 DEFINE_INTERFACE_METHOD_0("GetPreviousPosition", CFixedVector3D, ICmpPosition, GetPreviousPosition) 

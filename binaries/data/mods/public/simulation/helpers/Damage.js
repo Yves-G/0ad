@@ -25,7 +25,7 @@ Damage.CauseSplashDamage = function(data)
 		if(data.shape == 'Circular') // circular effect with quadratic falloff in every direction
 		{
 			var squaredDistanceFromOrigin = data.origin.distanceToSquared(entityPosition);
-			damageMultiplier == 1 - squaredDistanceFromOrigin / (data.radius * data.radius);
+			damageMultiplier = 1 - squaredDistanceFromOrigin / (data.radius * data.radius);
 		}
 		else if(data.shape == 'Linear') // linear effect with quadratic falloff in two directions (only used for certain missiles)
 		{
@@ -68,7 +68,7 @@ Damage.CauseDamage = function(data)
 	// Check the target can be damaged otherwise don't do anything.
 	var cmpDamageReceiver = Engine.QueryInterface(data.target, IID_DamageReceiver);
 	var cmpHealth = Engine.QueryInterface(data.target, IID_Health);
-	if (!cmpDamageReceiver && !cmpHealth)
+	if (!cmpDamageReceiver || !cmpHealth)
 		return;
 
 	// Damage the target

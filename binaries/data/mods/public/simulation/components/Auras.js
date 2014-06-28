@@ -1,22 +1,61 @@
 function Auras() {}
 
-Auras.prototype.Schema =
-	"<oneOrMore>" +
-		"<element a:help='Name of the aura JSON file to use, case-insensitive'>" +
-			"<anyName/>" +
-			"<optional>" +
-				"<element name='Radius' a:help='Define the radius this aura affects, if it is a range aura'>" +
-					"<data type='nonNegativeInteger'/>" +
-				"</element>" +
-			"</optional>" +
-			"<element name='Type' a:help='Controls how this aura affects nearby units'>" +
+var modificationSchema = 
+	"<element name='Modifications' a:help='Modification list'>" +
+		"<oneOrMore>" +
+			"<element a:help='Name of the value to modify'>" +
+				"<anyName/>" +
 				"<choice>" +
-					"<value a:help='Affects units in the same formation'>formation</value>" +
-					"<value a:help='Affects units in a certain range'>range</value>" +
-					"<value a:help='Affects the structure or unit this unit is garrisoned in'>garrison</value>" +
-					"<value a:help='Affects all units while this unit is alive'>global</value>" +
+					"<element name='Add'>" +
+						"<data type='decimal'/>" +
+					"</element>" +
+					"<element name='Multiply'>" +
+						"<data type='decimal'/>" +
+					"</element>" +
 				"</choice>" +
 			"</element>" +
+		"</oneOrMore>" +
+	"</element>";
+
+Auras.prototype.Schema =
+	"<oneOrMore>" +
+		"<element a:help='Any name you want'>" +
+			"<anyName/>" +
+			"<interleave>" +
+				"<optional>" +
+					"<element name='Radius' a:help='Define the radius this aura affects, if it is a range aura'>" +
+						"<data type='nonNegativeInteger'/>" +
+					"</element>" +
+				"</optional>" +
+				"<element name='Type' a:help='Controls how this aura affects nearby units'>" +
+					"<choice>" +
+						"<value a:help='Affects units in the same formation'>formation</value>" +
+						"<value a:help='Affects units in a certain range'>range</value>" +
+						"<value a:help='Affects the structure or unit this unit is garrisoned in'>garrison</value>" +
+						"<value a:help='Affects the units that are garrisoned on a certain structure'>garrisonedUnits</value>" +
+						"<value a:help='Affects all units while this unit is alive'>global</value>" +
+					"</choice>" +
+				"</element>" +
+				modificationSchema +
+				"<optional>" +
+					"<element name='AuraName' a:help='name to display in the GUI'>" +
+						"<text/>" +
+					"</element>" +
+				"</optional>" +
+				"<optional>" +
+					"<element name='AuraDescription' a:help='description to display in the GUI, requires a name'>" +
+						"<text/>" +
+					"</element>" +
+				"</optional>" +
+				"<element name='Affects' a:help='Affected classes'>" +
+					"<text/>" +
+				"</element>" +
+				"<optional>" +
+					"<element name='AffectedPlayers' a:help='Affected players'>" +
+						"<text/>" +
+					"</element>" +
+				"</optional>" +
+			"</interleave>" +
 		"</element>" +
 	"</oneOrMore>";
 
@@ -26,9 +65,37 @@ Auras.prototype.Init = function()
 	this.templateName = cmpTemplateManager.GetCurrentTemplateName(this.entity);
 	var auraNames = this.GetAuraNames();
 	this.auras = {};
+	this.affectedPlayers = {};
 	var cmpTechnologyTemplateManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_TechnologyTemplateManager);
-	for each (var name in auraNames)
-		this.auras[name] = cmpTechnologyTemplateManager.GetAuraTemplate(name);
+	for (var name in this.template)
+	{
+		this.affectedPlayers[name] = []; // will be calculated on ownership change
+		var aura = {}
+		aura.affects = this.template[name].Affects;
+		if (this.template[name].AffectedPlayers)
+			aura.affectedPlayers = this.template[name].AffectedPlayers.split(/\s+/);
+		aura.modifications = [];
+		for (var value in this.template[name].Modifications)
+		{
+			var mod = {};
+			mod.value = value.replace(/\./g, "/");
+			if (this.template[name].Modifications[value].Add)
+				mod.add = +this.template[name].Modifications[value].Add;
+			else if (this.template[name].Modifications[value].Multiply)
+				mod.multiply = +this.template[name].Modifications[value].Multiply;
+			aura.modifications.push(mod);
+		}
+		this.auras[name] = aura;
+	}
+};
+
+Auras.prototype.GetDescriptions = function()
+{
+	var ret = {}
+	for each (var aura in this.template)
+		if (aura.AuraName)
+			ret[aura.AuraName] = aura.AuraDescription || null;
+	return ret;
 };
 
 Auras.prototype.GetAuraNames = function()
@@ -57,17 +124,22 @@ Auras.prototype.GetModifications = function(name)
 
 Auras.prototype.GetAffectedPlayers = function(name)
 {
+	return this.affectedPlayers[name];
+};
+
+Auras.prototype.CalculateAffectedPlayers = function(name)
+{
 	if (this.auras[name].affectedPlayers)
 		var affectedPlayers = this.auras[name].affectedPlayers;
 	else
 		var affectedPlayers = ["Player"];
 
-	var ret = [];
+	this.affectedPlayers[name] = [];
 
 	var cmpPlayer = QueryOwnerInterface(this.entity, IID_Player);
 
 	if (!cmpPlayer)
-		return ret;
+		return;
 
 	var cmpPlayerManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_PlayerManager);
 	var numPlayers = cmpPlayerManager.GetNumPlayers();
@@ -78,12 +150,11 @@ Auras.prototype.GetAffectedPlayers = function(name)
 		{
 			if (p == "Player" ? cmpPlayer.GetPlayerID() == i : cmpPlayer["Is" + p](i))
 			{
-				ret.push(i);
+				this.affectedPlayers[name].push(i);
 				break;
 			}
 		}
 	}
-	return ret;
 };
 
 Auras.prototype.HasFormationAura = function()
@@ -94,6 +165,11 @@ Auras.prototype.HasFormationAura = function()
 Auras.prototype.HasGarrisonAura = function()
 {
 	return this.GetAuraNames().some(this.IsGarrisonAura.bind(this));
+};
+
+Auras.prototype.HasGarrisonedUnitsAura = function()
+{
+	return this.GetAuraNames().some(this.IsGarrisonedUnitsAura.bind(this));
 };
 
 Auras.prototype.GetType = function(name)
@@ -109,6 +185,11 @@ Auras.prototype.IsFormationAura = function(name)
 Auras.prototype.IsGarrisonAura = function(name)
 {
 	return this.GetType(name) == "garrison";
+};
+
+Auras.prototype.IsGarrisonedUnitsAura = function(name)
+{
+	return this.GetType(name) == "garrisonedUnits";
 };
 
 Auras.prototype.IsRangeAura = function(name)
@@ -147,6 +228,9 @@ Auras.prototype.Clean = function()
 
 	for each (var name in auraNames)
 	{
+		// only calculate the affected players on re-applying the bonuses
+		// this makes sure the template bonuses are removed from the correct players
+		this.CalculateAffectedPlayers(name);
 		// initialise range query
 		this[name] = {};
 		this[name].targetUnits = [];
@@ -180,20 +264,13 @@ Auras.prototype.Clean = function()
 
 Auras.prototype.GiveMembersWithValidClass = function(auraName, entityList)
 {
-	var validClasses = this.GetClasses(auraName);
+	var match = this.GetClasses(auraName);
 	var r = [];
-	for each (var ent in entityList)
+	for (var ent of entityList)
 	{
 		var cmpIdentity = Engine.QueryInterface(ent, IID_Identity);
-		var targetClasses = cmpIdentity.GetClassesList();
-		for each (var classCollection in validClasses)
-		{
-			if (classCollection.split(/\s+/).every(function(c) {return targetClasses.indexOf(c) > -1}))
-			{
-				r.push(ent);
-				break;
-			}
-		}
+		if (cmpIdentity && MatchesClassList(cmpIdentity.GetClassesList(), match))
+			r.push(ent);
 	}
 	return r;
 }
@@ -235,6 +312,20 @@ Auras.prototype.OnRangeUpdate = function(msg)
 		}
 	}
 
+};
+
+Auras.prototype.OnGarrisonedUnitsChanged = function(msg)
+{
+	var auraNames = this.GetAuraNames();
+	for each (var name in auraNames)
+	{
+		if (!this.IsGarrisonedUnitsAura(name))
+			continue;
+		for each (var ent in msg.added)
+			this.ApplyBonus(name, ent);
+		for each (var ent in msg.removed)
+			this.RemoveBonus(name, ent);
+	}
 };
 
 Auras.prototype.ApplyFormationBonus = function(memberList)
@@ -332,7 +423,6 @@ Auras.prototype.ApplyBonus = function(name, ent)
 {
 	var modifications = this.GetModifications(name);
 	var cmpAuraManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_AuraManager);
-
 	for each (var mod in modifications)
 		cmpAuraManager.ApplyBonus(mod.value, ent, mod, this.templateName + "/" + name + "/" + mod.value);
 

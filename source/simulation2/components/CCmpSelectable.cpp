@@ -53,12 +53,10 @@ class CCmpSelectable : public ICmpSelectable
 public:
 	static void ClassInit(CComponentManager& componentManager)
 	{
-		componentManager.SubscribeToMessageType(MT_Interpolate);
-		componentManager.SubscribeToMessageType(MT_RenderSubmit);
 		componentManager.SubscribeToMessageType(MT_OwnershipChanged);
 		componentManager.SubscribeToMessageType(MT_PositionChanged);
-		// TODO: it'd be nice if we didn't get these messages except in the rare
-		// cases where we're actually drawing a selection highlight
+		componentManager.SubscribeToMessageType(MT_TerrainChanged);
+		componentManager.SubscribeToMessageType(MT_WaterChanged);
 	}
 
 	DEFAULT_COMPONENT_ALLOCATOR(Selectable)
@@ -146,6 +144,10 @@ public:
 			m_OverlayDescriptor.m_LineTextureMask = CStrIntern(textureBasePath + outlineNode.GetChild("LineTextureMask").ToUTF8());
 			m_OverlayDescriptor.m_LineThickness = outlineNode.GetChild("LineThickness").ToFloat();
 		}
+
+		m_EnabledInterpolate = false;
+		m_EnabledRenderSubmit = false;
+		UpdateMessageSubscriptions();
 	}
 
 	virtual void Deinit() { }
@@ -198,11 +200,14 @@ public:
 		m_FadeBaselineAlpha = m_Color.a;
 		m_FadeDeltaAlpha = alpha - m_FadeBaselineAlpha;
 		m_FadeProgress = 0.f;
+
+		UpdateMessageSubscriptions();
 	}
 
 	virtual void SetVisibility(bool visible)
 	{
 		m_Visible = visible;
+		UpdateMessageSubscriptions();
 	}
 
 	virtual bool IsEditorOnly()
@@ -228,6 +233,16 @@ public:
 	/// Explicitly invalidates the static overlay.
 	void InvalidateStaticOverlay();
 
+	/**
+	 * Subscribe/unsubscribe to MT_Interpolate, MT_RenderSubmit, depending on
+	 * whether we will do any actual work when receiving them. (This is to avoid
+	 * the performance cost of receiving messages in the typical case when the
+	 * entity is not selected.)
+	 *
+	 * Must be called after changing m_Visible, m_FadeDeltaAlpha, m_Color.a
+	 */
+	void UpdateMessageSubscriptions();
+
 private:
 	SOverlayDescriptor m_OverlayDescriptor;
 	SOverlayTexturedLine* m_BuildingOverlay;
@@ -235,6 +250,9 @@ private:
 
 	SOverlayLine* m_DebugBoundingBoxOverlay;
 	SOverlayLine* m_DebugSelectionBoxOverlay;
+
+	bool m_EnabledInterpolate;
+	bool m_EnabledRenderSubmit;
 
 	// Whether the selectable will be rendered.
 	bool m_Visible;
@@ -270,6 +288,8 @@ void CCmpSelectable::HandleMessage(const CMessage& msg, bool UNUSED(global))
 	{
 	case MT_Interpolate:
 		{
+			PROFILE3("Selectable::Interpolate");
+
 			const CMessageInterpolate& msgData = static_cast<const CMessageInterpolate&> (msg);
 
 			if (m_FadeDeltaAlpha != 0.f)
@@ -295,6 +315,8 @@ void CCmpSelectable::HandleMessage(const CMessage& msg, bool UNUSED(global))
 			if (m_Color.a > 0)
 				UpdateDynamicOverlay(msgData.offset);
 
+			UpdateMessageSubscriptions();
+
 			break;
 		}
 	case MT_OwnershipChanged: 
@@ -318,20 +340,50 @@ void CCmpSelectable::HandleMessage(const CMessage& msg, bool UNUSED(global))
 			// (i.e. baseline + delta), so that any ongoing fades simply continue with the new color.
 			CColor color = cmpPlayer->GetColour();
 			SetSelectionHighlight(CColor(color.r, color.g, color.b, m_FadeBaselineAlpha + m_FadeDeltaAlpha), m_Selected);
+
+			InvalidateStaticOverlay();
+			break;
 		}
-		// fall-through
 	case MT_PositionChanged:
+	case MT_TerrainChanged:
+	case MT_WaterChanged:
 		{
 			InvalidateStaticOverlay();
 			break;
 		}
 	case MT_RenderSubmit:
 		{
+			PROFILE3("Selectable::RenderSubmit");
+
 			const CMessageRenderSubmit& msgData = static_cast<const CMessageRenderSubmit&> (msg);
 			RenderSubmit(msgData.collector);
 
 			break;
 		}
+	}
+}
+
+void CCmpSelectable::UpdateMessageSubscriptions()
+{
+	bool needInterpolate = false;
+	bool needRenderSubmit = false;
+
+	if (m_FadeDeltaAlpha != 0.f || m_Color.a > 0)
+		needInterpolate = true;
+
+	if (m_Visible && m_Color.a > 0)
+		needRenderSubmit = true;
+
+	if (needInterpolate != m_EnabledInterpolate)
+	{
+		GetSimContext().GetComponentManager().DynamicSubscriptionNonsync(MT_Interpolate, this, needInterpolate);
+		m_EnabledInterpolate = needInterpolate;
+	}
+
+	if (needRenderSubmit != m_EnabledRenderSubmit)
+	{
+		GetSimContext().GetComponentManager().DynamicSubscriptionNonsync(MT_RenderSubmit, this, needRenderSubmit);
+		m_EnabledRenderSubmit = needRenderSubmit;
 	}
 }
 

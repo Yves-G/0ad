@@ -72,6 +72,7 @@ function TestFormationExiting(mode)
 	});
 
 	AddMock(unit, IID_Position, {
+		GetTurretParent: function() { return INVALID_ENTITY; },
 		GetPosition: function() { return new Vector3D(); },
 		GetPosition2D: function() { return new Vector2D(); },
 		GetRotation: function() { return { "y": 0 }; },
@@ -84,6 +85,8 @@ function TestFormationExiting(mode)
 		IsInTargetRange: function(target, min, max) { return true; },
 		MoveToTargetRange: function(target, min, max) { },
 		StopMoving: function() { },
+		GetPassabilityClassName: function() { return "default"; },
+		SetPassabilityClassName: function() { },
 	});
 
 	AddMock(unit, IID_Vision, {
@@ -91,7 +94,7 @@ function TestFormationExiting(mode)
 	});
 
 	AddMock(unit, IID_Attack, {
-		GetRange: function() { return 10; },
+		GetRange: function() { return { "max": 10, "min": 0}; },
 		GetBestAttack: function() { return "melee"; },
 		GetBestAttackAgainst: function(t) { return "melee"; },
 		GetTimers: function() { return { "prepare": 500, "repeat": 1000 }; },
@@ -118,11 +121,12 @@ function TestFormationExiting(mode)
 			GetHitpoints: function() { return 0; },
 		});
 
-	var controllerFormation = ConstructComponent(controller, "Formation", {"FormationName": "Line Closed", "FormationShape": "square", "ShiftRows": "false", "SortingClasses": "", "WidthDepthRatio": 1, "UnitSeparationWidthMultiplier": 1, "UnitSeparationDepthMultiplier": 1, "SpeedMultiplier": 1});
+	var controllerFormation = ConstructComponent(controller, "Formation", {"FormationName": "Line Closed", "FormationShape": "square", "ShiftRows": "false", "SortingClasses": "", "WidthDepthRatio": 1, "UnitSeparationWidthMultiplier": 1, "UnitSeparationDepthMultiplier": 1, "SpeedMultiplier": 1, "Sloppyness": 0});
 	var controllerAI = ConstructComponent(controller, "UnitAI", { "FormationController": "true", "DefaultStance": "aggressive" });
 
 	AddMock(controller, IID_Position, {
 		JumpTo: function(x, z) { this.x = x; this.z = z; },
+		GetTurretParent: function() { return INVALID_ENTITY; },
 		GetPosition: function() { return new Vector3D(this.x, 0, this.z); },
 		GetPosition2D: function() { return new Vector2D(this.x, this.z); },
 		GetRotation: function() { return { "y": 0 }; },
@@ -133,6 +137,8 @@ function TestFormationExiting(mode)
 		SetUnitRadius: function(r) { },
 		SetSpeed: function(speed) { },
 		MoveToPointRange: function(x, z, minRange, maxRange) { },
+		GetPassabilityClassName: function() { return "default"; },
+		SetPassabilityClassName: function() { },
 	});
 
 	controllerAI.OnCreate();
@@ -218,6 +224,7 @@ function TestMoveIntoFormationWhileAttacking()
 		});
 	
 		AddMock(unit + i, IID_Position, {
+			GetTurretParent: function() { return INVALID_ENTITY; },
 			GetPosition: function() { return new Vector3D(); },
 			GetPosition2D: function() { return new Vector2D(); },
 			GetRotation: function() { return { "y": 0 }; },
@@ -230,6 +237,8 @@ function TestMoveIntoFormationWhileAttacking()
 			IsInTargetRange: function(target, min, max) { return true; },
 			MoveToTargetRange: function(target, min, max) { },
 			StopMoving: function() { },
+			GetPassabilityClassName: function() { return "default"; },
+			SetPassabilityClassName: function() { },
 		});
 	
 		AddMock(unit + i, IID_Vision, {
@@ -257,10 +266,11 @@ function TestMoveIntoFormationWhileAttacking()
 		GetHitpoints: function() { return 40; },
 	});
 
-	var controllerFormation = ConstructComponent(controller, "Formation", {"FormationName": "Line Closed", "FormationShape": "square", "ShiftRows": "false", "SortingClasses": "", "WidthDepthRatio": 1, "UnitSeparationWidthMultiplier": 1, "UnitSeparationDepthMultiplier": 1, "SpeedMultiplier": 1});
+	var controllerFormation = ConstructComponent(controller, "Formation", {"FormationName": "Line Closed", "FormationShape": "square", "ShiftRows": "false", "SortingClasses": "", "WidthDepthRatio": 1, "UnitSeparationWidthMultiplier": 1, "UnitSeparationDepthMultiplier": 1, "SpeedMultiplier": 1, "Sloppyness": 0});
 	var controllerAI = ConstructComponent(controller, "UnitAI", { "FormationController": "true", "DefaultStance": "aggressive" });
 
 	AddMock(controller, IID_Position, {
+		GetTurretParent: function() { return INVALID_ENTITY; },
 		JumpTo: function(x, z) { this.x = x; this.z = z; },
 		GetPosition: function() { return new Vector3D(this.x, 0, this.z); },
 		GetPosition2D: function() { return new Vector2D(this.x, this.z); },
@@ -273,6 +283,8 @@ function TestMoveIntoFormationWhileAttacking()
 		SetSpeed: function(speed) { },
 		MoveToPointRange: function(x, z, minRange, maxRange) { },
 		IsInTargetRange: function(target, min, max) { return true; },
+		GetPassabilityClassName: function() { return "default"; },
+		SetPassabilityClassName: function() { },
 	});
 
 	AddMock(controller, IID_Attack, {

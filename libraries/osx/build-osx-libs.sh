@@ -28,7 +28,7 @@ XML2_VERSION="libxml2-2.9.1"
 SDL_VERSION="SDL-1.2.15"
 BOOST_VERSION="boost_1_52_0"
 # * wxWidgets 2.9+ is necessary for 64-bit OS X build w/ OpenGL support
-WXWIDGETS_VERSION="wxWidgets-3.0.0"
+WXWIDGETS_VERSION="wxWidgets-3.0.1"
 JPEG_VERSION="jpegsrc.v8d"
 JPEG_DIR="jpeg-8d" # Must match directory name inside source tarball
 # * libpng was included as part of X11 but that's removed from Mountain Lion
@@ -38,6 +38,8 @@ OGG_VERSION="libogg-1.3.0"
 VORBIS_VERSION="libvorbis-1.3.3"
 # gloox is necessary for multiplayer lobby
 GLOOX_VERSION="gloox-1.0.9"
+# OS X only includes part of ICU, and only the dylib
+ICU_VERSION="icu4c-52_1"
 # --------------------------------------------------------------
 # Bundled with the game:
 # * SpiderMonkey 24
@@ -61,7 +63,7 @@ ARCH=${ARCH:="x86_64"}
 # Define compiler as "gcc" (in case anything expects e.g. gcc-4.2)
 # On newer OS X versions, this will be a symbolic link to LLVM GCC
 # TODO: don't rely on that
-export CC=${CC:="gcc"} CXX=${CXX:="g++"}
+export CC=${CC:="clang"} CXX=${CXX:="clang++"}
 
 # The various libs offer inconsistent configure options, some allow
 # setting sysroot and OS X-specific options, others don't. Adding to
@@ -204,8 +206,8 @@ LIB_ARCHIVE="$LIB_VERSION.tar.gz"
 LIB_DIRECTORY="$LIB_VERSION"
 LIB_URL="http://ftp.gnu.org/pub/gnu/libiconv/"
 
-mkdir -p libiconv
-pushd libiconv > /dev/null
+mkdir -p iconv
+pushd iconv > /dev/null
 
 ICONV_DIR="$(pwd)"
 
@@ -313,7 +315,7 @@ then
   pushd $LIB_DIRECTORY
 
   # Can't use macosx-version, see above comment.
-  (./bootstrap.sh --with-libraries=filesystem,system,signals --prefix=$INSTALL_DIR && ./b2 cflags="$CFLAGS" cxxflags="$CXXFLAGS" linkflags="$LDFLAGS" ${JOBS} -d2 --layout=tagged --debug-configuration link=static threading=multi variant=release,debug install) || die "Boost build failed"
+(./bootstrap.sh --with-libraries=filesystem,system,signals --prefix=$INSTALL_DIR && ./b2 cflags="$CFLAGS" toolset=clang cxxflags="$CXXFLAGS" linkflags="$LDFLAGS" ${JOBS} -d2 --layout=tagged --debug-configuration link=static threading=multi variant=release,debug install) || die "Boost build failed"
 
   popd
   touch .already-built
@@ -513,6 +515,40 @@ then
   # TODO: pulls in libresolv dependency from /usr/lib
   # TODO: if we ever use SSL/TLS, that will add yet another dependency...
   (patch -p0 -i ../../patches/gloox-r4529.diff && ./configure CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" --prefix="$INSTALL_DIR" --enable-shared=no --with-zlib="${ZLIB_DIR}" --without-libidn --without-gnutls --without-openssl --without-tests --without-examples && make ${JOBS} && make install) || die "gloox build failed"
+  popd
+  touch .already-built
+else
+  already_built
+fi
+popd > /dev/null
+
+# --------------------------------------------------------------
+echo -e "Building ICU..."
+
+LIB_VERSION="${ICU_VERSION}"
+LIB_ARCHIVE="$LIB_VERSION-src.tgz"
+LIB_DIRECTORY="icu"
+LIB_URL="http://download.icu-project.org/files/icu4c/52.1/"
+
+mkdir -p icu
+pushd icu > /dev/null
+
+if [[ "$force_rebuild" = "true" ]] || [[ ! -e .already-built ]] || [[ .already-built -ot $LIB_DIRECTORY ]]
+then
+  INSTALL_DIR="$(pwd)"
+
+  rm -f .already-built
+  download_lib $LIB_URL $LIB_ARCHIVE
+
+  rm -rf $LIB_DIRECTORY bin include lib sbin share
+  tar -xf $LIB_ARCHIVE
+  pushd $LIB_DIRECTORY
+
+  mkdir -p source/build
+  pushd source/build
+
+(CXX="clang" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS -stdlib=libstdc++" LDFLAGS="$LDFLAGS -lstdc++" ../runConfigureICU MacOSX --prefix=$INSTALL_DIR --disable-shared --enable-static --disable-samples --enable-extras --enable-icuio --enable-layout --enable-tools && make ${JOBS} && make install) || die "ICU build failed"
+  popd
   popd
   touch .already-built
 else

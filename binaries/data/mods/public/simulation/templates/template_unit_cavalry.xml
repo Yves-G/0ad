@@ -15,7 +15,7 @@
   </Attack>
   <Cost>
     <Population>1</Population>
-    <BuildTime>13</BuildTime>
+    <BuildTime>15</BuildTime>
     <Resources>
       <food>80</food>
     </Resources>
@@ -28,7 +28,8 @@
     <Max>150</Max>
   </Health>
   <Identity>
-    <Classes datatype="tokens">Cavalry CitizenSoldier Organic</Classes>
+    <Classes datatype="tokens">CitizenSoldier Organic</Classes>
+    <VisibleClasses datatype="tokens">Cavalry Citizen Soldier</VisibleClasses>
     <GenericName>Cavalry</GenericName>
     <Rank>Basic</Rank>
     <Formations datatype="tokens">

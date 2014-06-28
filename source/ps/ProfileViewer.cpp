@@ -487,21 +487,33 @@ namespace
 
 	struct DumpTable
 	{
-		ScriptInterface& scriptInterface;
-		CScriptVal root;
-		DumpTable(ScriptInterface& scriptInterface, CScriptVal root) :
-			scriptInterface(scriptInterface), root(root)
+		ScriptInterface& m_ScriptInterface;
+		JS::PersistentRooted<JS::Value> m_Root;
+		DumpTable(ScriptInterface& scriptInterface, JS::HandleValue root) :
+			m_ScriptInterface(scriptInterface), m_Root(scriptInterface.GetJSRuntime(), root)
+		{
+		}
+		
+		// std::for_each requires a move constructor and the use of JS::PersistentRooted<T> apparently breaks a requirement for an 
+		// automatic move constructor
+		DumpTable(DumpTable && original) :
+			m_ScriptInterface(original.m_ScriptInterface),
+			m_Root(original.m_ScriptInterface.GetJSRuntime(), original.m_Root.get())
 		{
 		}
 
 		void operator() (AbstractProfileTable* table)
 		{
-			CScriptVal t;
-			scriptInterface.Eval(L"({})", t);
-			scriptInterface.SetProperty(t.get(), "cols", DumpCols(table));
-			scriptInterface.SetProperty(t.get(), "data", DumpRows(table));
+			JSContext* cx = m_ScriptInterface.GetContext();
+			JSAutoRequest rq(cx);
+			
+			JS::RootedValue t(cx);
+			m_ScriptInterface.Eval(L"({})", &t);
+			m_ScriptInterface.SetProperty(t, "cols", DumpCols(table));
+			m_ScriptInterface.SetProperty(t, "data", DumpRows(table));
 
-			scriptInterface.SetProperty(root.get(), table->GetTitle().c_str(), t);
+			JS::RootedValue stackRoot(cx, m_Root.get());
+			m_ScriptInterface.SetProperty(stackRoot, table->GetTitle().c_str(), (JS::HandleValue)t);
 		}
 
 		std::vector<std::string> DumpCols(AbstractProfileTable* table)
@@ -518,25 +530,28 @@ namespace
 
 		CScriptVal DumpRows(AbstractProfileTable* table)
 		{
-			CScriptVal data;
-			scriptInterface.Eval("({})", data);
+			JSContext* cx = m_ScriptInterface.GetContext();
+			JSAutoRequest rq(cx);
+			
+			JS::RootedValue data(cx);
+			m_ScriptInterface.Eval("({})", &data);
 
 			const std::vector<ProfileColumn>& columns = table->GetColumns();
 
 			for (size_t r = 0; r < table->GetNumberRows(); ++r)
 			{
-				CScriptVal row;
-				scriptInterface.Eval("([])", row);
-				scriptInterface.SetProperty(data.get(), table->GetCellText(r, 0).c_str(), row);
+				JS::RootedValue row(cx);
+				m_ScriptInterface.Eval("([])", &row);
+				m_ScriptInterface.SetProperty(data, table->GetCellText(r, 0).c_str(), (JS::HandleValue)row);
 
 				if (table->GetChild(r))
-					scriptInterface.SetPropertyInt(row.get(), 0, DumpRows(table->GetChild(r)));
+					m_ScriptInterface.SetPropertyInt(row, 0, DumpRows(table->GetChild(r)));
 
 				for (size_t c = 1; c < columns.size(); ++c)
-					scriptInterface.SetPropertyInt(row.get(), c, table->GetCellText(r, c));
+					m_ScriptInterface.SetPropertyInt(row, c, table->GetCellText(r, c));
 			}
 
-			return data;
+			return CScriptVal(data);
 		}
 
 	private:
@@ -587,14 +602,17 @@ void CProfileViewer::SaveToFile()
 
 CScriptVal CProfileViewer::SaveToJS(ScriptInterface& scriptInterface)
 {
-	CScriptVal root;
-	scriptInterface.Eval("({})", root);
+	JSContext* cx = scriptInterface.GetContext();
+	JSAutoRequest rq(cx);
+	
+	JS::RootedValue root(cx);
+	scriptInterface.Eval("({})", &root);
 
 	std::vector<AbstractProfileTable*> tables = m->rootTables;
 	sort(tables.begin(), tables.end(), SortByName);
 	for_each(tables.begin(), tables.end(), DumpTable(scriptInterface, root));
 
-	return root;
+	return CScriptVal(root);
 }
 
 void CProfileViewer::ShowTable(const CStr& table)

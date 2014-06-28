@@ -37,8 +37,8 @@ static const int NUM_WORD_DELIMITORS = 4*2;
 static const u16 WordDelimitors[NUM_WORD_DELIMITORS] = {
 	' '   , ' ',    // spaces
 	'-'   , '-',    // hyphens
-	0x3000, 0x3002, // ideographic symbols (maybe this range should be wider)
-	0x4E00, 0x9FFF  // characters in the Chinese unicode block
+	0x3000, 0x31FF, // ideographic symbols
+	0x3400, 0x9FFF
 // TODO add unicode blocks of other languages that don't use spaces
 };
 
@@ -50,6 +50,36 @@ void CGUIString::SFeedback::Reset()
 	m_SpriteCalls.clear();
 	m_Size = CSize();
 	m_NewLine=false;
+}
+
+// TODO this method should be removed at one point
+// It is a solution for CParser not recognising backslash-escaped quoted
+CStrW UnescapeString(CStrW originalString)
+{
+	// no reason to mess with more memory if there is nothing to unescape
+	if (originalString.Find('&') == -1)
+		return originalString;
+	// clone the string
+	CStrW newString = CStrW();
+	for (size_t i=0; i < originalString.length(); ++i)
+	{
+		if (originalString[i] == '&' && originalString[i+1] == '#')
+		{
+			i += 2;
+			wchar_t c = 0;
+			while (originalString[i] >= '0' && originalString[i] <= '9')
+			{
+				c = c*10 + (originalString[i] - '0');
+				++i;
+			}
+			ENSURE(originalString[i] == ';');
+			if (c >= ' ')
+				newString += c;
+		}
+		else
+			newString += originalString[i];
+	}
+	return newString;
 }
 
 void CGUIString::GenerateTextCall(const CGUI *pGUI,
@@ -213,7 +243,7 @@ void CGUIString::GenerateTextCall(const CGUI *pGUI,
 			TextCall.m_UseCustomColor = false;
 
 			// Extract substd::string from RawString.
-			TextCall.m_String = GetRawString().substr(_from, _to-_from);
+			TextCall.m_String = UnescapeString(GetRawString().substr(_from, _to-_from));
 
 			// Go through tags and apply changes.
 			std::vector<CGUIString::TextChunk::Tag>::const_iterator it2;

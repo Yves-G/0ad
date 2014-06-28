@@ -287,7 +287,7 @@ m.HQ.prototype.trainMoreWorkers = function(gameState, queues)
 
 	// default template and size
 	var template = gameState.applyCiv("units/{civ}_support_female_citizen");
-	var size = Math.min(5, Math.ceil(numTotal / 10));
+	var size = Math.min(5, Math.max(Math.ceil(numTotal / 10), 1));
 
 	// Choose whether we want soldiers instead.
 	// TODO: we might want to adjust our female ratio.
@@ -1022,9 +1022,9 @@ m.HQ.prototype.constructTrainingBuildings = function(gameState, queues) {
 	if (gameState.civ() !== "gaul" && gameState.civ() !== "brit" && gameState.civ() !== "iber" &&
 		workersNumber > 130 && gameState.currentPhase() > 2)
 	{
-		var Const = 0;
+		var inConst = 0;
 		for (var i in this.bAdvanced)
-			Const += gameState.countEntitiesByType(gameState.applyCiv(this.bAdvanced[i]), true);
+			inConst += gameState.countEntitiesByType(gameState.applyCiv(this.bAdvanced[i]), true);
 		if (inConst == 1) {
 			var i = Math.floor(Math.random() * this.bAdvanced.length);
 			if (gameState.countEntitiesAndQueuedByType(gameState.applyCiv(this.bAdvanced[i]), true) < 1){
@@ -1268,9 +1268,12 @@ m.HQ.prototype.update = function(gameState, queues, events) {
 			{ 
 				// we have a barracks and we want to rush, rush.
 				var AttackPlan = new m.CityAttack(gameState, this, this.Config, this.TotalAttackNumber, -1, "Rush");
-				m.debug ("Headquarters: Rushing plan " +this.TotalAttackNumber);
-				this.TotalAttackNumber++;
-				this.upcomingAttacks["Rush"].push(AttackPlan);
+				if (!AttackPlan.failed)
+				{
+					m.debug ("Headquarters: Rushing plan " +this.TotalAttackNumber);
+					this.TotalAttackNumber++;
+					this.upcomingAttacks["Rush"].push(AttackPlan);
+				}
 			}
 		}
 		// if we have a barracks, there's no water, we're at age >= 1 and we've decided to attack.

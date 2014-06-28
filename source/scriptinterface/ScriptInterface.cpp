@@ -1,4 +1,4 @@
-/* Copyright (C) 2013 Wildfire Games.
+/* Copyright (C) 2014 Wildfire Games.
  * This file is part of 0 A.D.
  *
  * 0 A.D. is free software: you can redistribute it and/or modify
@@ -1041,6 +1041,13 @@ bool ScriptInterface::GetPropertyJS(jsval obj, const char* name, JS::MutableHand
 	return true;
 }
 
+bool ScriptInterface::GetPropertyIntJS(jsval obj, int name, JS::MutableHandleValue out)
+{
+	if (! GetPropertyInt_(obj, name, out))
+		return false;
+	return true;
+}
+
 bool ScriptInterface::SetProperty_(jsval obj, const char* name, JS::HandleValue value, bool constant, bool enumerate)
 {
 	JSAutoRequest rq(m->m_cx);
@@ -1293,31 +1300,27 @@ bool ScriptInterface::LoadGlobalScriptFile(const VfsPath& path)
 
 bool ScriptInterface::Eval(const char* code)
 {
-	jsval rval;
-	return Eval_(code, rval);
+	JS::RootedValue rval(m->m_cx);
+	return Eval_(code, &rval);
 }
 
-bool ScriptInterface::Eval_(const char* code, jsval& rval)
+bool ScriptInterface::Eval_(const char* code, JS::MutableHandleValue rval)
 {
 	JSAutoRequest rq(m->m_cx);
 	JS::RootedObject global(m->m_cx, m->m_glob);
 	utf16string codeUtf16(code, code+strlen(code));
-
-	JS::RootedValue rval1(m->m_cx);
-	bool ok = JS_EvaluateUCScript(m->m_cx, global, (const jschar*)codeUtf16.c_str(), (uint)codeUtf16.length(), "(eval)", 1, &rval1);
-	rval = rval1;
+	
+	bool ok = JS_EvaluateUCScript(m->m_cx, global, (const jschar*)codeUtf16.c_str(), (uint)codeUtf16.length(), "(eval)", 1, rval);
 	return ok;
 }
 
-bool ScriptInterface::Eval_(const wchar_t* code, jsval& rval)
+bool ScriptInterface::Eval_(const wchar_t* code, JS::MutableHandleValue rval)
 {
 	JSAutoRequest rq(m->m_cx);
 	JS::RootedObject global(m->m_cx, m->m_glob);
 	utf16string codeUtf16(code, code+wcslen(code));
 
-	JS::RootedValue rval1(m->m_cx);
-	bool ok = JS_EvaluateUCScript(m->m_cx, global, (const jschar*)codeUtf16.c_str(), (uint)codeUtf16.length(), "(eval)", 1, &rval1);
-	rval = rval1;
+	bool ok = JS_EvaluateUCScript(m->m_cx, global, (const jschar*)codeUtf16.c_str(), (uint)codeUtf16.length(), "(eval)", 1, rval);
 	return ok;
 }
 

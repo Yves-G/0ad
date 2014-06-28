@@ -247,6 +247,10 @@ public:
 	 * If we use JS::RootedValue with the GetProperty function template, it will generate an overload for the type
 	 * JS::RootedValue*, but JS::MutableHandleValue needs to be used when passing JS::RootedValue& to a function.
 	 * Check the SpiderMonkey rooting guide for details.
+	 *
+	 * Maybe we should overload the GetProperty function instead of using a separate function name.
+	 * Then it needs a cast because otherwise passing &value would call the template function with &*JS::RootedValue instead of using
+	 * the operator & to get JS::MutableHandleValue.
 	 */
 	bool GetPropertyJS(jsval obj, const char* name, JS::MutableHandleValue out);
 
@@ -255,6 +259,7 @@ public:
 	 */
 	template<typename T>
 	bool GetPropertyInt(jsval obj, int name, T& out);
+	bool GetPropertyIntJS(jsval obj, int name, JS::MutableHandleValue out);
 
 	/**
 	 * Check the named property has been defined on the given object.
@@ -269,7 +274,7 @@ public:
 
 	bool Eval(const char* code);
 
-	template<typename T, typename CHAR> bool Eval(const CHAR* code, T& out);
+	template<typename CHAR> bool Eval(const CHAR* code, JS::MutableHandleValue out);
 
 	std::wstring ToString(jsval obj, bool pretty = false);
 
@@ -399,8 +404,8 @@ public:
 private:
 	bool CallFunction_(JS::HandleValue val, const char* name, JS::HandleValueArray argv, JS::MutableHandleValue ret);
 	bool CallFunction_(jsval val, const char* name, uint argc, jsval* argv, jsval& ret);
-	bool Eval_(const char* code, jsval& ret);
-	bool Eval_(const wchar_t* code, jsval& ret);
+	bool Eval_(const char* code, JS::MutableHandleValue ret);
+	bool Eval_(const wchar_t* code, JS::MutableHandleValue ret);
 	bool SetGlobal_(const char* name, JS::HandleValue value, bool replace);
 	bool SetProperty_(jsval obj, const char* name, JS::HandleValue value, bool readonly, bool enumerate);
 	bool SetProperty_(jsval obj, const wchar_t* name, JS::HandleValue value, bool readonly, bool enumerate);
@@ -650,14 +655,13 @@ bool ScriptInterface::GetPropertyInt(jsval obj, int name, T& out)
 	return FromJSVal(GetContext(), val, out);
 }
 
-template<typename T, typename CHAR>
-bool ScriptInterface::Eval(const CHAR* code, T& ret)
+template<typename CHAR>
+bool ScriptInterface::Eval(const CHAR* code, JS::MutableHandleValue ret)
 {
 	JSAutoRequest rq(GetContext());
-	JS::RootedValue rval(GetContext());
-	if (! Eval_(code, rval.get()))
+	if (! Eval_(code, ret))
 		return false;
-	return FromJSVal(GetContext(), rval, ret);
+	return true;
 }
 
 #endif // INCLUDED_SCRIPTINTERFACE

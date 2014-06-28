@@ -22,8 +22,6 @@ IGUIObject
 #include "precompiled.h"
 #include "GUI.h"
 
-#include "ps/Parser.h"
-
 #include "gui/scripting/JSInterface_IGUIObject.h"
 #include "gui/scripting/JSInterface_GUITypes.h"
 #include "scriptinterface/ScriptInterface.h"
@@ -477,11 +475,11 @@ void IGUIObject::ScriptEvent(const CStr& Action)
 	JSAutoRequest rq(cx);
 
 	// Set up the 'mouse' parameter
-	CScriptVal mouse;
-	m_pGUI->GetScriptInterface()->Eval("({})", mouse);
-	m_pGUI->GetScriptInterface()->SetProperty(mouse.get(), "x", m_pGUI->m_MousePos.x, false);
-	m_pGUI->GetScriptInterface()->SetProperty(mouse.get(), "y", m_pGUI->m_MousePos.y, false);
-	m_pGUI->GetScriptInterface()->SetProperty(mouse.get(), "buttons", m_pGUI->m_MouseButtons, false);
+	JS::RootedValue mouse(cx);
+	m_pGUI->GetScriptInterface()->Eval("({})", &mouse);
+	m_pGUI->GetScriptInterface()->SetProperty(mouse, "x", m_pGUI->m_MousePos.x, false);
+	m_pGUI->GetScriptInterface()->SetProperty(mouse, "y", m_pGUI->m_MousePos.y, false);
+	m_pGUI->GetScriptInterface()->SetProperty(mouse, "buttons", m_pGUI->m_MouseButtons, false);
 
 	JS::AutoValueVector paramData(cx);
 	paramData.append(mouse.get());

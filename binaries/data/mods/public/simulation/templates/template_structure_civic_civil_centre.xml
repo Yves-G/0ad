@@ -29,7 +29,7 @@
     <Category>CivilCentre</Category>
     <Distance>
       <FromClass>CivilCentre</FromClass>
-      <MinDistance>180</MinDistance>
+      <MinDistance>200</MinDistance>
     </Distance>
   </BuildRestrictions>
   <Cost>
@@ -64,8 +64,8 @@
     <Classes datatype="tokens">
       Defensive
       CivCentre
-      CivilCentre
     </Classes>
+    <VisibleClasses datatype="tokens">CivilCentre</VisibleClasses>
     <Icon>structures/civic_centre.png</Icon>
     <RequiredTechnology>phase_town</RequiredTechnology>
   </Identity>

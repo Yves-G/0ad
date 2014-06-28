@@ -143,17 +143,19 @@ void CGUIManager::PopPageCB(shared_ptr<ScriptInterface::StructuredClone> args)
 
 void CGUIManager::DisplayMessageBox(int width, int height, const CStrW& title, const CStrW& message)
 {
+	JSContext* cx = m_ScriptInterface->GetContext();
+	JSAutoRequest rq(cx);
 	// Set up scripted init data for the standard message box window
-	CScriptValRooted data;
-	m_ScriptInterface->Eval("({})", data);
-	m_ScriptInterface->SetProperty(data.get(), "width", width, false);
-	m_ScriptInterface->SetProperty(data.get(), "height", height, false);
-	m_ScriptInterface->SetProperty(data.get(), "mode", 2, false);
-	m_ScriptInterface->SetProperty(data.get(), "title", std::wstring(title), false);
-	m_ScriptInterface->SetProperty(data.get(), "message", std::wstring(message), false);
+	JS::RootedValue data(cx);
+	m_ScriptInterface->Eval("({})", &data);
+	m_ScriptInterface->SetProperty(data, "width", width, false);
+	m_ScriptInterface->SetProperty(data, "height", height, false);
+	m_ScriptInterface->SetProperty(data, "mode", 2, false);
+	m_ScriptInterface->SetProperty(data, "title", std::wstring(title), false);
+	m_ScriptInterface->SetProperty(data, "message", std::wstring(message), false);
 
 	// Display the message box
-	PushPage(L"page_msgbox.xml", m_ScriptInterface->WriteStructuredClone(data.get()));
+	PushPage(L"page_msgbox.xml", m_ScriptInterface->WriteStructuredClone(data));
 }
 
 void CGUIManager::LoadPage(SGUIPage& page)

@@ -1,5 +1,22 @@
+/* Copyright (C) 2014 Wildfire Games.
+ * This file is part of 0 A.D.
+ *
+ * 0 A.D. is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * 0 A.D. is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with 0 A.D.  If not, see <http://www.gnu.org/licenses/>.
+ */
 #include "precompiled.h"
 #include "COList.h"
+#include "i18n/L10n.h"
 
 #include "ps/CLogger.h"
 
@@ -15,8 +32,6 @@ void COList::SetupText()
 
 	CGUIList *pList;
 	GUI<CGUIList>::GetSettingPointer(this, "list_name", pList);
-
-	//ENSURE(m_GeneratedTexts.size()>=1);
 
 	m_ItemsYPositions.resize( pList->m_Items.size()+1 );
 
@@ -37,9 +52,7 @@ void COList::SetupText()
 		// TODO Gee: (2004-08-14) Don't define standard like this. Do it with the default style.
 		font = L"default";
 
-	//CGUIString caption;
 	bool scrollbar;
-	//GUI<CGUIString>::GetSetting(this, "caption", caption);
 	GUI<bool>::GetSetting(this, "scrollbar", scrollbar);
 
 	float width = GetListRect().GetWidth();
@@ -84,9 +97,6 @@ void COList::SetupText()
 
 	m_ItemsYPositions[pList->m_Items.size()] = buffered_y;
 
-	//if (! scrollbar)
-	//	CalculateTextPosition(m_CachedActualSize, m_TextPos, *m_GeneratedTexts[0]);
-
 	// Setup scrollbar
 	if (scrollbar)
 	{
@@ -109,21 +119,18 @@ CRect COList::GetListRect() const
 void COList::HandleMessage(SGUIMessage &Message)
 {
 	CList::HandleMessage(Message);
-//	switch (Message.type)
-//	{
-//	case GUIM_SETTINGS_UPDATED:
-//		if (Message.value.Find("list_") != -1)
-//		{
-//			SetupText();
-//		}
-//	}
 }
 
 bool COList::HandleAdditionalChildren(const XMBElement& child, CXeromyces* pFile)
 {
-	int elmt_item = pFile->GetElementID("item");
-	int elmt_heading = pFile->GetElementID("heading");
-	int elmt_def = pFile->GetElementID("def");
+	#define ELMT(x) int elmt_##x = pFile->GetElementID(#x)
+	#define ATTR(x) int attr_##x = pFile->GetAttributeID(#x)
+	ELMT(item);
+	ELMT(heading);
+	ELMT(def);
+	ELMT(translatableAttribute);
+	ATTR(id);
+	ATTR(context);
 
 	if (child.GetNodeName() == elmt_item)
 	{
@@ -178,6 +185,39 @@ bool COList::HandleAdditionalChildren(const XMBElement& child, CXeromyces* pFile
 				oDef.m_Heading = attr_value.FromUTF8();
 			}
 
+		}
+
+		XMBElementList grandchildren = child.GetChildNodes();
+		for (int i = 0; i < grandchildren.Count; ++i)
+		{
+			XMBElement grandchild = grandchildren.Item(i);
+			if (grandchild.GetNodeName() == elmt_translatableAttribute)
+			{
+				CStr attributeName(grandchild.GetAttributes().GetNamedItem(attr_id));
+				// only the heading is translatable for list defs
+				if (!attributeName.empty() && attributeName == "heading")
+				{
+					CStr value(grandchild.GetText());
+					if (!value.empty())
+					{
+						CStr context(grandchild.GetAttributes().GetNamedItem(attr_context)); // Read the context if any.
+						if (!context.empty())
+						{
+							CStr translatedValue(L10n::Instance().TranslateWithContext(context, value));
+							oDef.m_Heading = translatedValue.FromUTF8();
+						}
+						else
+						{
+							CStr translatedValue(L10n::Instance().Translate(value));
+							oDef.m_Heading = translatedValue.FromUTF8();
+						}
+					}
+				}
+				else // Ignore.
+				{
+					LOGERROR(L"GUI: translatable attribute in olist def that isn't a heading. (object: %hs)", this->GetPresentableName().c_str());
+				}
+			}
 		}
 
 		m_ObjectsDefs.push_back(oDef);

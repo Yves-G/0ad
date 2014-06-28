@@ -1,4 +1,4 @@
-/* Copyright (C) 2013 Wildfire Games.
+/* Copyright (C) 2014 Wildfire Games.
  * This file is part of 0 A.D.
  *
  * 0 A.D. is free software: you can redistribute it and/or modify
@@ -32,7 +32,6 @@
 #include "ps/ConfigDB.h"
 
 #if CONFIG2_MINIUPNPC
-// Next four files are for UPnP port forwarding.
 #include <miniupnpc/miniwget.h>
 #include <miniupnpc/miniupnpc.h>
 #include <miniupnpc/upnpcommands.h>
@@ -275,6 +274,9 @@ void* CNetServerWorker::SetupUPnP(void*)
 	ret = UPNP_GetSpecificPortMappingEntry(urls.controlURL,
 									 data.first.servicetype,
 									 psPort, protocall,
+#if MINIUPNPC_API_VERSION >= 10
+									 NULL/*remoteHost*/,
+#endif
 									 intClient, intPort, NULL/*desc*/,
 									 NULL/*enabled*/, duration);
 
@@ -376,6 +378,8 @@ bool CNetServerWorker::RunStep()
 
 	std::vector<std::pair<int, CStr> > newAssignPlayer;
 	std::vector<bool> newStartGame;
+	std::vector<std::pair<CStr, int> > newPlayerReady;
+	std::vector<bool> newPlayerResetReady;
 	std::vector<std::string> newGameAttributes;
 	std::vector<u32> newTurnLength;
 
@@ -386,6 +390,8 @@ bool CNetServerWorker::RunStep()
 			return false;
 
 		newStartGame.swap(m_StartGameQueue);
+		newPlayerReady.swap(m_PlayerReadyQueue);
+		newPlayerResetReady.swap(m_PlayerResetReadyQueue);
 		newAssignPlayer.swap(m_AssignPlayerQueue);
 		newGameAttributes.swap(m_GameAttributesQueue);
 		newTurnLength.swap(m_TurnLengthQueue);
@@ -393,6 +399,12 @@ bool CNetServerWorker::RunStep()
 
 	for (size_t i = 0; i < newAssignPlayer.size(); ++i)
 		AssignPlayer(newAssignPlayer[i].first, newAssignPlayer[i].second);
+
+	for (size_t i = 0; i < newPlayerReady.size(); ++i)
+		SetPlayerReady(newPlayerReady[i].first, newPlayerReady[i].second);
+
+	if (!newPlayerResetReady.empty())
+		ClearAllPlayerReady();
 
 	if (!newGameAttributes.empty())
 		UpdateGameAttributes(GetScriptInterface().ParseJSON(newGameAttributes.back()));
@@ -548,8 +560,10 @@ void CNetServerWorker::SetupSession(CNetServerSession* session)
 
 	session->AddTransition(NSS_PREGAME, (uint)NMT_CONNECTION_LOST, NSS_UNCONNECTED, (void*)&OnDisconnect, context);
 	session->AddTransition(NSS_PREGAME, (uint)NMT_CHAT, NSS_PREGAME, (void*)&OnChat, context);
+	session->AddTransition(NSS_PREGAME, (uint)NMT_READY, NSS_PREGAME, (void*)&OnReady, context);
 	session->AddTransition(NSS_PREGAME, (uint)NMT_LOADED_GAME, NSS_INGAME, (void*)&OnLoadedGame, context);
 
+	session->AddTransition(NSS_JOIN_SYNCING, (uint)NMT_CONNECTION_LOST, NSS_UNCONNECTED, (void*)&OnDisconnect, context);
 	session->AddTransition(NSS_JOIN_SYNCING, (uint)NMT_LOADED_GAME, NSS_INGAME, (void*)&OnJoinSyncingLoadedGame, context);
 
 	session->AddTransition(NSS_INGAME, (uint)NMT_CONNECTION_LOST, NSS_UNCONNECTED, (void*)&OnDisconnect, context);
@@ -588,7 +602,7 @@ void CNetServerWorker::OnUserLeave(CNetServerSession* session)
 {
 	RemovePlayer(session->GetGUID());
 
-	if (m_ServerTurnManager)
+	if (m_ServerTurnManager && session->GetCurrState() != NSS_JOIN_SYNCING)
 		m_ServerTurnManager->UninitialiseClient(session->GetHostID()); // TODO: only for non-observers
 
 	// TODO: ought to switch the player controlled by that client
@@ -607,7 +621,6 @@ void CNetServerWorker::AddPlayer(const CStr& guid, const CStrW& name)
 	// back their old player ID
 
 	i32 playerID = -1;
-	bool foundPlayerID = false;
 
 	// Try to match GUID first
 	for (PlayerAssignmentMap::iterator it = m_PlayerAssignments.begin(); it != m_PlayerAssignments.end(); ++it)
@@ -615,40 +628,30 @@ void CNetServerWorker::AddPlayer(const CStr& guid, const CStrW& name)
 		if (!it->second.m_Enabled && it->first == guid && usedIDs.find(it->second.m_PlayerID) == usedIDs.end())
 		{
 			playerID = it->second.m_PlayerID;
-			foundPlayerID = true;
 			m_PlayerAssignments.erase(it); // delete the old mapping, since we've got a new one now
-			break;
+			goto found;
 		}
 	}
 
 	// Try to match username next
-	if (!foundPlayerID)
+	for (PlayerAssignmentMap::iterator it = m_PlayerAssignments.begin(); it != m_PlayerAssignments.end(); ++it)
 	{
-		for (PlayerAssignmentMap::iterator it = m_PlayerAssignments.begin(); it != m_PlayerAssignments.end(); ++it)
+		if (!it->second.m_Enabled && it->second.m_Name == name && usedIDs.find(it->second.m_PlayerID) == usedIDs.end())
 		{
-			if (!it->second.m_Enabled && it->second.m_Name == name && usedIDs.find(it->second.m_PlayerID) == usedIDs.end())
-			{
-				playerID = it->second.m_PlayerID;
-				foundPlayerID = true;
-				m_PlayerAssignments.erase(it); // delete the old mapping, since we've got a new one now
-				break;
-			}
+			playerID = it->second.m_PlayerID;
+			m_PlayerAssignments.erase(it); // delete the old mapping, since we've got a new one now
+			goto found;
 		}
 	}
 
-	// Otherwise pick the first free player ID
-	if (!foundPlayerID)
-	{
-		for (playerID = 1; usedIDs.find(playerID) != usedIDs.end(); ++playerID)
-		{
-			// (do nothing)
-		}
-	}
+	// Otherwise leave the player ID as -1 (observer) and let gamesetup change it as needed.
 
+found:
 	PlayerAssignment assignment;
 	assignment.m_Enabled = true;
 	assignment.m_Name = name;
 	assignment.m_PlayerID = playerID;
+	assignment.m_Status = 0;
 	m_PlayerAssignments[guid] = assignment;
 
 	// Send the new assignments to all currently active players
@@ -659,6 +662,21 @@ void CNetServerWorker::AddPlayer(const CStr& guid, const CStrW& name)
 void CNetServerWorker::RemovePlayer(const CStr& guid)
 {
 	m_PlayerAssignments[guid].m_Enabled = false;
+
+	SendPlayerAssignments();
+}
+
+void CNetServerWorker::SetPlayerReady(const CStr& guid, const int ready)
+{
+	m_PlayerAssignments[guid].m_Status = ready;
+
+	SendPlayerAssignments();
+}
+
+void CNetServerWorker::ClearAllPlayerReady()
+{
+	for (PlayerAssignmentMap::iterator it = m_PlayerAssignments.begin(); it != m_PlayerAssignments.end(); ++it)
+		it->second.m_Status = 0;
 
 	SendPlayerAssignments();
 }
@@ -690,6 +708,7 @@ void CNetServerWorker::ConstructPlayerAssignmentMessage(CPlayerAssignmentMessage
 		h.m_GUID = it->first;
 		h.m_Name = it->second.m_Name;
 		h.m_PlayerID = it->second.m_PlayerID;
+		h.m_Status = it->second.m_Status;
 		message.m_Hosts.push_back(h);
 	}
 }
@@ -852,6 +871,22 @@ bool CNetServerWorker::OnChat(void* context, CFsmEvent* event)
 	CNetServerWorker& server = session->GetServer();
 
 	CChatMessage* message = (CChatMessage*)event->GetParamRef();
+
+	message->m_GUID = session->GetGUID();
+
+	server.Broadcast(message);
+
+	return true;
+}
+
+bool CNetServerWorker::OnReady(void* context, CFsmEvent* event)
+{
+	ENSURE(event->GetType() == (uint)NMT_READY);
+
+	CNetServerSession* session = (CNetServerSession*)context;
+	CNetServerWorker& server = session->GetServer();
+
+	CReadyMessage* message = (CReadyMessage*)event->GetParamRef();
 
 	message->m_GUID = session->GetGUID();
 
@@ -1051,6 +1086,18 @@ void CNetServer::AssignPlayer(int playerID, const CStr& guid)
 {
 	CScopeLock lock(m_Worker->m_WorkerMutex);
 	m_Worker->m_AssignPlayerQueue.push_back(std::make_pair(playerID, guid));
+}
+
+void CNetServer::SetPlayerReady(const CStr& guid, int ready)
+{
+	CScopeLock lock(m_Worker->m_WorkerMutex);
+	m_Worker->m_PlayerReadyQueue.push_back(std::make_pair(guid, ready));
+}
+
+void CNetServer::ClearAllPlayerReady()
+{
+	CScopeLock lock(m_Worker->m_WorkerMutex);
+	m_Worker->m_PlayerResetReadyQueue.push_back(false);
 }
 
 void CNetServer::StartGame()

@@ -95,6 +95,9 @@ private:
 			// LoadScripts will only load each script once even though we call it for each player
 			if (!m_Worker.LoadScripts(m_AIName))
 				return false;
+				
+			JSContext* cx = m_ScriptInterface->GetContext();
+			JSAutoRequest rq(cx);
 
 			OsPath path = L"simulation/ai/" + m_AIName + L"/data.json";
 			CScriptValRooted metadata = m_Worker.LoadMetadata(path);
@@ -140,20 +143,20 @@ private:
 
 			m_ScriptInterface->GetProperty(metadata.get(), "useShared", m_UseSharedComponent);
 			
-			CScriptVal obj;
+			JS::RootedValue obj(cx);
 
 			if (callConstructor)
 			{
 				// Set up the data to pass as the constructor argument
-				CScriptVal settings;
-				m_ScriptInterface->Eval(L"({})", settings);
-				m_ScriptInterface->SetProperty(settings.get(), "player", m_Player, false);
-				m_ScriptInterface->SetProperty(settings.get(), "difficulty", m_Difficulty, false);
+				JS::RootedValue settings(cx);
+				m_ScriptInterface->Eval(L"({})", &settings);
+				m_ScriptInterface->SetProperty(settings, "player", m_Player, false);
+				m_ScriptInterface->SetProperty(settings, "difficulty", m_Difficulty, false);
 				ENSURE(m_Worker.m_HasLoadedEntityTemplates);
-				m_ScriptInterface->SetProperty(settings.get(), "templates", m_Worker.m_EntityTemplates, false);
+				m_ScriptInterface->SetProperty(settings, "templates", m_Worker.m_EntityTemplates, false);
 
 				JS::AutoValueVector argv(m_ScriptInterface->GetContext());
-				argv.append(settings.get());
+				argv.append(settings);
 				obj = m_ScriptInterface->CallConstructor(ctor.get(), argv);
 			}
 			else
@@ -163,8 +166,8 @@ private:
 				// XXX: actually we don't currently use this path for deserialization - maybe delete it?
 				obj = m_ScriptInterface->NewObjectFromConstructor(ctor.get());
 			}
-
-			if (obj.undefined())
+			
+			if (obj.isUndefined())
 			{
 				LOGERROR(L"Failed to create AI player: %ls: error calling constructor '%hs'", path.string().c_str(), constructor.c_str());
 				return false;
@@ -254,7 +257,12 @@ public:
 
 		// Load and execute *.js
 		VfsPaths pathnames;
-		vfs::GetPathnames(g_VFS, L"simulation/ai/" + moduleName + L"/", L"*.js", pathnames);
+		if (vfs::GetPathnames(g_VFS, L"simulation/ai/" + moduleName + L"/", L"*.js", pathnames) < 0)
+		{
+			LOGERROR(L"Failed to load AI scripts for module %ls", moduleName.c_str());
+			return false;
+		}
+
 		for (VfsPaths::iterator it = pathnames.begin(); it != pathnames.end(); ++it)
 		{
 			if (!m_ScriptInterface->LoadGlobalScriptFile(*it))
@@ -345,6 +353,9 @@ public:
 
 	bool TryLoadSharedComponent(bool hasTechs)
 	{
+		JSContext* cx = m_ScriptInterface->GetContext();
+		JSAutoRequest rq(cx);
+		
 		// we don't need to load it.
 		if (!m_HasSharedComponent)
 			return false;
@@ -378,39 +389,37 @@ public:
 		}
 		
 		// Set up the data to pass as the constructor argument
-		CScriptVal settings;
-		m_ScriptInterface->Eval(L"({})", settings);
-		CScriptVal playersID;
-		m_ScriptInterface->Eval(L"({})", playersID);
+		JS::RootedValue settings(cx);
+		m_ScriptInterface->Eval(L"({})", &settings);
+		JS::RootedValue playersID(cx);
+		m_ScriptInterface->Eval(L"({})", &playersID);
 		
 		for (size_t i = 0; i < m_Players.size(); ++i)
 		{
-			JSContext* cx = m_ScriptInterface->GetContext();
-			JSAutoRequest rq(cx);
 			JS::RootedValue val(cx);
 			m_ScriptInterface->ToJSVal(cx, &val, m_Players[i]->m_Player);
-			m_ScriptInterface->SetPropertyInt(playersID.get(), i, CScriptVal(val), true);
+			m_ScriptInterface->SetPropertyInt(playersID, i, CScriptVal(val), true);
 		}
 		
-		m_ScriptInterface->SetProperty(settings.get(), "players", playersID);
+		m_ScriptInterface->SetProperty(settings, "players", (JS::HandleValue)playersID);
 		ENSURE(m_HasLoadedEntityTemplates);
-		m_ScriptInterface->SetProperty(settings.get(), "templates", m_EntityTemplates, false);
+		m_ScriptInterface->SetProperty(settings, "templates", m_EntityTemplates, false);
 		
 		if (hasTechs)
 		{
-			m_ScriptInterface->SetProperty(settings.get(), "techTemplates", m_TechTemplates, false);
+			m_ScriptInterface->SetProperty(settings, "techTemplates", m_TechTemplates, false);
 		}
 		else
 		{
 			// won't get the tech templates directly.
-			CScriptVal fakeTech;
-			m_ScriptInterface->Eval("({})", fakeTech);
-			m_ScriptInterface->SetProperty(settings.get(), "techTemplates", fakeTech, false);
+			JS::RootedValue fakeTech(cx);
+			m_ScriptInterface->Eval("({})", &fakeTech);
+			m_ScriptInterface->SetProperty(settings, "techTemplates", (JS::HandleValue)fakeTech, false);
 		}
 		
-		JS::AutoValueVector argv(m_ScriptInterface->GetContext());
-		argv.append(settings.get());
-		m_SharedAIObj = CScriptValRooted(m_ScriptInterface->GetContext(),m_ScriptInterface->CallConstructor(ctor.get(), argv));
+		JS::AutoValueVector argv(cx);
+		argv.append(settings);
+		m_SharedAIObj = CScriptValRooted(cx, m_ScriptInterface->CallConstructor(ctor.get(), argv));
 	
 		
 		if (m_SharedAIObj.undefined())
@@ -529,19 +538,24 @@ public:
 	
 	void LoadEntityTemplates(const std::vector<std::pair<std::string, const CParamNode*> >& templates)
 	{
+		JSContext* cx = m_ScriptInterface->GetContext();
+		JSAutoRequest rq(cx);
+		
 		m_HasLoadedEntityTemplates = true;
 
-		m_ScriptInterface->Eval("({})", m_EntityTemplates);
+		JS::RootedValue entityTemplates(cx);
+		m_ScriptInterface->Eval("({})", &entityTemplates);
 
 		for (size_t i = 0; i < templates.size(); ++i)
 		{
-			jsval val = templates[i].second->ToJSVal(m_ScriptInterface->GetContext(), false);
-			m_ScriptInterface->SetProperty(m_EntityTemplates.get(), templates[i].first.c_str(), CScriptVal(val), true);
+			jsval val = templates[i].second->ToJSVal(cx, false);
+			m_ScriptInterface->SetProperty(entityTemplates, templates[i].first.c_str(), CScriptVal(val), true);
 		}
+		m_EntityTemplates = CScriptValRooted(cx, entityTemplates);
 
 		// Since the template data is shared between AI players, freeze it
 		// to stop any of them changing it and confusing the other players
-		m_ScriptInterface->FreezeObject(m_EntityTemplates.get(), true);
+		m_ScriptInterface->FreezeObject(entityTemplates, true);
 	}
 
 	void Serialize(std::ostream& stream, bool isDebug)
@@ -1047,15 +1061,17 @@ private:
 			return;
 
 		ScriptInterface& scriptInterface = GetSimContext().GetScriptInterface();
+		JSContext* cx = scriptInterface.GetContext();
+		JSAutoRequest rq(cx);
 
-		CScriptVal classesVal;
-		scriptInterface.Eval("({ pathfinderObstruction: 1, foundationObstruction: 2 })", classesVal);
+		JS::RootedValue classesVal(cx);
+		scriptInterface.Eval("({ pathfinderObstruction: 1, foundationObstruction: 2 })", &classesVal);
 
 		std::map<std::string, ICmpPathfinder::pass_class_t> classes = cmpPathfinder->GetPassabilityClasses();
 		for (std::map<std::string, ICmpPathfinder::pass_class_t>::iterator it = classes.begin(); it != classes.end(); ++it)
-			scriptInterface.SetProperty(classesVal.get(), it->first.c_str(), it->second, true);
+			scriptInterface.SetProperty(classesVal, it->first.c_str(), it->second, true);
 
-		scriptInterface.SetProperty(state.get(), "passabilityClasses", classesVal, true);
+		scriptInterface.SetProperty(state.get(), "passabilityClasses", (JS::HandleValue)classesVal, true);
 	}
 
 	CAIWorker m_Worker;

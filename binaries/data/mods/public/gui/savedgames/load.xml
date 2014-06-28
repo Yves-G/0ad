@@ -11,8 +11,8 @@
 
 	<object type="image" style="ModernDialog" size="50%-300 50%-200 50%+300 50%+200">
 
-		<object type="text" style="TitleText" size="50%-128 0%-16 50%+128 16">
-			Load Game
+		<object type="text" style="TitleText" size="50%-128 -18 50%+128 14">
+			<translatableAttribute id="caption">Load Game</translatableAttribute>
 		</object>
 
 		<object name="gameSelection"
@@ -21,19 +21,19 @@
 			size="24 24 100%-24 100%-100">
 		</object>
 
-		<object name="loadGameButton" type="button" size="0%+25 100%-60 33%+10 100%-32" style="StoneButton">
-			Load
-			<action on="Press">loadGame();</action>
+		<object type="button" size="0%+25 100%-60 33%+10 100%-32" style="StoneButton">
+			<translatableAttribute id="caption">Cancel</translatableAttribute>
+			<action on="Press">Engine.PopGuiPage();</action>
 		</object>
 
 		<object name="deleteGameButton" type="button" size="33%+20 100%-60 66%-15 100%-32" style="StoneButton">
-			Delete
+			<translatableAttribute id="caption">Delete</translatableAttribute>
 			<action on="Press">deleteGame();</action>
 		</object>
 
-		<object type="button" style="StoneButton" size="66%-5 100%-60 100%-25 100%-32">
-			Cancel
-			<action on="Press">Engine.PopGuiPage();</action>
+		<object name="loadGameButton" type="button" style="StoneButton" size="66%-5 100%-60 100%-25 100%-32">
+			<translatableAttribute id="caption">Load</translatableAttribute>
+			<action on="Press">loadGame();</action>
 		</object>
 
 	</object>

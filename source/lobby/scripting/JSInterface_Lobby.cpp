@@ -32,6 +32,16 @@ bool JSI_Lobby::HasXmppClient(ScriptInterface::CxPrivate* UNUSED(pCxPrivate))
 	return (g_XmppClient ? true : false);
 }
 
+bool JSI_Lobby::IsRankedGame(ScriptInterface::CxPrivate* UNUSED(pCxPrivate))
+{
+	return g_rankedGame;
+}
+
+void JSI_Lobby::SetRankedGame(ScriptInterface::CxPrivate* UNUSED(pCxPrivate), bool isRanked)
+{
+	g_rankedGame = isRanked;
+}
+
 #if CONFIG2_LOBBY
 
 void JSI_Lobby::StartXmppClient(ScriptInterface::CxPrivate* UNUSED(pCxPrivate), std::wstring username, std::wstring password, std::wstring room, std::wstring nick, int historyRequestSize)
@@ -68,13 +78,6 @@ void JSI_Lobby::DisconnectXmppClient(ScriptInterface::CxPrivate* UNUSED(pCxPriva
 {
 	ENSURE(g_XmppClient);
 	g_XmppClient->disconnect();
-}
-
-void JSI_Lobby::RecvXmppClient(ScriptInterface::CxPrivate* UNUSED(pCxPrivate))
-{
-	if (!g_XmppClient)
-		return;
-	g_XmppClient->recv();
 }
 
 void JSI_Lobby::SendGetGameList(ScriptInterface::CxPrivate* UNUSED(pCxPrivate))
@@ -228,6 +231,16 @@ std::wstring JSI_Lobby::LobbyGetPlayerPresence(ScriptInterface::CxPrivate* UNUSE
 	return wstring_from_utf8(presence);
 }
 
+std::wstring JSI_Lobby::LobbyGetPlayerRole(ScriptInterface::CxPrivate* UNUSED(pCxPrivate), std::wstring nickname)
+{
+	if (!g_XmppClient)
+		return L"";
+
+	std::string role;
+	g_XmppClient->GetRole(utf8_from_wstring(nickname), role);
+	return wstring_from_utf8(role);
+}
+
 // Non-public secure PBKDF2 hash function with salting and 1,337 iterations
 std::string JSI_Lobby::EncryptPassword(const std::string& password, const std::string& username)
 {
@@ -262,16 +275,6 @@ std::string JSI_Lobby::EncryptPassword(const std::string& password, const std::s
 std::wstring JSI_Lobby::EncryptPassword(ScriptInterface::CxPrivate* UNUSED(pCxPrivate), std::wstring pass, std::wstring user)
 {
 	return wstring_from_utf8(JSI_Lobby::EncryptPassword(utf8_from_wstring(pass), utf8_from_wstring(user)));
-}
-
-bool JSI_Lobby::IsRankedGame(ScriptInterface::CxPrivate* UNUSED(pCxPrivate))
-{
-	return g_rankedGame;
-}
-
-void JSI_Lobby::SetRankedGame(ScriptInterface::CxPrivate* UNUSED(pCxPrivate), bool isRanked)
-{
-	g_rankedGame = isRanked;
 }
 
 std::wstring JSI_Lobby::LobbyGetRoomSubject(ScriptInterface::CxPrivate* UNUSED(pCxPrivate))

@@ -29,7 +29,8 @@
   <Identity>
     <GenericName>House</GenericName>
     <Tooltip>Increase the population limit.</Tooltip>
-    <Classes datatype="tokens">Village House -ConquestCritical</Classes>
+    <Classes datatype="tokens">-ConquestCritical</Classes>
+    <VisibleClasses datatype="tokens">Village House</VisibleClasses>
     <Icon>structures/house.png</Icon>
   </Identity>
   <Loot>
@@ -48,7 +49,8 @@
       units/{civ}_support_female_citizen_house
     </Entities>
     <Technologies datatype="tokens">
-      unlock_females_house
+      pair_house_01
+      pair_house_02
     </Technologies>
   </ProductionQueue>
   <Sound>

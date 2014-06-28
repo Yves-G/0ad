@@ -595,19 +595,21 @@ void CConsole::ProcessBuffer(const wchar_t* szLine)
 {
 	if (szLine == NULL) return;
 	if (wcslen(szLine) <= 0) return;
-
 	ENSURE(wcslen(szLine) < CONSOLE_BUFFER_SIZE);
+	
+	shared_ptr<ScriptInterface> scriptInterface = g_GUI->GetActiveGUI()->GetScriptInterface();
+	JSContext* cx = scriptInterface->GetContext();
+	JSAutoRequest rq(cx);
 
 	m_deqBufHistory.push_front(szLine);
 	SaveHistory(); // Do this each line for the moment; if a script causes
 	               // a crash it's a useful record.
 
 	// Process it as JavaScript
-	
-	CScriptVal rval;
-	g_GUI->GetActiveGUI()->GetScriptInterface()->Eval(szLine, rval);
-	if (!rval.undefined())
-		InsertMessage(L"%ls", g_GUI->GetActiveGUI()->GetScriptInterface()->ToString(rval.get()).c_str());
+	JS::RootedValue rval(cx);
+	scriptInterface->Eval(szLine, &rval);
+	if (!rval.isUndefined())
+		InsertMessageRaw(scriptInterface->ToString(rval));
 }
 
 void CConsole::LoadHistory()

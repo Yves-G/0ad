@@ -215,7 +215,7 @@ struct ShaderModelRendererInternals
 	ModelVertexRendererPtr vertexRenderer;
 
 	/// List of submitted models for rendering in this frame
-	std::vector<CModel*> submissions;
+	std::vector<CModel*> submissions[CRenderer::CULL_MAX];
 };
 
 
@@ -232,7 +232,7 @@ ShaderModelRenderer::~ShaderModelRenderer()
 }
 
 // Submit one model.
-void ShaderModelRenderer::Submit(CModel* model)
+void ShaderModelRenderer::Submit(int cullGroup, CModel* model)
 {
 	CModelDefPtr mdef = model->GetModelDef();
 	CModelRData* rdata = (CModelRData*)model->GetRenderData();
@@ -246,22 +246,27 @@ void ShaderModelRenderer::Submit(CModel* model)
 		model->SetDirty(~0u);
 	}
 
-	m->submissions.push_back(model);
+	m->submissions[cullGroup].push_back(model);
 }
 
 
 // Call update for all submitted models and enter the rendering phase
 void ShaderModelRenderer::PrepareModels()
 {
-	for (size_t i = 0; i < m->submissions.size(); ++i)
+	for (int cullGroup = 0; cullGroup < CRenderer::CULL_MAX; ++cullGroup)
 	{
-		CModel* model = m->submissions[i];
+		for (size_t i = 0; i < m->submissions[cullGroup].size(); ++i)
+		{
+			CModel* model = m->submissions[cullGroup][i];
 
- 		CModelRData* rdata = static_cast<CModelRData*>(model->GetRenderData());
- 		ENSURE(rdata->GetKey() == m->vertexRenderer.get());
+			model->ValidatePosition();
 
-		m->vertexRenderer->UpdateModelData(model, rdata, rdata->m_UpdateFlags);
-		rdata->m_UpdateFlags = 0;
+			CModelRData* rdata = static_cast<CModelRData*>(model->GetRenderData());
+			ENSURE(rdata->GetKey() == m->vertexRenderer.get());
+
+			m->vertexRenderer->UpdateModelData(model, rdata, rdata->m_UpdateFlags);
+			rdata->m_UpdateFlags = 0;
+		}
 	}
 }
 
@@ -269,7 +274,8 @@ void ShaderModelRenderer::PrepareModels()
 // Clear the submissions list
 void ShaderModelRenderer::EndFrame()
 {
-	m->submissions.clear();
+	for (int cullGroup = 0; cullGroup < CRenderer::CULL_MAX; ++cullGroup)
+		m->submissions[cullGroup].clear();
 }
 
 
@@ -358,9 +364,9 @@ struct SMRCompareTechBucket
 	}
 };
 
-void ShaderModelRenderer::Render(const RenderModifierPtr& modifier, const CShaderDefines& context, int flags)
+void ShaderModelRenderer::Render(const RenderModifierPtr& modifier, const CShaderDefines& context, int cullGroup, int flags)
 {
-	if (m->submissions.empty())
+	if (m->submissions[cullGroup].empty())
 		return;
 
 	CMatrix3D worldToCam;
@@ -420,19 +426,20 @@ void ShaderModelRenderer::Render(const RenderModifierPtr& modifier, const CShade
 	 */
 
 	Allocators::DynamicArena arena(256 * KiB);
-	typedef ProxyAllocator<void*, Allocators::DynamicArena > ArenaProxyAllocator;
-	typedef std::vector<CModel*, ArenaProxyAllocator> ModelList_t;
-	typedef boost::unordered_map<SMRMaterialBucketKey, ModelList_t, SMRMaterialBucketKeyHash,
-		std::equal_to<SMRMaterialBucketKey>, ProxyAllocator<void*, Allocators::DynamicArena >
+	typedef ProxyAllocator<CModel*, Allocators::DynamicArena> ModelListAllocator;
+	typedef std::vector<CModel*, ModelListAllocator> ModelList_t;
+	typedef boost::unordered_map<SMRMaterialBucketKey, ModelList_t,
+		SMRMaterialBucketKeyHash, std::equal_to<SMRMaterialBucketKey>,
+		ProxyAllocator<std::pair<const SMRMaterialBucketKey, ModelList_t>, Allocators::DynamicArena>
 	> MaterialBuckets_t;
 	MaterialBuckets_t materialBuckets((MaterialBuckets_t::allocator_type(arena)));
 
 	{
 		PROFILE3("bucketing by material");
 
-		for (size_t i = 0; i < m->submissions.size(); ++i)
+		for (size_t i = 0; i < m->submissions[cullGroup].size(); ++i)
 		{
-			CModel* model = m->submissions[i];
+			CModel* model = m->submissions[cullGroup][i];
 
 			uint32_t condFlags = 0;
 
@@ -477,16 +484,19 @@ void ShaderModelRenderer::Render(const RenderModifierPtr& modifier, const CShade
 		}
 	}
 
-	std::vector<SMRSortByDistItem, ArenaProxyAllocator> sortByDistItems((ArenaProxyAllocator(arena)));
+	typedef ProxyAllocator<SMRSortByDistItem, Allocators::DynamicArena> SortByDistItemsAllocator;
+	std::vector<SMRSortByDistItem, SortByDistItemsAllocator> sortByDistItems((SortByDistItemsAllocator(arena)));
 
-	std::vector<CShaderTechniquePtr, ArenaProxyAllocator> sortByDistTechs((ArenaProxyAllocator(arena)));
+	typedef ProxyAllocator<CShaderTechniquePtr, Allocators::DynamicArena> SortByTechItemsAllocator;
+	std::vector<CShaderTechniquePtr, SortByTechItemsAllocator> sortByDistTechs((SortByTechItemsAllocator(arena)));
 		// indexed by sortByDistItems[i].techIdx
 		// (which stores indexes instead of CShaderTechniquePtr directly
 		// to avoid the shared_ptr copy cost when sorting; maybe it'd be better
 		// if we just stored raw CShaderTechnique* and assumed the shader manager
 		// will keep it alive long enough)
 
-	std::vector<SMRTechBucket, ArenaProxyAllocator> techBuckets((ArenaProxyAllocator(arena)));
+	typedef ProxyAllocator<SMRTechBucket, Allocators::DynamicArena> TechBucketsAllocator;
+	std::vector<SMRTechBucket, TechBucketsAllocator> techBuckets((TechBucketsAllocator(arena)));
 
 	{
 		PROFILE3("processing material buckets");
@@ -546,7 +556,7 @@ void ShaderModelRenderer::Render(const RenderModifierPtr& modifier, const CShade
 	// (This exists primarily because techBuckets wants a CModel**;
 	// we could avoid the cost of copying into this list by adding
 	// a stride length into techBuckets and not requiring contiguous CModel*s)
-	std::vector<CModel*, ArenaProxyAllocator> sortByDistModels((ArenaProxyAllocator(arena)));
+	std::vector<CModel*, ModelListAllocator> sortByDistModels((ModelListAllocator(arena)));
 
 	if (!sortByDistItems.empty())
 	{
@@ -595,15 +605,19 @@ void ShaderModelRenderer::Render(const RenderModifierPtr& modifier, const CShade
 		// This vector keeps track of texture changes during rendering. It is kept outside the
 		// loops to avoid excessive reallocations. The token allocation of 64 elements 
 		// should be plenty, though it is reallocated below (at a cost) if necessary.
-		std::vector<CTexture*, ArenaProxyAllocator> currentTexs((ArenaProxyAllocator(arena)));
+		typedef ProxyAllocator<CTexture*, Allocators::DynamicArena> TextureListAllocator;
+		std::vector<CTexture*, TextureListAllocator> currentTexs((TextureListAllocator(arena)));
 		currentTexs.reserve(64);
 		
 		// texBindings holds the identifier bindings in the shader, which can no longer be defined 
 		// statically in the ShaderRenderModifier class. texBindingNames uses interned strings to
 		// keep track of when bindings need to be reevaluated.
-		std::vector<CShaderProgram::Binding, ArenaProxyAllocator> texBindings((ArenaProxyAllocator(arena)));
+		typedef ProxyAllocator<CShaderProgram::Binding, Allocators::DynamicArena> BindingListAllocator;
+		std::vector<CShaderProgram::Binding, BindingListAllocator> texBindings((BindingListAllocator(arena)));
 		texBindings.reserve(64);
-		std::vector<CStrIntern, ArenaProxyAllocator> texBindingNames((ArenaProxyAllocator(arena)));
+
+		typedef ProxyAllocator<CStrIntern, Allocators::DynamicArena> BindingNamesListAllocator;
+		std::vector<CStrIntern, BindingNamesListAllocator> texBindingNames((BindingNamesListAllocator(arena)));
 		texBindingNames.reserve(64);
 
 		while (idxTechStart < techBuckets.size())
@@ -760,21 +774,5 @@ void ShaderModelRenderer::Render(const RenderModifierPtr& modifier, const CShade
 
 			idxTechStart = idxTechEnd;
 		}
-	}
-}
-
-void ShaderModelRenderer::Filter(CModelFilter& filter, int passed, int flags)
-{
-	for (size_t i = 0; i < m->submissions.size(); ++i)
-	{
-		CModel* model = m->submissions[i];
-
-		if (flags && !(model->GetFlags() & flags))
-			continue;
-
-		if (filter.Filter(model))
-			model->SetFlags(model->GetFlags() | passed);
-		else
-			model->SetFlags(model->GetFlags() & ~passed);
 	}
 }

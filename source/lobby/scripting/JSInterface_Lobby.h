@@ -25,14 +25,15 @@
 namespace JSI_Lobby
 {
 	bool HasXmppClient(ScriptInterface::CxPrivate* pCxPrivate);
-	
+	bool IsRankedGame(ScriptInterface::CxPrivate* pCxPrivate);
+	void SetRankedGame(ScriptInterface::CxPrivate* pCxPrivate, bool isRanked);
+
 #if CONFIG2_LOBBY
 	void StartXmppClient(ScriptInterface::CxPrivate* pCxPrivate, std::wstring username, std::wstring password, std::wstring room, std::wstring nick, int historyRequestSize);
 	void StartRegisterXmppClient(ScriptInterface::CxPrivate* pCxPrivate, std::wstring username, std::wstring password);
 	void StopXmppClient(ScriptInterface::CxPrivate* pCxPrivate);
 	void ConnectXmppClient(ScriptInterface::CxPrivate* pCxPrivate);
 	void DisconnectXmppClient(ScriptInterface::CxPrivate* pCxPrivate);
-	void RecvXmppClient(ScriptInterface::CxPrivate* pCxPrivate);
 	void SendGetGameList(ScriptInterface::CxPrivate* pCxPrivate);
 	void SendGetBoardList(ScriptInterface::CxPrivate* pCxPrivate);
 	void SendGetRatingList(ScriptInterface::CxPrivate* pCxPrivate);
@@ -51,6 +52,7 @@ namespace JSI_Lobby
 	void LobbyKick(ScriptInterface::CxPrivate* pCxPrivate, std::wstring nick, std::wstring reason);
 	void LobbyBan(ScriptInterface::CxPrivate* pCxPrivate, std::wstring nick, std::wstring reason);
 	std::wstring LobbyGetPlayerPresence(ScriptInterface::CxPrivate* pCxPrivate, std::wstring nickname);
+	std::wstring LobbyGetPlayerRole(ScriptInterface::CxPrivate* pCxPrivate, std::wstring nickname);
 	std::wstring LobbyGetRoomSubject(ScriptInterface::CxPrivate* pCxPrivate);
 
 	// Non-public secure PBKDF2 hash function with salting and 1,337 iterations
@@ -58,9 +60,6 @@ namespace JSI_Lobby
 
 	// Public hash interface.
 	std::wstring EncryptPassword(ScriptInterface::CxPrivate* pCxPrivate, std::wstring pass, std::wstring user);
-	
-	bool IsRankedGame(ScriptInterface::CxPrivate* pCxPrivate);
-	void SetRankedGame(ScriptInterface::CxPrivate* pCxPrivate, bool isRanked);
 #endif // CONFIG2_LOBBY
 }
 

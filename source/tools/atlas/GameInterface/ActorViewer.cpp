@@ -366,6 +366,8 @@ void ActorViewer::SetActor(const CStrW& name, const CStrW& animation, player_id_
 
 	if (needsAnimReload)
 	{
+		JSContext* cx = m.Simulation2.GetScriptInterface().GetContext();
+		JSAutoRequest rq(cx);
 		CStr anim = animation.ToUTF8().LowerCase();
 
 		// Emulate the typical simulation animation behaviour
@@ -398,7 +400,9 @@ void ActorViewer::SetActor(const CStrW& name, const CStrW& animation, player_id_
 
 			CStr code = "var cmp = Engine.QueryInterface("+CStr::FromUInt(m.Entity)+", IID_Attack); " +
 				"if (cmp) cmp.GetTimers(cmp.GetBestAttack()).repeat; else 0;";
-			m.Simulation2.GetScriptInterface().Eval(code.c_str(), repeattime);
+			JS::RootedValue ret(cx);
+			m.Simulation2.GetScriptInterface().Eval(code.c_str(), &ret);
+			ScriptInterface::FromJSVal(cx, ret, repeattime);
 		}
 		else
 		{
@@ -420,7 +424,9 @@ void ActorViewer::SetActor(const CStrW& name, const CStrW& animation, player_id_
 		{
 			CStr code = "var cmp = Engine.QueryInterface("+CStr::FromUInt(m.Entity)+", IID_Sound); " +
 				"if (cmp) cmp.GetSoundGroup('"+sound+"'); else '';";
-			m.Simulation2.GetScriptInterface().Eval(code.c_str(), soundgroup);
+			JS::RootedValue ret(cx);
+			m.Simulation2.GetScriptInterface().Eval(code.c_str(), &ret);
+			ScriptInterface::FromJSVal(cx, ret, soundgroup);
 		}
 
 		CmpPtr<ICmpVisual> cmpVisual(m.Simulation2, m.Entity);
