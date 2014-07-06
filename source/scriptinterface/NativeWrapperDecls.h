@@ -18,6 +18,35 @@
 #include <boost/preprocessor/punctuation/comma_if.hpp>
 #include <boost/preprocessor/repetition/repeat.hpp>
 
+private:
+
+/**
+ * In our interface code (the CONVERT_ARG macro specifically) we require types to be default-constructible.
+ * This is a workaround to make the current design work with JS::HandleValue types, which have a private constructor.
+ * JS::HandleValue objects are meant to be implicitely created only from JS::RootedValue objects.
+ * Generally handles should not be used this way, but in this case we can be sure that the handle will not live longer than its root,
+ * so it should be OK.
+ * This solution involves some overhead, but it should be quite small and shouldn't affect performance in practice.
+ * HandleValue types are just structs with one pointer and fit into a single register.
+ */
+class HandleWrapper
+{
+public:
+	HandleWrapper() : m_Handle(JS::NullHandleValue) {};
+	void set(JS::HandleValue handle) { m_Handle.repoint(handle); }
+	operator JS::HandleValue() 
+	{
+		return m_Handle; 
+	}
+	
+private:
+	JS::HandleValue m_Handle;
+};
+
+template<typename T> struct WrapperIfHandle;
+
+public:
+
 // Define lots of useful macros:
 
 // Varieties of comma-separated list to fit on the head/tail/whole of another comma-separated list
@@ -27,9 +56,11 @@
 // Some other things
 #define TYPED_ARGS(z, i, data) , T##i a##i
 #define CONVERT_ARG(z, i, data) \
-	T##i a##i; \
-	if (i < args.length()) \
-		if (! ScriptInterface::FromJSVal<T##i>(cx, args[i], a##i)) return false; \
+	typename WrapperIfHandle<T##i>::Type a##i; \
+	if (args.length() > i) \
+	{ \
+		if (! ScriptInterface::FromJSVal<typename WrapperIfHandle<T##i>::Type>(cx, args[i], a##i)) return false; \
+	}
 
 // List-generating macros, named roughly after their first list item
 #define TYPENAME_T0_HEAD(z, i) BOOST_PP_REPEAT_##z (i, NUMBERED_LIST_HEAD, typename T) // "typename T0, typename T1, "
@@ -37,7 +68,7 @@
 #define T0(z, i) BOOST_PP_REPEAT_##z (i, NUMBERED_LIST_BALANCED, T) // "T0, T1"
 #define T0_HEAD(z, i) BOOST_PP_REPEAT_##z (i, NUMBERED_LIST_HEAD, T) // "T0, T1, "
 #define T0_TAIL(z, i) BOOST_PP_REPEAT_##z (i, NUMBERED_LIST_TAIL, T) // ", T0, T1"
-#define T0_A0(z, i) BOOST_PP_REPEAT_##z (i, TYPED_ARGS, ~) // "T0 a0, T1 a1"
+#define T0_A0(z, i) BOOST_PP_REPEAT_##z (i, TYPED_ARGS, ~) // ",T0 a0, T1 a1"
 #define A0(z, i) BOOST_PP_REPEAT_##z (i, NUMBERED_LIST_BALANCED, a) // "a0, a1"
 #define A0_TAIL(z, i) BOOST_PP_REPEAT_##z (i, NUMBERED_LIST_TAIL, a) // ", a0, a1"
 

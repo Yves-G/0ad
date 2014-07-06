@@ -80,10 +80,10 @@ template<> void ScriptInterface::ToJSVal<const CParamNode*>(JSContext* cx, JS::M
 		ret.set(JSVAL_VOID);
 }
 
-template<> bool ScriptInterface::FromJSVal<CColor>(JSContext* cx, jsval v, CColor& out)
+template<> bool ScriptInterface::FromJSVal<CColor>(JSContext* cx, JS::HandleValue v, CColor& out)
 {
 	if (!v.isObject())
-		FAIL("jsval not an object");
+		FAIL("JS::HandleValue not an object");
 
 	JSAutoRequest rq(cx);
 	JS::RootedObject obj(cx, &v.toObject());
@@ -131,7 +131,7 @@ template<> void ScriptInterface::ToJSVal<CColor>(JSContext* cx, JS::MutableHandl
 	ret.set(JS::ObjectValue(*obj));
 }
 
-template<> bool ScriptInterface::FromJSVal<fixed>(JSContext* cx, jsval v, fixed& out)
+template<> bool ScriptInterface::FromJSVal<fixed>(JSContext* cx, JS::HandleValue v, fixed& out)
 {
 	JSAutoRequest rq(cx);
 	JS::RootedValue val(cx, v);
@@ -149,7 +149,7 @@ template<> void ScriptInterface::ToJSVal<fixed>(JSContext* UNUSED(cx), JS::Mutab
 	ret.set(JS::NumberValue(val.ToDouble()));
 }
 
-template<> bool ScriptInterface::FromJSVal<CFixedVector3D>(JSContext* cx, jsval v, CFixedVector3D& out)
+template<> bool ScriptInterface::FromJSVal<CFixedVector3D>(JSContext* cx, JS::HandleValue v, CFixedVector3D& out)
 {
 	if (!v.isObject())
 		return false; // TODO: report type error
@@ -199,7 +199,7 @@ template<> void ScriptInterface::ToJSVal<CFixedVector3D>(JSContext* cx, JS::Muta
 	ret.set(JS::ObjectValue(*obj));
 }
 
-template<> bool ScriptInterface::FromJSVal<CFixedVector2D>(JSContext* cx, jsval v, CFixedVector2D& out)
+template<> bool ScriptInterface::FromJSVal<CFixedVector2D>(JSContext* cx, JS::HandleValue v, CFixedVector2D& out)
 {
 	JSAutoRequest rq(cx);
 	if (!v.isObject())

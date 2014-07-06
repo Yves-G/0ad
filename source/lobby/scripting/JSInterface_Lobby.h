@@ -41,7 +41,7 @@ namespace JSI_Lobby
 	void SendRegisterGame(ScriptInterface::CxPrivate* pCxPrivate, CScriptVal data);
 	void SendUnregisterGame(ScriptInterface::CxPrivate* pCxPrivate);
 	void SendChangeStateGame(ScriptInterface::CxPrivate* pCxPrivate, std::wstring nbp, std::wstring players);
-	CScriptVal GetPlayerList(ScriptInterface::CxPrivate* pCxPrivate);
+	JS::Value GetPlayerList(ScriptInterface::CxPrivate* pCxPrivate);
 	CScriptVal GetGameList(ScriptInterface::CxPrivate* pCxPrivate);
 	CScriptVal GetBoardList(ScriptInterface::CxPrivate* pCxPrivate);
 	CScriptVal LobbyGuiPollMessage(ScriptInterface::CxPrivate* pCxPrivate);

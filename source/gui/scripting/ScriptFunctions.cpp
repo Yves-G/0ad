@@ -202,7 +202,7 @@ void StartNetworkGame(ScriptInterface::CxPrivate* UNUSED(pCxPrivate))
 	g_NetServer->StartGame();
 }
 
-void StartGame(ScriptInterface::CxPrivate* pCxPrivate, CScriptVal attribs, int playerID)
+void StartGame(ScriptInterface::CxPrivate* pCxPrivate, JS::HandleValue attribs, int playerID)
 {
 	ENSURE(!g_NetServer);
 	ENSURE(!g_NetClient);
@@ -213,7 +213,7 @@ void StartGame(ScriptInterface::CxPrivate* pCxPrivate, CScriptVal attribs, int p
 	// Convert from GUI script context to sim script context
 	CSimulation2* sim = g_Game->GetSimulation2();
 	CScriptValRooted gameAttribs (sim->GetScriptInterface().GetContext(),
-			sim->GetScriptInterface().CloneValueFromOtherContext(*(pCxPrivate->pScriptInterface), attribs.get()));
+			sim->GetScriptInterface().CloneValueFromOtherContext(*(pCxPrivate->pScriptInterface), attribs));
 
 	g_Game->SetPlayerID(playerID);
 	g_Game->StartGame(gameAttribs, "");
@@ -877,7 +877,7 @@ void GuiScriptingInit(ScriptInterface& scriptInterface)
 
 	// Network / game setup functions
 	scriptInterface.RegisterFunction<void, &StartNetworkGame>("StartNetworkGame");
-	scriptInterface.RegisterFunction<void, CScriptVal, int, &StartGame>("StartGame");
+	scriptInterface.RegisterFunction<void, JS::HandleValue, int, &StartGame>("StartGame");
 	scriptInterface.RegisterFunction<void, &Script_EndGame>("EndGame");
 	scriptInterface.RegisterFunction<void, std::wstring, &StartNetworkHost>("StartNetworkHost");
 	scriptInterface.RegisterFunction<void, std::wstring, std::string, &StartNetworkJoin>("StartNetworkJoin");
@@ -967,7 +967,7 @@ void GuiScriptingInit(ScriptInterface& scriptInterface)
 	scriptInterface.RegisterFunction<void, CScriptVal, &JSI_Lobby::SendGameReport>("SendGameReport");
 	scriptInterface.RegisterFunction<void, &JSI_Lobby::SendUnregisterGame>("SendUnregisterGame");
 	scriptInterface.RegisterFunction<void, std::wstring, std::wstring, &JSI_Lobby::SendChangeStateGame>("SendChangeStateGame");
-	scriptInterface.RegisterFunction<CScriptVal, &JSI_Lobby::GetPlayerList>("GetPlayerList");
+	scriptInterface.RegisterFunction<JS::Value, &JSI_Lobby::GetPlayerList>("GetPlayerList");
 	scriptInterface.RegisterFunction<CScriptVal, &JSI_Lobby::GetGameList>("GetGameList");
 	scriptInterface.RegisterFunction<CScriptVal, &JSI_Lobby::GetBoardList>("GetBoardList");
 	scriptInterface.RegisterFunction<CScriptVal, &JSI_Lobby::LobbyGuiPollMessage>("LobbyGuiPollMessage");

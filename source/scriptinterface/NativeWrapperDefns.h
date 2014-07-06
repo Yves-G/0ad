@@ -15,6 +15,16 @@
  * along with 0 A.D.  If not, see <http://www.gnu.org/licenses/>.
  */
  #include "ps/GameSetup/Config.h"
+ 
+template<typename T> struct ScriptInterface::WrapperIfHandle
+{ 
+	typedef T Type;
+}; 
+
+template<> struct ScriptInterface::WrapperIfHandle<JS::HandleValue>
+{ 
+	typedef HandleWrapper Type;
+};
 
 // (NativeWrapperDecls.h set up a lot of the macros we use here)
 
@@ -97,7 +107,7 @@ struct ScriptInterface_NativeMethodWrapper<void, TC> {
 		JSAutoRequest rq(cx); \
 		BOOST_PP_REPEAT_##z (i, CONVERT_ARG, ~) \
 		JS::RootedValue rval(cx); \
-		ScriptInterface_NativeWrapper<R>::call(cx, &rval, fptr  A0_TAIL(z,i)); \
+		ScriptInterface_NativeWrapper<R>::template call<T0_HEAD(z,i) R( ScriptInterface::CxPrivate* T0_TAIL(z,i))>(cx, &rval, fptr  A0_TAIL(z,i)); \
 		args.rval().set(rval); \
 		return !ScriptInterface::IsExceptionPending(cx); \
 	}

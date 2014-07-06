@@ -131,10 +131,10 @@ void JSI_Lobby::SendChangeStateGame(ScriptInterface::CxPrivate* UNUSED(pCxPrivat
 	g_XmppClient->SendIqChangeStateGame(utf8_from_wstring(nbp), utf8_from_wstring(players));
 }
 
-CScriptVal JSI_Lobby::GetPlayerList(ScriptInterface::CxPrivate* pCxPrivate)
+JS::Value JSI_Lobby::GetPlayerList(ScriptInterface::CxPrivate* pCxPrivate)
 {
 	if (!g_XmppClient)
-		return CScriptVal();
+		return JS::UndefinedValue();
 		
 	CScriptValRooted playerList = g_XmppClient->GUIGetPlayerList(*(pCxPrivate->pScriptInterface));
 

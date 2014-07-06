@@ -333,7 +333,8 @@ public:
 	/**
 	 * Convert a jsval to a C++ type. (This might trigger GC.)
 	 */
-	template<typename T> static bool FromJSVal(JSContext* cx, jsval val, T& ret);
+	
+	template<typename T> static bool FromJSVal(JSContext* cx, JS::HandleValue val, T& ret);
 
 	/**
 	 * Convert a C++ type to a jsval. (This might trigger GC. The return
