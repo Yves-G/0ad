@@ -473,9 +473,8 @@ bool ScriptInterface::CallFunctionVoid(jsval val, const char* name, const T0& a0
 	JS::RootedValue jsRet(cx);
 	JS::RootedValue val1(cx, val);
 	JS::AutoValueVector argv(cx);
-	JS::RootedValue arg0(cx);
-	ToJSVal(cx, &arg0, a0);
-	argv.append(arg0);
+	argv.resize(1);
+	ToJSVal(cx, argv.handleAt(0), a0);
 	return CallFunction_(val1, name, argv, &jsRet);
 }
 
@@ -487,12 +486,9 @@ bool ScriptInterface::CallFunctionVoid(jsval val, const char* name, const T0& a0
 	JS::RootedValue jsRet(cx);
 	JS::RootedValue val1(cx, val);
 	JS::AutoValueVector argv(cx);
-	JS::RootedValue arg0(cx);
-	JS::RootedValue arg1(cx);
-	ToJSVal(cx, &arg0, a0);
-	ToJSVal(cx, &arg1, a1);
-	argv.append(arg0);
-	argv.append(arg1);
+	argv.resize(2);
+	ToJSVal(cx, argv.handleAt(0), a0);
+	ToJSVal(cx, argv.handleAt(1), a1);
 	return CallFunction_(val1, name, argv, &jsRet);
 }
 
@@ -504,15 +500,10 @@ bool ScriptInterface::CallFunctionVoid(jsval val, const char* name, const T0& a0
 	JS::RootedValue jsRet(cx);
 	JS::RootedValue val1(cx, val);
 	JS::AutoValueVector argv(cx);
-	JS::RootedValue arg0(cx);
-	JS::RootedValue arg1(cx);
-	JS::RootedValue arg2(cx);
-	ToJSVal(cx, &arg0, a0);
-	ToJSVal(cx, &arg1, a1);
-	ToJSVal(cx, &arg2, a2);
-	argv.append(arg0);
-	argv.append(arg1);
-	argv.append(arg2);
+	argv.resize(3);
+	ToJSVal(cx, argv.handleAt(0), a0);
+	ToJSVal(cx, argv.handleAt(1), a1);
+	ToJSVal(cx, argv.handleAt(2), a2);
 	return CallFunction_(val1, name, argv, &jsRet);
 }
 
@@ -524,9 +515,8 @@ bool ScriptInterface::CallFunction(jsval val, const char* name, const T0& a0, R&
 	JS::RootedValue jsRet(cx);
 	JS::RootedValue val1(cx, val);
 	JS::AutoValueVector argv(cx);
-	JS::RootedValue arg0(cx);
-	ToJSVal(cx, &arg0, a0);
-	argv.append(arg0);
+	argv.resize(1);
+	ToJSVal(cx, argv.handleAt(0), a0);
 	bool ok = CallFunction_(val1, name, argv, &jsRet);
 	if (!ok)
 		return false;
@@ -541,12 +531,9 @@ bool ScriptInterface::CallFunction(jsval val, const char* name, const T0& a0, co
 	JS::RootedValue jsRet(cx);
 	JS::RootedValue val1(cx, val);
 	JS::AutoValueVector argv(cx);
-	JS::RootedValue arg0(cx);
-	JS::RootedValue arg1(cx);
-	ToJSVal(cx, &arg0, a0);
-	ToJSVal(cx, &arg1, a1);
-	argv.append(arg0);
-	argv.append(arg1);
+	argv.resize(2);
+	ToJSVal(cx, argv.handleAt(0), a0);
+	ToJSVal(cx, argv.handleAt(1), a1);
 	bool ok = CallFunction_(val1, name, argv, &jsRet);
 	if (!ok)
 		return false;
@@ -561,15 +548,10 @@ bool ScriptInterface::CallFunction(jsval val, const char* name, const T0& a0, co
 	JS::RootedValue jsRet(cx);
 	JS::RootedValue val1(cx, val);
 	JS::AutoValueVector argv(cx);
-	JS::RootedValue arg0(cx);
-	JS::RootedValue arg1(cx);
-	JS::RootedValue arg2(cx);
-	ToJSVal(cx, &arg0, a0);
-	ToJSVal(cx, &arg1, a1);
-	ToJSVal(cx, &arg2, a2);
-	argv.append(arg0);
-	argv.append(arg1);
-	argv.append(arg2);
+	argv.resize(3);
+	ToJSVal(cx, argv.handleAt(0), a0);
+	ToJSVal(cx, argv.handleAt(1), a1);
+	ToJSVal(cx, argv.handleAt(2), a2);
 	bool ok = CallFunction_(val1, name, argv, &jsRet);
 	if (!ok)
 		return false;
@@ -584,18 +566,11 @@ bool ScriptInterface::CallFunction(jsval val, const char* name, const T0& a0, co
 	JS::RootedValue jsRet(cx);
 	JS::RootedValue val1(cx, val);
 	JS::AutoValueVector argv(cx);
-	JS::RootedValue arg0(cx);
-	JS::RootedValue arg1(cx);
-	JS::RootedValue arg2(cx);
-	JS::RootedValue arg3(cx);
-	ToJSVal(cx, &arg0, a0);
-	ToJSVal(cx, &arg1, a1);
-	ToJSVal(cx, &arg2, a2);
-	ToJSVal(cx, &arg3, a3);
-	argv.append(arg0);
-	argv.append(arg1);
-	argv.append(arg2);
-	argv.append(arg3);
+	argv.resize(4);
+	ToJSVal(cx, argv.handleAt(0), a0);
+	ToJSVal(cx, argv.handleAt(1), a1);
+	ToJSVal(cx, argv.handleAt(2), a2);
+	ToJSVal(cx, argv.handleAt(3), a3);
 	bool ok = CallFunction_(val1, name, argv, &jsRet);
 	if (!ok)
 		return false;
