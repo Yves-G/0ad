@@ -9,22 +9,26 @@ var PETRA = function(m)
  * There is a basic support for naval expeditions here.
  */
 
-// enemy is the targeted player or undefined, while target is the entity targeted or undefined
-m.AttackPlan = function(gameState, Config, uniqueID, type, enemy, target)
+m.AttackPlan = function(gameState, Config, uniqueID, type, data)
 {
 	this.Config = Config;
 	this.name = uniqueID;
 	this.type = type || "Attack";	
 	this.state = "unexecuted";
 
-	this.targetPlayer = enemy;
-	if (this.targetPlayer === undefined)
+	if (data && data.target)
 	{
-		if (target)
-			this.targetPlayer = target.owner();
-		else
-			this.targetPlayer = this.getEnemyPlayer(gameState);
+		this.target = data.target;
+		this.targetPos = this.target.position();
+		this.targetPlayer = this.target.owner();
 	}
+	else
+	{
+		this.target = undefined;
+		this.targetPos = undefined;
+		this.targetPlayer = this.getEnemyPlayer(gameState);
+	}
+
 	if (this.targetPlayer === undefined)
 	{
 		this.failed = true;
@@ -74,35 +78,64 @@ m.AttackPlan = function(gameState, Config, uniqueID, type, enemy, target)
 	if (type === "Rush")
 	{
 		priority = 250;
-		this.unitStat["Infantry"] = { "priority": 1, "minSize": 10, "targetSize": 26, "batchSize": 2, "classes": ["Infantry"], "interests": [ ["strength",1], ["cost",1], ["costsResource", 0.5, "stone"], ["costsResource", 0.6, "metal"] ] };
+		this.unitStat["Infantry"] = { "priority": 1, "minSize": 10, "targetSize": 26, "batchSize": 2, "classes": ["Infantry"],
+			"interests": [ ["strength",1], ["cost",1], ["costsResource", 0.5, "stone"], ["costsResource", 0.6, "metal"] ] };
+		if (data && data.targetSize)
+			this.unitStat["Infantry"]["targetSize"] = data.targetSize;
 		this.neededShips = 1;
 	}
 	else if (type === "Raid")
 	{
 		priority = 150;
-		this.unitStat["Cavalry"] = { "priority": 1, "minSize": 3, "targetSize": 4, "batchSize": 2, "classes": ["Cavalry", "CitizenSoldier"], "interests": [ ["strength",1], ["cost",1] ] };
+		this.unitStat["Cavalry"] = { "priority": 1, "minSize": 3, "targetSize": 4, "batchSize": 2, "classes": ["Cavalry", "CitizenSoldier"],
+			"interests": [ ["strength",1], ["cost",1] ] };
 		this.neededShips = 1;
 	}
 	else if (type === "HugeAttack")
 	{
 		priority = 90;
 		// basically we want a mix of citizen soldiers so our barracks have a purpose, and champion units.
-		this.unitStat["RangedInfantry"]    = { "priority": 0.7, "minSize": 5, "targetSize": 15, "batchSize": 5, "classes": ["Infantry","Ranged", "CitizenSoldier"], "interests": [["strength",3], ["cost",1] ] };
-		this.unitStat["MeleeInfantry"]     = { "priority": 0.7, "minSize": 5, "targetSize": 15, "batchSize": 5, "classes": ["Infantry","Melee", "CitizenSoldier" ], "interests": [ ["strength",3], ["cost",1] ] };
-		this.unitStat["ChampRangedInfantry"] = { "priority": 1, "minSize": 5, "targetSize": 25, "batchSize": 5, "classes": ["Infantry","Ranged", "Champion"], "interests": [["strength",3], ["cost",1] ] };
-		this.unitStat["ChampMeleeInfantry"]  = { "priority": 1, "minSize": 5, "targetSize": 20, "batchSize": 5, "classes": ["Infantry","Melee", "Champion" ], "interests": [ ["strength",3], ["cost",1] ] };
-		this.unitStat["MeleeCavalry"]      = { "priority": 0.7, "minSize": 3, "targetSize": 15, "batchSize": 3, "classes": ["Cavalry","Melee", "CitizenSoldier" ], "interests": [ ["strength",2], ["cost",1] ] };
-		this.unitStat["RangedCavalry"]     = { "priority": 0.7, "minSize": 3, "targetSize": 15, "batchSize": 3, "classes": ["Cavalry","Ranged", "CitizenSoldier"], "interests": [ ["strength",2], ["cost",1] ] };
-		this.unitStat["ChampMeleeInfantry"]  = { "priority": 1, "minSize": 3, "targetSize": 18, "batchSize": 3, "classes": ["Infantry","Melee", "Champion" ], "interests": [ ["strength",3], ["cost",1] ] };
-		this.unitStat["ChampMeleeCavalry"]   = { "priority": 1, "minSize": 3, "targetSize": 18, "batchSize": 3, "classes": ["Cavalry","Melee", "Champion" ], "interests": [ ["strength",2], ["cost",1] ] };
+		this.unitStat["RangedInfantry"]    = { "priority": 0.7, "minSize": 5, "targetSize": 15, "batchSize": 5, "classes": ["Infantry","Ranged", "CitizenSoldier"],
+			"interests": [["strength",3], ["cost",1] ] };
+		this.unitStat["MeleeInfantry"]     = { "priority": 0.7, "minSize": 5, "targetSize": 15, "batchSize": 5, "classes": ["Infantry","Melee", "CitizenSoldier" ],
+			"interests": [ ["strength",3], ["cost",1] ] };
+		this.unitStat["ChampRangedInfantry"] = { "priority": 1, "minSize": 5, "targetSize": 25, "batchSize": 5, "classes": ["Infantry","Ranged", "Champion"],
+			"interests": [["strength",3], ["cost",1] ] };
+		this.unitStat["ChampMeleeInfantry"]  = { "priority": 1, "minSize": 5, "targetSize": 20, "batchSize": 5, "classes": ["Infantry","Melee", "Champion" ],
+			"interests": [ ["strength",3], ["cost",1] ] };
+		this.unitStat["MeleeCavalry"]      = { "priority": 0.7, "minSize": 3, "targetSize": 15, "batchSize": 3, "classes": ["Cavalry","Melee", "CitizenSoldier" ],
+			"interests": [ ["strength",2], ["cost",1] ] };
+		this.unitStat["RangedCavalry"]     = { "priority": 0.7, "minSize": 3, "targetSize": 15, "batchSize": 3, "classes": ["Cavalry","Ranged", "CitizenSoldier"],
+			"interests": [ ["strength",2], ["cost",1] ] };
+		this.unitStat["ChampMeleeInfantry"]  = { "priority": 1, "minSize": 3, "targetSize": 18, "batchSize": 3, "classes": ["Infantry","Melee", "Champion" ],
+			"interests": [ ["strength",3], ["cost",1] ] };
+		this.unitStat["ChampMeleeCavalry"]   = { "priority": 1, "minSize": 3, "targetSize": 18, "batchSize": 3, "classes": ["Cavalry","Melee", "Champion" ],
+			"interests": [ ["strength",2], ["cost",1] ] };
 		this.neededShips = 5;
+		// decrease a bit the targetSize according to max population
+		if (gameState.getPopulationMax() < 300)
+		{
+			var reduc = Math.sqrt(gameState.getPopulationMax() / 300);
+			for (var unitCat in this.unitStat)
+				this.unitStat[unitCat]["targetSize"] = Math.floor(reduc * this.unitStat[unitCat]["targetSize"]);
+		}
 	}
 	else
 	{
 		priority = 70;
-		this.unitStat["RangedInfantry"] = { "priority": 1, "minSize": 6, "targetSize": 18, "batchSize": 3, "classes": ["Infantry","Ranged"], "interests": [ ["canGather", 1], ["strength",1.6], ["cost",1.5], ["costsResource", 0.3, "stone"], ["costsResource", 0.3, "metal"] ] };
-		this.unitStat["MeleeInfantry"]  = { "priority": 1, "minSize": 6, "targetSize": 18, "batchSize": 3, "classes": ["Infantry","Melee"],  "interests": [ ["canGather", 1], ["strength",1.6], ["cost",1.5], ["costsResource", 0.3, "stone"], ["costsResource", 0.3, "metal"] ] };
+		this.unitStat["RangedInfantry"] = { "priority": 1, "minSize": 6, "targetSize": 18, "batchSize": 3, "classes": ["Infantry","Ranged"],
+			"interests": [ ["canGather", 1], ["strength",1.6], ["cost",1.5], ["costsResource", 0.3, "stone"], ["costsResource", 0.3, "metal"] ] };
+		this.unitStat["MeleeInfantry"]  = { "priority": 1, "minSize": 6, "targetSize": 18, "batchSize": 3, "classes": ["Infantry","Melee"],
+			"interests": [ ["canGather", 1], ["strength",1.6], ["cost",1.5], ["costsResource", 0.3, "stone"], ["costsResource", 0.3, "metal"] ] };
 		this.neededShips = 3;
+	}
+
+	// Put some randomness on the attack size
+	var variation = 0.8 + 0.4*Math.random();
+	for (var cat in this.unitStat)
+	{
+		this.unitStat[cat]["targetSize"] = Math.round(variation * this.unitStat[cat]["targetSize"]);
+		this.unitStat[cat]["minSize"] = Math.min(this.unitStat[cat]["minSize"], this.unitStat[cat]["targetSize"]);
 	}
 
 	// TODO: there should probably be one queue per type of training building
@@ -128,11 +161,9 @@ m.AttackPlan = function(gameState, Config, uniqueID, type, enemy, target)
 	
 	// defining the entity collections. Will look for units I own, that are part of this plan.
 	// Also defining the buildOrders.
-	for (var unitCat in this.unitStat)
+	for (var cat in this.unitStat)
 	{
-		var cat = unitCat;
 		var Unit = this.unitStat[cat];
-
 		var filter = API3.Filters.and(API3.Filters.byClassesAnd(Unit["classes"]), API3.Filters.byMetadata(PlayerID, "plan",this.name));
 		this.unit[cat] = gameState.getOwnUnits().filter(filter);
 		this.unit[cat].registerUpdates();
@@ -182,7 +213,28 @@ m.AttackPlan.prototype.setPaused = function(boolValue)
 m.AttackPlan.prototype.getEnemyPlayer = function(gameState)
 {
 	var enemyPlayer = undefined;
-	// let's find our prefered target enemy, basically counting our enemies units.
+
+	// first check if there is a preferred enemy based on our victory conditions
+	if (gameState.getGameType() === "wonder")
+	{
+		var moreAdvanced = undefined;
+		var enemyWonder = undefined;
+		var wonders = gameState.getEnemyStructures().filter(API3.Filters.byClass("Wonder")).toEntityArray();
+		for (var wonder of wonders)
+		{
+			var progress = wonder.foundationProgress();
+			if (progress === undefined)
+				return wonder.owner();
+			if (enemyWonder && moreAdvanced > progress)
+				continue;
+			enemyWonder = wonder;
+			moreAdvanced = progress;
+		}
+		if (enemyWonder)
+			return enemyWonder.owner();
+	}
+
+	// then let's find our prefered target enemy, basically counting our enemies units.
 	var enemyCount = {};
 	var enemyDefense = {};
 	for (var i = 1; i < gameState.sharedScript.playersData.length; ++i)
@@ -262,7 +314,7 @@ m.AttackPlan.prototype.addBuildOrder = function(gameState, name, unitStats, rese
 		// no minsize as we don't want the plan to fail at the last minute though.
 		this.unitStat[name] = unitStats;
 		var Unit = this.unitStat[name];
-		var filter = API3.Filters.and(API3.Filters.byClassesAnd(Unit["classes"]), API3.Filters.byMetadata(PlayerID, "plan",this.name));
+		var filter = API3.Filters.and(API3.Filters.byClassesAnd(Unit["classes"]), API3.Filters.byMetadata(PlayerID, "plan", this.name));
 		this.unit[name] = gameState.getOwnUnits().filter(filter);
 		this.unit[name].registerUpdates();
 		this.buildOrder.push([0, Unit["classes"], this.unit[name], Unit, name]);
@@ -386,7 +438,9 @@ m.AttackPlan.prototype.updatePreparation = function(gameState, events)
 	if (this.overseas && !gameState.ai.HQ.navalManager.seaTransportShips.length)
 		return 1;
 
-	this.assignUnits(gameState);
+	// if we add units to this plan, wait next turn for the collections to be updated
+	if (this.assignUnits(gameState))
+		return 1;
 
 	// special case: if we've reached max pop, and we can start the plan, start it.
 	if (gameState.getPopulationMax() - gameState.getPopulation() < 10)
@@ -546,10 +600,8 @@ m.AttackPlan.prototype.trainMoreUnits = function(gameState)
 				if (trainingPlan.template)
 					queue.addItem(trainingPlan);
 				else if (this.Config.debug > 0)
-				{
 					warn("training plan canceled because no template for " + template + "   build1 " + uneval(this.buildOrder[0][1])
 						+ " build3 " + uneval(this.buildOrder[0][3]["interests"]));
-				}
 			}
 		}
 	}
@@ -558,6 +610,7 @@ m.AttackPlan.prototype.trainMoreUnits = function(gameState)
 m.AttackPlan.prototype.assignUnits = function(gameState)
 {
 	var plan = this.name;
+	var added = false;
 
 	// TODO: assign myself units that fit only, right now I'm getting anything.
 	// Assign all no-roles that fit (after a plan aborts, for example).
@@ -572,10 +625,12 @@ m.AttackPlan.prototype.assignUnits = function(gameState)
 				return;
 			if (ent.getMetadata(PlayerID, "transport") !== undefined || ent.getMetadata(PlayerID, "transporter") !== undefined)
 				return;
-			if (num++ > 1)
-				ent.setMetadata(PlayerID, "plan", plan);
+			if (num++ < 2)
+				return;
+			ent.setMetadata(PlayerID, "plan", plan);
+			added = true;
 		});
-		return;
+		return added;
 	}
 
 	var noRole = gameState.getOwnEntitiesByRole(undefined, false).filter(API3.Filters.byClass("Unit"));
@@ -589,6 +644,7 @@ m.AttackPlan.prototype.assignUnits = function(gameState)
 		if (ent.hasClass("Ship") || ent.hasClass("Support") || ent.attackTypes() === undefined)
 			return;
 		ent.setMetadata(PlayerID, "plan", plan);
+		added = true;
 	});
 	// Add units previously in a plan, but which left it because needed for defense or attack finished
 	gameState.ai.HQ.attackManager.outOfPlan.forEach(function(ent) {
@@ -597,10 +653,12 @@ m.AttackPlan.prototype.assignUnits = function(gameState)
 		if (ent.getMetadata(PlayerID, "transport") !== undefined || ent.getMetadata(PlayerID, "transporter") !== undefined)
 			return;
 		ent.setMetadata(PlayerID, "plan", plan);
+		added = true;
 	});
 
 	if (this.type !== "Rush")
-		return;
+		return added;
+
 	// For a rush, assign also workers (but keep a minimum number of defenders)
 	var worker = gameState.getOwnEntitiesByRole("worker", true).filter(API3.Filters.byClass("Unit"));
 	var num = 0;
@@ -611,11 +669,14 @@ m.AttackPlan.prototype.assignUnits = function(gameState)
 			return;
 		if (ent.getMetadata(PlayerID, "transport") !== undefined)
 			return;
-		if (ent.hasClass("Support") || ent.attackTypes() === undefined)
+		if (ent.hasClass("Ship") || ent.hasClass("Support") || ent.attackTypes() === undefined)
 			return;
-		if (num++ > 8)
-			ent.setMetadata(PlayerID, "plan", plan);
+		if (num++ < 9)
+			return;
+		ent.setMetadata(PlayerID, "plan", plan);
+		added = true;
 	});
+	return added;
 };
 
 // sameLand true means that we look for a target for which we do not need to take a transport
@@ -656,16 +717,24 @@ m.AttackPlan.prototype.getNearestTarget = function(gameState, position, sameLand
 // Default target finder aims for conquest critical targets
 m.AttackPlan.prototype.defaultTargetFinder = function(gameState)
 {
+	var targets = undefined;
+	if (gameState.getGameType() === "wonder")
+	{
+		targets = gameState.getEnemyStructures(this.targetPlayer).filter(API3.Filters.byClass("Wonder"));
+		if (targets.length)
+			return targets;
+	}
+
 	var targets = gameState.getEnemyStructures(this.targetPlayer).filter(API3.Filters.byClass("CivCentre"));
-	if (targets.length == 0)
+	if (!targets.length)
 		targets = gameState.getEnemyStructures(this.targetPlayer).filter(API3.Filters.byClass("ConquestCritical"));
 	// If there's nothing, attack anything else that's less critical
-	if (targets.length == 0)
+	if (!targets.length)
 		targets = gameState.getEnemyStructures(this.targetPlayer).filter(API3.Filters.byClass("Town"));
-	if (targets.length == 0)
+	if (!targets.length)
 		targets = gameState.getEnemyStructures(this.targetPlayer).filter(API3.Filters.byClass("Village"));
-	// no buildings, attack anything conquest critical, even units (it's assuming it won't move).
-	if (targets.length == 0)
+	// no buildings, attack anything conquest critical, even units
+	if (!targets.length)
 		targets = gameState.getEnemyEntities(this.targetPlayer).filter(API3.Filters.byClass("ConquestCritical"));
 	return targets;
 };
@@ -1062,7 +1131,6 @@ m.AttackPlan.prototype.update = function(gameState, events)
 				}
 				else
 				{
-					// TODO: make this require an escort later on.
 					this.path.shift();
 					if (this.path.length === 0)
 					{
@@ -1073,14 +1141,6 @@ m.AttackPlan.prototype.update = function(gameState, events)
 					}
 					else
 					{
-						/*
-						var plan = new m.TransportPlan(gameState, this.unitCollection.toIdArray(), this.path[0][0], false);
-						this.tpPlanID = plan.ID;
-						gameState.ai.HQ.navalManager.transportPlans.push(plan);
-						m.debug ("Transporting over sea");
-						this.state = "transporting";
-					*/
-						// TODO: fix this above
 						//right now we'll abort.
 						Engine.ProfileStop();
 						return 0;

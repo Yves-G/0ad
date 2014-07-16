@@ -73,6 +73,13 @@ m.TrainingPlan.prototype.start = function(gameState)
 				aa += 10;
 			if (b.hasClass("Civic") && !supportUnit)
 				bb += 10;
+			if (supportUnit)
+			{
+				if (gameState.ai.HQ.isDangerousLocation(a.position()))
+					aa += 50;
+				if (gameState.ai.HQ.isDangerousLocation(a.position()))
+					bb += 50;
+			}
 			if (wantedIndex)
 			{
 				var aBase = a.getMetadata(PlayerID, "base");
@@ -88,7 +95,7 @@ m.TrainingPlan.prototype.start = function(gameState)
 			this.metadata.base = trainers[0].getMetadata(PlayerID, "base");
 		trainers[0].train(this.type, this.number, this.metadata);
 	}
-	else
+	else if (gameState.ai.Config.debug > 0)
 		warn(" no trainers for this queue " + this.type);
 	this.onStart(gameState);
 };

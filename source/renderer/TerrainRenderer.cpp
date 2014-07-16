@@ -85,7 +85,7 @@ struct TerrainRendererInternals
 
 	/// Fancy water shader
 	CShaderProgramPtr fancyWaterShader;
-	CShaderProgramPtr wavesShader;
+	CShaderProgramPtr fancyEffectsShader;
 
 	CSimulation2* simulation;
 };
@@ -632,32 +632,26 @@ bool TerrainRenderer::RenderFancyWater(const CShaderDefines& context, int cullGr
 	WaterManager* WaterMgr = g_Renderer.GetWaterManager();
 	CShaderDefines defines = context;
 	
-	WaterMgr->UpdateQuality();
-
 	// If we're using fancy water, make sure its shader is loaded
 	if (!m->fancyWaterShader || WaterMgr->m_NeedsReloading)
 	{
-		if (WaterMgr->m_WaterNormal)
-			defines.Add(str_USE_NORMALS, str_1);
 		if (WaterMgr->m_WaterRealDepth)
 			defines.Add(str_USE_REAL_DEPTH, str_1);
-		if (WaterMgr->m_WaterFoam)
-			defines.Add(str_USE_FOAM, str_1);
-		if (WaterMgr->m_WaterCoastalWaves && false)
-			defines.Add(str_USE_WAVES, str_1);
+		if (WaterMgr->m_WaterFancyEffects)
+			defines.Add(str_USE_FANCY_EFFECTS, str_1);
 		if (WaterMgr->m_WaterRefraction)
 			defines.Add(str_USE_REFRACTION, str_1);
 		if (WaterMgr->m_WaterReflection)
 			defines.Add(str_USE_REFLECTION, str_1);
 		if (shadow && WaterMgr->m_WaterShadows)
-			defines.Add(str_USE_SHADOWS, str_1);
+			defines.Add(str_USE_SHADOWS_ON_WATER, str_1);
 
-		m->wavesShader = g_Renderer.GetShaderManager().LoadProgram("glsl/waves", defines);
-		if (!m->wavesShader)
+		m->fancyEffectsShader = g_Renderer.GetShaderManager().LoadProgram("glsl/water_effects", defines);
+		if (!m->fancyEffectsShader)
 		{
-			LOGERROR(L"Failed to load waves shader. Deactivating waves.\n");
-			g_Renderer.SetOptionBool(CRenderer::OPT_WATERCOASTALWAVES, false);
-			defines.Add(str_USE_WAVES, str_0);
+			LOGERROR(L"Failed to load Fancy effects shader. Deactivating fancy effects.\n");
+			g_Renderer.SetOptionBool(CRenderer::OPT_WATERFANCYEFFECTS, false);
+			defines.Add(str_USE_FANCY_EFFECTS, str_0);
 		}
 		
 		// haven't updated the ARB shader yet so I'll always load the GLSL
@@ -668,7 +662,7 @@ bool TerrainRenderer::RenderFancyWater(const CShaderDefines& context, int cullGr
 		
 		if (!m->fancyWaterShader)
 		{
-			LOGERROR(L"Failed to load water shader. Falling back to non-fancy water.\n");
+			LOGERROR(L"Failed to load water shader. Falling back to fixed pipeline water.\n");
 			WaterMgr->m_RenderWater = false;
 			return false;
 		}
@@ -686,27 +680,15 @@ bool TerrainRenderer::RenderFancyWater(const CShaderDefines& context, int cullGr
 			glGenTextures(1, (GLuint*)&depthTex);
 			WaterMgr->m_depthTT = depthTex;
 			glBindTexture(GL_TEXTURE_2D, WaterMgr->m_depthTT);
-			
-#if CONFIG2_GLES
-			GLenum format = GL_DEPTH_COMPONENT;
-#else
-			GLenum format = GL_DEPTH_COMPONENT32;
-#endif
-			
-			// TODO: use POT texture
-			glTexImage2D(GL_TEXTURE_2D, 0, format, g_Renderer.GetWidth(), g_Renderer.GetHeight(),
-						 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE,NULL);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, g_Renderer.GetWidth(), g_Renderer.GetHeight(), 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE,NULL);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		} else {
+			glBindTexture(GL_TEXTURE_2D, WaterMgr->m_depthTT);
+			glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 0, 0, g_Renderer.GetWidth(), g_Renderer.GetHeight(), 0);
 		}
-		glBindTexture(GL_TEXTURE_2D, WaterMgr->m_depthTT);
-#if !CONFIG2_GLES
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
-#endif
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		
-		glCopyTexImage2D(GL_TEXTURE_2D,0,GL_DEPTH_COMPONENT, 0, 0, g_Renderer.GetWidth(), g_Renderer.GetHeight(), 0);
 		
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
@@ -717,106 +699,109 @@ bool TerrainRenderer::RenderFancyWater(const CShaderDefines& context, int cullGr
 		WaterMgr->CreateSuperfancyInfo();
 	}*/
 	
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LEQUAL);
-
 	double time = WaterMgr->m_WaterTexTimer;
 	double period = 8;
 	int curTex = (int)(time*60/period) % 60;
 	int nexTex = (curTex + 1) % 60;
-
+	
+	float repeatPeriod = WaterMgr->m_RepeatPeriod;
+	
 	GLuint FramebufferName = 0;
 
-	// rendering waves to a framebuffer
-	// TODO: reactivate this with something that looks good.
-	if (false && WaterMgr->m_WaterCoastalWaves && WaterMgr->m_VBWaves && !g_AtlasGameLoop->running)
+	// Render normals and foam to a framebuffer if we're in fancy effects
+	if (WaterMgr->m_WaterFancyEffects)
 	{
 		// Save the post-processing framebuffer.
 		GLint fbo;
 		glGetIntegerv(GL_FRAMEBUFFER_BINDING_EXT, &fbo);
-
+		
+		// Generate our framebuffer
 		pglGenFramebuffersEXT(1, &FramebufferName);
 		pglBindFramebufferEXT(GL_FRAMEBUFFER_EXT, FramebufferName);
 		
 		GLuint renderedTexture;
-		if (WaterMgr->m_waveTT == 0)
+		if (WaterMgr->m_FancyTexture == 0)
 		{
 			glGenTextures(1, &renderedTexture);
-			WaterMgr->m_waveTT = renderedTexture;
+			WaterMgr->m_FancyTexture = renderedTexture;
 			
-			glBindTexture(GL_TEXTURE_2D, WaterMgr->m_waveTT);
-			// TODO: use POT texture
+			glBindTexture(GL_TEXTURE_2D, WaterMgr->m_FancyTexture);
+			
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
 			glTexImage2D(GL_TEXTURE_2D, 0,GL_RGBA, (float)g_Renderer.GetWidth(), (float)g_Renderer.GetHeight(), 0,GL_RGBA, GL_UNSIGNED_BYTE, 0);
-
-		}
-		glBindTexture(GL_TEXTURE_2D, WaterMgr->m_waveTT);
-		
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		
-		pglFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, WaterMgr->m_waveTT, 0);
-		
-		glClearColor(0.5f,0.5f,1.0f,0.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
-		
+		} else
+			glBindTexture(GL_TEXTURE_2D, WaterMgr->m_FancyTexture);
+				
+		pglFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, WaterMgr->m_FancyTexture, 0);
+				
 		// rendering
-		m->wavesShader->Bind();
-		m->wavesShader->BindTexture(str_waveTex, WaterMgr->m_Wave);
-		m->wavesShader->Uniform(str_time, (float)time);
-		m->wavesShader->Uniform(str_waviness, WaterMgr->m_Waviness);
-		m->wavesShader->Uniform(str_mapSize, (float)(WaterMgr->m_TexSize));
+		m->fancyEffectsShader->Bind();
+		m->fancyEffectsShader->BindTexture(str_normalMap, WaterMgr->m_NormalMap[curTex]);
+		m->fancyEffectsShader->BindTexture(str_normalMap2, WaterMgr->m_NormalMap[nexTex]);
+		m->fancyEffectsShader->Uniform(str_waviness, WaterMgr->m_Waviness);
+		m->fancyEffectsShader->Uniform(str_repeatScale, 1.0f / repeatPeriod);
+		m->fancyEffectsShader->Uniform(str_time, (float)time);
+		m->fancyEffectsShader->Uniform(str_windAngle, (float)WaterMgr->m_WindAngle);
+		m->fancyEffectsShader->Uniform(str_screenSize, (float)g_Renderer.GetWidth(), (float)g_Renderer.GetHeight(), 0.0f, 0.0f);
+		m->fancyEffectsShader->Uniform(str_mapSize, (float)(WaterMgr->m_MapSize));
+
+		if (WaterMgr->m_WaterType == L"clap")
+		{
+			m->fancyEffectsShader->Uniform(str_waveParams1, 30.0f,1.5f,20.0f,0.03f);
+			m->fancyEffectsShader->Uniform(str_waveParams2, 0.5f,0.0f,0.0f,0.0f);
+		}
+		else if (WaterMgr->m_WaterType == L"lake")
+		{
+			m->fancyEffectsShader->Uniform(str_waveParams1, 8.5f,1.5f,15.0f,0.03f);
+			m->fancyEffectsShader->Uniform(str_waveParams2, 0.2f,0.0f,0.0f,0.07f);
+		}
+		else
+		{
+			m->fancyEffectsShader->Uniform(str_waveParams1, 15.0f,0.8f,10.0f,0.1f);
+			m->fancyEffectsShader->Uniform(str_waveParams2, 0.3f,0.0f,0.1f,0.3f);
+		}
 		
-		SWavesVertex *base=(SWavesVertex *)WaterMgr->m_VBWaves->m_Owner->Bind();
-		GLsizei stride = sizeof(SWavesVertex);
-		m->wavesShader->VertexPointer(3, GL_FLOAT, stride, &base[WaterMgr->m_VBWaves->m_Index].m_Position);
-		m->wavesShader->TexCoordPointer(GL_TEXTURE0,2,GL_BYTE, stride,&base[WaterMgr->m_VBWaves->m_Index].m_UV);
-		m->wavesShader->AssertPointersBound();
-
-		u8* indexBase = WaterMgr->m_VBWavesIndices->m_Owner->Bind();
-		glDrawElements(GL_TRIANGLES, (GLsizei) WaterMgr->m_VBWavesIndices->m_Count, GL_UNSIGNED_SHORT, indexBase + sizeof(u16)*(WaterMgr->m_VBWavesIndices->m_Index));
-
-		g_Renderer.m_Stats.m_DrawCalls++;
-		CVertexBuffer::Unbind();
-		m->wavesShader->Unbind();
+		std::vector<CPatchRData*>& visiblePatches = m->visiblePatches[cullGroup];
+		for (size_t i = 0; i < visiblePatches.size(); ++i)
+		{
+			CPatchRData* data = visiblePatches[i];
+			data->RenderWater(m->fancyEffectsShader);
+		}
+		
+		m->fancyEffectsShader->Unbind();
 		
 		// rebind post-processing frambuffer.
 		pglBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo);
 		glBindTexture(GL_TEXTURE_2D, 0);
-		
 	}
 	
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LEQUAL);
+	
 	m->fancyWaterShader->Bind();
-
-	
-	// Shift the texture coordinates by these amounts to make the water "flow"
-	float tx = -fmod(time, 81.0 / (WaterMgr->m_Waviness/20.0 + 0.8) )/(81.0/ (WaterMgr->m_Waviness/20.0 + 0.8) );
-	float ty = -fmod(time, 34.0 / (WaterMgr->m_Waviness/20.0 + 0.8) )/(34.0/ (WaterMgr->m_Waviness/20.0 + 0.8) );
-	
-	float repeatPeriod = WaterMgr->m_RepeatPeriod;
-	
+		
 	const CCamera& camera = g_Renderer.GetViewCamera();
 	CVector3D camPos = camera.m_Orientation.GetTranslation();
 
 	m->fancyWaterShader->BindTexture(str_normalMap, WaterMgr->m_NormalMap[curTex]);
 	m->fancyWaterShader->BindTexture(str_normalMap2, WaterMgr->m_NormalMap[nexTex]);
 	
-	if (WaterMgr->m_WaterFoam || WaterMgr->m_WaterCoastalWaves)
-	{
-		m->fancyWaterShader->BindTexture(str_Foam, WaterMgr->m_Foam);
-		m->fancyWaterShader->Uniform(str_mapSize, (float)(WaterMgr->m_TexSize));
-	}
+	if (WaterMgr->m_WaterFancyEffects)
+		m->fancyWaterShader->BindTexture(str_waterEffectsTex, WaterMgr->m_FancyTexture);
 	if (WaterMgr->m_WaterRealDepth)
 		m->fancyWaterShader->BindTexture(str_depthTex, WaterMgr->m_depthTT);
-	if (WaterMgr->m_WaterCoastalWaves)
-		m->fancyWaterShader->BindTexture(str_waveTex, WaterMgr->m_waveTT);
 	if (WaterMgr->m_WaterReflection)
-	m->fancyWaterShader->BindTexture(str_reflectionMap, WaterMgr->m_ReflectionTexture);
+		m->fancyWaterShader->BindTexture(str_reflectionMap, WaterMgr->m_ReflectionTexture);
 	if (WaterMgr->m_WaterRefraction)
-	m->fancyWaterShader->BindTexture(str_refractionMap, WaterMgr->m_RefractionTexture);
+		m->fancyWaterShader->BindTexture(str_refractionMap, WaterMgr->m_RefractionTexture);
 
 	m->fancyWaterShader->BindTexture(str_losMap, losTexture.GetTextureSmooth());
+	
+	m->fancyWaterShader->BindTexture(str_skyCube, g_Renderer.GetSkyManager()->GetSkyCube());
 
 	const CLightEnv& lightEnv = g_Renderer.GetLightEnv();
 
@@ -824,13 +809,10 @@ bool TerrainRenderer::RenderFancyWater(const CShaderDefines& context, int cullGr
 	m->fancyWaterShader->Uniform(str_sunDir, lightEnv.GetSunDir());
 	m->fancyWaterShader->Uniform(str_sunColor, lightEnv.m_SunColor.X);
 	m->fancyWaterShader->Uniform(str_color, WaterMgr->m_WaterColor);
-	m->fancyWaterShader->Uniform(str_specularStrength, WaterMgr->m_SpecularStrength);
+	m->fancyWaterShader->Uniform(str_tint, WaterMgr->m_WaterTint);
 	m->fancyWaterShader->Uniform(str_waviness, WaterMgr->m_Waviness);
 	m->fancyWaterShader->Uniform(str_murkiness, WaterMgr->m_Murkiness);
-	m->fancyWaterShader->Uniform(str_tint, WaterMgr->m_WaterTint);
-	m->fancyWaterShader->Uniform(str_reflectionTintStrength, WaterMgr->m_ReflectionTintStrength);
-	m->fancyWaterShader->Uniform(str_reflectionTint, WaterMgr->m_ReflectionTint);
-	m->fancyWaterShader->Uniform(str_translation, tx, ty);
+	m->fancyWaterShader->Uniform(str_windAngle, WaterMgr->m_WindAngle);
 	m->fancyWaterShader->Uniform(str_repeatScale, 1.0f / repeatPeriod);
 	m->fancyWaterShader->Uniform(str_reflectionMatrix, WaterMgr->m_ReflectionMatrix);
 	m->fancyWaterShader->Uniform(str_refractionMatrix, WaterMgr->m_RefractionMatrix);
@@ -840,8 +822,26 @@ bool TerrainRenderer::RenderFancyWater(const CShaderDefines& context, int cullGr
 	m->fancyWaterShader->Uniform(str_fogParams, lightEnv.m_FogFactor, lightEnv.m_FogMax, 0.f, 0.f);
 	m->fancyWaterShader->Uniform(str_time, (float)time);
 	m->fancyWaterShader->Uniform(str_screenSize, (float)g_Renderer.GetWidth(), (float)g_Renderer.GetHeight(), 0.0f, 0.0f);
-	m->fancyWaterShader->BindTexture(str_skyCube, g_Renderer.GetSkyManager()->GetSkyCube());
-
+	
+	if (!WaterMgr->m_WaterFancyEffects)
+	{
+		if (WaterMgr->m_WaterType == L"clap")
+		{
+			m->fancyWaterShader->Uniform(str_waveParams1, 30.0f,1.5f,20.0f,0.03f);
+			m->fancyWaterShader->Uniform(str_waveParams2, 0.5f,0.0f,0.0f,0.0f);
+		}
+		else if (WaterMgr->m_WaterType == L"lake")
+		{
+			m->fancyWaterShader->Uniform(str_waveParams1, 8.5f,1.5f,15.0f,0.03f);
+			m->fancyWaterShader->Uniform(str_waveParams2, 0.2f,0.0f,0.0f,0.07f);
+		}
+		else
+		{
+			m->fancyWaterShader->Uniform(str_waveParams1, 15.0f,0.8f,10.0f,0.1f);
+			m->fancyWaterShader->Uniform(str_waveParams2, 0.3f,0.0f,0.1f,0.3f);
+		}
+	}
+	
 	if (shadow && WaterMgr->m_WaterShadows)
 	{
 		m->fancyWaterShader->BindTexture(str_shadowTex, shadow->GetTexture());
@@ -878,8 +878,6 @@ void TerrainRenderer::RenderSimpleWater(int cullGroup)
 	WaterManager* WaterMgr = g_Renderer.GetWaterManager();
 	CLOSTexture& losTexture = g_Game->GetView()->GetLOSTexture();
 
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LEQUAL);
 
@@ -904,7 +902,7 @@ void TerrainRenderer::RenderSimpleWater(int cullGroup)
 	glEnable(GL_TEXTURE_GEN_S);
 	glEnable(GL_TEXTURE_GEN_T);
 
-	// Set up texture environment to multiply vertex RGB by texture RGB and use vertex alpha
+	// Set up texture environment to multiply vertex RGB by texture RGB.
 	GLfloat waterColor[4] = { WaterMgr->m_WaterColor.r, WaterMgr->m_WaterColor.g, WaterMgr->m_WaterColor.b, 1.0f };
 	glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, waterColor);
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
@@ -913,9 +911,7 @@ void TerrainRenderer::RenderSimpleWater(int cullGroup)
 	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_ARB, GL_SRC_COLOR);
 	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_ARB, GL_CONSTANT);
 	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_ARB, GL_SRC_COLOR);
-	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_ARB, GL_REPLACE);
-	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_ARB, GL_PRIMARY_COLOR_ARB);
-	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_ARB, GL_SRC_ALPHA);
+
 
 	// Multiply by LOS texture
 	losTexture.BindTexture(1);
@@ -935,24 +931,19 @@ void TerrainRenderer::RenderSimpleWater(int cullGroup)
 	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_ARB, GL_SRC_COLOR);
 	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_ARB, GL_TEXTURE);
 	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_ARB, GL_SRC_ALPHA);
-	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_ARB, GL_REPLACE);
-	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_ARB, GL_PREVIOUS);
-	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_ARB, GL_SRC_ALPHA);
 
 	CShaderProgramPtr dummyShader = g_Renderer.GetShaderManager().LoadProgram("fixed:dummy", CShaderDefines());
 	dummyShader->Bind();
 
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_COLOR_ARRAY);
 
 	std::vector<CPatchRData*>& visiblePatches = m->visiblePatches[cullGroup];
 	for (size_t i = 0; i < visiblePatches.size(); ++i)
 	{
 		CPatchRData* data = visiblePatches[i];
-		data->RenderWater(dummyShader);
+		data->RenderWater(dummyShader, true);
 	}
 
-	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
 
 	dummyShader->Unbind();
@@ -970,7 +961,6 @@ void TerrainRenderer::RenderSimpleWater(int cullGroup)
 	glDisable(GL_TEXTURE_GEN_T);
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
-	glDisable(GL_BLEND);
 	glDisable(GL_TEXTURE_2D);
 #endif
 }
@@ -980,6 +970,8 @@ void TerrainRenderer::RenderSimpleWater(int cullGroup)
 void TerrainRenderer::RenderWater(const CShaderDefines& context, int cullGroup, ShadowMap* shadow)
 {
 	WaterManager* WaterMgr = g_Renderer.GetWaterManager();
+
+	WaterMgr->UpdateQuality();
 
 	if (!WaterMgr->WillRenderFancyWater())
 		RenderSimpleWater(cullGroup);

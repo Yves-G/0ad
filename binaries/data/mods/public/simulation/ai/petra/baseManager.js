@@ -88,9 +88,9 @@ m.BaseManager.prototype.checkEvents = function (gameState, events, queues)
 	var createEvents = events["Create"];
 	var cFinishedEvents = events["ConstructionFinished"];
 
-	for (var i in renameEvents)
+	for (var evt of renameEvents)
 	{
-		var ent = gameState.getEntityById(renameEvents[i].newentity);
+		var ent = gameState.getEntityById(evt.newentity);
 		if (!ent)
 			continue;
 		var workerObject = ent.getMetadata(PlayerID, "worker-object");
@@ -98,11 +98,10 @@ m.BaseManager.prototype.checkEvents = function (gameState, events, queues)
 			workerObject.ent = ent;
 	}
 
-	for (var i in destEvents)
+	for (var evt of destEvents)
 	{
-		var evt = destEvents[i];
 		// let's check we haven't lost an important building here.
-		if (evt != undefined && !evt.SuccessfulFoundation && evt.entityObj != undefined && evt.metadata !== undefined && evt.metadata[PlayerID] &&
+		if (evt && !evt.SuccessfulFoundation && evt.entityObj != undefined && evt.metadata !== undefined && evt.metadata[PlayerID] &&
 			evt.metadata[PlayerID]["base"] !== undefined && evt.metadata[PlayerID]["base"] == this.ID)
 		{
 			var ent = evt.entityObj;
@@ -121,36 +120,33 @@ m.BaseManager.prototype.checkEvents = function (gameState, events, queues)
 			
 		}
 	}
-	for (var i in cFinishedEvents)
-	{
-		var evt = cFinishedEvents[i];
-		if (evt && evt.newentity)
-		{
-			var ent = gameState.getEntityById(evt.newentity);
-			if (ent === undefined)
-				continue;
 
-			if (evt.newentity === evt.entity)  // repaired building
-				continue;
+	for (var evt of cFinishedEvents)
+	{
+		if (!evt || !evt.newentity)
+			continue;
+		var ent = gameState.getEntityById(evt.newentity);
+		if (ent === undefined)
+			continue;
+		if (evt.newentity === evt.entity)  // repaired building
+			continue;
 			
-			if (ent.getMetadata(PlayerID,"base") == this.ID)
-			{
-				if (ent.resourceDropsiteTypes() && !ent.hasClass("Elephant"))
-					this.assignResourceToDropsite(gameState, ent);
-			}
+		if (ent.getMetadata(PlayerID,"base") == this.ID)
+		{
+			if (ent.resourceDropsiteTypes() && !ent.hasClass("Elephant"))
+				this.assignResourceToDropsite(gameState, ent);
 		}
 	}
-	for (var i in createEvents)
-	{
-		var evt = createEvents[i];
-		if (evt && evt.entity)
-		{
-			var ent = gameState.getEntityById(evt.entity);
-			if (ent === undefined)
-				continue;
 
-			// do necessary stuff here
-		}
+	for (var evt of createEvents)
+	{
+		if (!evt || !evt.entity)
+			continue;
+		var ent = gameState.getEntityById(evt.entity);
+		if (ent === undefined)
+			continue;
+
+		// do necessary stuff here
 	}
 };
 
@@ -169,7 +165,7 @@ m.BaseManager.prototype.assignResourceToDropsite = function (gameState, dropsite
 	this.dropsites[dropsite.id()] = true;
 
 	var self = this;
-	for each (var type in dropsite.resourceDropsiteTypes())
+	for (var type of dropsite.resourceDropsiteTypes())
 	{
 		var resources = gameState.getResourceSupplies(type);
 		if (resources.length === 0)
@@ -189,21 +185,21 @@ m.BaseManager.prototype.assignResourceToDropsite = function (gameState, dropsite
 				return;
 			if (supply.hasClass("Field"))     // fields are treated separately
 				return;
+			if (supply.resourceSupplyType()["generic"] === "treasure")  // treasures are treated separately
+				return;
 			// quick accessibility check
-			var index = gameState.ai.accessibility.getAccessValue(supply.position());
-			if (index !== self.accessIndex)
+			var access = supply.getMetadata(PlayerID, "access");
+			if (!access)
+			{
+				access = gameState.ai.accessibility.getAccessValue(supply.position());
+				supply.setMetadata(PlayerID, "access", access);
+			}
+			if (access !== self.accessIndex)
 				return;
 
 			var dist = API3.SquareVectorDistance(supply.position(), dropsite.position());
 			if (dist < self.maxDistResourceSquare)
 			{
-				if (supply.resourceSupplyType()["generic"] == "treasure")
-				{
-					if (dist < self.maxDistResourceSquare/4)
-						dist = 0;
-					else
-						dist = self.maxDistResourceSquare/16;
-				}
 				if (dist < self.maxDistResourceSquare/16)        // distmax/4
 				    nearby.push({ "dropsite": dropsite.id(), "id": supply.id(), "ent": supply, "dist": dist }); 
 				else if (dist < self.maxDistResourceSquare/4)    // distmax/2
@@ -426,7 +422,7 @@ m.BaseManager.prototype.checkResourceLevels = function (gameState, queues)
 				for (var i in queues.field.queue)
 					queues.field.queue[i].isGo = function() { return true; };	// start them
 			}
-			else if(gameState.ai.HQ.canBuild(gameState, "structures/{civ}_field"))	// let's see if we need to add new farms.
+			else if (gameState.ai.HQ.canBuild(gameState, "structures/{civ}_field"))	// let's see if we need to add new farms.
 			{
 				if ((!gameState.ai.HQ.saveResources && numFound < 2 && numFound + numQueue < 3) ||
 					(gameState.ai.HQ.saveResources && numFound < 1 && numFound + numQueue < 2))
@@ -541,33 +537,45 @@ m.BaseManager.prototype.setWorkersIdleByPriority = function(gameState)
 {
 	if (gameState.currentPhase() < 2)
 		return;
-	
-	var resources = gameState.ai.queueManager.getAvailableResources(gameState);
 
-	var avgOverdraft = 0;
-	for (var type of resources.types)
-		avgOverdraft += resources[type];
-	avgOverdraft /= 4;
-
+	// change resource only towards one which is more needed, and if changing will not change this order
+	var nb = 1;    // no more than 1 change per turn (otherwise we should update the rates)
 	var mostNeeded = gameState.ai.HQ.pickMostNeededResources(gameState);
-	for (var type of resources.types)
+	var sumWanted = 0;
+	var sumCurrent = 0;
+	for (var need of mostNeeded)
 	{
-		if (type === mostNeeded[0])
-			continue;
-		if (resources[type] > avgOverdraft + 200 || (resources[type] > avgOverdraft && avgOverdraft > 200))
+		sumWanted += need.wanted;
+		sumCurrent += need.current;
+	}
+	var scale = 1;
+	if (sumWanted > 0)
+		scale = sumCurrent / sumWanted;
+
+	for (var i = mostNeeded.length-1; i > 0; --i)
+	{
+		var lessNeed = mostNeeded[i];
+		for (var j = 0; j < i; ++j) 
 		{
-			if (this.gatherersByType(gameState, type).length === 0)
+			var moreNeed = mostNeeded[j];
+			var lastFailed = gameState.ai.HQ.lastFailedGather[moreNeed.type];
+			if (lastFailed && gameState.ai.elapsedTime - lastFailed < 20)
 				continue;
-			// TODO: perhaps change this?
-			var nb = 2;
-			this.gatherersByType(gameState, type).forEach( function (ent) {
-				if (nb == 0)
+			// If we assume a mean rate of 0.5 per gatherer, this diff should be > 1
+			// but we require a bit more to avoid too frequent changes
+			if ((scale*moreNeed.wanted - moreNeed.current) - (scale*lessNeed.wanted - lessNeed.current) > 1.5)
+			{
+				this.gatherersByType(gameState, lessNeed.type).forEach( function (ent) {
+					if (nb === 0)
+						return;
+					--nb;
+					ent.stopMoving();
+					ent.setMetadata(PlayerID, "gather-type", moreNeed.type);
+					m.AddTCRessGatherer(gameState, moreNeed.type);
+				});
+				if (nb === 0)
 					return;
-				nb--;
-				// TODO: might want to direct assign.
-				ent.stopMoving();
-				ent.setMetadata(PlayerID, "subrole","idle");
-			});
+			}
 		}
 	}
 };
@@ -600,15 +608,15 @@ m.BaseManager.prototype.reassignIdleWorkers = function(gameState)
 					ent.repair(self.anchor);
 				else
 				{
-					var types = gameState.ai.HQ.pickMostNeededResources(gameState);
-					for (var i = 0; i < types.length; ++i)
+					var mostNeeded = gameState.ai.HQ.pickMostNeededResources(gameState);
+					for (var needed of mostNeeded)
 					{
-						var lastFailed = gameState.ai.HQ.lastFailedGather[types[i]];
-						if (lastFailed && gameState.ai.playedTurn - lastFailed < 20)
+						var lastFailed = gameState.ai.HQ.lastFailedGather[needed.type];
+						if (lastFailed && gameState.ai.elapsedTime - lastFailed < 20)
 							continue;
 						ent.setMetadata(PlayerID, "subrole", "gatherer");
-						ent.setMetadata(PlayerID, "gather-type", types[i]);
-						m.AddTCRessGatherer(gameState, types[i]);
+						ent.setMetadata(PlayerID, "gather-type", needed.type);
+						m.AddTCRessGatherer(gameState, needed.type);
 						break;
 					}
 				}
@@ -731,13 +739,15 @@ m.BaseManager.prototype.assignToFoundations = function(gameState, noRepair)
 	if (this.constructing == true && maxTotalBuilders < 15)
 		maxTotalBuilders = 15;
 	
-	for (var i in foundations)
+	for (var target of foundations)
 	{
-		var target = foundations[i];
-
 		if (target.hasClass("Field"))
 			continue; // we do not build fields
-		
+
+		if (gameState.ai.HQ.isDangerousLocation(target.position()))
+			if (!target.hasClass("CivCentre") && !target.hasClass("StoneWall"))
+				continue;
+
 		var assigned = gameState.getOwnEntitiesByMetadata("target-foundation", target.id()).length;
 		var targetNB = this.Config.Economy.targetNumBuilders;	// TODO: dynamic that.
 		if (target.hasClass("House") || target.hasClass("Market"))
@@ -746,7 +756,7 @@ m.BaseManager.prototype.assignToFoundations = function(gameState, noRepair)
 			targetNB = 4;
 		else if (target.hasClass("Fortress"))
 			targetNB = 7;
-		if (target.getMetadata(PlayerID, "baseAnchor") == true)
+		if (target.getMetadata(PlayerID, "baseAnchor") == true || (target.hasClass("Wonder") && gameState.getGameType() === "wonder"))
 			targetNB = 15;
 
 		if (assigned < targetNB)
@@ -798,15 +808,11 @@ m.BaseManager.prototype.assignToFoundations = function(gameState, noRepair)
 	}
 
 	// don't repair if we're still under attack, unless it's like a vital (civcentre or wall) building that's getting destroyed.
-	for (var i in damagedBuildings)
+	for (var target of damagedBuildings)
 	{
-		var target = damagedBuildings[i];
-		var underAttack = false;  // TODO define the condition of under attack
-		if (underAttack)
-		{
-			if (target.healthLevel() > 0.5 || !target.hasClass("CivCentre") || !target.hasClass("StoneWall"))
+		if (gameState.ai.HQ.isDangerousLocation(target.position()))
+			if (target.healthLevel() > 0.5 || (!target.hasClass("CivCentre") && !target.hasClass("StoneWall")))
 				continue;
-		}
 		else if (noRepair && !target.hasClass("CivCentre"))
 			continue;
 		
@@ -837,7 +843,8 @@ m.BaseManager.prototype.assignToFoundations = function(gameState, noRepair)
 m.BaseManager.prototype.update = function(gameState, queues, events)
 {
 	if (this.anchor && this.anchor.getMetadata(PlayerID, "access") !== this.accessIndex)
-		warn(" probleme avec accessIndex " + this.accessIndex + " et metadata " + this.anchor.getMetadata(PlayerID, "access"));
+		warn("Petra baseManager problem with accessIndex " + this.accessIndex
+			+ " while metadata acess is " + this.anchor.getMetadata(PlayerID, "access"));
 
 	Engine.ProfileStart("Base update - base " + this.ID);
 

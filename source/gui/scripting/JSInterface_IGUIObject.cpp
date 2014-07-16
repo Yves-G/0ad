@@ -55,12 +55,15 @@ JSFunctionSpec JSI_IGUIObject::JSI_methods[] =
 
 JSBool JSI_IGUIObject::getProperty(JSContext* cx, JS::HandleObject obj, JS::HandleId id, JS::MutableHandleValue vp)
 {
+	JSAutoRequest rq(cx);
+	ScriptInterface* pScriptInterface = ScriptInterface::GetScriptInterfaceAndCBData(cx)->pScriptInterface;
+
 	IGUIObject* e = (IGUIObject*)JS_GetInstancePrivate(cx, obj, &JSI_IGUIObject::JSI_class, NULL);
 	if (!e)
 		return JS_FALSE;
 
-	jsval idval;
-	if (!JS_IdToValue(cx, id, &idval))
+	JS::RootedValue idval(cx);
+	if (!JS_IdToValue(cx, id, idval.address()))
 		return JS_FALSE;
 
 	std::string propName;
@@ -160,8 +163,8 @@ JSBool JSI_IGUIObject::getProperty(JSContext* cx, JS::HandleObject obj, JS::Hand
 			{
 				CColor colour;
 				GUI<CColor>::GetSetting(e, propName, colour);
-				JS::RootedObject obj(cx, JS_NewObject(cx, &JSI_GUIColor::JSI_class, NULL, NULL));
-				vp.set(JS::ObjectValue(*obj));
+				JS::RootedObject obj(cx, pScriptInterface->CreateCustomObject("GUIColor"));
+				vp.setObject(*obj);
 				JS::RootedValue c(cx);
 				// Attempt to minimise ugliness through macrosity
 				#define P(x) c = JS::NumberValue(colour.x); \
@@ -182,7 +185,8 @@ JSBool JSI_IGUIObject::getProperty(JSContext* cx, JS::HandleObject obj, JS::Hand
 				CClientArea area;
 				GUI<CClientArea>::GetSetting(e, propName, area);
 
-				vp.set(JS::ObjectValue(*JS_NewObject(cx, &JSI_GUISize::JSI_class, NULL, NULL)));
+				JS::RootedObject obj(cx, pScriptInterface->CreateCustomObject("GUISize"));
+				vp.setObject(*obj);
 				try
 				{
 					ScriptInterface* pScriptInterface = ScriptInterface::GetScriptInterfaceAndCBData(cx)->pScriptInterface;
@@ -210,7 +214,7 @@ JSBool JSI_IGUIObject::getProperty(JSContext* cx, JS::HandleObject obj, JS::Hand
 			{
 				CGUIString value;
 				GUI<CGUIString>::GetSetting(e, propName, value);
-				ScriptInterface::ToJSVal(cx, *vp.address(), value.GetOriginalString());
+				ScriptInterface::ToJSVal(cx, vp, value.GetOriginalString());
 				break;
 			}
 
@@ -218,7 +222,7 @@ JSBool JSI_IGUIObject::getProperty(JSContext* cx, JS::HandleObject obj, JS::Hand
 			{
 				CStr value;
 				GUI<CStr>::GetSetting(e, propName, value);
-				ScriptInterface::ToJSVal(cx, *vp.address(), value);
+				ScriptInterface::ToJSVal(cx, vp, value);
 				break;
 			}
 
@@ -226,7 +230,7 @@ JSBool JSI_IGUIObject::getProperty(JSContext* cx, JS::HandleObject obj, JS::Hand
 			{
 				CStrW value;
 				GUI<CStrW>::GetSetting(e, propName, value);
-				ScriptInterface::ToJSVal(cx, *vp.address(), value);
+				ScriptInterface::ToJSVal(cx, vp, value);
 				break;
 			}
 
@@ -234,7 +238,7 @@ JSBool JSI_IGUIObject::getProperty(JSContext* cx, JS::HandleObject obj, JS::Hand
 			{
 				CGUISpriteInstance *value;
 				GUI<CGUISpriteInstance>::GetSettingPointer(e, propName, value);
-				ScriptInterface::ToJSVal(cx, *vp.address(), value->GetName());
+				ScriptInterface::ToJSVal(cx, vp, value->GetName());
 				break;
 			}
 
@@ -250,7 +254,7 @@ JSBool JSI_IGUIObject::getProperty(JSContext* cx, JS::HandleObject obj, JS::Hand
 				case EAlign_Center: word = "center"; break;
 				default: debug_warn(L"Invalid EAlign!"); word = "error"; break;
 				}
-				ScriptInterface::ToJSVal(cx, *vp.address(), word);
+				ScriptInterface::ToJSVal(cx, vp, word);
 				break;
 			}
 
@@ -266,7 +270,7 @@ JSBool JSI_IGUIObject::getProperty(JSContext* cx, JS::HandleObject obj, JS::Hand
 				case EVAlign_Center: word = "center"; break;
 				default: debug_warn(L"Invalid EVAlign!"); word = "error"; break;
 				}
-				ScriptInterface::ToJSVal(cx, *vp.address(), word);
+				ScriptInterface::ToJSVal(cx, vp, word);
 				break;
 			}
 
@@ -276,12 +280,12 @@ JSBool JSI_IGUIObject::getProperty(JSContext* cx, JS::HandleObject obj, JS::Hand
 				GUI<CGUIList>::GetSetting(e, propName, value);
 
 				JS::RootedObject obj(cx, JS_NewArrayObject(cx, 0, NULL));
-				vp.set(JS::ObjectValue(*obj));
+				vp.setObject(*obj);
 
 				for (u32 i = 0; i < value.m_Items.size(); ++i)
 				{
 					JS::RootedValue val(cx);
-					ScriptInterface::ToJSVal(cx, val.get(), value.m_Items[i].GetOriginalString());
+					ScriptInterface::ToJSVal(cx, &val, value.m_Items[i].GetOriginalString());
 					JS_SetElement(cx, obj, i, val.address());
 				}
 
@@ -304,8 +308,9 @@ JSBool JSI_IGUIObject::setProperty(JSContext* cx, JS::HandleObject obj, JS::Hand
 	if (!e)
 		return JS_FALSE;
 
-	jsval idval;
-	if (!JS_IdToValue(cx, id, &idval))
+	JSAutoRequest rq(cx);
+	JS::RootedValue idval(cx);
+	if (!JS_IdToValue(cx, id, idval.address()))
 		return JS_FALSE;
 
 	std::string propName;
@@ -593,19 +598,23 @@ JSBool JSI_IGUIObject::setProperty(JSContext* cx, JS::HandleObject obj, JS::Hand
 
 JSBool JSI_IGUIObject::construct(JSContext* cx, uint argc, jsval* vp)
 {
-	if (argc == 0)
+	JSAutoRequest rq(cx);
+	JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
+	ScriptInterface* pScriptInterface = ScriptInterface::GetScriptInterfaceAndCBData(cx)->pScriptInterface;
+	
+	if (args.length() == 0)
 	{
 		JS_ReportError(cx, "GUIObject has no default constructor");
 		return JS_FALSE;
 	}
 
-	JS::RootedObject obj(cx, JS_NewObject(cx, &JSI_IGUIObject::JSI_class, NULL, NULL));
+	JS::RootedObject obj(cx, pScriptInterface->CreateCustomObject("GUIObject"));
 
 	// Store the IGUIObject in the JS object's 'private' area
-	IGUIObject* guiObject = (IGUIObject*)JSVAL_TO_PRIVATE(JS_ARGV(cx, vp)[0]);
+	IGUIObject* guiObject = (IGUIObject*)JSVAL_TO_PRIVATE(args[0]);
 	JS_SetPrivate(obj, guiObject);
 
-	JS_SET_RVAL(cx, vp, JS::ObjectValue(*obj));
+	args.rval().setObject(*obj);
 	return JS_TRUE;
 }
 
@@ -617,6 +626,7 @@ void JSI_IGUIObject::init(ScriptInterface& scriptInterface)
 JSBool JSI_IGUIObject::toString(JSContext* cx, uint argc, jsval* vp)
 {
 	UNUSED2(argc);
+	JS::CallReceiver rec = JS::CallReceiverFromVp(vp);
 
 	IGUIObject* e = (IGUIObject*)JS_GetInstancePrivate(cx, JS_THIS_OBJECT(cx, vp), &JSI_IGUIObject::JSI_class, NULL);
 	if (!e)
@@ -625,13 +635,14 @@ JSBool JSI_IGUIObject::toString(JSContext* cx, uint argc, jsval* vp)
 	char buffer[256];
 	snprintf(buffer, 256, "[GUIObject: %s]", e->GetName().c_str());
 	buffer[255] = 0;
-	JS_SET_RVAL(cx, vp, JS::StringValue(JS_NewStringCopyZ(cx, buffer)));
+	rec.rval().setString(JS_NewStringCopyZ(cx, buffer));
 	return JS_TRUE;
 }
 
 JSBool JSI_IGUIObject::focus(JSContext* cx, uint argc, jsval* vp)
 {
 	UNUSED2(argc);
+	JS::CallReceiver rec = JS::CallReceiverFromVp(vp);
 
 	IGUIObject* e = (IGUIObject*)JS_GetInstancePrivate(cx, JS_THIS_OBJECT(cx, vp), &JSI_IGUIObject::JSI_class, NULL);
 	if (!e)
@@ -639,13 +650,14 @@ JSBool JSI_IGUIObject::focus(JSContext* cx, uint argc, jsval* vp)
 
 	e->GetGUI()->SetFocusedObject(e);
 
-	JS_SET_RVAL(cx, vp, JSVAL_VOID);
+	rec.rval().setUndefined();
 	return JS_TRUE;
 }
 
 JSBool JSI_IGUIObject::blur(JSContext* cx, uint argc, jsval* vp)
 {
 	UNUSED2(argc);
+	JS::CallReceiver rec = JS::CallReceiverFromVp(vp);
 
 	IGUIObject* e = (IGUIObject*)JS_GetInstancePrivate(cx, JS_THIS_OBJECT(cx, vp), &JSI_IGUIObject::JSI_class, NULL);
 	if (!e)
@@ -653,13 +665,15 @@ JSBool JSI_IGUIObject::blur(JSContext* cx, uint argc, jsval* vp)
 
 	e->GetGUI()->SetFocusedObject(NULL);
 
-	JS_SET_RVAL(cx, vp, JSVAL_VOID);
+	rec.rval().setUndefined();
 	return JS_TRUE;
 }
 
 JSBool JSI_IGUIObject::getComputedSize(JSContext* cx, uint argc, jsval* vp)
 {
 	UNUSED2(argc);
+	JS::CallReceiver rec = JS::CallReceiverFromVp(vp);
+	
 	IGUIObject* e = (IGUIObject*)JS_GetInstancePrivate(cx, JS_THIS_OBJECT(cx, vp), &JSI_IGUIObject::JSI_class, NULL);
 	if (!e)
 		return JS_FALSE;
@@ -682,6 +696,6 @@ JSBool JSI_IGUIObject::getComputedSize(JSContext* cx, uint argc, jsval* vp)
 		return JS_FALSE;
 	}
 
-	JS_SET_RVAL(cx, vp, objVal);
+	rec.rval().set(objVal);
 	return JS_TRUE;
 }

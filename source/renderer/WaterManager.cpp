@@ -54,50 +54,45 @@ WaterManager::WaterManager()
 	// water
 	m_RenderWater = false; // disabled until textures are successfully loaded
 	m_WaterHeight = 5.0f;
-	m_WaterColor = CColor(0.3f, 0.35f, 0.7f, 1.0f);
-	m_WaterFullDepth = 5.0f;
-	m_WaterMaxAlpha = 1.0f;
-	m_WaterAlphaOffset = -0.05f;
-	m_SWaterTrans = 0;
-	m_TWaterTrans = 0;
-	m_SWaterSpeed = 0.0015f;
-	m_TWaterSpeed = 0.0015f;
-	m_SWaterScrollCounter = 0;
-	m_TWaterScrollCounter = 0;
+
 	m_WaterCurrentTex = 0;
+	
 	m_ReflectionTexture = 0;
 	m_RefractionTexture = 0;
 	m_ReflectionTextureSize = 0;
 	m_RefractionTextureSize = 0;
+	
+	m_ReflectionFbo = 0;
+	m_RefractionFbo = 0;
+	
 	m_WaterTexTimer = 0.0;
-	m_SpecularStrength = 0.6f;
+
+	m_WindAngle = 0.0f;
 	m_Waviness = 8.0f;
-	m_ReflectionTint = CColor(0.28f, 0.3f, 0.59f, 1.0f);
-	m_ReflectionTintStrength = 0.0f;
+	m_WaterColor = CColor(0.3f, 0.35f, 0.7f, 1.0f);
 	m_WaterTint = CColor(0.28f, 0.3f, 0.59f, 1.0f);
 	m_Murkiness = 0.45f;
 	m_RepeatPeriod = 16.0f;
-	m_WaveX = NULL;
-	m_WaveZ = NULL;
-	m_DistanceToShore = NULL;
-	m_FoamFactor = NULL;
 
-	m_WaterNormal = false;
+	m_DistanceHeightmap = NULL;
+	m_BlurredNormalMap = NULL;
+	m_WindStrength = NULL;
+	
+	m_WaterUgly = false;
+	m_WaterFancyEffects = false;
 	m_WaterRealDepth = false;
-	m_WaterFoam = false;
-	m_WaterCoastalWaves = false;
 	m_WaterRefraction = false;
 	m_WaterReflection = false;
 	m_WaterShadows = false;
+	m_WaterType = L"ocean";
 	
 	m_NeedsReloading = false;
 	m_NeedInfoUpdate = true;
 	
-	m_VBWaves = NULL;
-	m_VBWavesIndices = NULL;
-
 	m_depthTT = 0;
-	m_waveTT = 0;
+	m_FancyTexture = 0;
+	m_ReflFboDepthTexture = 0;
+	m_RefrFboDepthTexture = 0;
 
 	m_MapSize = 0;
 	
@@ -111,17 +106,15 @@ WaterManager::~WaterManager()
 {
 	// Cleanup if the caller messed up
 	UnloadWaterTextures();
-	delete[] m_WaveX;
-	delete[] m_WaveZ;
-	delete[] m_DistanceToShore;
-	delete[] m_FoamFactor;
+
+	SAFE_ARRAY_DELETE(m_DistanceHeightmap);
+	SAFE_ARRAY_DELETE(m_BlurredNormalMap);
+	SAFE_ARRAY_DELETE(m_WindStrength);
 	
 	glDeleteTextures(1, &m_depthTT);
-	glDeleteTextures(1, &m_waveTT);
-	
-	if (m_VBWaves) g_VBMan.Release(m_VBWaves);
-	if (m_VBWavesIndices) g_VBMan.Release(m_VBWavesIndices);
-
+	glDeleteTextures(1, &m_FancyTexture);
+	glDeleteTextures(1, &m_ReflFboDepthTexture);
+	glDeleteTextures(1, &m_RefrFboDepthTexture);
 }
 
 
@@ -132,16 +125,12 @@ int WaterManager::LoadWaterTextures()
 	// TODO: this doesn't need to be progressive-loading any more
 	// (since texture loading is async now)
 
-	// TODO: add a member variable and setter for this. (can't make this
-	// a parameter because this function is called via delay-load code)
-	static const wchar_t* const water_type = L"default";
-
 	wchar_t pathname[PATH_MAX];
-
+	
 	// Load diffuse grayscale images (for non-fancy water)
 	for (size_t i = 0; i < ARRAY_SIZE(m_WaterTexture); ++i)
 	{
-		swprintf_s(pathname, ARRAY_SIZE(pathname), L"art/textures/animated/water/%ls/diffuse%02d.dds", water_type, (int)i+1);
+		swprintf_s(pathname, ARRAY_SIZE(pathname), L"art/textures/animated/water/default/diffuse%02d.dds", (int)i+1);
 		CTextureProperties textureProps(pathname);
 		textureProps.SetWrap(GL_REPEAT);
 
@@ -153,7 +142,7 @@ int WaterManager::LoadWaterTextures()
 	// Load normalmaps (for fancy water)
 	for (size_t i = 0; i < ARRAY_SIZE(m_NormalMap); ++i)
 	{
-		swprintf_s(pathname, ARRAY_SIZE(pathname), L"art/textures/animated/water/%ls/normal%02d.dds", water_type, (int)i+1);
+		swprintf_s(pathname, ARRAY_SIZE(pathname), L"art/textures/animated/water/%ls/normal00%02d.png", m_WaterType.c_str(), (int)i+1);
 		CTextureProperties textureProps(pathname);
 		textureProps.SetWrap(GL_REPEAT);
 		textureProps.SetMaxAnisotropy(4);
@@ -162,40 +151,17 @@ int WaterManager::LoadWaterTextures()
 		texture->Prefetch();
 		m_NormalMap[i] = texture;
 	}
-	// Load foam (for fancy water)
-	{
-		CTextureProperties textureProps("art/textures/terrain/types/water/foam.png");
-		textureProps.SetWrap(GL_REPEAT);
-		
-		CTexturePtr texture = g_Renderer.GetTextureManager().CreateTexture(textureProps);
-		texture->Prefetch();
-		m_Foam = texture;
-	}
-	// Load waves (for fancy water)
-	{
-		CTextureProperties textureProps("art/textures/terrain/types/water/shore_wave.png");
-		textureProps.SetWrap(GL_REPEAT);
-		
-		CTexturePtr texture = g_Renderer.GetTextureManager().CreateTexture(textureProps);
-		texture->Prefetch();
-		m_Wave = texture;
-	}
-	// Set the size to the largest power of 2 that is <= to the window height, so
-	// the reflection/refraction images will fit within the window
-	// (alternative: use FBO's, which can have arbitrary size - but do we need
-	// the reflection/refraction textures to be that large?)
-	int size = (int)round_up_to_pow2((unsigned)g_Renderer.GetHeight());
-	if(size > g_Renderer.GetHeight()) size /= 2;
-	m_ReflectionTextureSize = size;
-	m_RefractionTextureSize = size;
+	
+	m_ReflectionTextureSize = g_Renderer.GetHeight() * 0.66;	// Higher settings give a better result
+	m_RefractionTextureSize = g_Renderer.GetHeight() * 0.33;	// Lower settings actually sorta look better since it blurs.
 
 	// Create reflection texture
 	glGenTextures(1, &m_ReflectionTexture);
 	glBindTexture(GL_TEXTURE_2D, m_ReflectionTexture);
-	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB,
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA,
 		(GLsizei)m_ReflectionTextureSize, (GLsizei)m_ReflectionTextureSize,
 		0,  GL_RGB, GL_UNSIGNED_BYTE, 0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
@@ -210,6 +176,62 @@ int WaterManager::LoadWaterTextures()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+
+	// Create depth textures
+	glGenTextures(1, &m_ReflFboDepthTexture);
+	glBindTexture(GL_TEXTURE_2D, m_ReflFboDepthTexture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, (GLsizei)m_ReflectionTextureSize, (GLsizei)m_ReflectionTextureSize, 0,  GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, NULL);
+	
+	glGenTextures(1, &m_RefrFboDepthTexture);
+	glBindTexture(GL_TEXTURE_2D, m_RefrFboDepthTexture);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexImage2D( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, (GLsizei)m_RefractionTextureSize, (GLsizei)m_RefractionTextureSize, 0,  GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, NULL);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+	
+	// Create the water framebuffers
+	
+	GLint currentFbo;
+	glGetIntegerv(GL_FRAMEBUFFER_BINDING_EXT, &currentFbo);
+
+	m_ReflectionFbo = 0;
+	pglGenFramebuffersEXT(1, &m_ReflectionFbo);
+	pglBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_ReflectionFbo);
+	pglFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, m_ReflectionTexture, 0);
+	pglFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, m_ReflFboDepthTexture, 0);
+
+	ogl_WarnIfError();
+	
+	GLenum status = pglCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
+	if (status != GL_FRAMEBUFFER_COMPLETE_EXT)
+	{
+		LOGWARNING(L"Reflection framebuffer object incomplete: 0x%04X", status);
+		g_Renderer.m_Options.m_WaterReflection = false;
+	}
+
+	m_RefractionFbo = 0;
+	pglGenFramebuffersEXT(1, &m_RefractionFbo);
+	pglBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_RefractionFbo);
+	pglFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, m_RefractionTexture, 0);
+	pglFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_TEXTURE_2D, m_RefrFboDepthTexture, 0);
+
+	ogl_WarnIfError();
+	
+	status = pglCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
+	if (status != GL_FRAMEBUFFER_COMPLETE_EXT)
+	{
+		LOGWARNING(L"Refraction framebuffer object incomplete: 0x%04X", status);
+		g_Renderer.m_Options.m_WaterRefraction = false;
+	}
+	
+	pglBindFramebufferEXT(GL_FRAMEBUFFER_EXT, currentFbo);
 
 	// Enable rendering, now that we've succeeded this far
 	m_RenderWater = true;
@@ -227,388 +249,224 @@ void WaterManager::UnloadWaterTextures()
 		m_WaterTexture[i].reset();
 	}
 
-
 	for(size_t i = 0; i < ARRAY_SIZE(m_NormalMap); i++)
 	{
 		m_NormalMap[i].reset();
 	}
+	glDeleteTextures(1, &m_ReflectionTexture);
+	glDeleteTextures(1, &m_RefractionTexture);
+	pglDeleteFramebuffersEXT(1, &m_RefractionFbo);
+	pglDeleteFramebuffersEXT(1, &m_ReflectionFbo);
 }
 
 ///////////////////////////////////////////////////////////////////
-// Create information about the terrain and wave vertices.
-void WaterManager::CreateSuperfancyInfo(CSimulation2* simulation)
+// Calculate our binary heightmap from the terrain heightmap.
+void WaterManager::RecomputeDistanceHeightmap()
 {
-	if (m_VBWaves)
-	{
-		g_VBMan.Release(m_VBWaves);
-		m_VBWaves = NULL;
-	}
-	if (m_VBWavesIndices)
-	{
-		g_VBMan.Release(m_VBWavesIndices);
-		m_VBWavesIndices = NULL;
-	}
-
+	if (m_DistanceHeightmap == NULL)
+		m_DistanceHeightmap = new u8[m_MapSize*m_MapSize];
+	
+	// Custom copy the heightmap.
 	CTerrain* terrain = g_Game->GetWorld()->GetTerrain();
 	
-	CmpPtr<ICmpWaterManager> cmpWaterManager(*simulation, SYSTEM_ENTITY);
-	if (!cmpWaterManager)
-		return;	// REALLY shouldn't happen and will most likely crash.
-
-	// Using this to get some more optimization on circular maps
-	CmpPtr<ICmpRangeManager> cmpRangeManager(*simulation, SYSTEM_ENTITY);
-	if (!cmpRangeManager)
-		return;
-	bool circular = cmpRangeManager->GetLosCircular();
-	float mSize = m_MapSize*m_MapSize;
-	float halfSize = (m_MapSize/2.0);
-
-	// Warning: this won't work with multiple water planes
-	m_WaterHeight = cmpWaterManager->GetExactWaterLevel(0,0);
-	
-	// Get the square we want to work on.
-	size_t Xstart = m_updatei0 >= m_MapSize ? m_MapSize-1 : m_updatei0;
-	size_t Xend = m_updatei1 >= m_MapSize ? m_MapSize-1 : m_updatei1;
-	size_t Zstart = m_updatej0 >= m_MapSize ? m_MapSize-1 : m_updatej0;
-	size_t Zend = m_updatej1 >= m_MapSize ? m_MapSize-1 : m_updatej1;
-	
-	if (m_WaveX == NULL)
-	{
-		m_WaveX = new float[m_MapSize*m_MapSize];
-		m_WaveZ = new float[m_MapSize*m_MapSize];
-		m_DistanceToShore = new float[m_MapSize*m_MapSize];
-		m_FoamFactor = new float[m_MapSize*m_MapSize];
-	}
+	u16 waterLevel = m_WaterHeight/HEIGHT_SCALE;
 
 	u16* heightmap = terrain->GetHeightMap();
 	
-	// some temporary stuff for wave intensity
-	// not really used too much right now.
-	//u8* waveForceHQ = new u8[mapSize*mapSize];
+	// We will "expand" the heightmap. That is we'll set each vertex on land as "3", and "bleed" that onto neighboring pixels.
+	// So 3 is "on land", 2 is "close", 1 "somewhat close" and 0 is "water".
+	// This gives a basic manhattan approximation of how close to the coast we are.
+	// I have a heathen fondness for ternary operators so there are some below.
+	u8 level = 0;
+	for (size_t z = 0; z < m_MapSize; ++z)
+	{
+		level = 0;
+		for (size_t x = 0; x < m_MapSize; ++x)
+			m_DistanceHeightmap[z*m_MapSize + x] = heightmap[z*m_MapSize + x] >= waterLevel ? level = 3
+												 : level > 0 ? --level : 0;
+		level = 0;
+		for (size_t x = m_MapSize-1; x != (size_t)-1; --x)
+		{
+			if (heightmap[z*m_MapSize + x] >= waterLevel)
+				level = 3;	// no need to set m_distanceHeightmap, it's already been done by the other loop.
+			else
+			{
+				level > 0 ? --level : 0;
+				if (level > m_DistanceHeightmap[z*m_MapSize + x])
+					m_DistanceHeightmap[z*m_MapSize + x] = level;
+			}
+		}
+	}
+	for (size_t x = 0; x < m_MapSize; ++x)
+	{
+		level = 0;
+		for (size_t z = 0; z < m_MapSize; ++z)
+		{
+			if (heightmap[z*m_MapSize + x] >= waterLevel)
+				level = 3;
+			else
+			{
+				level > 0 ? --level : 0;
+				if (level > m_DistanceHeightmap[z*m_MapSize + x])
+					m_DistanceHeightmap[z*m_MapSize + x] = level;
+			}
+		}
+		level = 0;
+		for (size_t z = m_MapSize-1; z != (size_t)-1; --z)
+		{
+			if (heightmap[z*m_MapSize + x] >= waterLevel)
+				level = 3;
+			else
+			{
+				level > 0 ? --level : 0;
+				if (level > m_DistanceHeightmap[z*m_MapSize + x])
+					m_DistanceHeightmap[z*m_MapSize + x] = level;
+			}
+		}
+	}
+}
 
+///////////////////////////////////////////////////////////////////
+// Calculate The blurred normal map to get an idea of where water ought to go.
+void WaterManager::RecomputeBlurredNormalMap()
+{
 	// used to cache terrain normals since otherwise we'd recalculate them a lot (I'm blurring the "normal" map).
 	// this might be updated to actually cache in the terrain manager but that's not for now.
+	if (m_BlurredNormalMap == NULL)
+		m_BlurredNormalMap = new CVector3D[m_MapSize*m_MapSize];
+
+	CTerrain* terrain = g_Game->GetWorld()->GetTerrain();
+	
+	// It's really slow to calculate normals so cache them first.
 	CVector3D* normals = new CVector3D[m_MapSize*m_MapSize];
-
-	// taken out of the bottom loop, blurs the normal map
-	// To remove if below is reactivated
-	size_t blurZstart = (int)(Zstart-4) < 0 ? 0 : Zstart - 4;
-	size_t blurZend = Zend+4 >= m_MapSize ? m_MapSize-1 : Zend + 4;
-	size_t blurXstart = (int)(Xstart-4) < 0 ? 0 : Xstart - 4;
-	size_t blurXend = Xend+4 >= m_MapSize ? m_MapSize-1 : Xend + 4;
 	
-	float ii = blurXstart*4.0f, jj = blurXend*4.0f;
-	for (size_t j = blurZstart; j < blurZend; ++j, jj += 4.0f)
-	{
-		for (size_t i = blurXstart; i < blurXend; ++i, ii += 4.0f)
+	// Not the edges, we won't care about them.
+	float ii = 8.0f, jj = 8.0f;
+	for (size_t j = 2; j < m_MapSize-2; ++j, jj += 4.0f)
+		for (size_t i = 2; i < m_MapSize-2; ++i, ii += 4.0f)
 		{
-			normals[j*m_MapSize + i] = terrain->CalcExactNormal(ii,jj);
+			CVector3D norm;
+			terrain->CalcNormal(i,j,norm);
+			normals[j*m_MapSize + i] = norm;
 		}
-	}
-	// TODO: reactivate?
-	/*
-	// calculate wave force (not really used right now)
-	// and puts into "normals" the terrain normal at that point
-	// so as to avoid recalculating terrain normals too often.
-	for (ssize_t i = 0; i < mapSize; ++i)
-	{
-		for (ssize_t j = 0; j < mapSize; ++j)
-		{
-			normals[j*mapSize + i] = terrain->CalcExactNormal(((float)i)*4.0f,((float)j)*4.0f);
-			if (circular && (i-halfSize)*(i-halfSize)+(j-halfSize)*(j-halfSize) > mSize)
-			{
-				waveForceHQ[j*mapSize + i] = 255;
-				continue;
-			}
-			u8 color = 0;
-			for (int v = 0; v <= 18; v += 3){
-				if (j-v >= 0 && i-v >= 0 && heightmap[(j-v)*mapSize + i-v] > waterHeightInu16)
-				{
-					if (color == 0)
-						color = 5;
-					else
-						color++;
-				}
-			}
-			waveForceHQ[j*mapSize + i] = 255 - color * 40;
-		}
-	}
-	 */
-
-	// Cache some data to spiral-search for the closest tile that's either coastal or water depending on what we are.
-	// this is insanely faster.
-	// I use a define because it's more readable and C++11 doesn't like this otherwise
-#define m_MapSize (ssize_t)m_MapSize
-	ssize_t offset[24] = { -1,1,-m_MapSize,+m_MapSize, -1-m_MapSize,+1-m_MapSize,-1+m_MapSize,1+m_MapSize,
-		-2,2,-2*m_MapSize,2*m_MapSize,-2-m_MapSize,-2+m_MapSize,2-m_MapSize,2+m_MapSize,
-		-1-2*m_MapSize,+1-2*m_MapSize,-1+2*m_MapSize,1+2*m_MapSize,
-		-2-2*m_MapSize,2+2*m_MapSize,-2+2*m_MapSize,2-2*m_MapSize };
-	float dist[24] = { 1.0f, 1.0f, 1.0f, 1.0f, 1.414f, 1.414f, 1.414f, 1.414f,
-		2.0f, 2.0f, 2.0f, 2.0f, 2.236f, 2.236f, 2.236f, 2.236f,
-		2.236f, 2.236f, 2.236f, 2.236f,
-		2.828f, 2.828f, 2.828f, 2.828f };
-#undef m_MapSize
 	
-	// this creates information for waves and stores it in float arrays. PatchRData then puts it in the vertex info for speed.
-	CVector3D normal;
-	for (size_t j = Zstart; j < Zend; ++j)
-	{
-		for (size_t i = Xstart; i < Xend; ++i)
+	// We could be way fancier (and faster) for our blur but we probably don't need the complexity.
+	// Two pass filter, nothing complicated here.
+	CVector3D blurValue;
+	ii = 8.0f; jj = 8.0f;
+	size_t idx = 2;
+	for (size_t j = 2; j < m_MapSize-2; ++j, jj += 4.0f)
+		for (size_t i = 2; i < m_MapSize-2; ++i, ii += 4.0f,++idx)
 		{
-			ssize_t register index = j*m_MapSize + i;
-			if (circular && (i-halfSize)*(i-halfSize)+(j-halfSize)*(j-halfSize) > mSize)
-			{
-				m_WaveX[index] = 0.0f;
-				m_WaveZ[index] = 0.0f;
-				m_DistanceToShore[index] = 100;
-				m_FoamFactor[index] = 0.0f;
-				continue;
-			}
-			float depth = m_WaterHeight - heightmap[index]*HEIGHT_SCALE;
-			float register distanceToShore = 10000.0f;
-			
-			// calculation of the distance to the shore.
-			if (i > 0 && i < m_MapSize-1 && j > 0 && j < m_MapSize-1)
-			{
-				// search a 5x5 array with us in the center (do not search me)
-				// much faster since we spiral search and can just stop once we've found the shore.
-				// also everything is precomputed and we get exact results instead.
-				int max = 8;
-				if (i > 1 && i < m_MapSize-2 && j > 1 && j < m_MapSize-2)
-					max = 24;
-				
-				for(int lookupI = 0; lookupI < max;++lookupI)
-				{
-					float hereDepth = m_WaterHeight - heightmap[index+offset[lookupI]]*HEIGHT_SCALE;
-					distanceToShore = hereDepth <= 0 && depth >= 0 ? dist[lookupI] : (depth < 0 ? 1 : distanceToShore);
-					if (distanceToShore < 5000.0f)
-						goto FoundShore;
-				}
-			} else {
-				// revert to for and if-based because I can't be bothered to special case all that.
-				for (int xx = -1; xx <= 1;++xx)
-					for (int yy = -1; yy <= 1;++yy)
-					{
-						if ((int)(i+xx) >= 0 && i+xx < m_MapSize && (int)(j+yy) >= 0 && j+yy < m_MapSize)
-						{
-							float hereDepth = m_WaterHeight - heightmap[index+xx+yy*m_MapSize]*HEIGHT_SCALE;
-							distanceToShore = (hereDepth < 0 && sqrt((double)xx*xx+yy*yy) < distanceToShore) ? sqrt((double)xx*xx+yy*yy) : distanceToShore;
-						}
-					}
-			}
-
-			// speedup with default values for land squares
-			if (distanceToShore > 5000.0f)
-			{
-				m_WaveX[index] = 0.0f;
-				m_WaveZ[index] = 0.0f;
-				m_DistanceToShore[index] = 100.0f;
-				m_FoamFactor[index] = 0.0f;
-				continue;
-			}
-		FoundShore:
-			// We'll compute the normals and the "water raise", to know about foam
-			// Normals are a pretty good calculation but it's slow since we normalize so much.
-			normal.X = normal.Y = normal.Z = 0.0f;
-			int waterRaise = 0;
-			for (size_t yy = (int(j-3) < 0 ? 0 : j-3); yy <= (j+3 < m_MapSize-1 ? 0 : j-3); yy += 2)
-			{
-				for (size_t xx = (int(i-3) < 0 ? 0 : i-3); xx <= (i+3 < m_MapSize-1 ? 0 : i+3); xx += 2)	// every 2 tile is good enough.
-				{
-					normal += normals[yy*m_MapSize + xx];
-					waterRaise += (heightmap[index]*HEIGHT_SCALE - heightmap[yy*m_MapSize + xx]) > 0 ? (heightmap[index]*HEIGHT_SCALE - heightmap[yy*m_MapSize + xx]) : 0;
-				}
-			}
-			// normalizes the terrain info to avoid foam moving at too different speeds.
-			normal *= 0.08f;	// divide by about 11.
-			normal[1] = 0.1f;
-			normal = normal.Normalized();
-
-			m_WaveX[index] = normal[0];
-			m_WaveZ[index] = normal[2];
-			// distance is /5.0 to be a [0,1] value.
-
-			m_DistanceToShore[index] = distanceToShore;
-
-			// computing the amount of foam I want
-			depth = clamp(depth,0.0f,10.0f);
-			float foamAmount = (waterRaise/255.0f) * (1.0f - depth/10.0f) /** (waveForceHQ[j*m_MapSize+i]/255.0f)*/ * (m_Waviness/8.0f);
-			foamAmount += clamp(m_Waviness/2.0f,0.0f,m_Waviness/2.0f)/(m_Waviness/2.0f) * clamp(m_Waviness/9.0f,0.3f,1.0f);
-			foamAmount *= (m_Waviness/4.0f - distanceToShore);
-			foamAmount = foamAmount > 1.0f ? 1.0f: (foamAmount < 0.0f ? 0.0f : foamAmount);
-			
-			m_FoamFactor[index] = foamAmount;
+			blurValue = normals[idx-2];
+			blurValue += normals[idx-1];
+			blurValue += normals[idx];
+			blurValue += normals[idx+1];
+			blurValue += normals[idx+2];
+			m_BlurredNormalMap[idx] = blurValue * 0.2f;
+		}
+	// y direction, probably slower because of cache misses but I don't see an easy way around that.
+	ii = 8.0f; jj = 8.0f;
+	for (size_t i = 2; i < m_MapSize-2; ++i, ii += 4.0f)
+	{
+		for (size_t j = 2; j < m_MapSize-2; ++j, jj += 4.0f)
+		{
+			blurValue = normals[(j-2)*m_MapSize + i];
+			blurValue += normals[(j-1)*m_MapSize + i];
+			blurValue += normals[j*m_MapSize + i];
+			blurValue += normals[(j+1)*m_MapSize + i];
+			blurValue += normals[(j+2)*m_MapSize + i];
+			m_BlurredNormalMap[j*m_MapSize + i] = blurValue * 0.2f;
 		}
 	}
-
+	
 	delete[] normals;
-	//delete[] waveForceHQ;
+}
+
+///////////////////////////////////////////////////////////////////
+// Calculate the strength of the wind at a given point on the map.
+// This is too slow and should support limited recomputation.
+void WaterManager::RecomputeWindStrength()
+{
+	if (m_WindStrength == NULL)
+		m_WindStrength = new float[m_MapSize*m_MapSize];
+		
+	CTerrain* terrain = g_Game->GetWorld()->GetTerrain();
+	float waterLevel = m_WaterHeight;
 	
-	// TODO: reactivate this with something that looks good and is efficient.
-/*
-	// okay let's create the waves squares. i'll divide the map in arbitrary squares
-	// For each of these squares, check if waves are needed.
-	// If yes, look for the best positionning (in order to have a nice blending with the shore)
-	// Then clean-up: remove squares that are too close to each other
+	CVector2D windDir = CVector2D(cos(m_WindAngle),sin(m_WindAngle));
+	CVector2D perp = CVector2D(-windDir.Y, windDir.X);
+
+	// Our kernel will sample 5 points going towards the wind (generally).
+	int kernel[5][2] = { {(int)windDir.X*2,(int)windDir.Y*2}, {(int)windDir.X*5,(int)windDir.Y*5}, {(int)windDir.X*9,(int)windDir.Y*9}, {(int)windDir.X*16,(int)windDir.Y*16}, {(int)windDir.X*25,(int)windDir.Y*25} };
 	
-	std::vector<CVector2D> waveSquares;
-	
-	int size = 8;	// I think this is the size of the squares.
-	for (size_t j = 0; j < m_MapSize/size; ++j)
-	{
-		for (size_t i = 0; i < m_MapSize/size; ++i)
+	float* Temp = new float[m_MapSize*m_MapSize];
+	std::fill(Temp, Temp + m_MapSize*m_MapSize, 1.0f);
+
+	for (size_t j = 0; j < m_MapSize; ++j)
+		for (size_t i = 0; i < m_MapSize; ++i)
 		{
-			int landTexel = 0;
-			int waterTexel = 0;
-			CVector3D avnormal (0.0f,0.0f,0.0f);
-			CVector2D landPosition(0.0f,0.0f);
-			CVector2D waterPosition(0.0f,0.0f);
-			for (int yy = 0; yy < size; ++yy)
+			float curHeight = terrain->GetVertexGroundLevel(i,j);
+			if (curHeight >= waterLevel)
 			{
-				for (int xx = 0; xx < size; ++xx)
+				Temp[j*m_MapSize + i] = 0.3f;	// blurs too strong otherwise
+				continue;
+			}
+			if (terrain->GetVertexGroundLevel(i + ceil(windDir.X),j + ceil(windDir.Y)) < waterLevel)
+				continue;
+			
+			// Calculate how dampened our waves should be.
+			float tendency = 0.0f;
+			float oldHeight = std::max(waterLevel,terrain->GetVertexGroundLevel(i+kernel[4][0],j+kernel[4][1]));
+			float currentHeight = std::max(waterLevel,terrain->GetVertexGroundLevel(i+kernel[3][0],j+kernel[3][1]));
+			float avgheight = oldHeight + currentHeight;
+			tendency = currentHeight - oldHeight;
+			oldHeight = currentHeight;
+			currentHeight = std::max(waterLevel,terrain->GetVertexGroundLevel(i+kernel[2][0],j+kernel[2][1]));
+			avgheight += currentHeight;
+			tendency += currentHeight - oldHeight;
+			oldHeight = currentHeight;
+			currentHeight = std::max(waterLevel,terrain->GetVertexGroundLevel(i+kernel[1][0],j+kernel[1][1]));
+			avgheight += currentHeight;
+			tendency += currentHeight - oldHeight;
+			oldHeight = currentHeight;
+			currentHeight = std::max(waterLevel,terrain->GetVertexGroundLevel(i+kernel[0][0],j+kernel[0][1]));
+			avgheight += currentHeight;
+			tendency += currentHeight - oldHeight;
+			
+			float baseLevel = std::max(0.0f,1.0f - (avgheight/5.0f-waterLevel)/20.0f);
+			baseLevel *= baseLevel;
+			tendency /= 15.0f;
+			baseLevel -= tendency;	// if the terrain was sloping downwards, increase baselevel. Otherwise reduce.
+			baseLevel = clamp(baseLevel,0.0f,1.0f);
+			
+			// Draw on map. This is pretty slow.
+			float length = 35.0f * (1.0f-baseLevel/1.8f);
+			for (float y = 0; y < length; y += 0.6f)
 				{
-					if (terrain->GetVertexGroundLevel(i*size+xx,j*size+yy) > m_WaterHeight)
-					{
-						landTexel++;
-						landPosition += CVector2D(i*size+xx,j*size+yy);
-					}
-					else
-					{
-						waterPosition += CVector2D(i*size+xx,j*size+yy);
-						waterTexel++;
-						avnormal += terrain->CalcExactNormal( (i*size+xx)*4.0f,(j*size+yy)*4.0f);
-					}
+					int xx = clamp(i - y * windDir.X,0.0f,(float)(m_MapSize-1));
+					int yy = clamp(j - y * windDir.Y,0.0f,(float)(m_MapSize-1));
+					Temp[yy*m_MapSize + xx] = Temp[yy*m_MapSize + xx] < (0.0f+baseLevel/1.5f) * (1.0f-y/length) + y/length * 1.0f ?
+												Temp[yy*m_MapSize + xx] : (0.0f+baseLevel/1.5f) * (1.0f-y/length) + y/length * 1.0f;
 				}
-			}
-			if (landTexel < size/2)
-				continue;
-
-			landPosition /= landTexel;
-			waterPosition /= waterTexel;
-			
-			avnormal[1] = 1.0f;
-			avnormal.Normalize();
-			avnormal[1] = 0.0f;
-			
-			// this should help ensure that the shore is pretty flat.
-			if (avnormal.Length() <= 0.2f)
-				continue;
-			
-			// To get the best position for squares, I start at the mean "ocean" position
-			// And step by step go to the mean "land" position. I keep the position where I change from water to land.
-			// If this never happens, the square is scrapped.
-			if (terrain->GetExactGroundLevel(waterPosition.X*4.0f,waterPosition.Y*4.0f) > m_WaterHeight)
-				continue;
-			
-			CVector2D squarePos(-1,-1);
-			for (u8 i = 0; i < 40; i++)
-			{
-				squarePos = landPosition * (i/40.0f) + waterPosition * (1.0f-(i/40.0f));
-				if (terrain->GetExactGroundLevel(squarePos.X*4.0f,squarePos.Y*4.0f) > m_WaterHeight)
-					break;
-			}
-			if (squarePos.X == -1)
-				continue;
-			
-			u8 enter = 1;
-			// okaaaaaay. Got a square. Check for proximity.
-			for (unsigned long i = 0; i < waveSquares.size(); i++)
-			{
-				if ( CVector2D(waveSquares[i]-squarePos).LengthSquared() < 80) {
-					enter = 0;
-					break;
-				}
-			}
-			if (enter == 1)
-				waveSquares.push_back(squarePos);
 		}
-	}
 	
-	// Actually create the waves' meshes.
-	std::vector<SWavesVertex> waves_vertex_data;
-	std::vector<GLushort> waves_indices;
-	
-	// loop through each square point. Look in the square around it, calculate the normal
-	// create the square.
-	for (unsigned long i = 0; i < waveSquares.size(); i++)
-	{
-		CVector2D pos(waveSquares[i]);
-		
-		CVector3D avgnorm(0.0f,0.0f,0.0f);
-		for (int yy = -size/2; yy < size/2; ++yy)
+	int blurKernel[4][2] = { {(int)ceil(windDir.X),(int)ceil(windDir.Y)}, {(int)windDir.X*3,(int)windDir.Y*3}, {(int)ceil(perp.X),(int)ceil(perp.Y)}, {(int)-ceil(perp.X),(int)-ceil(perp.Y)} };
+	float blurValue;
+	for (size_t j = 2; j < m_MapSize-2; ++j)
+		for (size_t i = 2; i < m_MapSize-2; ++i)
 		{
-			for (int xx = -size/2; xx < size/2; ++xx)
-			{
-				avgnorm += terrain->CalcExactNormal((pos.X+xx)*4.0f,(pos.Y+yy)*4.0f);
-			}
+			blurValue = Temp[(j+blurKernel[0][1])*m_MapSize + i+blurKernel[0][0]];
+			blurValue += Temp[(j+blurKernel[0][1])*m_MapSize + i+blurKernel[0][0]];
+			blurValue += Temp[(j+blurKernel[0][1])*m_MapSize + i+blurKernel[0][0]];
+			blurValue += Temp[(j+blurKernel[0][1])*m_MapSize + i+blurKernel[0][0]];
+			m_WindStrength[j*m_MapSize + i] = blurValue * 0.25f;
 		}
-		avgnorm[1] = 0.1f;
-		// okay crank out a square.
-		// we have the direction of the square. We'll get the perpendicular vector too
-		CVector2D perp(-avgnorm[2],avgnorm[0]);
-		perp = perp.Normalized();
-		avgnorm = avgnorm.Normalized();
-		
-		GLushort index[4];
-		SWavesVertex vertex[4];
-		vertex[0].m_Position = CVector3D(pos.X + perp.X*(size/2.2f) - avgnorm[0]*1.0f, 0.0f,pos.Y + perp.Y*(size/2.2f) - avgnorm[2]*1.0f);
-		vertex[0].m_Position *= 4.0f;
-		vertex[0].m_Position.Y = m_WaterHeight + 1.0f;
-		vertex[0].m_UV[1] = 1;
-		vertex[0].m_UV[0] = 0;
-		index[0] = waves_vertex_data.size();
-		waves_vertex_data.push_back(vertex[0]);
-		
-		vertex[1].m_Position = CVector3D(pos.X - perp.X*(size/2.2f) - avgnorm[0]*1.0f, 0.0f,pos.Y - perp.Y*(size/2.2f) - avgnorm[2]*1.0f);
-		vertex[1].m_Position *= 4.0f;
-		vertex[1].m_Position.Y = m_WaterHeight + 1.0f;
-		vertex[1].m_UV[1] = 1;
-		vertex[1].m_UV[0] = 1;
-		index[1] = waves_vertex_data.size();
-		waves_vertex_data.push_back(vertex[1]);
-		
-		vertex[3].m_Position = CVector3D(pos.X + perp.X*(size/2.2f) + avgnorm[0]*(size/1.5f), 0.0f,pos.Y + perp.Y*(size/2.2f) + avgnorm[2]*(size/1.5f));
-		vertex[3].m_Position *= 4.0f;
-		vertex[3].m_Position.Y = m_WaterHeight + 1.0f;
-		vertex[3].m_UV[1] = 0;
-		vertex[3].m_UV[0] = 0;
-		index[3] = waves_vertex_data.size();
-		waves_vertex_data.push_back(vertex[3]);
-		
-		vertex[2].m_Position = CVector3D(pos.X - perp.X*(size/2.2f) + avgnorm[0]*(size/1.5f), 0.0f,pos.Y - perp.Y*(size/2.2f) + avgnorm[2]*(size/1.5f));
-		vertex[2].m_Position *= 4.0f;
-		vertex[2].m_Position.Y = m_WaterHeight + 1.0f;
-		vertex[2].m_UV[1] = 0;
-		vertex[2].m_UV[0] = 1;
-		index[2] = waves_vertex_data.size();
-		waves_vertex_data.push_back(vertex[2]);
-
-		waves_indices.push_back(index[0]);
-		waves_indices.push_back(index[1]);
-		waves_indices.push_back(index[2]);
-
-		waves_indices.push_back(index[2]);
-		waves_indices.push_back(index[3]);
-		waves_indices.push_back(index[0]);
-	}
-
-	// no vertex buffers if no data generated
-	if (waves_indices.empty())
-		return;
-
-	// waves
-	// allocate vertex buffer
-	m_VBWaves = g_VBMan.Allocate(sizeof(SWavesVertex), waves_vertex_data.size(), GL_STATIC_DRAW, GL_ARRAY_BUFFER);
-	m_VBWaves->m_Owner->UpdateChunkVertices(m_VBWaves, &waves_vertex_data[0]);
-
-	// Construct indices buffer
-	m_VBWavesIndices = g_VBMan.Allocate(sizeof(GLushort), waves_indices.size(), GL_STATIC_DRAW, GL_ELEMENT_ARRAY_BUFFER);
-	m_VBWavesIndices->m_Owner->UpdateChunkVertices(m_VBWavesIndices, &waves_indices[0]);
- */
+	delete[] Temp;
 }
 
 ////////////////////////////////////////////////////////////////////////
-// This will always recalculate for now
+// TODO: This will always recalculate for now
 void WaterManager::SetMapSize(size_t size)
 {
 	// TODO: Im' blindly trusting the user here.
@@ -619,33 +477,26 @@ void WaterManager::SetMapSize(size_t size)
 	m_updatej0 = 0;
 	m_updatej1 = size;
 	
-	SAFE_ARRAY_DELETE(m_WaveX);
-	SAFE_ARRAY_DELETE(m_WaveZ);
-	SAFE_ARRAY_DELETE(m_DistanceToShore);
-	SAFE_ARRAY_DELETE(m_FoamFactor);
+	SAFE_ARRAY_DELETE(m_DistanceHeightmap);
+	SAFE_ARRAY_DELETE(m_BlurredNormalMap);
+	SAFE_ARRAY_DELETE(m_WindStrength);
 }
 
 ////////////////////////////////////////////////////////////////////////
 // This will set the bools properly
 void WaterManager::UpdateQuality()
 {
-	if (g_Renderer.GetOptionBool(CRenderer::OPT_WATERNORMAL) != m_WaterNormal) {
-		m_WaterNormal = g_Renderer.GetOptionBool(CRenderer::OPT_WATERNORMAL);
+	if (g_Renderer.GetOptionBool(CRenderer::OPT_WATERUGLY) != m_WaterUgly) {
+		m_WaterUgly = g_Renderer.GetOptionBool(CRenderer::OPT_WATERUGLY);
+		m_NeedsReloading = true;
+	}
+	if (g_Renderer.GetOptionBool(CRenderer::OPT_WATERFANCYEFFECTS) != m_WaterFancyEffects) {
+		m_WaterFancyEffects = g_Renderer.GetOptionBool(CRenderer::OPT_WATERFANCYEFFECTS);
 		m_NeedsReloading = true;
 	}
 	if (g_Renderer.GetOptionBool(CRenderer::OPT_WATERREALDEPTH) != m_WaterRealDepth) {
 		m_WaterRealDepth = g_Renderer.GetOptionBool(CRenderer::OPT_WATERREALDEPTH);
 		m_NeedsReloading = true;
-	}
-	if (g_Renderer.GetOptionBool(CRenderer::OPT_WATERFOAM) != m_WaterFoam) {
-		m_WaterFoam = g_Renderer.GetOptionBool(CRenderer::OPT_WATERFOAM);
-		m_NeedsReloading = true;
-		m_NeedInfoUpdate = true;
-	}
-	if (g_Renderer.GetOptionBool(CRenderer::OPT_WATERCOASTALWAVES) != m_WaterCoastalWaves) {
-		m_WaterCoastalWaves = g_Renderer.GetOptionBool(CRenderer::OPT_WATERCOASTALWAVES);
-		m_NeedsReloading = true;
-		m_NeedInfoUpdate = true;
 	}
 	if (g_Renderer.GetOptionBool(CRenderer::OPT_WATERREFRACTION) != m_WaterRefraction) {
 		m_WaterRefraction = g_Renderer.GetOptionBool(CRenderer::OPT_WATERREFRACTION);
@@ -655,8 +506,8 @@ void WaterManager::UpdateQuality()
 		m_WaterReflection = g_Renderer.GetOptionBool(CRenderer::OPT_WATERREFLECTION);
 		m_NeedsReloading = true;
 	}
-	if (g_Renderer.GetOptionBool(CRenderer::OPT_WATERSHADOW) != m_WaterShadows) {
-		m_WaterShadows = g_Renderer.GetOptionBool(CRenderer::OPT_WATERSHADOW);
+	if (g_Renderer.GetOptionBool(CRenderer::OPT_SHADOWSONWATER) != m_WaterShadows) {
+		m_WaterShadows = g_Renderer.GetOptionBool(CRenderer::OPT_SHADOWSONWATER);
 		m_NeedsReloading = true;
 	}
 }
@@ -665,7 +516,7 @@ bool WaterManager::WillRenderFancyWater()
 {
 	if (!g_Renderer.GetCapabilities().m_FragmentShader)
 		return false;
-	if (!m_RenderWater)
+	if (!m_RenderWater || m_WaterUgly)
 		return false;
 	return true;
 }
