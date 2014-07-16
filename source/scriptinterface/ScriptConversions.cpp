@@ -143,7 +143,6 @@ template<> bool ScriptInterface::FromJSVal<ssize_t>(JSContext* cx, JS::HandleVal
 
 #endif
 
-
 template<> bool ScriptInterface::FromJSVal<CScriptVal>(JSContext* UNUSED(cx), JS::HandleValue v, CScriptVal& out)
 {
 	out = v.get();
@@ -238,7 +237,7 @@ template<> bool ScriptInterface::FromJSVal<Entity>(JSContext* cx, JS::HandleValu
 
 template<> void ScriptInterface::ToJSVal<bool>(JSContext* UNUSED(cx), JS::MutableHandleValue ret, const bool& val)
 {
-	ret.set(JS::BooleanValue(val));
+	ret.setBoolean(val);
 }
 
 template<> void ScriptInterface::ToJSVal<float>(JSContext* UNUSED(cx), JS::MutableHandleValue ret, const float& val)
@@ -327,9 +326,9 @@ template<> void ScriptInterface::ToJSVal<std::wstring>(JSContext* cx, JS::Mutabl
 	utf16string utf16(val.begin(), val.end());
 	JSString* str = JS_NewUCStringCopyN(cx, reinterpret_cast<const jschar*> (utf16.c_str()), utf16.length());
 	if (str)
-		ret.set(JS::StringValue(str));
+		ret.setString(str);
 	else
-		ret.set(JS::UndefinedValue());
+		ret.setUndefined();
 }
 
 template<> void ScriptInterface::ToJSVal<Path>(JSContext* cx, JS::MutableHandleValue ret, const Path& val)
@@ -342,9 +341,9 @@ template<> void ScriptInterface::ToJSVal<std::string>(JSContext* cx, JS::Mutable
 	JSAutoRequest rq(cx);
 	JSString* str = JS_NewStringCopyN(cx, val.c_str(), val.length());
 	if (str)
-		ret.set(JS::StringValue(str));
+		ret.setString(str);
 	else
-		ret.set(JS::UndefinedValue());
+		ret.setUndefined();
 }
 
 template<> void ScriptInterface::ToJSVal<const wchar_t*>(JSContext* cx, JS::MutableHandleValue ret, const wchar_t* const& val)
@@ -357,9 +356,9 @@ template<> void ScriptInterface::ToJSVal<const char*>(JSContext* cx, JS::Mutable
 	JSAutoRequest rq(cx);
 	JSString* str = JS_NewStringCopyZ(cx, val);
 	if (str)
-		ret.set(JS::StringValue(str));
+		ret.setString(str);
 	else
-		ret.set(JS::UndefinedValue());
+		ret.setUndefined();
 }
 
 template<> void ScriptInterface::ToJSVal<CStrW>(JSContext* cx, JS::MutableHandleValue ret, const CStrW& val)
@@ -381,7 +380,7 @@ template<typename T> static void ToJSVal_vector(JSContext* cx, JS::MutableHandle
 	JS::RootedObject obj(cx, JS_NewArrayObject(cx, 0));
 	if (!obj)
 	{
-		ret.set(JS::UndefinedValue());
+		ret.setUndefined();
 		return;
 	}
 	for (u32 i = 0; i < val.size(); ++i)
@@ -390,7 +389,7 @@ template<typename T> static void ToJSVal_vector(JSContext* cx, JS::MutableHandle
 		ScriptInterface::ToJSVal<T>(cx, &el, val[i]);
 		JS_SetElement(cx, obj, i, el);
 	}
-	ret.set(JS::ObjectValue(*obj));
+	ret.setObject(*obj);
 }
 
 template<typename T> static bool FromJSVal_vector(JSContext* cx, JS::HandleValue v, std::vector<T>& out)

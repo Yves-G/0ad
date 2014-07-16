@@ -291,7 +291,7 @@ m.NavalManager.prototype.requireTransport = function(gameState, entity, startInd
 			continue
 		if (plan.state !== "boarding")
 			continue
-		if (plan.units.length > 12)   // TODO to be improve  ... check on ship capacity
+		if (plan.units.length > 12)   // TODO to be improved  ... check on ship capacity
 			continue;
 		plan.addUnit(entity, endPos);
 		return true;
@@ -305,6 +305,29 @@ m.NavalManager.prototype.requireTransport = function(gameState, entity, startInd
 	}
 	this.transportPlans.push(plan);
 	return true;
+};
+
+// split a transport plan in two, moving all entities not yet affected to a ship in the new plan
+m.NavalManager.prototype.splitTransport = function(gameState, plan)
+{
+	var newplan = new m.TransportPlan(gameState, [], plan.startIndex, plan.endIndex, plan.endPos, false);
+	if (newplan.failed)
+	{
+		if (this.Config.debug > 0)
+			warn(">>>> split of transport plan aborted <<<<");
+		return false;
+	}
+
+	var nbUnits = 0;
+	plan.units.forEach(function (ent) {
+		if (ent.setMetadata(PlayerID, "onBoard"))
+			return;
+		++nbUnits;
+		newplan.addUnit(ent, ent.getMetadata(PlayerID, "endPos"));
+	});
+	if (nbUnits)
+		this.transportPlans.push(newplan);
+	return (nbUnits !== 0);
 };
 
 // set minimal number of needed ships when a new event (new base or new attack plan)
@@ -394,7 +417,7 @@ m.NavalManager.prototype.assignToPlans = function(gameState)
 
 		for each (var ship in this.seaTransportShips[plan.sea]._entities)
 		{
-			if (ship.getMetadata(PlayerID, "transporter") || ship.getMetadata(PlayerID, "escort"))
+			if (ship.getMetadata(PlayerID, "transporter"))
 				continue;
 			plan.assignShip(ship);
 			plan.needTransportShips = false;

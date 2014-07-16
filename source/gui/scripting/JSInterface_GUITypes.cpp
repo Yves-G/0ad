@@ -118,7 +118,6 @@ bool JSI_GUISize::toString(JSContext* cx, uint argc, jsval* vp)
 {
 	UNUSED2(argc);
 	JS::CallReceiver rec = JS::CallReceiverFromVp(vp);
-
 	CStr buffer;
 
 	try
@@ -126,8 +125,8 @@ bool JSI_GUISize::toString(JSContext* cx, uint argc, jsval* vp)
 		ScriptInterface* pScriptInterface = ScriptInterface::GetScriptInterfaceAndCBData(cx)->pScriptInterface;
 		double val, valr;
 #define SIDE(side) \
-		pScriptInterface->GetProperty(JS_THIS_VALUE(cx, vp), #side, val); \
-		pScriptInterface->GetProperty(JS_THIS_VALUE(cx, vp), "r"#side, valr); \
+		pScriptInterface->GetProperty(rec.thisv(), #side, val); \
+		pScriptInterface->GetProperty(rec.thisv(), "r"#side, valr); \
 		buffer += ToPercentString(val, valr);
 		SIDE(left);
 		buffer += " ";
@@ -258,18 +257,15 @@ bool JSI_GUIMouse::construct(JSContext* cx, uint argc, jsval* vp)
 {
 	JSAutoRequest rq(cx);
 	JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
-	
+
 	ScriptInterface* pScriptInterface = ScriptInterface::GetScriptInterfaceAndCBData(cx)->pScriptInterface;
 	JS::RootedObject obj(cx, pScriptInterface->CreateCustomObject("GUIMouse"));
 
 	if (args.length() == 3)
 	{
-		JS::RootedValue v0(cx, args[0]);
-		JS::RootedValue v1(cx, args[1]);
-		JS::RootedValue v2(cx, args[2]);
-		JS_SetProperty(cx, obj, "x", v0);
-		JS_SetProperty(cx, obj, "y", v1);
-		JS_SetProperty(cx, obj, "buttons", v2);
+		JS_SetProperty(cx, obj, "x", args[0]);
+		JS_SetProperty(cx, obj, "y", args[1]);
+		JS_SetProperty(cx, obj, "buttons", args[2]);
 	}
 	else
 	{

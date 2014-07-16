@@ -101,10 +101,9 @@ struct ScriptInterface_NativeMethodWrapper<void, TC> {
 #define OVERLOADS(z, i, data) \
 	template <typename R, TYPENAME_T0_HEAD(z,i)  R (*fptr) ( ScriptInterface::CxPrivate* T0_TAIL(z,i) )> \
 	bool ScriptInterface::call(JSContext* cx, uint argc, jsval* vp) { \
-		UNUSED2(argc); \
 		JS::CallArgs args = JS::CallArgsFromVp(argc, vp); \
-		SCRIPT_PROFILE \
 		JSAutoRequest rq(cx); \
+		SCRIPT_PROFILE \
 		BOOST_PP_REPEAT_##z (i, CONVERT_ARG, ~) \
 		JS::RootedValue rval(cx); \
 		ScriptInterface_NativeWrapper<R>::template call<T0_HEAD(z,i) R( ScriptInterface::CxPrivate* T0_TAIL(z,i))>(cx, &rval, fptr  A0_TAIL(z,i)); \
@@ -118,13 +117,12 @@ BOOST_PP_REPEAT(SCRIPT_INTERFACE_MAX_ARGS, OVERLOADS, ~)
 #define OVERLOADS(z, i, data) \
 	template <typename R, TYPENAME_T0_HEAD(z,i)  JSClass* CLS, typename TC, R (TC::*fptr) ( T0(z,i) )> \
 	bool ScriptInterface::callMethod(JSContext* cx, uint argc, jsval* vp) { \
-		UNUSED2(argc); \
 		JS::CallArgs args = JS::CallArgsFromVp(argc, vp); \
+		JSAutoRequest rq(cx); \
 		SCRIPT_PROFILE \
 		if (ScriptInterface::GetClass(JS_THIS_OBJECT(cx, vp)) != CLS) return false; \
 		TC* c = static_cast<TC*>(ScriptInterface::GetPrivate(JS_THIS_OBJECT(cx, vp))); \
 		if (! c) return false; \
-		JSAutoRequest rq(cx); \
 		BOOST_PP_REPEAT_##z (i, CONVERT_ARG, ~) \
 		JS::RootedValue rval(cx); \
 		ScriptInterface_NativeMethodWrapper<R, TC>::call(cx, &rval, c, fptr  A0_TAIL(z,i)); \

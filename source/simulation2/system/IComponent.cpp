@@ -33,9 +33,9 @@ void IComponent::HandleMessage(const CMessage& UNUSED(msg), bool UNUSED(global))
 {
 }
 
-void IComponent::NewJSObject(ScriptInterface& UNUSED(scriptInterface), JS::MutableHandleObject UNUSED(out)) const
+bool IComponent::NewJSObject(ScriptInterface& UNUSED(scriptInterface), JS::MutableHandleObject UNUSED(out)) const
 {
-	return;
+	return false;
 }
 
 jsval IComponent::GetJSInstance() const

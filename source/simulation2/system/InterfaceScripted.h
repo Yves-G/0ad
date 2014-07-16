@@ -36,9 +36,10 @@
 	void ICmp##iname::InterfaceInit(ScriptInterface& scriptInterface) { \
 		scriptInterface.DefineCustomObjectType(&class_ICmp##iname, NULL, 0, NULL, methods_ICmp##iname, NULL, NULL); \
 	} \
-	void ICmp##iname::NewJSObject(ScriptInterface& scriptInterface, JS::MutableHandleObject out) const\
+	bool ICmp##iname::NewJSObject(ScriptInterface& scriptInterface, JS::MutableHandleObject out) const\
 	{ \
 		out.set(scriptInterface.CreateCustomObject("ICmp" #iname)); \
+		return true; \
 	} \
 	void RegisterComponentInterface_##iname(ScriptInterface& scriptInterface) { \
 		ICmp##iname::InterfaceInit(scriptInterface); \

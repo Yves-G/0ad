@@ -106,6 +106,14 @@ m.HQ.prototype.init = function(gameState, queues)
 	else
 		this.targetNumWorkers = Math.max(1, Math.min(120,Math.floor(gameState.getPopulationMax()/3.0)));
 
+	this.treasures = gameState.getEntities().filter(function (ent) {
+		var type = ent.resourceSupplyType();
+		if (type && type.generic === "treasure")
+			return true;
+		return false;
+	});
+	this.treasures.registerUpdates();
+
 	// Let's get our initial situation here.
 	var ccEnts = gameState.getOwnStructures().filter(API3.Filters.byClass("CivCentre")).toEntityArray();	
 	for (var i = 0; i < ccEnts.length; ++i)
@@ -282,6 +290,22 @@ m.HQ.prototype.checkEvents = function (gameState, events, queues)
 				});
 			}
 		}
+		else if (ent.hasClass("Wonder") && gameState.getGameType() === "wonder")
+		{
+			var base = ent.getMetadata(PlayerID, "base");
+			if (!base)
+				warn("Petra: wonder founadtion without base ???");
+			// Let's get a few units out there to build this.
+			var builders = this.bulkPickWorkers(gameState, base, 10);
+			if (builders !== false)
+			{
+				builders.forEach(function (worker) {
+					worker.setMetadata(PlayerID, "base", base);
+					worker.setMetadata(PlayerID, "subrole", "builder");
+					worker.setMetadata(PlayerID, "target-foundation", ent.id());
+				});
+			}
+		}
 	}
 
 	var ConstructionEvents = events["ConstructionFinished"];
@@ -325,7 +349,7 @@ m.HQ.prototype.checkEvents = function (gameState, events, queues)
 		if (!ent._entity.trainingQueue || !ent._entity.trainingQueue.length)
 			continue;
 		var metadata = ent._entity.trainingQueue[0].metadata;
-		if (metadata.garrisonType)
+		if (metadata && metadata.garrisonType)
 			ent.setRallyPoint(ent, "garrison");  // trained units will autogarrison
 		else
 			ent.unsetRallyPoint();
@@ -602,19 +626,20 @@ m.HQ.prototype.pickMostNeededResources = function(gameState)
 	this.wantedRates = gameState.ai.queueManager.wantedGatherRates(gameState);
 	var currentRates = this.GetCurrentGatherRates(gameState);
 
-	// let's get our ideal number.
-	var types = Object.keys(this.wantedRates);
+	var needed = [];
+	for (var res in this.wantedRates)
+		needed.push({ "type": res, "wanted": this.wantedRates[res], "current": currentRates[res] });
 
-	types.sort(function(a, b) {
-		var va = (Math.max(0,self.wantedRates[a] - currentRates[a]))/ (currentRates[a]+1);
-		var vb = (Math.max(0,self.wantedRates[b] - currentRates[b]))/ (currentRates[b]+1);
+	needed.sort(function(a, b) {
+		var va = (Math.max(0, a.wanted - a.current))/ (a.current+1);
+		var vb = (Math.max(0, b.wanted - b.current))/ (b.current+1);
 		
 		// If they happen to be equal (generally this means "0" aka no need), make it fair.
 		if (va === vb)
-			return (self.wantedRates[b]/(currentRates[b]+1)) - (self.wantedRates[a]/(currentRates[a]+1));
+			return (b.wanted/(b.current+1)) - (a.wanted/(a.current+1));
 		return vb-va;
 	});
-	return types;
+	return needed;
 };
 
 // Returns the best position to build a new Civil Centre
@@ -674,12 +699,12 @@ m.HQ.prototype.findEconomicCCLocation = function(gameState, template, resource, 
 			}
 			if (!cc.ally)
 				continue;
-			if (dist < 20000)    // Reject if too near from an allied cc
+			if (dist < 30000)    // Reject if too near from an allied cc
 			{
 				norm = 0
 				break;
 			}
-			if (dist < 40000)   // Disfavor if quite near an allied cc
+			if (dist < 50000)   // Disfavor if quite near an allied cc
 				norm *= 0.5;
 			if (dist < minDist)
 				minDist = dist;
@@ -748,7 +773,7 @@ m.HQ.prototype.findEconomicCCLocation = function(gameState, template, resource, 
 	if (fromStrategic)  // be less restrictive
 		cut = 30;
 	if (this.Config.debug)
-		warn("on a trouve une base avec best (cut=" + cut + ") = " + bestVal);
+		warn("we have found a base for " + resource + " with best (cut=" + cut + ") = " + bestVal);
 	// not good enough.
 	if (bestVal < cut)
 		return false;
@@ -970,6 +995,13 @@ m.HQ.prototype.findMarketLocation = function(gameState, template)
 	if (bestVal === undefined)  // no constraints. For the time being, place it arbitrarily by the ConstructionPlan
 		return [-1, -1, -1];
 
+	var expectedGain = Math.round(bestVal / this.Config.distUnitGain);
+	if (this.Config.debug > 0)
+		warn("this would give a trading gain of " + expectedGain);
+	// do not keep it if gain is too small, except if this is our first BarterMarket 
+	if (expectedGain < 6 && (!template.hasClass("BarterMarket") || gameState.getOwnStructures().filter(API3.Filters.byClass("BarterMarket")).length > 0))
+		return false;
+
 	var x = (bestIdx%width + 0.5) * gameState.cellSize;
 	var z = (Math.floor(bestIdx/width) + 0.5) * gameState.cellSize;
 	return [x, z, this.basesMap.map[bestIdx]];
@@ -986,6 +1018,16 @@ m.HQ.prototype.findDefensiveLocation = function(gameState, template)
 	var ownStructures = gameState.getOwnStructures().filter(API3.Filters.byClassesOr(["Fortress", "Tower"])).toEntityArray();
 	var enemyStructures = gameState.getEnemyStructures().filter(API3.Filters.byClassesOr(["CivCentre", "Fortress", "Tower"])).toEntityArray();
 
+	var wonderMode = (gameState.getGameType() === "wonder");
+	var wonderDistmin = undefined;
+	if (wonderMode)
+	{
+		var wonders = gameState.getOwnStructures().filter(API3.Filters.byClass("Wonder")).toEntityArray();
+		wonderMode = (wonders.length !== 0);
+		if (wonderMode)
+			wonderDistmin = (50 + wonders[0].footprintRadius()) * (50 + wonders[0].footprintRadius());
+	}
+
 	// obstruction map
 	var obstructions = m.createObstructionMap(gameState, 0, template);
 	obstructions.expandInfluences();
@@ -1000,11 +1042,14 @@ m.HQ.prototype.findDefensiveLocation = function(gameState, template)
 
 	for (var j = 0; j < this.territoryMap.length; ++j)
 	{
-		// do not try if well inside or outside territory
-		if (this.frontierMap.map[j] === 0)
-			continue
-		if (this.frontierMap.map[j] === 1 && template.hasClass("Tower"))
-			continue;
+		if (!wonderMode)
+		{
+			// do not try if well inside or outside territory
+			if (this.frontierMap.map[j] === 0)
+				continue
+			if (this.frontierMap.map[j] === 1 && template.hasClass("Tower"))
+				continue;
+		}
 		if (this.basesMap.map[j] === 0)   // inaccessible cell
 			continue;
 		if (obstructions.map[j] <= radius)  // check room around
@@ -1014,6 +1059,16 @@ m.HQ.prototype.findDefensiveLocation = function(gameState, template)
 		pos = [gameState.cellSize*pos[0], gameState.cellSize*pos[1]];
 		// checking distances to other structures
 		var minDist = Math.min();
+
+		var dista = 0;
+		if (wonderMode)
+		{
+			dista = API3.SquareVectorDistance(wonders[0].position(), pos);
+			if (dista < wonderDistmin)
+				continue;
+			dista *= 200;   // empirical factor (TODO should depend on map size) to stay near the wonder
+		}
+
 		for (var str of enemyStructures)
 		{
 			if (str.foundationProgress() !== undefined)
@@ -1027,8 +1082,8 @@ m.HQ.prototype.findDefensiveLocation = function(gameState, template)
 				minDist = -1;
 				break;
 			}
-			if (str.hasClass("CivCentre") && dist < minDist)
-				minDist = dist;
+			if (str.hasClass("CivCentre") && dist + dista < minDist)
+				minDist = dist + dista;
 		}
 		if (minDist < 0)
 			continue;
@@ -1320,6 +1375,20 @@ m.HQ.prototype.buildBlacksmith = function(gameState, queues)
 		queues.militaryBuilding.addItem(new m.ConstructionPlan(gameState, "structures/{civ}_blacksmith"));
 };
 
+m.HQ.prototype.buildWonder = function(gameState, queues)
+{
+	if (!this.canBuild(gameState, "structures/{civ}_wonder"))
+		return;
+	if (gameState.ai.queues["wonder"] && gameState.ai.queues["wonder"].length() > 0)
+		return;
+	if (gameState.countEntitiesAndQueuedByType(gameState.applyCiv("structures/{civ}_wonder"), true) > 0)
+		return;
+
+	if (!gameState.ai.queues["wonder"])
+		gameState.ai.queueManager.addQueue("wonder", 1000);
+	gameState.ai.queues["wonder"].addItem(new m.ConstructionPlan(gameState, "structures/{civ}_wonder"));
+};
+
 // Deals with constructing military buildings (barracks, stables…)
 // They are mostly defined by Config.js. This is unreliable since changes could be done easily.
 // TODO: We need to determine these dynamically. Also doesn't build fortresses since the above function does that.
@@ -1439,7 +1508,7 @@ m.HQ.prototype.trainEmergencyUnits = function(gameState, positions)
 			{
 				var time = 0;
 				for (var item of queue)
-					if (item.progress > 0 || (item.metadata && item.metadata.trainer))
+					if (item.progress > 0 || (item.metadata && item.metadata.garrisonType))
 						time += item.timeRemaining;
 				if (time/1000 > 5)
 					continue;
@@ -1513,21 +1582,19 @@ m.HQ.prototype.trainEmergencyUnits = function(gameState, positions)
 	}
 	// Check first if we can afford it without touching other the accounts
 	// and if not, take some of ther accounted resources
-	// TODO substract only what is needed instead of reset and sort the queues
+	// TODO sort the queues to be substracted
 	var cost = new API3.Resources(templateAnchor[1].cost());
-	if (!available.canAfford(cost))
+	if (!gameState.ai.queueManager.accounts["emergency"].canAfford(cost))
 	{
 		for (var p in gameState.ai.queueManager.queues)
 		{
-			// TODO substract only what is needed instead of reseting
-			// and do a better sorting of queues
-			available.add(gameState.ai.queueManager.accounts[p]);
-			gameState.ai.queueManager.accounts[p].reset();
-			if (available.canAfford(cost))
+			if (p === "emergency")
+				continue;
+			gameState.ai.queueManager.transferAccounts(cost, p, "emergency");
+			if (gameState.ai.queueManager.accounts["emergency"].canAfford(cost))
 				break;
 		}
 	}
-	gameState.ai.queueManager.accounts["emergency"].add(cost);
 	var metadata = { "role": "worker", "base": nearestAnchor.getMetadata(PlayerID, "base"), "trainer": nearestAnchor.id() };
 	if (autogarrison)
 		metadata.garrisonType = "protection";
@@ -1670,6 +1737,15 @@ m.HQ.prototype.assignGatherers = function(gameState)
 	}
 };
 
+// Check that the chosen position is not too near from an invading army
+m.HQ.prototype.isDangerousLocation = function(pos)
+{
+	for (var army of this.defenseManager.armies)
+		if (army.foePosition && API3.SquareVectorDistance(army.foePosition, pos) < 12000)
+			return true;
+	return false;
+};
+
 // Some functions are run every turn
 // Others once in a while
 m.HQ.prototype.update = function(gameState, queues, events)
@@ -1720,6 +1796,9 @@ m.HQ.prototype.update = function(gameState, queues, events)
 	}
 	else if (gameState.ai.playedTurn - this.lastTerritoryUpdate > 100)
 		this.updateTerritories(gameState);
+
+	if (gameState.getGameType() === "wonder")
+		this.buildWonder(gameState, queues);
 
 	if (this.baseManagers[1])
 	{
@@ -1774,7 +1853,7 @@ m.HQ.prototype.update = function(gameState, queues, events)
 	if (this.Config.difficulty > 0)
 		this.attackManager.update(gameState, queues, events);
 
-	Engine.ProfileStop();	// Heaquarters update
+	Engine.ProfileStop();
 };
 
 return m;

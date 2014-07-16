@@ -355,7 +355,7 @@ public:
 	{
 		JSContext* cx = m_ScriptInterface->GetContext();
 		JSAutoRequest rq(cx);
-		
+
 		// we don't need to load it.
 		if (!m_HasSharedComponent)
 			return false;

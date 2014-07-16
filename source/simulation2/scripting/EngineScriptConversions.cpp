@@ -37,7 +37,7 @@ template<> void ScriptInterface::ToJSVal<IComponent*>(JSContext* cx, JS::Mutable
 	JSAutoRequest rq(cx);
 	if (val == NULL)
 	{
-		ret.set(JS::NullValue());
+		ret.setNull();
 		return;
 	}
 
@@ -52,10 +52,16 @@ template<> void ScriptInterface::ToJSVal<IComponent*>(JSContext* cx, JS::Mutable
 	// Otherwise we need to construct a wrapper object
 	// (TODO: cache wrapper objects?)
 	JS::RootedObject obj(cx);
-	val->NewJSObject(*ScriptInterface::GetScriptInterfaceAndCBData(cx)->pScriptInterface, &obj);
-	JS_SetPrivate(obj, static_cast<void*>(val));
+	if (!val->NewJSObject(*ScriptInterface::GetScriptInterfaceAndCBData(cx)->pScriptInterface, &obj))
+	{
+		// Report as an error, since scripts really shouldn't try to use unscriptable interfaces
+		LOGERROR(L"IComponent does not have a scriptable interface");
+		ret.setUndefined();
+		return;
+	}
 
-	ret.set(JS::ObjectValue(*obj));
+	JS_SetPrivate(obj, static_cast<void*>(val));
+	ret.setObject(*obj);
 }
 
 template<> void ScriptInterface::ToJSVal<CParamNode>(JSContext* cx, JS::MutableHandleValue ret, CParamNode const& val)
@@ -77,7 +83,7 @@ template<> void ScriptInterface::ToJSVal<const CParamNode*>(JSContext* cx, JS::M
 	if (val)
 		ToJSVal(cx, ret, *val);
 	else
-		ret.set(JSVAL_VOID);
+		ret.setUndefined();
 }
 
 template<> bool ScriptInterface::FromJSVal<CColor>(JSContext* cx, JS::HandleValue v, CColor& out)
@@ -110,7 +116,7 @@ template<> void ScriptInterface::ToJSVal<CColor>(JSContext* cx, JS::MutableHandl
 	JS::RootedObject obj(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
 	if (!obj)
 	{
-		ret.set(JSVAL_VOID);
+		ret.setUndefined();
 		return;
 	}
 
@@ -128,7 +134,7 @@ template<> void ScriptInterface::ToJSVal<CColor>(JSContext* cx, JS::MutableHandl
 	JS_SetProperty(cx, obj, "b", b);
 	JS_SetProperty(cx, obj, "a", a);
 
-	ret.set(JS::ObjectValue(*obj));
+	ret.setObject(*obj);
 }
 
 template<> bool ScriptInterface::FromJSVal<fixed>(JSContext* cx, JS::HandleValue v, fixed& out)
@@ -181,7 +187,7 @@ template<> void ScriptInterface::ToJSVal<CFixedVector3D>(JSContext* cx, JS::Muta
 
 	if (!obj)
 	{
-		ret.set(JSVAL_VOID);
+		ret.setUndefined();
 		return;
 	}
 
@@ -196,7 +202,7 @@ template<> void ScriptInterface::ToJSVal<CFixedVector3D>(JSContext* cx, JS::Muta
 	JS_SetProperty(cx, obj, "y", y);
 	JS_SetProperty(cx, obj, "z", z);
 
-	ret.set(JS::ObjectValue(*obj));
+	ret.setObject(*obj);
 }
 
 template<> bool ScriptInterface::FromJSVal<CFixedVector2D>(JSContext* cx, JS::HandleValue v, CFixedVector2D& out)
@@ -227,7 +233,7 @@ template<> void ScriptInterface::ToJSVal<CFixedVector2D>(JSContext* cx, JS::Muta
 	JS::RootedObject obj(cx, JS_NewObject(cx, nullptr, proto, JS::NullPtr()));
 	if (!obj)
 	{
-		ret.set(JSVAL_VOID);
+		ret.setUndefined();
 		return;
 	}
 
@@ -239,7 +245,7 @@ template<> void ScriptInterface::ToJSVal<CFixedVector2D>(JSContext* cx, JS::Muta
 	JS_SetProperty(cx, obj, "x", x);
 	JS_SetProperty(cx, obj, "y", y);
 
-	ret.set(JS::ObjectValue(*obj));
+	ret.setObject(*obj);
 }
 
 template<> void ScriptInterface::ToJSVal<Grid<u8> >(JSContext* cx, JS::MutableHandleValue ret, const Grid<u8>& val)
@@ -261,7 +267,7 @@ template<> void ScriptInterface::ToJSVal<Grid<u8> >(JSContext* cx, JS::MutableHa
 	JS_SetProperty(cx, obj, "height", h);
 	JS_SetProperty(cx, obj, "data", data);
 
-	ret.set(JS::ObjectValue(*obj));
+	ret.setObject(*obj);
 }
  
 template<> void ScriptInterface::ToJSVal<Grid<u16> >(JSContext* cx, JS::MutableHandleValue ret, const Grid<u16>& val)
@@ -283,5 +289,5 @@ template<> void ScriptInterface::ToJSVal<Grid<u16> >(JSContext* cx, JS::MutableH
 	JS_SetProperty(cx, obj, "height", h);
 	JS_SetProperty(cx, obj, "data", data);
 
-	ret.set(JS::ObjectValue(*obj));
+	ret.setObject(*obj);
 }

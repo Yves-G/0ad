@@ -57,6 +57,8 @@ JSFunctionSpec JSI_IGUIObject::JSI_methods[] =
 bool JSI_IGUIObject::getProperty(JSContext* cx, JS::HandleObject obj, JS::HandleId id, JS::MutableHandleValue vp)
 {
 	JSAutoRequest rq(cx);
+	ScriptInterface* pScriptInterface = ScriptInterface::GetScriptInterfaceAndCBData(cx)->pScriptInterface;
+
 	IGUIObject* e = (IGUIObject*)JS_GetInstancePrivate(cx, obj, &JSI_IGUIObject::JSI_class, NULL);
 	if (!e)
 		return false;
@@ -130,7 +132,6 @@ bool JSI_IGUIObject::getProperty(JSContext* cx, JS::HandleObject obj, JS::Handle
 			return false;
 		}
 
-		ScriptInterface* pScriptInterface = ScriptInterface::GetScriptInterfaceAndCBData(cx)->pScriptInterface;
 		// (All the cases are in {...} to avoid scoping problems)
 		switch (Type)
 		{
@@ -164,7 +165,7 @@ bool JSI_IGUIObject::getProperty(JSContext* cx, JS::HandleObject obj, JS::Handle
 				CColor colour;
 				GUI<CColor>::GetSetting(e, propName, colour);
 				JS::RootedObject obj(cx, pScriptInterface->CreateCustomObject("GUIColor"));
-				vp.set(JS::ObjectValue(*obj));
+				vp.setObject(*obj);
 				JS::RootedValue c(cx);
 				// Attempt to minimise ugliness through macrosity
 				#define P(x) c = JS::NumberValue(colour.x); \
@@ -186,7 +187,7 @@ bool JSI_IGUIObject::getProperty(JSContext* cx, JS::HandleObject obj, JS::Handle
 				GUI<CClientArea>::GetSetting(e, propName, area);
 
 				JS::RootedObject obj(cx, pScriptInterface->CreateCustomObject("GUISize"));
-				vp.set(JS::ObjectValue(*obj));
+				vp.setObject(*obj);
 				try
 				{
 				#define P(x, y, z) pScriptInterface->SetProperty(vp, #z, area.x.y, false, true)
@@ -279,7 +280,7 @@ bool JSI_IGUIObject::getProperty(JSContext* cx, JS::HandleObject obj, JS::Handle
 				GUI<CGUIList>::GetSetting(e, propName, value);
 
 				JS::RootedObject obj(cx, JS_NewArrayObject(cx, JS::HandleValueArray::empty()));
-				vp.set(JS::ObjectValue(*obj));
+				vp.setObject(*obj);
 
 				for (u32 i = 0; i < value.m_Items.size(); ++i)
 				{
@@ -595,9 +596,10 @@ bool JSI_IGUIObject::setProperty(JSContext* cx, JS::HandleObject obj, JS::Handle
 
 bool JSI_IGUIObject::construct(JSContext* cx, uint argc, jsval* vp)
 {
+	JSAutoRequest rq(cx);
 	JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 	ScriptInterface* pScriptInterface = ScriptInterface::GetScriptInterfaceAndCBData(cx)->pScriptInterface;
-
+	
 	if (args.length() == 0)
 	{
 		JS_ReportError(cx, "GUIObject has no default constructor");

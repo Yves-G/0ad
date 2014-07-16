@@ -211,6 +211,45 @@ m.Worker.prototype.update = function(baseManager, gameState)
 
 m.Worker.prototype.startGathering = function(gameState, baseManager)
 {
+	var self = this;
+	var access = gameState.ai.accessibility.getAccessValue(this.ent.position());
+
+	// First look for possible treasure if any
+	var treasureFound = undefined;
+	var distmin = Math.min();
+	gameState.ai.HQ.treasures.forEach(function (treasure) {
+		var treasureAccess = treasure.getMetadata(PlayerID, "access");
+		if (!treasureAccess)
+		{
+			treasureAccess = gameState.ai.accessibility.getAccessValue(treasure.position());
+			treasure.setMetadata(PlayerID, "access", treasureAccess);
+		}
+		if (treasureAccess !== access)
+			return;
+		var territoryOwner = gameState.ai.HQ.territoryMap.getOwner(treasure.position());
+		if (territoryOwner !== 0 && !gameState.isPlayerAlly(territoryOwner))
+			return;
+		var lastGathered = treasure.getMetadata(PlayerID, "lastGathered");
+		// let some time for the previous gatherer to reach the treasure
+		if (lastGathered && gameState.ai.elapsedTime - lastGathered < 20)
+			return;
+		var dist = API3.SquareVectorDistance(self.ent.position(), treasure.position());
+		if (territoryOwner !== PlayerID && dist > 14000)  //  AI has no LOS, so restrict it a bit
+			return;
+		if (dist > distmin)
+			return;
+		distmin = dist;
+		treasureFound = treasure;
+	});
+	if (treasureFound)
+	{
+		treasureFound.setMetadata(PlayerID, "lastGathered", gameState.ai.elapsedTime);
+		this.ent.gather(treasureFound);
+		m.AddTCGatherer(gameState, treasureFound.id());
+		this.ent.setMetadata(PlayerID, "supply", treasureFound.id());
+		return true;
+	}
+
 	var resource = this.ent.getMetadata(PlayerID, "gather-type");
 
 	// If we are gathering food, try to hunt first
@@ -247,8 +286,6 @@ m.Worker.prototype.startGathering = function(gameState, baseManager)
 		return ret;
 	};
 
-	var self = this;
-	var access = gameState.ai.accessibility.getAccessValue(this.ent.position());
 	var navalManager = gameState.ai.HQ.navalManager;
 	var supply;
 
@@ -452,7 +489,7 @@ m.Worker.prototype.startGathering = function(gameState, baseManager)
 	}
 
 	// If we are here, we have nothing left to gather ... certainly no more resources of this type
-	gameState.ai.HQ.lastFailedGather[resource] = gameState.ai.playedTurn;
+	gameState.ai.HQ.lastFailedGather[resource] = gameState.ai.elapsedTime;
 	if (gameState.ai.HQ.Config.debug > 1)
 		warn(" >>>>> worker with gather-type " + resource + " with nothing to gather ");
 	this.ent.setMetadata(PlayerID, "subrole", "idle");
@@ -693,37 +730,6 @@ m.Worker.prototype.startFishing = function(gameState)
 			this.ent.setMetadata(PlayerID, "subrole", "idle");
 		return false;
 	}
-};
-
-m.Worker.prototype.getResourceType = function(type){
-	if (!type || !type.generic)
-		return undefined;
-	
-	if (type.generic === "treasure")
-		return type.specific;
-	else
-		return type.generic;
-};
-
-m.Worker.prototype.getGatherRate = function(gameState) {
-	if (this.ent.getMetadata(PlayerID,"subrole") !== "gatherer")
-		return 0;
-	var rates = this.ent.resourceGatherRates();
-	
-	if (this.ent.unitAIOrderData().length && this.ent.unitAIState().split(".")[1] === "GATHER" && this.ent.unitAIOrderData()[0]["target"])
-	{
-		var ress = gameState.getEntityById(this.ent.unitAIOrderData()[0]["target"]);
-		if (!ress)
-			return 0;
-		var type = ress.resourceSupplyType();
-		if (type.generic == "treasure")
-			return 1000;
-		var tstring = type.generic + "." + type.specific;
-		if (rates[tstring])
-			return rates[tstring];
-		return 0;
-	}
-	return 0;
 };
 
 m.Worker.prototype.gatherNearestField = function(gameState, baseID)

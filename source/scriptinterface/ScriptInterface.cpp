@@ -537,6 +537,7 @@ bool error(JSContext* cx, uint argc, jsval* vp)
 bool deepcopy(JSContext* cx, uint argc, jsval* vp)
 {
 	JSAutoRequest rq(cx);
+
 	JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 	if (args.length() < 1)
 	{
@@ -554,9 +555,9 @@ bool deepcopy(JSContext* cx, uint argc, jsval* vp)
 
 bool ProfileStart(JSContext* cx, uint argc, jsval* vp)
 {
-	JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 	const char* name = "(ProfileStart)";
 
+	JS::CallArgs args = JS::CallArgsFromVp(argc, vp);
 	if (args.length() >= 1)
 	{
 		std::string str;
@@ -980,7 +981,6 @@ JSObject* ScriptInterface::CreateCustomObject(const std::string & typeName)
 	return JS_NewObject(m->m_cx, (*it).second.m_Class, prototype, JS::NullPtr());
 }
 
-
 bool ScriptInterface::CallFunctionVoid(jsval val, const char* name)
 {
 	JSAutoRequest rq(m->m_cx);
@@ -1245,7 +1245,7 @@ bool ScriptInterface::LoadScript(const VfsPath& filename, const std::string& cod
 	options.setCompileAndGo(true);
 
 	JS::RootedFunction func(m->m_cx,
-		JS_CompileUCFunction(m->m_cx, global, NULL, 0, NULL,
+	JS_CompileUCFunction(m->m_cx, global, NULL, 0, NULL,
 			reinterpret_cast<const jschar*> (codeUtf16.c_str()), (uint)(codeUtf16.length()), options)
 	);
 	if (!func)
@@ -1307,6 +1307,7 @@ bool ScriptInterface::LoadGlobalScriptFile(const VfsPath& path)
 
 bool ScriptInterface::Eval(const char* code)
 {
+	JSAutoRequest rq(m->m_cx);
 	JS::RootedValue rval(m->m_cx);
 	return Eval_(code, &rval);
 }

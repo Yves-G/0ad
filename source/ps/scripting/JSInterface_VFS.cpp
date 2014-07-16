@@ -142,9 +142,12 @@ unsigned int JSI_VFS::GetFileSize(ScriptInterface::CxPrivate* UNUSED(pCxPrivate)
 //   filename: VFS filename (may include path)
 CScriptVal JSI_VFS::ReadFile(ScriptInterface::CxPrivate* pCxPrivate, std::wstring filename)
 {
+	JSContext* cx = pCxPrivate->pScriptInterface->GetContext();
+	JSAutoRequest rq(cx);
+
 	CVFSFile file;
 	if (file.Load(g_VFS, filename) != PSRETURN_OK)
-		return JSVAL_NULL;
+		return JS::NullValue();
 
 	CStr contents = file.DecodeUTF8(); // assume it's UTF-8
 
@@ -152,11 +155,9 @@ CScriptVal JSI_VFS::ReadFile(ScriptInterface::CxPrivate* pCxPrivate, std::wstrin
 	contents.Replace("\r\n", "\n");
 
 	// Decode as UTF-8
-	JSContext* cx = pCxPrivate->pScriptInterface->GetContext();
-	JSAutoRequest rq(cx);
 	JS::RootedValue ret(cx);
-	ScriptInterface::ToJSVal( pCxPrivate->pScriptInterface->GetContext(), &ret, contents.FromUTF8() );
-	return CScriptVal(ret);
+	ScriptInterface::ToJSVal(cx, &ret, contents.FromUTF8());
+	return ret.get();
 }
 
 
@@ -166,6 +167,8 @@ CScriptVal JSI_VFS::ReadFile(ScriptInterface::CxPrivate* pCxPrivate, std::wstrin
 //   filename: VFS filename (may include path)
 CScriptVal JSI_VFS::ReadFileLines(ScriptInterface::CxPrivate* pCxPrivate, std::wstring filename)
 {
+	JSContext* cx = pCxPrivate->pScriptInterface->GetContext();
+	JSAutoRequest rq(cx);
 	//
 	// read file
 	//
@@ -183,13 +186,10 @@ CScriptVal JSI_VFS::ReadFileLines(ScriptInterface::CxPrivate* pCxPrivate, std::w
 	//
 
 	std::stringstream ss(contents);
-
-	JSContext* cx = pCxPrivate->pScriptInterface->GetContext();
-	JSAutoRequest rq(cx);
 	JS::RootedObject line_array(cx, JS_NewArrayObject(cx, JS::HandleValueArray::empty()));
-
 	std::string line;
 	int cur_line = 0;
+	
 	while (std::getline(ss, line))
 	{
 		// Decode each line as UTF-8
@@ -198,5 +198,5 @@ CScriptVal JSI_VFS::ReadFileLines(ScriptInterface::CxPrivate* pCxPrivate, std::w
 		JS_SetElement(cx, line_array, cur_line++, val);
 	}
 
-	return OBJECT_TO_JSVAL( line_array );
+	return JS::ObjectValue(*line_array);
 }

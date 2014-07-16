@@ -1280,18 +1280,24 @@ function onGameAttributesChange()
 
 		// Common to all game types
 		var color = iColorToString(getSetting(pData, pDefs, "Colour"));
-		pColor.sprite = "colour:"+color+" 100";
+		pColor.sprite = "colour:" + color + " 100";
 		pName.caption = translate(getSetting(pData, pDefs, "Name"));
 
 		var team = getSetting(pData, pDefs, "Team");
 		var civ = getSetting(pData, pDefs, "Civ");
 
+		// Nobody but the controller can assign people
+		pAssignmentText.hidden = g_IsController;
+		pAssignment.hidden = !g_IsController;
+		if (!pAssignment.list[0])
+			pAssignmentText.caption = translate("Loading...");
+		else
+			pAssignmentText.caption = pAssignment.list[pAssignment.selected === -1 ? 0 : pAssignment.selected];
+
 		// For clients or scenarios, hide some player dropdowns
 		// TODO: Allow clients to choose their own civ and team
 		if (!g_IsController || g_GameAttributes.mapType == "scenario")
 		{
-			pAssignmentText.hidden = false;
-			pAssignment.hidden = true;
 			pCivText.hidden = false;
 			pCiv.hidden = true;
 			pTeamText.hidden = false;
@@ -1302,12 +1308,9 @@ function onGameAttributesChange()
 			else
 				pCivText.caption = g_CivData[civ].Name;
 			pTeamText.caption = (team !== undefined && team >= 0) ? team+1 : "-";
-			pAssignmentText.caption = pAssignment.list[pAssignment.selected];
 		}
 		else if (g_GameAttributes.mapType != "scenario")
 		{
-			pAssignmentText.hidden = true;
-			pAssignment.hidden = false;
 			pCivText.hidden = true;
 			pCiv.hidden = false;
 			pTeamText.hidden = true;

@@ -55,7 +55,7 @@ template<> void ScriptInterface::ToJSVal<SDL_Event_>(JSContext* cx, JS::MutableH
 	JS::RootedObject obj(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
 	if (!obj)
 	{
-		ret.set(JSVAL_VOID);
+		ret.setUndefined();
 		return;
 	}
 
@@ -80,7 +80,7 @@ template<> void ScriptInterface::ToJSVal<SDL_Event_>(JSContext* cx, JS::MutableH
 		JS::RootedObject keysym(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
 		if (! keysym)
 		{
-			ret.set(JSVAL_VOID);
+			ret.setUndefined();
 			return;
 		}
 		JS::RootedValue keysymVal(cx, JS::ObjectValue(*keysym));
@@ -131,13 +131,13 @@ template<> void ScriptInterface::ToJSVal<SDL_Event_>(JSContext* cx, JS::MutableH
 	}
 	}
 
-	ret.set(JS::ObjectValue(*obj));
+	ret.setObject(*obj);
 }
 
 template<> void ScriptInterface::ToJSVal<IGUIObject*>(JSContext* UNUSED(cx), JS::MutableHandleValue ret, IGUIObject* const& val)
 {
 	if (val == NULL)
-		ret.set(JSVAL_NULL);
+		ret.setNull();
 	else
-		ret.set(JS::ObjectValue(*val->GetJSObject()));
+		ret.setObject(*val->GetJSObject());
 }

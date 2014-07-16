@@ -15,15 +15,17 @@ m.DefenseManager.prototype.init = function(gameState)
 
 m.DefenseManager.prototype.update = function(gameState, events)
 {
+	Engine.ProfileStart("Defense Manager");
+
 	this.territoryMap = gameState.ai.HQ.territoryMap;
-	
-	this.checkDefenseStructures(gameState, events);
+
+	this.checkEvents(gameState, events);
 
 	this.checkEnemyArmies(gameState, events);
 	this.checkEnemyUnits(gameState);
 	this.assignDefenders(gameState);
-	
-	this.MessageProcess(gameState,events);
+
+	Engine.ProfileStop();
 };
 
 m.DefenseManager.prototype.makeIntoArmy = function(gameState, entityID)
@@ -58,7 +60,7 @@ m.DefenseManager.prototype.isDangerous = function(gameState, entity)
 		return false;
 
 	// check if the entity is trying to build a new base near our buildings, and if yes, add this base in our target list
-	if (entity.unitAIState() == "INDIVIDUAL.REPAIR.REPAIRING")
+	if (entity.unitAIState() && entity.unitAIState() == "INDIVIDUAL.REPAIR.REPAIRING")
 	{
 		var targetId = entity.unitAIOrderData()[0]["target"];
 		if (this.targetList.indexOf(targetId) !== -1)
@@ -126,26 +128,29 @@ m.DefenseManager.prototype.isDangerous = function(gameState, entity)
 
 m.DefenseManager.prototype.checkEnemyUnits = function(gameState)
 {
-	var self = this;
-	
-	// loop through enemy units
-	var nbPlayers = gameState.sharedScript.playersData.length - 1;
-	var i = 1 + gameState.ai.playedTurn % nbPlayers;
+	var nbPlayers = gameState.sharedScript.playersData.length;
+	var i = gameState.ai.playedTurn % nbPlayers;
 	if (i === PlayerID || gameState.isPlayerAlly(i))
 		return;
-	
+
+	var self = this;
 	var filter = API3.Filters.and(API3.Filters.byClass("Unit"), API3.Filters.byOwner(i));
 	var enemyUnits = gameState.updatingGlobalCollection("player-" +i + "-units", filter);
-	
+
+	// loop through enemy units
 	enemyUnits.forEach( function (ent) {
 		// first check: is this unit already part of an army.
 		if (ent.getMetadata(PlayerID, "PartOfArmy") !== undefined)
 			return;
-		
+
+		// TODO do not bother with animals for the time being
+		if (ent.hasClass("Animal"))
+			return;
+
 		// TODO what to do for ships ?
 		if (ent.hasClass("Ship") || ent.hasClass("Trader"))
 			return;
-		
+
 		// check if unit is dangerous "a priori"
 		if (self.isDangerous(gameState, ent))
 			self.makeIntoArmy(gameState, ent.id());
@@ -160,7 +165,7 @@ m.DefenseManager.prototype.checkEnemyArmies = function(gameState, events)
 	{
 		var army = this.armies[o];
 		army.checkEvents(gameState, events);	// must be called every turn for all armies
-		
+
 		// this returns a list of IDs: the units that broke away from the army for being too far.
 		var breakaways = army.update(gameState);
 
@@ -169,7 +174,7 @@ m.DefenseManager.prototype.checkEnemyArmies = function(gameState, events)
 			// assume dangerosity
 			this.makeIntoArmy(gameState,breakaways[u]);
 		}
-		
+
 		if (army.getState(gameState) === 0)
 		{
 			army.clear(gameState);
@@ -327,7 +332,7 @@ m.DefenseManager.prototype.assignDefenders = function(gameState)
 
 // If our defense structures are attacked, garrison soldiers inside when possible
 // TODO transfer most of that code in a garrisonManager
-m.DefenseManager.prototype.checkDefenseStructures = function(gameState, events)
+m.DefenseManager.prototype.checkEvents = function(gameState, events)
 {
 	var self = this;
 	var attackedEvents = events["Attacked"];
@@ -385,7 +390,7 @@ m.DefenseManager.prototype.checkDefenseStructures = function(gameState, events)
 // this processes the attackmessages
 // So that a unit that gets attacked will not be completely dumb.
 // warning: big levels of indentation coming.
-m.DefenseManager.prototype.MessageProcess = function(gameState,events) {
+//m.DefenseManager.prototype.MessageProcess = function(gameState,events) {
 /*	var self = this;
 	var attackedEvents = events["Attacked"];
 	for (var key in attackedEvents){
@@ -513,7 +518,7 @@ m.DefenseManager.prototype.MessageProcess = function(gameState,events) {
 		}
 	}
  */
-}; // nice sets of closing brackets, isn't it?
+//}; // nice sets of closing brackets, isn't it?
 
 return m;
 }(PETRA);

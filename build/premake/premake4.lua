@@ -1109,7 +1109,6 @@ function setup_atlas_projects()
 	atlas_extern_libs = {
 		"boost",
 		"comsuppw",
-		--"ffmpeg", -- disabled for now because it causes too many build difficulties
 		"iconv",
 		"libxml2",
 		"sdl",	-- key definitions

@@ -333,8 +333,7 @@ public:
 	/**
 	 * Convert a jsval to a C++ type. (This might trigger GC.)
 	 */
-	
-	template<typename T> static bool FromJSVal(JSContext* cx, JS::HandleValue val, T& ret);
+	template<typename T> static bool FromJSVal(JSContext* cx, const JS::HandleValue val, T& ret);
 
 	/**
 	 * Convert a C++ type to a jsval. (This might trigger GC. The return
@@ -404,7 +403,6 @@ public:
 
 private:
 	bool CallFunction_(JS::HandleValue val, const char* name, JS::HandleValueArray argv, JS::MutableHandleValue ret);
-	bool CallFunction_(jsval val, const char* name, uint argc, jsval* argv, jsval& ret);
 	bool Eval_(const char* code, JS::MutableHandleValue ret);
 	bool Eval_(const wchar_t* code, JS::MutableHandleValue ret);
 	bool SetGlobal_(const char* name, JS::HandleValue value, bool replace);
@@ -420,8 +418,8 @@ private:
 	class CustomType
 	{
 	public:
-		JSObject *	m_Prototype;
-		JSClass *	m_Class;
+		JSObject*	m_Prototype;
+		JSClass*	m_Class;
 		JSNative 	m_Constructor;
 	};
 	void Register(const char* name, JSNative fptr, size_t nargs);
@@ -634,7 +632,6 @@ bool ScriptInterface::GetPropertyInt(jsval obj, int name, T& out)
 template<typename CHAR>
 bool ScriptInterface::Eval(const CHAR* code, JS::MutableHandleValue ret)
 {
-	JSAutoRequest rq(GetContext());
 	if (! Eval_(code, ret))
 		return false;
 	return true;
