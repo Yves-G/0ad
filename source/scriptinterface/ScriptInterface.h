@@ -243,14 +243,16 @@ public:
 	bool GetProperty(jsval obj, const char* name, T& out);
 	
 	/**
-	 * This function overload is used for JS::MutableHandleValue type.
-	 * If we use JS::RootedValue with the GetProperty function template, it will generate an overload for the type
-	 * JS::RootedValue*, but JS::MutableHandleValue needs to be used when passing JS::RootedValue& to a function.
+	 * This function is used for JS::MutableHandleValue type.
+	 * If we use JS::RootedValue with the GetProperty function template, it will generate a specialization for the type
+	 * JS::RootedValue*, but JS::MutableHandleValue needs to be used in this case.
 	 * Check the SpiderMonkey rooting guide for details.
 	 *
-	 * Maybe we should overload the GetProperty function instead of using a separate function name.
-	 * Then it needs a cast because otherwise passing &value would call the template function with &*JS::RootedValue instead of using
-	 * the operator & to get JS::MutableHandleValue.
+	 * We could consider using boost::disable_if to disable the JS::RootedValue* specialization and using a 
+	 * non-templated overload of GetProperty. It needs to be non-templated because we need implicit conversion, which does
+	 * not work with templates. Not using templates makes it harder to support other types for T in JS::MutableHandle<T>.
+	 * As long as we don't have a better solution for this problem and the similiar problem with JS::HandleValue, 
+	 * CallFunction and CallFunctionVoid, it's probably better to stick to this less fancy approach.
 	 */
 	bool GetPropertyJS(jsval obj, const char* name, JS::MutableHandleValue out);
 
@@ -259,6 +261,11 @@ public:
 	 */
 	template<typename T>
 	bool GetPropertyInt(jsval obj, int name, T& out);
+	
+	/**
+	 * Get the integer-named property on the given object as JS::MutableHandleValue.
+	 * Check the comment for GetPropertyJS for information about why we have this extra function.
+	 */
 	bool GetPropertyIntJS(jsval obj, int name, JS::MutableHandleValue out);
 
 	/**
