@@ -513,7 +513,7 @@ namespace
 			m_ScriptInterface.SetProperty(t, "data", DumpRows(table));
 
 			JS::RootedValue stackRoot(cx, m_Root.get());
-			m_ScriptInterface.SetProperty(stackRoot, table->GetTitle().c_str(), (JS::HandleValue)t);
+			m_ScriptInterface.SetProperty(stackRoot, table->GetTitle().c_str(), t);
 		}
 
 		std::vector<std::string> DumpCols(AbstractProfileTable* table)
@@ -542,7 +542,7 @@ namespace
 			{
 				JS::RootedValue row(cx);
 				m_ScriptInterface.Eval("([])", &row);
-				m_ScriptInterface.SetProperty(data, table->GetCellText(r, 0).c_str(), (JS::HandleValue)row);
+				m_ScriptInterface.SetProperty(data, table->GetCellText(r, 0).c_str(), row);
 
 				if (table->GetChild(r))
 					m_ScriptInterface.SetPropertyInt(row, 0, DumpRows(table->GetChild(r)));

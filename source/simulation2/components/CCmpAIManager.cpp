@@ -401,7 +401,7 @@ public:
 			m_ScriptInterface->SetPropertyInt(playersID, i, CScriptVal(val), true);
 		}
 		
-		m_ScriptInterface->SetProperty(settings, "players", (JS::HandleValue)playersID);
+		m_ScriptInterface->SetProperty(settings, "players", playersID);
 		ENSURE(m_HasLoadedEntityTemplates);
 		m_ScriptInterface->SetProperty(settings, "templates", m_EntityTemplates, false);
 		
@@ -414,7 +414,7 @@ public:
 			// won't get the tech templates directly.
 			JS::RootedValue fakeTech(cx);
 			m_ScriptInterface->Eval("({})", &fakeTech);
-			m_ScriptInterface->SetProperty(settings, "techTemplates", (JS::HandleValue)fakeTech, false);
+			m_ScriptInterface->SetProperty(settings, "techTemplates", fakeTech, false);
 		}
 		
 		JS::AutoValueVector argv(cx);
@@ -467,7 +467,7 @@ public:
 			m_ScriptInterface->SetProperty(state, "passabilityMap", m_PassabilityMapVal, true);
 			m_ScriptInterface->SetProperty(state, "territoryMap", m_TerritoryMapVal, true);
 
-			m_ScriptInterface->CallFunctionVoid(m_SharedAIObj.get(), "init", (JS::HandleValue)state);
+			m_ScriptInterface->CallFunctionVoid(m_SharedAIObj.get(), "init", state);
 			
 			for (size_t i = 0; i < m_Players.size(); ++i)
 			{
@@ -756,7 +756,7 @@ private:
 		if (m_HasSharedComponent)
 		{
 			PROFILE3("AI run shared component");
-			m_ScriptInterface->CallFunctionVoid(m_SharedAIObj.get(), "onUpdate", (JS::HandleValue)state);
+			m_ScriptInterface->CallFunctionVoid(m_SharedAIObj.get(), "onUpdate", state);
 		}
 		
 		for (size_t i = 0; i < m_Players.size(); ++i)
@@ -1071,7 +1071,7 @@ private:
 		for (std::map<std::string, ICmpPathfinder::pass_class_t>::iterator it = classes.begin(); it != classes.end(); ++it)
 			scriptInterface.SetProperty(classesVal, it->first.c_str(), it->second, true);
 
-		scriptInterface.SetProperty(state.get(), "passabilityClasses", (JS::HandleValue)classesVal, true);
+		scriptInterface.SetProperty(state.get(), "passabilityClasses", classesVal, true);
 	}
 
 	CAIWorker m_Worker;

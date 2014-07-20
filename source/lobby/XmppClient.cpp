@@ -494,7 +494,7 @@ CScriptValRooted XmppClient::GUIGetPlayerList(ScriptInterface& scriptInterface)
 		scriptInterface.SetProperty(player, "presence", wstring_from_utf8(it->second[0]));
 		scriptInterface.SetProperty(player, "rating", wstring_from_utf8(it->second[1]));
 		scriptInterface.SetProperty(player, "role", wstring_from_utf8(it->second[2]));
-		scriptInterface.CallFunctionVoid(playerList, "push", (JS::HandleValue)player);
+		scriptInterface.CallFunctionVoid(playerList, "push", player);
 	}
 
 	return CScriptValRooted(cx, playerList);
@@ -522,7 +522,7 @@ CScriptValRooted XmppClient::GUIGetGameList(ScriptInterface& scriptInterface)
 		for (short i = 0; i < stats_length; i++)
 			scriptInterface.SetProperty(game, stats[i], wstring_from_utf8((*it)->findAttribute(stats[i]).to_string()));
 
-		scriptInterface.CallFunctionVoid(gameList, "push", (JS::HandleValue)game);
+		scriptInterface.CallFunctionVoid(gameList, "push", game);
 	}
 
 	return CScriptValRooted(cx, gameList);
@@ -550,7 +550,7 @@ CScriptValRooted XmppClient::GUIGetBoardList(ScriptInterface& scriptInterface)
 		for (short i = 0; i < attributes_length; i++)
 			scriptInterface.SetProperty(board, attributes[i], wstring_from_utf8((*it)->findAttribute(attributes[i]).to_string()));
 
-		scriptInterface.CallFunctionVoid(boardList, "push", (JS::HandleValue)board);
+		scriptInterface.CallFunctionVoid(boardList, "push", board);
 	}
 
 	return CScriptValRooted(cx, boardList);

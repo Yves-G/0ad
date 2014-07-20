@@ -141,7 +141,7 @@ void CGUIManager::PopPageCB(shared_ptr<ScriptInterface::StructuredClone> args)
 	JS::RootedValue argVal(cx);
 	if (args)
 		scriptInterface->ReadStructuredClone(args, &argVal);
-	if (!scriptInterface->CallFunctionVoid(scriptInterface->GetGlobalObject(), callback.c_str(), (JS::HandleValue)argVal))
+	if (!scriptInterface->CallFunctionVoid(scriptInterface->GetGlobalObject(), callback.c_str(), argVal))
 	{
 		LOGERROR(L"Failed to call the callback function %hs in the page %ls", callback.c_str(), m_PageStack.back().name.c_str());
 		return;
@@ -240,8 +240,8 @@ void CGUIManager::LoadPage(SGUIPage& page)
 	if (!scriptInterface->CallFunctionVoid(
 			scriptInterface->GetGlobalObject(), 
 			"init", 
-			(JS::HandleValue)initDataVal, 
-			(JS::HandleValue)hotloadDataVal)
+			initDataVal, 
+			hotloadDataVal)
 		)
 	{
 		LOGERROR(L"GUI page '%ls': Failed to call init() function", page.name.c_str());

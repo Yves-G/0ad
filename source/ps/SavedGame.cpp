@@ -102,8 +102,8 @@ Status SavedGames::Save(const std::wstring& name, const std::wstring& descriptio
 	simulation.GetScriptInterface().SetProperty(cameraMetadata, "RotX", g_Game->GetView()->GetCameraRotX());
 	simulation.GetScriptInterface().SetProperty(cameraMetadata, "RotY", g_Game->GetView()->GetCameraRotY());
 	simulation.GetScriptInterface().SetProperty(cameraMetadata, "Zoom", g_Game->GetView()->GetCameraZoom());
-	simulation.GetScriptInterface().SetProperty(guiMetadata, "camera", (JS::HandleValue)cameraMetadata);
-	simulation.GetScriptInterface().SetProperty(metadata, "gui", (JS::HandleValue)guiMetadata);
+	simulation.GetScriptInterface().SetProperty(guiMetadata, "camera", cameraMetadata);
+	simulation.GetScriptInterface().SetProperty(metadata, "gui", guiMetadata);
 
 	simulation.GetScriptInterface().SetProperty(metadata, "description", description);
 	
@@ -238,7 +238,7 @@ std::vector<CScriptValRooted> SavedGames::GetSavedGames(ScriptInterface& scriptI
 		JS::RootedValue game(cx);
 		scriptInterface.Eval("({})", &game);
 		scriptInterface.SetProperty(game, "id", pathnames[i].Basename());
-		scriptInterface.SetProperty(game, "metadata", (JS::HandleValue)metadata);
+		scriptInterface.SetProperty(game, "metadata", metadata);
 		games.push_back(CScriptValRooted(cx, game));
 	}
 

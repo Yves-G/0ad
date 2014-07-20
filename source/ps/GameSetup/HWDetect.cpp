@@ -89,7 +89,7 @@ CScriptVal ConvertCaches(ScriptInterface& scriptInterface, x86_x64::IdxCache idx
 		scriptInterface.SetProperty(cache, "linesize", (u32)pcache->entrySize);
 		scriptInterface.SetProperty(cache, "sharedby", (u32)pcache->sharedBy);
 		scriptInterface.SetProperty(cache, "totalsize", (u32)pcache->TotalSize());
-		scriptInterface.SetPropertyInt(ret, idxLevel, (JS::HandleValue)cache);
+		scriptInterface.SetPropertyInt(ret, idxLevel, cache);
 	}
 	return CScriptVal(ret);
 }
@@ -113,7 +113,7 @@ CScriptVal ConvertTLBs(ScriptInterface& scriptInterface)
 		scriptInterface.SetProperty(tlb, "associativity", (u32)ptlb->associativity);
 		scriptInterface.SetProperty(tlb, "pagesize", (u32)ptlb->entrySize);
 		scriptInterface.SetProperty(tlb, "entries", (u32)ptlb->numEntries);
-		scriptInterface.SetPropertyInt(ret, i, (JS::HandleValue)tlb);
+		scriptInterface.SetPropertyInt(ret, i, tlb);
 	}
 	return CScriptVal(ret);
 }
@@ -324,7 +324,7 @@ void RunHardwareDetection()
 
 	// Run the detection script:
 
-	scriptInterface.CallFunctionVoid(scriptInterface.GetGlobalObject(), "RunHardwareDetection", (JS::HandleValue)settings);
+	scriptInterface.CallFunctionVoid(scriptInterface.GetGlobalObject(), "RunHardwareDetection", settings);
 }
 
 static void ReportGLLimits(ScriptInterface& scriptInterface, JS::HandleValue settings)

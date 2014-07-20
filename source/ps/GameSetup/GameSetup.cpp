@@ -1228,7 +1228,7 @@ bool Autostart(const CmdLineArgs& args)
 			// We could load player_defaults.json here, but that would complicate the logic
 			//	even more and autostart is only intended for developers anyway
 			scriptInterface.SetProperty(player, "Civ", std::string("athen"));
-			scriptInterface.SetPropertyInt(playerData.get(), i, (JS::HandleValue)player);
+			scriptInterface.SetPropertyInt(playerData.get(), i, player);
 		}
 		mapType = "random";
 	}
@@ -1292,7 +1292,7 @@ bool Autostart(const CmdLineArgs& args)
 
 			scriptInterface.SetProperty(player, "AI", std::string(name));
 			scriptInterface.SetProperty(player, "AIDiff", 2);
-			scriptInterface.SetPropertyInt(playerData.get(), playerID-1, (JS::HandleValue)player);
+			scriptInterface.SetPropertyInt(playerData.get(), playerID-1, player);
 		}
 	}
 	// Set AI difficulty
@@ -1312,7 +1312,7 @@ bool Autostart(const CmdLineArgs& args)
 			int difficulty = civArgs[i].AfterFirst(":").ToInt();
 			
 			scriptInterface.SetProperty(player, "AIDiff", difficulty);
-			scriptInterface.SetPropertyInt(playerData, playerID-1, (JS::HandleValue)player);
+			scriptInterface.SetPropertyInt(playerData, playerID-1, player);
 		}
 	}
 	// Set player data for Civs
@@ -1332,19 +1332,19 @@ bool Autostart(const CmdLineArgs& args)
 			CStr name = civArgs[i].AfterFirst(":");
 			
 			scriptInterface.SetProperty(player, "Civ", std::string(name));
-			scriptInterface.SetPropertyInt(playerData.get(), playerID-1, (JS::HandleValue)player);
+			scriptInterface.SetPropertyInt(playerData.get(), playerID-1, player);
 		}
 	}
 
 	// Add player data to map settings
-	scriptInterface.SetProperty(settings, "PlayerData", (JS::HandleValue)playerData);
+	scriptInterface.SetProperty(settings, "PlayerData", playerData);
 
 	// Add map settings to game attributes
-	scriptInterface.SetProperty(attrs, "settings", (JS::HandleValue)settings);
+	scriptInterface.SetProperty(attrs, "settings", settings);
 
 	JS::RootedValue mpInitData(cx);
 	scriptInterface.Eval("({isNetworked:true, playerAssignments:{}})", &mpInitData);
-	scriptInterface.SetProperty(mpInitData.get(), "attribs", (JS::HandleValue)attrs);
+	scriptInterface.SetProperty(mpInitData.get(), "attribs", attrs);
 
 	// Get optional playername
 	CStrW userName = L"anonymous";

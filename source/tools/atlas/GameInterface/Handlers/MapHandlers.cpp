@@ -97,7 +97,7 @@ QUERYHANDLER(GenerateMap)
 	scriptInterface.Eval("({})", &attrs);
 	scriptInterface.SetProperty(attrs, "mapType", std::string("random"));
 	scriptInterface.SetProperty(attrs, "script", std::wstring(*msg->filename));
-	scriptInterface.SetProperty(attrs, "settings", (JS::HandleValue)settings, false);
+	scriptInterface.SetProperty(attrs, "settings", settings, false);
 
 	try
 	{
