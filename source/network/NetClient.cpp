@@ -210,7 +210,7 @@ void CNetClient::PostPlayerAssignmentsToScript()
 	GetScriptInterface().Eval("({'type':'players', 'hosts':{}})", &msg);
 
 	JS::RootedValue hosts(cx);
-	GetScriptInterface().GetPropertyJS(msg, "hosts", &hosts);
+	GetScriptInterface().GetProperty(msg, "hosts", &hosts);
 
 	for (PlayerAssignmentMap::iterator it = m_PlayerAssignments.begin(); it != m_PlayerAssignments.end(); ++it)
 	{

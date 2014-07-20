@@ -214,18 +214,13 @@ public:
 	bool GetProperty(jsval obj, const char* name, T& out);
 	
 	/**
-	 * This function is used for JS::MutableHandleValue type.
-	 * If we use JS::RootedValue with the GetProperty function template, it will generate a specialization for the type
-	 * JS::RootedValue*, but JS::MutableHandleValue needs to be used in this case.
-	 * Check the SpiderMonkey rooting guide for details.
-	 *
-	 * We could consider using boost::disable_if to disable the JS::RootedValue* specialization and using a 
-	 * non-templated overload of GetProperty. It needs to be non-templated because we need implicit conversion, which does
-	 * not work with templates. Not using templates makes it harder to support other types for T in JS::MutableHandle<T>.
-	 * As long as we don't have a better solution for this problem and the similiar problem with JS::HandleValue, 
-	 * CallFunction and CallFunctionVoid, it's probably better to stick to this less fancy approach.
+	 * Get the named property of the given object.
+	 * This version is for taking JS::MutableHandle<T> out parameters. It actually takes JS::Rooted<T>* and converts it to
+	 * JS::MutableHandle<T> in the function body because implicit conversion is not supported for templates (but that
+	 * should not make a difference for users).
 	 */
-	bool GetPropertyJS(jsval obj, const char* name, JS::MutableHandleValue out);
+	template<typename T>
+	bool GetProperty(jsval obj, const char* name, JS::Rooted<T>* out);
 
 	/**
 	 * Get the integer-named property on the given object.
@@ -234,10 +229,12 @@ public:
 	bool GetPropertyInt(jsval obj, int name, T& out);
 	
 	/**
-	 * Get the integer-named property on the given object as JS::MutableHandleValue.
-	 * Check the comment for GetPropertyJS for information about why we have this extra function.
+	 * Get the integer-named property on the given object.
+	 * This version is for taking JS::MutableHandle<T> out parameters. Check the comment for GetProperty for 
+	 * background information
 	 */
-	bool GetPropertyIntJS(jsval obj, int name, JS::MutableHandleValue out);
+	template<typename T>
+	bool GetPropertyInt(jsval obj, int name, JS::Rooted<T>* out);
 
 	/**
 	 * Check the named property has been defined on the given object.
@@ -538,6 +535,15 @@ bool ScriptInterface::GetProperty(jsval obj, const char* name, T& out)
 }
 
 template<typename T>
+bool ScriptInterface::GetProperty(jsval obj, const char* name, JS::Rooted<T>* out)
+{
+	JS::MutableHandle<T> handleOut(out);
+	if (! GetProperty_(obj, name, handleOut))
+		return false;
+	return true;
+}
+
+template<typename T>
 bool ScriptInterface::GetPropertyInt(jsval obj, int name, T& out)
 {
 	JSAutoRequest rq(GetContext());
@@ -545,6 +551,15 @@ bool ScriptInterface::GetPropertyInt(jsval obj, int name, T& out)
 	if (! GetPropertyInt_(obj, name, &val))
 		return false;
 	return FromJSVal(GetContext(), val, out);
+}
+
+template<typename T>
+bool ScriptInterface::GetPropertyInt(jsval obj, int name, JS::Rooted<T>* out)
+{
+	JS::MutableHandle<T> handleOut(out);
+	if (! GetPropertyInt_(obj, name, handleOut))
+		return false;
+	return true;
 }
 
 template<typename CHAR>

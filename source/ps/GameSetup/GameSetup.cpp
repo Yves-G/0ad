@@ -1186,7 +1186,7 @@ bool Autostart(const CmdLineArgs& args)
 		// Random map definition will be loaded from JSON file, so we need to parse it
 		std::wstring scriptPath = L"maps/" + autoStartName.FromUTF8() + L".json";
 		CScriptValRooted scriptData = scriptInterface.ReadJSONFile(scriptPath);
-		if (!scriptData.undefined() && scriptInterface.GetPropertyJS(scriptData.get(), "settings", &settings))
+		if (!scriptData.undefined() && scriptInterface.GetProperty(scriptData.get(), "settings", &settings))
 		{
 			// JSON loaded ok - copy script name over to game attributes
 			std::wstring scriptFile;
@@ -1260,7 +1260,7 @@ bool Autostart(const CmdLineArgs& args)
 		// ...and initialize the playerData array being edited by
 		// autostart-civ et.al. with the real map data, so sensible values
 		// are always present:
-		scriptInterface.GetPropertyJS(settings, "PlayerData", &playerData);
+		scriptInterface.GetProperty(settings, "PlayerData", &playerData);
 		mapType = "skirmish";
 	}
 	if (mapType.empty())
@@ -1282,7 +1282,7 @@ bool Autostart(const CmdLineArgs& args)
 		{
 			// Instead of overwriting existing player data, modify the array
 			JS::RootedValue player(cx);
-			if (!scriptInterface.GetPropertyIntJS(playerData.get(), i, &player) || player.isUndefined())
+			if (!scriptInterface.GetPropertyInt(playerData.get(), i, &player) || player.isUndefined())
 			{
 				scriptInterface.Eval("({})", &player);
 			}
@@ -1303,7 +1303,7 @@ bool Autostart(const CmdLineArgs& args)
 		{
 			// Instead of overwriting existing player data, modify the array
 			JS::RootedValue player(cx);
-			if (!scriptInterface.GetPropertyIntJS(playerData.get(), i, &player) || player.isUndefined())
+			if (!scriptInterface.GetPropertyInt(playerData.get(), i, &player) || player.isUndefined())
 			{
 				scriptInterface.Eval("({})", &player);
 			}
@@ -1323,7 +1323,7 @@ bool Autostart(const CmdLineArgs& args)
 		{
 			// Instead of overwriting existing player data, modify the array
 			JS::RootedValue player(cx);
-			if (!scriptInterface.GetPropertyIntJS(playerData.get(), i, &player) || player.isUndefined())
+			if (!scriptInterface.GetPropertyInt(playerData.get(), i, &player) || player.isUndefined())
 			{
 				scriptInterface.Eval("({})", &player);
 			}
