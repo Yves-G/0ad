@@ -250,6 +250,7 @@ public:
 	bool Eval(const char* code);
 
 	template<typename CHAR> bool Eval(const CHAR* code, JS::MutableHandleValue out);
+	template<typename CHAR, typename T> bool Eval(const CHAR* code, T& out);
 
 	std::wstring ToString(jsval obj, bool pretty = false);
 
@@ -569,5 +570,15 @@ bool ScriptInterface::Eval(const CHAR* code, JS::MutableHandleValue ret)
 		return false;
 	return true;
 }
+
+template<typename CHAR, typename T>
+bool ScriptInterface::Eval(const CHAR* code, T& ret)
+ {
+	JSAutoRequest rq(GetContext());
+	JS::RootedValue rval(GetContext());
+	if (! Eval_(code, &rval))
+		return false;
+	return FromJSVal(GetContext(), rval, ret);
+ }
 
 #endif // INCLUDED_SCRIPTINTERFACE
