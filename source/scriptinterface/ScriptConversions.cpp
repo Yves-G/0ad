@@ -304,20 +304,9 @@ template<> void ScriptInterface::ToJSVal<CScriptVal>(JSContext* UNUSED(cx), JS::
 	ret.set(val.get());
 }
 
-template<> void ScriptInterface::ToJSVal<JS::HandleValue>(JSContext* UNUSED(cx), JS::MutableHandleValue ret, const JS::HandleValue& val)
-{
-	ret.set(val);
-}
-
-
 template<> void ScriptInterface::ToJSVal<CScriptValRooted>(JSContext* UNUSED(cx), JS::MutableHandleValue ret, const CScriptValRooted& val)
 {
 	ret.set(val.get());
-}
-
-template<> void ScriptInterface::ToJSVal<JS::Value>(JSContext* UNUSED(cx), JS::MutableHandleValue ret, const JS::Value& val)
-{
-	ret.set(val);
 }
 
 template<> void ScriptInterface::ToJSVal<std::wstring>(JSContext* cx, JS::MutableHandleValue ret, const std::wstring& val)

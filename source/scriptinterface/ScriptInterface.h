@@ -215,12 +215,21 @@ public:
 	
 	/**
 	 * Get the named property of the given object.
-	 * This version is for taking JS::MutableHandle<T> out parameters. It actually takes JS::Rooted<T>* and converts it to
-	 * JS::MutableHandle<T> in the function body because implicit conversion is not supported for templates (but that
-	 * should not make a difference for users).
+	 * This overload takes JS::Rooted<T>* and converts it to JS::MutableHandle<T> in the function body because implicit 
+	 * conversion is not supported for templates. 
+	 * It's used in the case where a JS::Rooted<T> gets created inside the same function and then passed to GetProperty as
+	 * |out| using the & operator.
 	 */
 	template<typename T>
 	bool GetProperty(jsval obj, const char* name, JS::Rooted<T>* out);
+	
+	/**
+	 * Get the named property of the given object.
+	 * This overload gets used in the case when you don't need conversion from a JS::Rooted<T>* and pass JS::MutableHandle<T> 
+	 * to GetProperty as |out| parameter directly (usually when you get it as a function parameter).
+	 */
+	template<typename T>
+	bool GetProperty(jsval obj, const char* name, JS::MutableHandle<T> out);
 
 	/**
 	 * Get the integer-named property on the given object.
@@ -235,6 +244,14 @@ public:
 	 */
 	template<typename T>
 	bool GetPropertyInt(jsval obj, int name, JS::Rooted<T>* out);
+	
+	/**
+	 * Get the named property of the given object.
+	 * This overload gets used in the case when you don't need conversion from a JS::Rooted<T>* and pass JS::MutableHandle<T> 
+	 * to GetPropertyInt as |out| parameter directly (usually when you get it as a function parameter).
+	 */
+	template<typename T>
+	bool GetPropertyInt(jsval obj, int name, JS::MutableHandle<T> out);
 
 	/**
 	 * Check the named property has been defined on the given object.
@@ -376,8 +393,6 @@ public:
 
 	shared_ptr<StructuredClone> WriteStructuredClone(jsval v);
 	void ReadStructuredClone(const shared_ptr<StructuredClone>& ptr, JS::MutableHandleValue ret);
-
-private:
 	
 	/**
 	 * Converts |a| if needed and assigns it to |handle|.
@@ -389,6 +404,8 @@ private:
 	 */
 	template <typename T> 
 	void AssignOrToJSVal(JS::MutableHandleValue handle, const T& a);
+
+private:
 	
 	bool CallFunction_(JS::HandleValue val, const char* name, JS::HandleValueArray argv, JS::MutableHandleValue ret);
 	bool Eval_(const char* code, JS::MutableHandleValue ret);
@@ -445,6 +462,18 @@ inline void ScriptInterface::AssignOrToJSVal(JS::MutableHandleValue handle, cons
 
 template <> 
 inline void ScriptInterface::AssignOrToJSVal<JS::RootedValue>(JS::MutableHandleValue handle, const JS::RootedValue& a)
+{
+	handle.set(a);
+}
+
+template <> 
+inline void ScriptInterface::AssignOrToJSVal<JS::HandleValue>(JS::MutableHandleValue handle, const JS::HandleValue& a)
+{
+	handle.set(a);
+}
+
+template <> 
+inline void ScriptInterface::AssignOrToJSVal<JS::Value>(JS::MutableHandleValue handle, const JS::Value& a)
 {
 	handle.set(a);
 }
@@ -545,6 +574,14 @@ bool ScriptInterface::GetProperty(jsval obj, const char* name, JS::Rooted<T>* ou
 }
 
 template<typename T>
+bool ScriptInterface::GetProperty(jsval obj, const char* name, JS::MutableHandle<T> out)
+{
+	if (! GetProperty_(obj, name, out))
+		return false;
+	return true;
+}
+
+template<typename T>
 bool ScriptInterface::GetPropertyInt(jsval obj, int name, T& out)
 {
 	JSAutoRequest rq(GetContext());
@@ -559,6 +596,14 @@ bool ScriptInterface::GetPropertyInt(jsval obj, int name, JS::Rooted<T>* out)
 {
 	JS::MutableHandle<T> handleOut(out);
 	if (! GetPropertyInt_(obj, name, handleOut))
+		return false;
+	return true;
+}
+
+template<typename T>
+bool ScriptInterface::GetPropertyInt(jsval obj, int name, JS::MutableHandle<T> out)
+{
+	if (! GetPropertyInt_(obj, name, out))
 		return false;
 	return true;
 }
