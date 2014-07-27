@@ -406,7 +406,13 @@ m.Template = m.Class({
 	buffHeal: function() {
 		if (!this.get("GarrisonHolder"))
 			return undefined;
-		return this.get("GarrisonHolder/BuffHeal");
+		return +this.get("GarrisonHolder/BuffHeal");
+	},
+
+	promotion: function() {
+		if (!this.get("Promotion"))
+			return undefined;
+		return this.get("Promotion/Entity");
 	},
 	
 	/**
@@ -567,11 +573,12 @@ m.Entity = m.Class({
 	
 	// TODO  understand why we have sometimes rounding problems with maxHitpoints ? making wrongly isHurt=true
 	// problem seems to be with hele civs (i.e. spart)
-	hitpoints: function() {if (this._entity.hitpoints !== undefined) return this._entity.hitpoints; return undefined; },
+	hitpoints: function() { if (this._entity.hitpoints !== undefined) return this._entity.hitpoints; return undefined; },
 	isHurt: function() { return (this.hitpoints() + 1) < this.maxHitpoints(); },
 	healthLevel: function() { return (this.hitpoints() / this.maxHitpoints()); },
 	needsHeal: function() { return this.isHurt() && this.isHealable(); },
 	needsRepair: function() { return this.isHurt() && this.isRepairable(); },
+	decaying: function() { if (this._entity.decaying !== undefined) return this._entity.decaying; return undefined; },
 
 	/**
 	 * Returns the current training queue state, of the form
@@ -829,7 +836,7 @@ m.Entity = m.Class({
 		return this;
 	},
 
-	train: function(type, count, metadata)
+	train: function(type, count, metadata, promotedTypes)
 	{
 		var trainable = this.trainableEntities();
 		if (!trainable)
@@ -848,7 +855,8 @@ m.Entity = m.Class({
 			"entities": [this.id()],
 			"template": type,
 			"count": count,
-			"metadata": metadata
+			"metadata": metadata,
+			"promoted": promotedTypes
 		});
 		return this;
 	},

@@ -1,4 +1,4 @@
-/* Copyright (C) 2013 Wildfire Games.
+/* Copyright (C) 2014 Wildfire Games.
  * This file is part of 0 A.D.
  *
  * 0 A.D. is free software: you can redistribute it and/or modify
@@ -101,6 +101,7 @@ public:
 
 	static bool LoadDefaultScripts(CComponentManager& componentManager, std::set<VfsPath>* loadedScripts);
 	static bool LoadScripts(CComponentManager& componentManager, std::set<VfsPath>* loadedScripts, const VfsPath& path);
+	static bool LoadTriggerScripts(CComponentManager& componentManager, JS::HandleValue mapSettings);
 	Status ReloadChangedFile(const VfsPath& path);
 
 	static Status ReloadChangedFileCB(void* param, const VfsPath& path)
@@ -183,8 +184,26 @@ bool CSimulation2Impl::LoadScripts(CComponentManager& componentManager, std::set
 		if (loadedScripts)
 			loadedScripts->insert(filename);
 		LOGMESSAGE(L"Loading simulation script '%ls'", filename.string().c_str());
-		if (! componentManager.LoadScript(filename))
+		if (!componentManager.LoadScript(filename))
 			ok = false;
+	}
+	return ok;
+}
+
+bool CSimulation2Impl::LoadTriggerScripts(CComponentManager& componentManager, JS::HandleValue mapSettings)
+{
+	bool ok = true;
+	if (componentManager.GetScriptInterface().HasProperty(mapSettings, "TriggerScripts"))
+	{
+		std::vector<std::string> scriptNames;
+		componentManager.GetScriptInterface().GetProperty(mapSettings, "TriggerScripts", scriptNames);
+		for (u32 i = 0; i < scriptNames.size(); ++i)
+		{
+			std::string scriptName = "maps/" + scriptNames[i];
+			LOGMESSAGE(L"Loading trigger script '%hs'", scriptName.c_str());
+			if (!componentManager.LoadScript(scriptName.data()))
+				ok = false;
+		}
 	}
 	return ok;
 }
@@ -335,27 +354,44 @@ void CSimulation2Impl::Update(int turnLength, const std::vector<SimulationComman
 		ENSURE(LoadDefaultScripts(secondaryComponentManager, NULL));
 		ResetComponentState(secondaryComponentManager, false, false);
 
+		// Load the trigger scripts after we have loaded the simulation.
+		{
+			JSContext* cx = secondaryComponentManager.GetScriptInterface().GetContext();
+			JSAutoRequest rq(cx);
+			JS::RootedValue mapSettingsCloned(cx, secondaryComponentManager.GetScriptInterface().CloneValueFromOtherContext(m_ComponentManager.GetScriptInterface(), m_MapSettings.get()));
+			ENSURE(LoadTriggerScripts(secondaryComponentManager, mapSettingsCloned));
+		}
+
 		// Load the map into the secondary simulation
 
 		LDR_BeginRegistering();
 		CMapReader* mapReader = new CMapReader; // automatically deletes itself
 
-		// TODO: this duplicates CWorld::RegisterInit and could probably be cleaned up a bit
-		std::string mapType;
-		m_ComponentManager.GetScriptInterface().GetProperty(m_InitAttributes.get(), "mapType", mapType);
-		if (mapType == "random")
+		// These braces limit the scope of rq and cx (mainly because we're working with different contexts here).
+		// TODO: Check after the upgrade to SpiderMonkey ESR31 if m_InitAtrributes can be made a PersistentRooted<T>
+		// and check if we even need a request in this case.
 		{
-			// TODO: support random map scripts
-			debug_warn(L"Serialization test mode only supports scenarios");
-		}
-		else
-		{
-			std::wstring mapFile;
-			m_ComponentManager.GetScriptInterface().GetProperty(m_InitAttributes.get(), "map", mapFile);
+			// TODO: this duplicates CWorld::RegisterInit and could probably be cleaned up a bit
+			JSContext* cx = m_ComponentManager.GetScriptInterface().GetContext();
+			JSAutoRequest rq(cx);
+			
+			std::string mapType;
+			JS::RootedValue tmpInitAttributes(cx, m_InitAttributes.get()); // TODO: Check if this temporary root can be removed after SpiderMonkey 31 upgrade 
+			m_ComponentManager.GetScriptInterface().GetProperty(tmpInitAttributes, "mapType", mapType);
+			if (mapType == "random")
+			{
+				// TODO: support random map scripts
+				debug_warn(L"Serialization test mode only supports scenarios");
+			}
+			else
+			{
+				std::wstring mapFile;
+				m_ComponentManager.GetScriptInterface().GetProperty(tmpInitAttributes, "map", mapFile);
 
-			VfsPath mapfilename = VfsPath(mapFile).ChangeExtension(L".pmp");
-			mapReader->LoadMap(mapfilename, CScriptValRooted(), &secondaryTerrain, NULL, NULL, NULL, NULL, NULL, NULL,
-				NULL, NULL, &secondaryContext, INVALID_PLAYER, true); // throws exception on failure
+				VfsPath mapfilename = VfsPath(mapFile).ChangeExtension(L".pmp");
+				mapReader->LoadMap(mapfilename, CScriptValRooted(), &secondaryTerrain, NULL, NULL, NULL, NULL, NULL, NULL,
+					NULL, NULL, &secondaryContext, INVALID_PLAYER, true); // throws exception on failure
+			}
 		}
 		LDR_EndRegistering();
 		ENSURE(LDR_NonprogressiveLoad() == INFO::OK);
@@ -697,24 +733,19 @@ void CSimulation2::LoadPlayerSettings(bool newPlayers)
 
 void CSimulation2::LoadMapSettings()
 {
+	JSContext* cx = GetScriptInterface().GetContext();
+	JSAutoRequest rq(cx);
+	
+	JS::RootedValue tmpMapSettings(cx, m->m_MapSettings.get()); // TODO: Check if this temporary root can be removed after SpiderMonkey 31 upgrade
+	
 	// Initialize here instead of in Update()
-	GetScriptInterface().CallFunctionVoid(GetScriptInterface().GetGlobalObject(), "LoadMapSettings", m->m_MapSettings);
+	GetScriptInterface().CallFunctionVoid(GetScriptInterface().GetGlobalObject(), "LoadMapSettings", tmpMapSettings);
 
 	if (!m->m_StartupScript.empty())
 		GetScriptInterface().LoadScript(L"map startup script", m->m_StartupScript);
-	
-	// Load the trigger script after we have loaded the simulation and the map.
-	if (GetScriptInterface().HasProperty(m->m_MapSettings.get(), "TriggerScripts"))
-	{
-		std::vector<std::string> scriptNames;
-		GetScriptInterface().GetProperty(m->m_MapSettings.get(), "TriggerScripts", scriptNames);
-		for (u32 i = 0; i < scriptNames.size(); i++)
-		{
-			std::string scriptName = "maps/" + scriptNames[i];
-			LOGMESSAGE(L"Loading trigger script '%hs'", scriptName.c_str());
-			m->m_ComponentManager.LoadScript(scriptName.data());
-		}
-	}
+
+	// Load the trigger scripts after we have loaded the simulation and the map.
+	m->LoadTriggerScripts(m->m_ComponentManager, tmpMapSettings);
 }
 
 int CSimulation2::ProgressiveLoad()
@@ -869,12 +900,14 @@ std::string CSimulation2::ReadJSON(VfsPath path)
 std::string CSimulation2::GetAIData()
 {
 	ScriptInterface& scriptInterface = GetScriptInterface();
+	JSContext* cx = scriptInterface.GetContext();
+	JSAutoRequest rq(cx);
 	std::vector<CScriptValRooted> aiData = ICmpAIManager::GetAIs(scriptInterface);
 	
 	// Build single JSON string with array of AI data
-	CScriptValRooted ais;
-	if (!scriptInterface.Eval("({})", ais) || !scriptInterface.SetProperty(ais.get(), "AIData", aiData))
+	JS::RootedValue ais(cx);
+	if (!scriptInterface.Eval("({})", &ais) || !scriptInterface.SetProperty(ais, "AIData", aiData))
 		return std::string();
 	
-	return scriptInterface.StringifyJSON(ais.get());
+	return scriptInterface.StringifyJSON(ais);
 }

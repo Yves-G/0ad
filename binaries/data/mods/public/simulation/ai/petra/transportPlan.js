@@ -39,10 +39,10 @@ m.TransportPlan = function(gameState, units, startIndex, endIndex, endPos)
 	{
 		this.failed = true;
 		if (this.debug > 0)
-			warn("transport plan with bad path: startIndex " + startIndex + " endIndex " + endIndex);
+			API3.warn("transport plan with bad path: startIndex " + startIndex + " endIndex " + endIndex);
 		return false;
 	}
-	
+
 	this.units = gameState.getOwnUnits().filter(API3.Filters.byMetadata(PlayerID, "transport", this.ID));
 	this.units.registerUpdates();
 
@@ -50,10 +50,11 @@ m.TransportPlan = function(gameState, units, startIndex, endIndex, endPos)
 	{
 		ent.setMetadata(PlayerID, "transport", this.ID);
 		ent.setMetadata(PlayerID, "endPos", endPos);
+		this.units.updateEnt(ent);
 	}
 
 	if (this.debug > 0)
-		warn("Starting a new transport plan with ID " +  this.ID + " to index " + endIndex
+		API3.warn("Starting a new transport plan with ID " +  this.ID + " to index " + endIndex
 			+ " with units length " + units.length);
 
 	this.ships = gameState.ai.HQ.navalManager.ships.filter(API3.Filters.byMetadata(PlayerID, "transporter", this.ID));
@@ -76,13 +77,14 @@ m.TransportPlan.prototype.countFreeSlots = function()
 	var self = this;
 	var slots = 0;
 	this.transportShips.forEach(function (ship) { slots += self.countFreeSlotsOnShip(ship); });
+	return slots;
 };
 
 m.TransportPlan.prototype.countFreeSlotsOnShip = function(ship)
 {
-	var occupied = ship.garrisoned().length
+	var occupied = ship._entity.garrisoned.length
 		+ this.units.filter(API3.Filters.byMetadata(PlayerID, "onBoard", ship.id())).length;
-	return ship.garrisonMax() - occupied;
+	return (ship.garrisonMax() - occupied);
 };
 
 m.TransportPlan.prototype.assignUnitToShip = function(gameState, ent)
@@ -117,9 +119,45 @@ m.TransportPlan.prototype.assignUnitToShip = function(gameState, ent)
 		gameState.ai.HQ.navalManager.splitTransport(gameState, this);
 };
 
-m.TransportPlan.prototype.assignShip = function(ship)
+m.TransportPlan.prototype.assignShip = function(gameState)
 {
-	ship.setMetadata(PlayerID, "transporter", this.ID);
+	var distmin = Math.min();
+	var nearest = undefined;
+	var pos = undefined;
+	// choose a unit of this plan not yet assigned to a ship
+	this.units.forEach(function (ent) {
+		if (pos || ent.getMetadata(PlayerID, "onBoard") !== undefined || !ent.position())
+			return;
+		pos = ent.position();
+	});
+	// and choose the nearest available ship from this unit
+	for each (var ship in gameState.ai.HQ.navalManager.seaTransportShips[this.sea]._entities)
+	{
+		if (ship.getMetadata(PlayerID, "transporter"))
+			continue;
+		if (pos)
+		{
+			var dist = API3.SquareVectorDistance(pos, ship.position());
+			if (dist > distmin)
+				continue;
+			distmin = dist;
+			nearest = ship;
+		}
+		else
+		{
+			nearest = ship;
+			break;
+		}
+	}
+	if (nearest)
+	{
+		nearest.setMetadata(PlayerID, "transporter", this.ID);
+		this.ships.updateEnt(nearest);
+		this.transportShips.updateEnt(nearest);
+		this.needTransportShips = false;
+		return true;
+	}
+	return false;
 };
 
 // add a unit to this plan
@@ -127,6 +165,7 @@ m.TransportPlan.prototype.addUnit = function(unit, endPos)
 {
 	unit.setMetadata(PlayerID, "transport", this.ID);
 	unit.setMetadata(PlayerID, "endPos", endPos);
+	this.units.updateEnt(unit);
 };
 
 m.TransportPlan.prototype.releaseAll = function()
@@ -235,7 +274,7 @@ m.TransportPlan.prototype.onBoarding = function(gameState)
 					{
 						self.nTry[shipId] = 0;
 						if (self.debug > 0)
-							warn(shipId + " new attempt for a landing point ");
+							API3.warn(shipId + " new attempt for a landing point ");
 						self.boardingPos[shipId] = self.getBoardingPos(gameState, self.startIndex, self.sea, undefined, false);
 					}
 					ship.move(self.boardingPos[shipId][0], self.boardingPos[shipId][1]);
@@ -257,7 +296,7 @@ m.TransportPlan.prototype.onBoarding = function(gameState)
 							if (self.nTry[ent.id()] > 5)
 							{
 								if (self.debug > 0)
-									warn("unit blocked, but no ways out of the trap ... destroy it");
+									API3.warn("unit blocked, but no ways out of the trap ... destroy it");
 								ent.destroy();
 								return;
 							}
@@ -317,7 +356,7 @@ m.TransportPlan.prototype.getBoardingPos = function(gameState, landIndex, seaInd
 {
 	if (!gameState.ai.HQ.navalManager.landingZones[landIndex][seaIndex])
 	{
-		warn(" >>> no landing zone for land " + landIndex + " and sea " + seaIndex);
+		API3.warn(" >>> no landing zone for land " + landIndex + " and sea " + seaIndex);
 		return destination;
 	}
 
@@ -370,7 +409,7 @@ m.TransportPlan.prototype.onSailing = function(gameState)
 			continue;
 		}
 		if (gameState.ai.HQ.Config.debug > 0)
-			warn(">>> reloading failed ... <<<");
+			API3.warn(">>> reloading failed ... <<<");
 		// destroy the unit if inaccessible otherwise leave it 
 		var index = gameState.ai.accessibility.getAccessValue(ent.position());
 		if (gameState.ai.HQ.allowedRegions[index])
@@ -379,12 +418,12 @@ m.TransportPlan.prototype.onSailing = function(gameState)
 			ent.setMetadata(PlayerID, "onBoard", undefined);
 			ent.setMetadata(PlayerID, "endPos", undefined);
 			if (gameState.ai.HQ.Config.debug > 0)
-				warn("recovered entity kept " + ent.id());
+				API3.warn("recovered entity kept " + ent.id());
 		}
 		else
 		{
 			if (gameState.ai.HQ.Config.debug > 0)
-				warn("recovered entity destroyed " + ent.id());
+				API3.warn("recovered entity destroyed " + ent.id());
 			ent.destroy();
 		}
 	}
@@ -406,13 +445,13 @@ m.TransportPlan.prototype.onSailing = function(gameState)
 					ent.setMetadata(PlayerID, "onBoard", "onBoard");
 				else
 				{
-					warn("Petra transportPlan problem: unit not on ship without position ???");
+					API3.warn("Petra transportPlan problem: unit not on ship without position ???");
 					ent.destroy();
 				}
 			}
 			else
 			{
-				warn("Petra transportPlan problem: unit on ship, but no ship ???");
+				API3.warn("Petra transportPlan problem: unit on ship, but no ship ???");
 				ent.destroy();
 			}
 		}
@@ -420,7 +459,7 @@ m.TransportPlan.prototype.onSailing = function(gameState)
 		{
 			// unit unloaded on a wrong region - try to regarrison it and move a bit the ship
 			if (gameState.ai.HQ.Config.debug > 0)
-				warn(">>> unit unloaded on a wrong region ! try to garrison it again <<<");
+				API3.warn(">>> unit unloaded on a wrong region ! try to garrison it again <<<");
 			var ship = gameState.getEntityById(ent.getMetadata(PlayerID, "onBoard"));
 			if (ship && !this.canceled)
 			{
@@ -432,7 +471,7 @@ m.TransportPlan.prototype.onSailing = function(gameState)
 			else
 			{
 				if (gameState.ai.HQ.Config.debug > 0)
-					warn("no way ... we destroy it");
+					API3.warn("no way ... we destroy it");
 				ent.destroy();
 			}
 		}
@@ -497,7 +536,7 @@ m.TransportPlan.prototype.onSailing = function(gameState)
 			{
 				self.nTry[shipId] = 0;
 				if (self.debug > 0)
-					warn(shipId + " new attempt for a landing point ");
+					API3.warn(shipId + " new attempt for a landing point ");
 				self.boardingPos[shipId] = self.getBoardingPos(gameState, self.endIndex, self.sea, undefined, true);
 			}
 			ship.move(self.boardingPos[shipId][0], self.boardingPos[shipId][1]);

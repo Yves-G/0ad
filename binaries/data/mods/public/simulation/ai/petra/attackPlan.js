@@ -74,7 +74,7 @@ m.AttackPlan = function(gameState, Config, uniqueID, type, data)
 	// note: siege build order is currently added by the military manager if a fortress is there.
 	this.unitStat = {};
 
-	// neededShips is the minimal number of ships which should be availabe for transport
+	// neededShips is the minimal number of ships which should be available for transport
 	if (type === "Rush")
 	{
 		priority = 250;
@@ -158,6 +158,7 @@ m.AttackPlan = function(gameState, Config, uniqueID, type, data)
 	
 	// each array is [ratio, [associated classes], associated EntityColl, associated unitStat, name ]
 	this.buildOrder = [];
+	this.canBuildUnits = gameState.ai.HQ.canBuildUnits;
 	
 	// defining the entity collections. Will look for units I own, that are part of this plan.
 	// Also defining the buildOrders.
@@ -167,7 +168,8 @@ m.AttackPlan = function(gameState, Config, uniqueID, type, data)
 		var filter = API3.Filters.and(API3.Filters.byClassesAnd(Unit["classes"]), API3.Filters.byMetadata(PlayerID, "plan",this.name));
 		this.unit[cat] = gameState.getOwnUnits().filter(filter);
 		this.unit[cat].registerUpdates();
-		this.buildOrder.push([0, Unit["classes"], this.unit[cat], Unit, cat]);
+		if (this.canBuildUnits)
+			this.buildOrder.push([0, Unit["classes"], this.unit[cat], Unit, cat]);
 	}
 	
 	// some variables for during the attack
@@ -268,6 +270,9 @@ m.AttackPlan.prototype.getEnemyPlayer = function(gameState)
 // Basically it checks we have enough units.
 m.AttackPlan.prototype.canStart = function(gameState)
 {	
+	if (!this.canBuildUnits)
+		return true;
+
 	for (var unitCat in this.unitStat)
 	{
 		var Unit = this.unitStat[unitCat];
@@ -281,6 +286,10 @@ m.AttackPlan.prototype.mustStart = function(gameState)
 {
 	if (this.isPaused() || this.path === undefined)
 		return false;
+
+	if (!this.canBuildUnits)
+		return true;
+
 	var MaxReachedEverywhere = true;
 	var MinReachedEverywhere = true;
 	for (var unitCat in this.unitStat)
@@ -370,7 +379,7 @@ m.AttackPlan.prototype.updatePreparation = function(gameState, events)
 			// may-be all our previous enemey targets have been destroyed ?
 			this.targetPlayer = this.getEnemyPlayer(gameState);
 			if (this.Config.debug > 0)
-				warn(" === no more target for enemy player " + oldTargetPlayer + " let us switch against player " + this.targetPlayer);
+				API3.warn(" === no more target for enemy player " + oldTargetPlayer + " let us switch against player " + this.targetPlayer);
 			this.target = this.getNearestTarget(gameState, this.rallyPoint);
 		}
 		if (!this.target)
@@ -438,9 +447,7 @@ m.AttackPlan.prototype.updatePreparation = function(gameState, events)
 	if (this.overseas && !gameState.ai.HQ.navalManager.seaTransportShips.length)
 		return 1;
 
-	// if we add units to this plan, wait next turn for the collections to be updated
-	if (this.assignUnits(gameState))
-		return 1;
+	this.assignUnits(gameState);
 
 	// special case: if we've reached max pop, and we can start the plan, start it.
 	if (gameState.getPopulationMax() - gameState.getPopulation() < 10)
@@ -456,11 +463,11 @@ m.AttackPlan.prototype.updatePreparation = function(gameState, events)
 			if (this.Config.debug > 0)
 			{
 				var am = gameState.ai.HQ.attackManager;
-				warn(" attacks upcoming: raid " + am.upcomingAttacks["Raid"].length
+				API3.warn(" attacks upcoming: raid " + am.upcomingAttacks["Raid"].length
 					+ " rush " + am.upcomingAttacks["Rush"].length
 					+ " attack " + am.upcomingAttacks["Attack"].length
 					+ " huge " + am.upcomingAttacks["HugeAttack"].length);
-				warn(" attacks started: raid " + am.startedAttacks["Raid"].length
+				API3.warn(" attacks started: raid " + am.startedAttacks["Raid"].length
 					+ " rush " + am.startedAttacks["Rush"].length
 					+ " attack " + am.startedAttacks["Attack"].length
 					+ " huge " + am.startedAttacks["HugeAttack"].length);
@@ -478,11 +485,14 @@ m.AttackPlan.prototype.updatePreparation = function(gameState, events)
 	}
 	else if (!this.mustStart(gameState))
 	{
-		// We still have time left to recruit units and do stuffs.
-		this.trainMoreUnits(gameState);
-		// may happen if we have no more training facilities and build orders are canceled
-		if (this.buildOrder.length === 0)
-			return 0;	// will abort the plan
+		if (this.canBuildUnits)
+		{
+			// We still have time left to recruit units and do stuffs.
+			this.trainMoreUnits(gameState);
+			// may happen if we have no more training facilities and build orders are canceled
+			if (this.buildOrder.length === 0)
+				return 0;	// will abort the plan
+		}
 		return 1;
 	}
 
@@ -550,8 +560,8 @@ m.AttackPlan.prototype.trainMoreUnits = function(gameState)
 
 	if (this.Config.debug > 0 && gameState.ai.playedTurn%50 === 0)
 	{
-		warn("====================================");
-		warn("======== build order for plan " + this.name);
+		API3.warn("====================================");
+		API3.warn("======== build order for plan " + this.name);
 		for (var order of this.buildOrder)
 		{
 			var specialData = "Plan_"+this.name+"_"+order[4];
@@ -559,10 +569,10 @@ m.AttackPlan.prototype.trainMoreUnits = function(gameState)
 			var queue1 = this.queue.countQueuedUnitsWithMetadata("special", specialData);
 			var queue2 = this.queueChamp.countQueuedUnitsWithMetadata("special", specialData);
 			var queue3 = this.queueSiege.countQueuedUnitsWithMetadata("special", specialData);
-			warn(" >>> " + order[4] + " done " + order[2].length + " training " + inTraining
+			API3.warn(" >>> " + order[4] + " done " + order[2].length + " training " + inTraining
 				+ " queue " + queue1 + " champ " + queue2 + " siege " + queue3 + " >> need " + order[3].targetSize); 
 		}
-		warn("====================================");
+		API3.warn("====================================");
 	}
 
 	if (this.buildOrder[0][0] < this.buildOrder[0][3]["targetSize"])
@@ -583,14 +593,14 @@ m.AttackPlan.prototype.trainMoreUnits = function(gameState)
 			if (template === undefined)
 			{
 				if (this.Config.debug > 0)
-					warn("attack no template found " + this.buildOrder[0][1]);
+					API3.warn("attack no template found " + this.buildOrder[0][1]);
 				delete this.unitStat[this.buildOrder[0][4]];	// deleting the associated unitstat.
 				this.buildOrder.splice(0,1);
 			}
 			else
 			{
 				if (this.Config.debug > 1)
-					warn("attack template " + template + " added for plan " + this.name);
+					API3.warn("attack template " + template + " added for plan " + this.name);
 				var max = this.buildOrder[0][3]["batchSize"];
 				var specialData = "Plan_" + this.name + "_" + this.buildOrder[0][4];
 				if (gameState.getTemplate(template).hasClass("CitizenSoldier"))
@@ -600,7 +610,7 @@ m.AttackPlan.prototype.trainMoreUnits = function(gameState)
 				if (trainingPlan.template)
 					queue.addItem(trainingPlan);
 				else if (this.Config.debug > 0)
-					warn("training plan canceled because no template for " + template + "   build1 " + uneval(this.buildOrder[0][1])
+					API3.warn("training plan canceled because no template for " + template + "   build1 " + uneval(this.buildOrder[0][1])
 						+ " build3 " + uneval(this.buildOrder[0][3]["interests"]));
 			}
 		}
@@ -611,14 +621,32 @@ m.AttackPlan.prototype.assignUnits = function(gameState)
 {
 	var plan = this.name;
 	var added = false;
+	var self = this;
+	// If we can not build units, assign all available except those affcted to allied defnse to the current attack
+	if (!this.canBuildUnits)
+	{
+		gameState.getOwnUnits().forEach(function(ent) {
+			if (!ent.position())
+				return;
+			if (ent.getMetadata(PlayerID, "plan") !== undefined && ent.getMetadata(PlayerID, "plan") !== -1)
+				return;
+			if (ent.getMetadata(PlayerID, "transport") !== undefined || ent.getMetadata(PlayerID, "transporter") !== undefined)
+				return;
+			if (ent.getMetadata(PlayerID, "allied"))
+				return;
+			ent.setMetadata(PlayerID, "plan", plan);
+			self.unitCollection.updateEnt(ent);
+			added = true; 
+		});
+		return added;
+	}
 
 	// TODO: assign myself units that fit only, right now I'm getting anything.
 	// Assign all no-roles that fit (after a plan aborts, for example).
 	if (this.type === "Raid")
 	{
-		var candidates = gameState.getOwnUnits().filter(API3.Filters.byClass("Cavalry"));
 		var num = 0;
-		candidates.forEach(function(ent) {
+		gameState.getOwnUnits().filter(API3.Filters.byClass("Cavalry")).forEach(function(ent) {
 			if (!ent.position())
 				return;
 			if (ent.getMetadata(PlayerID, "plan") !== undefined && ent.getMetadata(PlayerID, "plan") !== -1)
@@ -628,6 +656,7 @@ m.AttackPlan.prototype.assignUnits = function(gameState)
 			if (num++ < 2)
 				return;
 			ent.setMetadata(PlayerID, "plan", plan);
+			self.unitCollection.updateEnt(ent);
 			added = true;
 		});
 		return added;
@@ -644,6 +673,7 @@ m.AttackPlan.prototype.assignUnits = function(gameState)
 		if (ent.hasClass("Ship") || ent.hasClass("Support") || ent.attackTypes() === undefined)
 			return;
 		ent.setMetadata(PlayerID, "plan", plan);
+		self.unitCollection.updateEnt(ent);
 		added = true;
 	});
 	// Add units previously in a plan, but which left it because needed for defense or attack finished
@@ -653,6 +683,7 @@ m.AttackPlan.prototype.assignUnits = function(gameState)
 		if (ent.getMetadata(PlayerID, "transport") !== undefined || ent.getMetadata(PlayerID, "transporter") !== undefined)
 			return;
 		ent.setMetadata(PlayerID, "plan", plan);
+		self.unitCollection.updateEnt(ent);
 		added = true;
 	});
 
@@ -674,6 +705,7 @@ m.AttackPlan.prototype.assignUnits = function(gameState)
 		if (num++ < 9)
 			return;
 		ent.setMetadata(PlayerID, "plan", plan);
+		self.unitCollection.updateEnt(ent);
 		added = true;
 	});
 	return added;
@@ -886,7 +918,7 @@ m.AttackPlan.prototype.setRallyPoint = function(gameState)
 m.AttackPlan.prototype.StartAttack = function(gameState)
 {
 	if (this.Config.debug)
-		warn("start attack " + this.name + " with type " + this.type);
+		API3.warn("start attack " + this.name + " with type " + this.type);
 
 	if (!this.target || !gameState.getEntityById(this.target.id()))  // our target was destroyed during our preparation
 	{
@@ -941,7 +973,7 @@ m.AttackPlan.prototype.StartAttack = function(gameState)
 			if (!this.path[0][0][0] || !this.path[0][0][1])
 			{
 				if (this.Config.debug > 0)
-					warn("StartAttack: Problem with path " + uneval(this.path));
+					API3.warn("StartAttack: Problem with path " + uneval(this.path));
 				return false;
 			}
 			this.state = "walking";
@@ -1058,16 +1090,14 @@ m.AttackPlan.prototype.update = function(gameState, events)
 		if (API3.SquareVectorDistance(this.position, this.position5TurnsAgo) < 10 && this.path.length > 0 && gameState.ai.playedTurn % 5 === 0)
 		{
 			// check for stuck siege units
-			var sieges = this.unitCollection.filter(API3.Filters.byClass("Siege"));
 			var farthest = 0;
 			var farthestEnt = -1;
-			sieges.forEach (function (ent) {
+			this.unitCollection.filter(API3.Filters.byClass("Siege")).forEach (function (ent) {
 				var dist = API3.SquareVectorDistance(ent.position(), self.position);
-				if (dist > farthest)
-				{
-					farthest = dist;
-					farthestEnt = ent;
-				}
+				if (dist < farthest)
+					return;
+				farthest = dist;
+				farthestEnt = ent;
 			});
 			if (farthestEnt !== -1)
 				farthestEnt.destroy();
@@ -1078,12 +1108,10 @@ m.AttackPlan.prototype.update = function(gameState, events)
 		if (this.lastPosition && API3.SquareVectorDistance(this.position, this.lastPosition) < 20 && this.path.length > 0)
 		{
 			if (!this.path[0][0][0] || !this.path[0][0][1])
-				warn("Start: Problem with path " + uneval(this.path));
-			this.unitCollection.moveIndiv(this.path[0][0][0], this.path[0][0][1]);
+				API3.warn("Start: Problem with path " + uneval(this.path));
 			// We're stuck, presumably. Check if there are no walls just close to us. If so, we're arrived, and we're gonna tear down some serious stone.
-			var walls = gameState.getEnemyEntities().filter(API3.Filters.and(API3.Filters.byOwner(this.targetPlayer), API3.Filters.byClass("StoneWall")));
 			var nexttoWalls = false;
-			walls.forEach( function (ent) {
+			gameState.getEnemyEntities().filter(API3.Filters.byClass("StoneWall")).forEach( function (ent) {
 				if (!nexttoWalls && API3.SquareVectorDistance(self.position, ent.position()) < 800)
 					nexttoWalls = true;
 			});
@@ -1091,61 +1119,41 @@ m.AttackPlan.prototype.update = function(gameState, events)
 			if (nexttoWalls && this.unitCollection.filter(API3.Filters.byCanAttack("StoneWall")).length !== 0)
 			{
 				if (this.Config.debug > 0)
-					warn("Attack Plan " +this.type +" " +this.name +" has met walls and is not happy.");
+					API3.warn("Attack Plan " + this.type + " " + this.name + " has met walls and is not happy.");
 				this.state = "arrived";
 			}
 			else if (nexttoWalls)	// abort plan
 			{
 				if (this.Config.debug > 0)
-					warn("Attack Plan " +this.type +" " +this.name +" has met walls and gives up.");
+					API3.warn("Attack Plan " + this.type + " " + this.name + " has met walls and gives up.");
 				Engine.ProfileStop();
 				return 0;
 			}
+			else
+				//this.unitCollection.move(this.path[0][0][0], this.path[0][0][1]);
+				this.unitCollection.moveIndiv(this.path[0][0][0], this.path[0][0][1]);
 		}
+	}
 
-		// check if our land units are close enough from the next waypoint.
-		if (API3.SquareVectorDistance(this.position, this.targetPos) < 9000 ||
-			API3.SquareVectorDistance(this.position, this.path[0][0]) < 650)
+	// check if our units are close enough from the next waypoint.
+	if (this.state === "walking")
+	{
+		if (API3.SquareVectorDistance(this.position, this.targetPos) < 10000)
 		{
-			if (this.unitCollection.filter(API3.Filters.byClass("Siege")).length !== 0
-				&& API3.SquareVectorDistance(this.position, this.targetPos) >= 9000
-				&& API3.SquareVectorDistance(this.unitCollection.filter(API3.Filters.byClass("Siege")).getCentrePosition(), this.path[0][0]) >= 650)
-			{
-			}
+			if (this.Config.debug > 0)
+				API3.warn("Attack Plan " + this.type + " " + this.name + " has arrived to destination.");
+			this.state = "arrived";
+		}
+		else if (this.path.length && API3.SquareVectorDistance(this.position, this.path[0][0]) < 1600)
+		{
+			this.path.shift();
+			if (this.path.length)
+				this.unitCollection.move(this.path[0][0][0], this.path[0][0][1]);
 			else
 			{
-				// okay so here basically two cases. First case is "we've arrived"
-				// Second case is "either we need a boat, or we need to unload"
-				if (this.path[0][1] !== true)
-				{
-					this.path.shift();
-					if (this.path.length > 0)
-						this.unitCollection.move(this.path[0][0][0], this.path[0][0][1]);
-					else
-					{
-						if (this.Config.debug > 0)
-							warn("Attack Plan " +this.type +" " +this.name +" has arrived to destination.");
-						// we must assume we've arrived at the end of the trail.
-						this.state = "arrived";
-					}
-				}
-				else
-				{
-					this.path.shift();
-					if (this.path.length === 0)
-					{
-						if (this.Config.debug)
-							warn("Attack Plan " +this.type +" " +this.name +" has arrived to destination.");
-						// we must assume we've arrived at the end of the trail.
-						this.state = "arrived";
-					}
-					else
-					{
-						//right now we'll abort.
-						Engine.ProfileStop();
-						return 0;
-					}
-				}
+				if (this.Config.debug > 0)
+					API3.warn("Attack Plan " + this.type + " " + this.name + " has arrived to destination.");
+				this.state = "arrived";
 			}
 		}
 	}
@@ -1224,7 +1232,6 @@ m.AttackPlan.prototype.update = function(gameState, events)
 			var lgth = this.unitCollUpdateArray.length;
 		else
 			var lgth = 10;
-		this.startingAttack = false;
 		for (var check = 0; check < lgth; check++)
 		{
 			var ent = gameState.getEntityById(this.unitCollUpdateArray[check]);
@@ -1339,10 +1346,10 @@ m.AttackPlan.prototype.update = function(gameState, events)
 					else
 					{
 						var rand = Math.floor(Math.random() * mStruct.length * 0.2);
-						ent.attack(mStruct[+rand].id());
+						ent.attack(mStruct[rand].id());
 					}
 				}
-				else if (API3.SquareVectorDistance(self.targetPos, ent.position()) > 900)
+				else
 					ent.attackMove(self.targetPos[0], self.targetPos[1]);
 			}
 			else
@@ -1369,7 +1376,7 @@ m.AttackPlan.prototype.update = function(gameState, events)
 					ent.attack(mUnit[rand].id());
 				}
 				else if (API3.SquareVectorDistance(self.targetPos, ent.position()) > 2500 )
-					ent.attackMove(self.targetPos[0],self.targetPos[1]);
+					ent.attackMove(self.targetPos[0], self.targetPos[1]);
 				else if (mStruct.length !== 0)
 				{
 					mStruct.sort(function (structa,structb) {
@@ -1396,17 +1403,18 @@ m.AttackPlan.prototype.update = function(gameState, events)
 			}
 		}
 		this.unitCollUpdateArray.splice(0, lgth);
+		this.startingAttack = false;
 
 		// updating targets.
 		if (!this.target || !gameState.getEntityById(this.target.id()))
 		{
 			if (this.Config.debug > 0)
-				warn("Seems like our target has been destroyed. Switching.");
+				API3.warn("Seems like our target has been destroyed. Switching.");
 			this.target = this.getNearestTarget(gameState, this.position, true);
 			if (!this.target)
 			{
 				if (this.Config.debug > 0)
-					warn("No new target found. Remaining units " + this.unitCollection.length);
+					API3.warn("No new target found. Remaining units " + this.unitCollection.length);
 				Engine.ProfileStop();
 				return false;
 			}
@@ -1428,21 +1436,23 @@ m.AttackPlan.prototype.Abort = function(gameState)
 {
 	// Do not use QuickIter with forEach when forEach removes elements
 	this.unitCollection.preventQuickIter();
-	// If the attack was started, and we are on the same land as the rallyPoint, go back there
-	var rallyPoint = this.rallyPoint;
-	var planIndex = gameState.ai.accessibility.getAccessValue(this.position);
-	var withdrawal = (this.isStarted() && !this.overseas);
-	this.unitCollection.forEach(function(ent) {
-		ent.stopMoving();
-		if (withdrawal)
-			ent.move(rallyPoint[0], rallyPoint[1]);
-		if (ent.hasClass("CitizenSoldier") && ent.getMetadata(PlayerID, "role") !== "worker")
-		{
-			ent.setMetadata(PlayerID, "role", "worker");
-			ent.setMetadata(PlayerID, "subrole", undefined);
-		}
-		ent.setMetadata(PlayerID, "plan", -1);
-	});
+	if (this.unitCollection.length)
+	{
+		// If the attack was started, and we are on the same land as the rallyPoint, go back there
+		var rallyPoint = this.rallyPoint;
+		var withdrawal = (this.isStarted() && !this.overseas);
+		this.unitCollection.forEach(function(ent) {
+			ent.stopMoving();
+			if (withdrawal)
+				ent.move(rallyPoint[0], rallyPoint[1]);
+			if (ent.hasClass("CitizenSoldier") && ent.getMetadata(PlayerID, "role") !== "worker")
+			{
+				ent.setMetadata(PlayerID, "role", "worker");
+				ent.setMetadata(PlayerID, "subrole", undefined);
+			}
+			ent.setMetadata(PlayerID, "plan", -1);
+		});
+	}
 
 	for (var unitCat in this.unitStat) {
 		delete this.unitStat[unitCat];
@@ -1504,13 +1514,13 @@ m.AttackPlan.prototype.isSiegeUnit = function(gameState, ent)
 
 m.AttackPlan.prototype.debugAttack = function()
 {
-	warn("---------- attack " + this.name);
+	API3.warn("---------- attack " + this.name);
 	for (var unitCat in this.unitStat)
 	{
 		var Unit = this.unitStat[unitCat];
-		warn(unitCat + " num=" + this.unit[unitCat].length + " min=" + Unit["minSize"] + " need=" + Unit["targetSize"]);
+		API3.warn(unitCat + " num=" + this.unit[unitCat].length + " min=" + Unit["minSize"] + " need=" + Unit["targetSize"]);
 	}
-	warn("------------------------------");
+	API3.warn("------------------------------");
 };
 
 return m;
