@@ -104,7 +104,7 @@ Status SavedGames::Save(const std::wstring& name, const std::wstring& descriptio
 	simulation.GetScriptInterface().SetProperty(cameraMetadata, "Zoom", g_Game->GetView()->GetCameraZoom());
 	simulation.GetScriptInterface().SetProperty(guiMetadata, "camera", cameraMetadata);
 	simulation.GetScriptInterface().SetProperty(metadata, "gui", guiMetadata);
-
+	
 	simulation.GetScriptInterface().SetProperty(metadata, "description", description);
 	
 	std::string metadataString = simulation.GetScriptInterface().StringifyJSON(metadata, true);
@@ -199,7 +199,7 @@ std::vector<CScriptValRooted> SavedGames::GetSavedGames(ScriptInterface& scriptI
 	TIMER(L"GetSavedGames");
 	JSContext* cx = scriptInterface.GetContext();
 	JSAutoRequest rq(cx);
-
+	
 	std::vector<CScriptValRooted> games;
 
 	Status err;

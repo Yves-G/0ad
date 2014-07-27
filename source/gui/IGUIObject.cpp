@@ -482,7 +482,7 @@ void IGUIObject::ScriptEvent(const CStr& Action)
 	m_pGUI->GetScriptInterface()->SetProperty(mouse, "buttons", m_pGUI->m_MouseButtons, false);
 
 	JS::AutoValueVector paramData(cx);
-	paramData.append(mouse.get());
+	paramData.append(mouse);
 	JS::RootedObject obj(cx, GetJSObject());
 	JS::RootedValue handlerVal(cx, (*it).second.get());
 	JS::RootedValue result(cx);

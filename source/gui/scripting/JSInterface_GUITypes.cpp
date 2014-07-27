@@ -182,7 +182,7 @@ bool JSI_GUIColor::construct(JSContext* cx, uint argc, jsval* vp)
 	
 	ScriptInterface* pScriptInterface = ScriptInterface::GetScriptInterfaceAndCBData(cx)->pScriptInterface;
 	JS::RootedObject obj(cx, pScriptInterface->CreateCustomObject("GUIColor"));
-
+	
 	if (args.length() == 4)
 	{
 		JS_SetProperty(cx, obj, "r", args[0]);

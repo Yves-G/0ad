@@ -511,9 +511,8 @@ namespace
 			m_ScriptInterface.Eval(L"({})", &t);
 			m_ScriptInterface.SetProperty(t, "cols", DumpCols(table));
 			m_ScriptInterface.SetProperty(t, "data", DumpRows(table));
-
-			JS::RootedValue stackRoot(cx, m_Root.get());
-			m_ScriptInterface.SetProperty(stackRoot, table->GetTitle().c_str(), t);
+			
+			m_ScriptInterface.SetProperty(m_Root, table->GetTitle().c_str(), t);
 		}
 
 		std::vector<std::string> DumpCols(AbstractProfileTable* table)
@@ -551,7 +550,7 @@ namespace
 					m_ScriptInterface.SetPropertyInt(row, c, table->GetCellText(r, c));
 			}
 
-			return CScriptVal(data);
+			return data.get();
 		}
 
 	private:
@@ -604,7 +603,7 @@ CScriptVal CProfileViewer::SaveToJS(ScriptInterface& scriptInterface)
 {
 	JSContext* cx = scriptInterface.GetContext();
 	JSAutoRequest rq(cx);
-	
+		
 	JS::RootedValue root(cx);
 	scriptInterface.Eval("({})", &root);
 
@@ -612,7 +611,7 @@ CScriptVal CProfileViewer::SaveToJS(ScriptInterface& scriptInterface)
 	sort(tables.begin(), tables.end(), SortByName);
 	for_each(tables.begin(), tables.end(), DumpTable(scriptInterface, root));
 
-	return CScriptVal(root);
+	return root.get();
 }
 
 void CProfileViewer::ShowTable(const CStr& table)

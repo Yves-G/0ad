@@ -91,7 +91,7 @@ CScriptVal ConvertCaches(ScriptInterface& scriptInterface, x86_x64::IdxCache idx
 		scriptInterface.SetProperty(cache, "totalsize", (u32)pcache->TotalSize());
 		scriptInterface.SetPropertyInt(ret, idxLevel, cache);
 	}
-	return CScriptVal(ret);
+	return ret.get();
 }
 
 CScriptVal ConvertTLBs(ScriptInterface& scriptInterface)
@@ -115,7 +115,7 @@ CScriptVal ConvertTLBs(ScriptInterface& scriptInterface)
 		scriptInterface.SetProperty(tlb, "entries", (u32)ptlb->numEntries);
 		scriptInterface.SetPropertyInt(ret, i, tlb);
 	}
-	return CScriptVal(ret);
+	return ret.get();
 }
 #endif
 
@@ -377,7 +377,7 @@ static void ReportGLLimits(ScriptInterface& scriptInterface, JS::HandleValue set
 	const char* c = (const char*)glGetString(GL_##id); \
 	if (!c) c = ""; \
 	if (ogl_SquelchError(GL_INVALID_ENUM)) c = errstr; \
-	scriptInterface.SetProperty(settings.get(), "GL_" #id, std::string(c)); \
+	scriptInterface.SetProperty(settings, "GL_" #id, std::string(c)); \
 	}  while (false)
 
 #define QUERY(target, pname) do { \

@@ -537,7 +537,7 @@ CScriptValRooted XmppClient::GUIGetBoardList(ScriptInterface& scriptInterface)
 {
 	JSContext* cx = scriptInterface.GetContext();
 	JSAutoRequest rq(cx);
-	
+
 	JS::RootedValue boardList(cx);
 	scriptInterface.Eval("([])", &boardList);
 	for(std::vector<const glooxwrapper::Tag*>::const_iterator it = m_BoardList.begin(); it != m_BoardList.end(); ++it)

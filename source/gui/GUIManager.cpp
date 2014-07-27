@@ -132,7 +132,8 @@ void CGUIManager::PopPageCB(shared_ptr<ScriptInterface::StructuredClone> args)
 		return;
 	}
 	
-	if (!scriptInterface->HasProperty(scriptInterface->GetGlobalObject(), callback.c_str()))
+	JS::RootedValue global(cx, scriptInterface->GetGlobalObject());
+	if (!scriptInterface->HasProperty(global, callback.c_str()))
 	{
 		LOGERROR(L"The specified callback function %hs does not exist in the page %ls", callback.c_str(), m_PageStack.back().name.c_str());
 		return;
@@ -141,7 +142,7 @@ void CGUIManager::PopPageCB(shared_ptr<ScriptInterface::StructuredClone> args)
 	JS::RootedValue argVal(cx);
 	if (args)
 		scriptInterface->ReadStructuredClone(args, &argVal);
-	if (!scriptInterface->CallFunctionVoid(scriptInterface->GetGlobalObject(), callback.c_str(), argVal))
+	if (!scriptInterface->CallFunctionVoid(global, callback.c_str(), argVal))
 	{
 		LOGERROR(L"Failed to call the callback function %hs in the page %ls", callback.c_str(), m_PageStack.back().name.c_str());
 		return;

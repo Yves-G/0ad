@@ -30,7 +30,6 @@
 
 #include "scriptinterface/ScriptInterface.h"
 
-
 JSClass JSI_IGUIObject::JSI_class = {
 	"GUIObject", JSCLASS_HAS_PRIVATE,
 	JS_PropertyStub, JS_DeletePropertyStub,

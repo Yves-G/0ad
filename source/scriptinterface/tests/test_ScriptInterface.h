@@ -135,7 +135,7 @@ public:
 			TS_ASSERT_EQUALS(prop_x1.get(), prop_b.get());
 		}
 	}
-
+	
 	/**
 	 * This test is mainly to make sure that all required template overloads get instantiated at least once so that compiler errors
 	 * in these functions are revealed instantly (but it also tests the basic functionality of these functions).
@@ -203,7 +203,6 @@ public:
 		ScriptInterface::FromJSVal(script.GetContext(), out, nbr);
 		TS_ASSERT_EQUALS(nbr, 4);
 	}
-
 
 	void test_random()
 	{

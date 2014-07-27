@@ -51,7 +51,7 @@ m.NavalManager.prototype.init = function(gameState, queues)
 	this.docks.allowQuickIter();
 	this.docks.registerUpdates();
 	
-	this.ships = gameState.getOwnEntities().filter(API3.Filters.byClass("Ship"));
+	this.ships = gameState.getOwnUnits().filter(API3.Filters.byClass("Ship"));
 	// note: those two can overlap (some transport ships are warships too and vice-versa).
 	this.transportShips = this.ships.filter(API3.Filters.and(API3.Filters.byCanGarrison(), API3.Filters.not(API3.Filters.byClass("FishingBoat"))));
 	this.warShips = this.ships.filter(API3.Filters.byClass("Warship"));
@@ -220,7 +220,7 @@ m.NavalManager.prototype.getDockIndex = function(gameState, dock, onWater)
 		}
 	}
 	if (index < 2)
-		warn("ERROR in Petra navalManager because of dock position (onWater=" + onWater + ") index " + index);
+		API3.warn("ERROR in Petra navalManager because of dock position (onWater=" + onWater + ") index " + index);
 	return index;
 };
 
@@ -276,12 +276,13 @@ m.NavalManager.prototype.addPlan = function(plan)
 
 // complete already existing plan or create a new one for this requirement
 // (many units can then call this separately and end up in the same plan)
+// TODO  check garrison classes
 m.NavalManager.prototype.requireTransport = function(gameState, entity, startIndex, endIndex, endPos)
 {
 	if (entity.getMetadata(PlayerID, "transport") !== undefined)
 	{
 		if (this.Config.debug > 0)
-			warn("Petra naval manager error: unit " + entity.id() +  " has already required a transport");
+			API3.warn("Petra naval manager error: unit " + entity.id() +  " has already required a transport");
 		return false;
 	}
 
@@ -291,8 +292,6 @@ m.NavalManager.prototype.requireTransport = function(gameState, entity, startInd
 			continue
 		if (plan.state !== "boarding")
 			continue
-		if (plan.units.length > 12)   // TODO to be improved  ... check on ship capacity
-			continue;
 		plan.addUnit(entity, endPos);
 		return true;
 	}
@@ -300,7 +299,7 @@ m.NavalManager.prototype.requireTransport = function(gameState, entity, startInd
 	if (plan.failed)
 	{
 		if (this.Config.debug > 0)
-			warn(">>>> transport plan aborted <<<<");
+			API3.warn(">>>> transport plan aborted <<<<");
 		return false;
 	}
 	this.transportPlans.push(plan);
@@ -310,21 +309,25 @@ m.NavalManager.prototype.requireTransport = function(gameState, entity, startInd
 // split a transport plan in two, moving all entities not yet affected to a ship in the new plan
 m.NavalManager.prototype.splitTransport = function(gameState, plan)
 {
+	if (this.Config.debug > 0)
+		API3.warn(">>>> split of transport plan started <<<<");
 	var newplan = new m.TransportPlan(gameState, [], plan.startIndex, plan.endIndex, plan.endPos, false);
 	if (newplan.failed)
 	{
 		if (this.Config.debug > 0)
-			warn(">>>> split of transport plan aborted <<<<");
+			API3.warn(">>>> split of transport plan aborted <<<<");
 		return false;
 	}
 
 	var nbUnits = 0;
 	plan.units.forEach(function (ent) {
-		if (ent.setMetadata(PlayerID, "onBoard"))
+		if (ent.getMetadata(PlayerID, "onBoard"))
 			return;
 		++nbUnits;
 		newplan.addUnit(ent, ent.getMetadata(PlayerID, "endPos"));
 	});
+	if (this.Config.debug > 0)
+		API3.warn(">>>> previous plan left with units " + plan.units.length);
 	if (nbUnits)
 		this.transportPlans.push(newplan);
 	return (nbUnits !== 0);
@@ -408,22 +411,11 @@ m.NavalManager.prototype.maintainFleet = function(gameState, queues)
 };
 
 // assigns free ships to plans that need some
-m.NavalManager.prototype.assignToPlans = function(gameState)
+m.NavalManager.prototype.assignShipsToPlans = function(gameState)
 {
 	for (var plan of this.transportPlans)
-	{
-		if (!plan.needTransportShips)
-			continue;
-
-		for each (var ship in this.seaTransportShips[plan.sea]._entities)
-		{
-			if (ship.getMetadata(PlayerID, "transporter"))
-				continue;
-			plan.assignShip(ship);
-			plan.needTransportShips = false;
-			break;
-		}
-	}
+		if (plan.needTransportShips)
+			plan.assignShip(gameState);
 };
 
 // let blocking ships move apart from active ships (waiting for a better pathfinder)
@@ -563,14 +555,14 @@ m.NavalManager.prototype.update = function(gameState, queues, events)
 		if (remaining === 0)
 		{
 			if (this.Config.debug > 0)
-				warn("no more units on transport plan " + this.transportPlans[i].ID);
+				API3.warn("no more units on transport plan " + this.transportPlans[i].ID);
 			this.transportPlans[i].releaseAll();
 			this.transportPlans.splice(i--, 1);
 		}
 	}
 
 	// assign free ships to plans which need them
-	this.assignToPlans(gameState);
+	this.assignShipsToPlans(gameState);
 	// and require for more ships if needed
 	this.checkLevels(gameState, queues);
 	this.maintainFleet(gameState, queues);

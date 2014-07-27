@@ -128,14 +128,14 @@ QUERYHANDLER(GenerateMap)
 MESSAGEHANDLER(LoadMap)
 {
 	InitGame();
+	
+	ScriptInterface& scriptInterface = g_Game->GetSimulation2()->GetScriptInterface();
+	JSContext* cx = scriptInterface.GetContext();
+	JSAutoRequest rq(cx);
 
 	// Scenario
 	CStrW map = *msg->filename;
 	CStrW mapBase = map.BeforeLast(L".pmp"); // strip the file extension, if any
-
-	ScriptInterface& scriptInterface = g_Game->GetSimulation2()->GetScriptInterface();
-	JSContext* cx = scriptInterface.GetContext();
-	JSAutoRequest rq(cx);
 	
 	JS::RootedValue attrs(cx);
 	scriptInterface.Eval("({})", &attrs);

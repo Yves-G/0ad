@@ -1023,7 +1023,6 @@ void InitGraphics(const CmdLineArgs& args, int flags)
 			shared_ptr<ScriptInterface> scriptInterface = g_GUI->GetScriptInterface();
 			JSContext* cx = scriptInterface->GetContext();
 			JSAutoRequest rq(cx);
-			
 			JS::RootedValue data(cx);
 			if (g_GUI)
 			{
@@ -1185,8 +1184,8 @@ bool Autostart(const CmdLineArgs& args)
 		
 		// Random map definition will be loaded from JSON file, so we need to parse it
 		std::wstring scriptPath = L"maps/" + autoStartName.FromUTF8() + L".json";
-		CScriptValRooted scriptData = scriptInterface.ReadJSONFile(scriptPath);
-		if (!scriptData.undefined() && scriptInterface.GetProperty(scriptData.get(), "settings", &settings))
+		JS::RootedValue scriptData(cx, scriptInterface.ReadJSONFile(scriptPath).get());
+		if (!scriptData.isUndefined() && scriptInterface.GetProperty(scriptData, "settings", &settings))
 		{
 			// JSON loaded ok - copy script name over to game attributes
 			std::wstring scriptFile;
@@ -1208,8 +1207,8 @@ bool Autostart(const CmdLineArgs& args)
 			mapSize = size.ToUInt();
 		}
 
-		scriptInterface.SetProperty(settings, "Seed", seed);									// Random seed
-		scriptInterface.SetProperty(settings, "Size", mapSize);								// Random map size (in patches)
+		scriptInterface.SetProperty(settings, "Seed", seed);		// Random seed
+		scriptInterface.SetProperty(settings, "Size", mapSize);		// Random map size (in patches)
 
 		// Get optional number of players (default 2)
 		size_t numPlayers = 2;
@@ -1228,7 +1227,7 @@ bool Autostart(const CmdLineArgs& args)
 			// We could load player_defaults.json here, but that would complicate the logic
 			//	even more and autostart is only intended for developers anyway
 			scriptInterface.SetProperty(player, "Civ", std::string("athen"));
-			scriptInterface.SetPropertyInt(playerData.get(), i, player);
+			scriptInterface.SetPropertyInt(playerData, i, player);
 		}
 		mapType = "random";
 	}
@@ -1282,7 +1281,7 @@ bool Autostart(const CmdLineArgs& args)
 		{
 			// Instead of overwriting existing player data, modify the array
 			JS::RootedValue player(cx);
-			if (!scriptInterface.GetPropertyInt(playerData.get(), i, &player) || player.isUndefined())
+			if (!scriptInterface.GetPropertyInt(playerData, i, &player) || player.isUndefined())
 			{
 				scriptInterface.Eval("({})", &player);
 			}
@@ -1292,7 +1291,7 @@ bool Autostart(const CmdLineArgs& args)
 
 			scriptInterface.SetProperty(player, "AI", std::string(name));
 			scriptInterface.SetProperty(player, "AIDiff", 2);
-			scriptInterface.SetPropertyInt(playerData.get(), playerID-1, player);
+			scriptInterface.SetPropertyInt(playerData, playerID-1, player);
 		}
 	}
 	// Set AI difficulty
@@ -1303,7 +1302,7 @@ bool Autostart(const CmdLineArgs& args)
 		{
 			// Instead of overwriting existing player data, modify the array
 			JS::RootedValue player(cx);
-			if (!scriptInterface.GetPropertyInt(playerData.get(), i, &player) || player.isUndefined())
+			if (!scriptInterface.GetPropertyInt(playerData, i, &player) || player.isUndefined())
 			{
 				scriptInterface.Eval("({})", &player);
 			}
@@ -1323,7 +1322,7 @@ bool Autostart(const CmdLineArgs& args)
 		{
 			// Instead of overwriting existing player data, modify the array
 			JS::RootedValue player(cx);
-			if (!scriptInterface.GetPropertyInt(playerData.get(), i, &player) || player.isUndefined())
+			if (!scriptInterface.GetPropertyInt(playerData, i, &player) || player.isUndefined())
 			{
 				scriptInterface.Eval("({})", &player);
 			}
@@ -1332,7 +1331,7 @@ bool Autostart(const CmdLineArgs& args)
 			CStr name = civArgs[i].AfterFirst(":");
 			
 			scriptInterface.SetProperty(player, "Civ", std::string(name));
-			scriptInterface.SetPropertyInt(playerData.get(), playerID-1, player);
+			scriptInterface.SetPropertyInt(playerData, playerID-1, player);
 		}
 	}
 
@@ -1344,7 +1343,7 @@ bool Autostart(const CmdLineArgs& args)
 
 	JS::RootedValue mpInitData(cx);
 	scriptInterface.Eval("({isNetworked:true, playerAssignments:{}})", &mpInitData);
-	scriptInterface.SetProperty(mpInitData.get(), "attribs", attrs);
+	scriptInterface.SetProperty(mpInitData, "attribs", attrs);
 
 	// Get optional playername
 	CStrW userName = L"anonymous";
@@ -1408,6 +1407,11 @@ bool Autostart(const CmdLineArgs& args)
 
 void CancelLoad(const CStrW& message)
 {
+	shared_ptr<ScriptInterface> pScriptInterface = g_GUI->GetActiveGUI()->GetScriptInterface();
+	JSContext* cx = pScriptInterface->GetContext();
+	JSAutoRequest rq(cx);
+	
+	JS::RootedValue global(cx, pScriptInterface->GetGlobalObject());
 	// Cancel loader
 	LDR_Cancel();
 
@@ -1415,8 +1419,8 @@ void CancelLoad(const CStrW& message)
 	// So all GUI pages that load games should include this script
 	if (g_GUI && g_GUI->HasPages())
 	{
-		if (g_GUI->GetActiveGUI()->GetScriptInterface()->HasProperty(g_GUI->GetActiveGUI()->GetGlobalObject(), "cancelOnError" ))
-			g_GUI->GetActiveGUI()->GetScriptInterface()->CallFunctionVoid(g_GUI->GetActiveGUI()->GetGlobalObject(), "cancelOnError", message);
+		if (pScriptInterface->HasProperty(global, "cancelOnError" ))
+			pScriptInterface->CallFunctionVoid(global, "cancelOnError", message);
 	}
 }
 

@@ -64,7 +64,8 @@ struct ScriptInterface_NativeMethodWrapper {
 	#define OVERLOADS(z, i, data) \
 		template<TYPENAME_T0_HEAD(z,i)  typename F> \
 		static void call(JSContext* cx, JS::MutableHandleValue rval, TC* c, F fptr  T0_A0(z,i)) { \
-			ScriptInterface::ToJSVal<R>(cx, rval, (c->*fptr)( A0(z,i) )); \
+			ScriptInterface* pScriptInterface = ScriptInterface::GetScriptInterfaceAndCBData(cx)->pScriptInterface; \
+			pScriptInterface->AssignOrToJSVal<R>(rval, (c->*fptr)( A0(z,i) )); \
 		}
 
 	BOOST_PP_REPEAT(SCRIPT_INTERFACE_MAX_ARGS, OVERLOADS, ~)
@@ -204,7 +205,7 @@ BOOST_PP_REPEAT(SCRIPT_INTERFACE_MAX_ARGS, OVERLOADS, ~)
 #undef T0
 #undef T0_HEAD
 #undef T0_TAIL
-#undef T0_A0
 #undef T0_A0_CONST_REF
+#undef T0_A0
 #undef A0
 #undef A0_TAIL

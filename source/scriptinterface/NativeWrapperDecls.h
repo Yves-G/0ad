@@ -105,14 +105,15 @@ BOOST_PP_REPEAT(SCRIPT_INTERFACE_MAX_ARGS, OVERLOADS, ~)
 BOOST_PP_REPEAT(SCRIPT_INTERFACE_MAX_ARGS, OVERLOADS, ~)
 #undef OVERLOADS
 
+// Call the named property on the given object
 #define OVERLOADS(z, i, data) \
 	template <typename R TYPENAME_T0_TAIL(z, i)> \
 	bool CallFunction(jsval val, const char* name, T0_A0_CONST_REF(z,i) R& ret);
 BOOST_PP_REPEAT(SCRIPT_INTERFACE_MAX_ARGS, OVERLOADS, ~)
 #undef OVERLOADS
 
-// Implicit conversion from JS::Rooted<R>* to JS::MutableHandle<R> does not work with template argument deduction 
-// (only exact type matches allowed). We need this overload to allow passing Rooted<R>* using the & operator 
+// Implicit conversion from JS::Rooted<R>* to JS::MutableHandle<R> does not work with template argument deduction
+// (only exact type matches allowed). We need this overload to allow passing Rooted<R>* using the & operator
 // (as people would expect it to work based on the SpiderMonkey rooting guide).
 #define OVERLOADS(z, i, data) \
 	template <typename R TYPENAME_T0_TAIL(z, i)> \
@@ -121,7 +122,7 @@ BOOST_PP_REPEAT(SCRIPT_INTERFACE_MAX_ARGS, OVERLOADS, ~)
 #undef OVERLOADS
 
 // This overload is for the case when a JS::MutableHandle<R> type gets passed into CallFunction directly and
-// without requiring implicit conversion. 
+// without requiring implicit conversion.
 #define OVERLOADS(z, i, data) \
 	template <typename R TYPENAME_T0_TAIL(z, i)> \
 	bool CallFunction(jsval val, const char* name, T0_A0_CONST_REF(z,i) JS::MutableHandle<R> ret);

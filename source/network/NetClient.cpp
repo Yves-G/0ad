@@ -337,7 +337,7 @@ void CNetClient::LoadFinished()
 		ENSURE(ok);
 
 		m_ClientTurnManager->ResetState(turn, turn);
-		
+
 		JS::RootedValue msg(cx);
 		GetScriptInterface().Eval("({'type':'netstatus','status':'join_syncing'})", &msg);
 		PushGuiMessage(CScriptValRooted(cx, msg));
@@ -356,11 +356,11 @@ void CNetClient::LoadFinished()
 }
 
 bool CNetClient::OnConnect(void* context, CFsmEvent* event)
-{	
+{
 	ENSURE(event->GetType() == (uint)NMT_CONNECT_COMPLETE);
 
 	CNetClient* client = (CNetClient*)context;
-	
+
 	JSContext* cx = client->GetScriptInterface().GetContext();
 	JSAutoRequest rq(cx);
 
@@ -406,10 +406,10 @@ bool CNetClient::OnAuthenticate(void* context, CFsmEvent* event)
 	ENSURE(event->GetType() == (uint)NMT_AUTHENTICATE_RESULT);
 
 	CNetClient* client = (CNetClient*)context;
-
+	
 	JSContext* cx = client->GetScriptInterface().GetContext();
 	JSAutoRequest rq(cx);
-	
+
 	CAuthenticateResultMessage* message = (CAuthenticateResultMessage*)event->GetParamRef();
 
 	LOGMESSAGE(L"Net: Authentication result: host=%u, %ls", message->m_HostID, message->m_Message.c_str());

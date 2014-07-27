@@ -77,7 +77,7 @@ public:
 	{
 		JSContext* cx = GetSimContext().GetScriptInterface().GetContext();
 
-		SimulationCommand c = { player, CScriptValRooted(cx, cmd.get()) };
+		SimulationCommand c = { player, CScriptValRooted(cx, cmd) };
 		m_LocalQueue.push_back(c);
 	}
 
