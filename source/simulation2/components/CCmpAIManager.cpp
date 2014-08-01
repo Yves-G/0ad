@@ -180,20 +180,32 @@ private:
 
 		void Run(JS::HandleValue state, int playerID)
 		{
+			JSContext* cx = m_ScriptInterface->GetContext();
+			JSAutoRequest rq(cx);
+			JS::RootedValue tmpObj(cx, m_Obj.get()); // TODO: Check if this temporary root can be removed after SpiderMonkey 31 upgrade			
+			
 			m_Commands.clear();
-			m_ScriptInterface->CallFunctionVoid(m_Obj.get(), "HandleMessage", state, playerID);
+			m_ScriptInterface->CallFunctionVoid(tmpObj, "HandleMessage", state, playerID);
 		}
 		// overloaded with a sharedAI part.
 		// javascript can handle both natively on the same function.
 		void Run(JS::HandleValue state, int playerID, CScriptValRooted SharedAI)
 		{
+			JSContext* cx = m_ScriptInterface->GetContext();
+			JSAutoRequest rq(cx);
+			JS::RootedValue tmpObj(cx, m_Obj.get()); // TODO: Check if this temporary root can be removed after SpiderMonkey 31 upgrade			
+			
 			m_Commands.clear();
-			m_ScriptInterface->CallFunctionVoid(m_Obj.get(), "HandleMessage", state, playerID, SharedAI);
+			m_ScriptInterface->CallFunctionVoid(tmpObj, "HandleMessage", state, playerID, SharedAI);
 		}
 		void InitAI(JS::HandleValue state, CScriptValRooted SharedAI)
 		{
+			JSContext* cx = m_ScriptInterface->GetContext();
+			JSAutoRequest rq(cx);
+			JS::RootedValue tmpObj(cx, m_Obj.get()); // TODO: Check if this temporary root can be removed after SpiderMonkey 31 upgrade			
+			
 			m_Commands.clear();
-			m_ScriptInterface->CallFunctionVoid(m_Obj.get(), "Init", state, m_Player, SharedAI);
+			m_ScriptInterface->CallFunctionVoid(tmpObj, "Init", state, m_Player, SharedAI);
 		}
 
 		CAIWorker& m_Worker;
@@ -459,7 +471,7 @@ public:
 		JS::RootedValue state(cx);
 		m_ScriptInterface->ReadStructuredClone(gameState, &state);
 		
-		JS::RootedValue tmpVal(cx);
+		JS::RootedValue tmpVal(cx); // TODO: Check if this temporary root can be removed after SpiderMonkey 31 upgrade 
 		ScriptInterface::ToJSVal(cx, &tmpVal, passabilityMap);
 		m_PassabilityMapVal = CScriptValRooted(cx, tmpVal.get());
 		
@@ -471,7 +483,9 @@ public:
 			m_ScriptInterface->SetProperty(state, "passabilityMap", m_PassabilityMapVal, true);
 			m_ScriptInterface->SetProperty(state, "territoryMap", m_TerritoryMapVal, true);
 
-			m_ScriptInterface->CallFunctionVoid(m_SharedAIObj.get(), "init", state);
+			JS::RootedValue tmpSharedAIObj(cx, m_SharedAIObj.get()); // TODO: Check if this temporary root can be removed after SpiderMonkey 31 upgrade			
+			
+			m_ScriptInterface->CallFunctionVoid(tmpSharedAIObj, "init", state);
 			
 			for (size_t i = 0; i < m_Players.size(); ++i)
 			{
@@ -597,8 +611,9 @@ public:
 		serializer.Bool("useSharedScript", m_HasSharedComponent);
 		if (m_HasSharedComponent)
 		{
-			CScriptVal sharedData;
-			if (!m_ScriptInterface->CallFunction(m_SharedAIObj.get(), "Serialize", sharedData))
+			JS::RootedValue sharedData(cx);
+			JS::RootedValue tmpSharedAIObj(cx, m_SharedAIObj.get()); // TODO: Check if this temporary root can be removed after SpiderMonkey 31 upgrade
+			if (!m_ScriptInterface->CallFunction(tmpSharedAIObj, "Serialize", &sharedData))
 				LOGERROR(L"AI shared script Serialize call failed");
 			serializer.ScriptVal("sharedData", sharedData);
 		}
@@ -611,11 +626,9 @@ public:
 			serializer.NumberU32_Unbounded("num commands", (u32)m_Players[i]->m_Commands.size());
 			for (size_t j = 0; j < m_Players[i]->m_Commands.size(); ++j)
 			{
-				JSContext* cx = m_ScriptInterface->GetContext();
-				JSAutoRequest rq(cx);
 				JS::RootedValue val(cx);
 				m_ScriptInterface->ReadStructuredClone(m_Players[i]->m_Commands[j], &val);
-				serializer.ScriptVal("command", val.get());
+				serializer.ScriptVal("command", val);
 			}
 
 			JS::RootedValue tmpPlayerObj(cx, m_Players[i]->m_Obj.get()); // TODO: Check if this temporary root can be removed after SpiderMonkey 31 upgrade 
@@ -625,11 +638,11 @@ public:
 				JS::RootedValue scriptData(cx);
 				if (!m_ScriptInterface->CallFunction(tmpPlayerObj, "Serialize", &scriptData))
 					LOGERROR(L"AI script Serialize call failed");
-				serializer.ScriptVal("data", scriptData.get());
+				serializer.ScriptVal("data", scriptData);
 			}
 			else
 			{
-				serializer.ScriptVal("data", tmpPlayerObj.get());
+				serializer.ScriptVal("data", tmpPlayerObj);
 			}
 		}
 	}
@@ -661,9 +674,10 @@ public:
 		TryLoadSharedComponent(false);
 		if (m_HasSharedComponent)
 		{
-			CScriptVal sharedData;
-			deserializer.ScriptVal("sharedData", sharedData);
-			if (!m_ScriptInterface->CallFunctionVoid(m_SharedAIObj.get(), "Deserialize", sharedData))
+			JS::RootedValue sharedData(cx);
+			JS::RootedValue tmpSharedAIObj(cx, m_SharedAIObj.get()); // TODO: Check if this temporary root can be removed after SpiderMonkey 31
+			deserializer.ScriptVal("sharedData", &sharedData);
+			if (!m_ScriptInterface->CallFunctionVoid(tmpSharedAIObj, "Deserialize", sharedData))
 				LOGERROR(L"AI shared script Deserialize call failed");
 		}
 
@@ -683,9 +697,9 @@ public:
 			m_Players.back()->m_Commands.reserve(numCommands);
 			for (size_t j = 0; j < numCommands; ++j)
 			{
-				CScriptVal val;
-				deserializer.ScriptVal("command", val);
-				m_Players.back()->m_Commands.push_back(m_ScriptInterface->WriteStructuredClone(val.get()));
+				JS::RootedValue val(cx);
+				deserializer.ScriptVal("command", &val);
+				m_Players.back()->m_Commands.push_back(m_ScriptInterface->WriteStructuredClone(val));
 			}
 			
 			// TODO: this is yucky but necessary while the AIs are sharing data between contexts;
@@ -698,8 +712,8 @@ public:
 			bool hasCustomDeserialize = m_ScriptInterface->HasProperty(tmpPlayerObj, "Deserialize");
 			if (hasCustomDeserialize)
 			{
-				CScriptVal scriptData;
-				deserializer.ScriptVal("data", scriptData);
+				JS::RootedValue scriptData(cx);
+				deserializer.ScriptVal("data", &scriptData);
 				if (m_Players[i]->m_UseSharedComponent)
 				{
 					if (!m_ScriptInterface->CallFunctionVoid(tmpPlayerObj, "Deserialize", scriptData, m_SharedAIObj))
@@ -712,7 +726,8 @@ public:
 			}
 			else
 			{
-				deserializer.ScriptVal("data", tmpPlayerObj.get());
+				deserializer.ScriptVal("data", &tmpPlayerObj);
+				m_Players.back()->m_Obj = CScriptValRooted(cx, tmpPlayerObj);
 			}
 		}
 	}
@@ -768,7 +783,8 @@ private:
 		if (m_HasSharedComponent)
 		{
 			PROFILE3("AI run shared component");
-			m_ScriptInterface->CallFunctionVoid(m_SharedAIObj.get(), "onUpdate", state);
+			JS::RootedValue tmpSharedAIObj(cx, m_SharedAIObj.get()); // TODO: Check if this temporary root can be removed after SpiderMonkey 31
+			m_ScriptInterface->CallFunctionVoid(tmpSharedAIObj, "onUpdate", state);
 		}
 		
 		for (size_t i = 0; i < m_Players.size(); ++i)

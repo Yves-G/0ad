@@ -981,12 +981,11 @@ JSObject* ScriptInterface::CreateCustomObject(const std::string & typeName)
 	return JS_NewObject(m->m_cx, (*it).second.m_Class, prototype, JS::NullPtr());
 }
 
-bool ScriptInterface::CallFunctionVoid(jsval val, const char* name)
+bool ScriptInterface::CallFunctionVoid(JS::HandleValue val, const char* name)
 {
 	JSAutoRequest rq(m->m_cx);
 	JS::RootedValue jsRet(m->m_cx);
-	JS::RootedValue val1(m->m_cx, val);
-	return CallFunction_(val1, name, JS::HandleValueArray::empty(), &jsRet);
+	return CallFunction_(val, name, JS::HandleValueArray::empty(), &jsRet);
 }
 
 bool ScriptInterface::CallFunction_(JS::HandleValue val, const char* name, JS::HandleValueArray argv, JS::MutableHandleValue ret)
@@ -1399,21 +1398,23 @@ std::string ScriptInterface::StringifyJSON(jsval obj, bool indent)
 std::wstring ScriptInterface::ToString(jsval obj, bool pretty)
 {
 	JSAutoRequest rq(m->m_cx);
-	if (JSVAL_IS_VOID(obj))
+
+	if (obj.isUndefined())
 		return L"(void 0)";
+		
+	JS::RootedValue tmpObj(m->m_cx, obj); // TODO: pass Handle as argument already
 
 	// Try to stringify as JSON if possible
 	// (TODO: this is maybe a bad idea since it'll drop 'undefined' values silently)
 	if (pretty)
 	{
 		StringifierW str;
-		JS::RootedValue obj1(m->m_cx, obj);
 		JS::RootedValue indentVal(m->m_cx, JS::Int32Value(2));
-
+		
 		// Temporary disable the error reporter, so we don't print complaints about cyclic values
 		JSErrorReporter er = JS_SetErrorReporter(m->m_cx, NULL);
 
-		bool ok = JS_Stringify(m->m_cx, &obj1, JS::NullPtr(), indentVal, &StringifierW::callback, &str);
+		bool ok = JS_Stringify(m->m_cx, &tmpObj, JS::NullPtr(), indentVal, &StringifierW::callback, &str);
 
 		// Restore error reporter
 		JS_SetErrorReporter(m->m_cx, er);
@@ -1429,7 +1430,7 @@ std::wstring ScriptInterface::ToString(jsval obj, bool pretty)
 	// so fall back to obj.toSource()
 
 	std::wstring source = L"(error)";
-	CallFunction(obj, "toSource", source);
+	CallFunction(tmpObj, "toSource", source);
 	return source;
 }
 

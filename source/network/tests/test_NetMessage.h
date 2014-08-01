@@ -32,7 +32,6 @@ public:
 		
 		JS::RootedValue val(cx);
 		script.Eval("[4]", &val);
-		
 		CSimulationMessage msg(script, 1, 2, 3, val);
 		TS_ASSERT_STR_EQUALS(msg.ToString(), "CSimulationMessage { m_Client: 1, m_Player: 2, m_Turn: 3, m_Data: [4] }");
 

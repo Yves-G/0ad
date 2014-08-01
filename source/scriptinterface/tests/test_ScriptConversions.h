@@ -41,7 +41,7 @@ class TestScriptConversions : public CxxTest::TestSuite
 		// since they might not be objects. So just use uneval.
 		std::string source;
 		JS::RootedValue global(cx, script.GetGlobalObject());
-		TS_ASSERT(script.CallFunction(global, "uneval", CScriptVal(v1), source));
+		TS_ASSERT(script.CallFunction(global, "uneval", v1, source));
 
 		TS_ASSERT_STR_EQUALS(source, expected);
 	}
@@ -58,7 +58,7 @@ class TestScriptConversions : public CxxTest::TestSuite
 
 		std::string source;
 		JS::RootedValue global(cx, script.GetGlobalObject());
-		TS_ASSERT(script.CallFunction(global, "uneval", CScriptVal(v1), source));
+		TS_ASSERT(script.CallFunction(global, "uneval", v1, source));
 
 		if (expected)
 			TS_ASSERT_STR_EQUALS(source, expected);

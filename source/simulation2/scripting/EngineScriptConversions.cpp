@@ -140,9 +140,8 @@ template<> void ScriptInterface::ToJSVal<CColor>(JSContext* cx, JS::MutableHandl
 template<> bool ScriptInterface::FromJSVal<fixed>(JSContext* cx, JS::HandleValue v, fixed& out)
 {
 	JSAutoRequest rq(cx);
-	JS::RootedValue val(cx, v);
 	double ret;
-	if (!JS::ToNumber(cx, val, &ret))
+	if (!JS::ToNumber(cx, v, &ret))
 		return false;
 	out = fixed::FromDouble(ret);
 	// double can precisely represent the full range of fixed, so this is a non-lossy conversion

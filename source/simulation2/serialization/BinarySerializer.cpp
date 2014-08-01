@@ -60,11 +60,10 @@ CBinarySerializerScriptImpl::CBinarySerializerScriptImpl(ScriptInterface& script
 {
 }
 
-void CBinarySerializerScriptImpl::HandleScriptVal(JS::Value valArg)
+void CBinarySerializerScriptImpl::HandleScriptVal(JS::HandleValue val)
 {
 	JSContext* cx = m_ScriptInterface.GetContext();
 	JSAutoRequest rq(cx);
-	JS::RootedValue val(cx, valArg);
 
 	switch (JS_TypeOfValue(cx, val))
 	{
@@ -184,10 +183,10 @@ void CBinarySerializerScriptImpl::HandleScriptVal(JS::Value valArg)
 						// If serialize is null, so don't serialize anything more
 						if (!serialize.isNull())
 						{
-							CScriptValRooted data;
-							if (!m_ScriptInterface.CallFunction(val, "Serialize", data))
+							JS::RootedValue data(cx);
+							if (!m_ScriptInterface.CallFunction(val, "Serialize", &data))
 								throw PSERROR_Serialize_ScriptError("Prototype Serialize function failed");
-							HandleScriptVal(data.get());
+							HandleScriptVal(data);
 						}
 						break;
 					}
