@@ -150,7 +150,7 @@ public:
 
 		JS::RootedValue attrs(cx);
 		scriptInterface.Eval("({mapType:'scenario',map:'_default',thing:'example'})", &attrs);
-		server.UpdateGameAttributes((CScriptVal)attrs, scriptInterface);
+		server.UpdateGameAttributes(&attrs, scriptInterface);
 
 		CNetClient client1(&client1Game);
 		CNetClient client2(&client2Game);
@@ -215,7 +215,7 @@ public:
 
 		JS::RootedValue attrs(cx);
 		scriptInterface.Eval("({mapType:'scenario',map:'_default',thing:'example'})", &attrs);
-		server.UpdateGameAttributes(attrs.get(), scriptInterface);
+		server.UpdateGameAttributes(&attrs, scriptInterface);
 
 		CNetClient client1(&client1Game);
 		CNetClient client2(&client2Game);

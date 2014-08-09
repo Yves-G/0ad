@@ -334,8 +334,9 @@ bool JSI_IGUIObject::setProperty(JSContext* cx, JS::HandleObject obj, JS::Handle
 			return false;
 		}
 
+		JS::RootedObject vpObj(cx, &vp.toObject());
 		CStr eventName (CStr(propName.substr(2)).LowerCase());
-		e->SetScriptHandler(eventName, &vp.toObject());
+		e->SetScriptHandler(eventName, vpObj);
 
 		return true;
 	}
@@ -627,7 +628,7 @@ bool JSI_IGUIObject::toString(JSContext* cx, uint argc, jsval* vp)
 	JS::CallReceiver rec = JS::CallReceiverFromVp(vp);
 
 	JS::RootedObject thisObj(cx, JS_THIS_OBJECT(cx, vp));
-
+	
 	IGUIObject* e = (IGUIObject*)JS_GetInstancePrivate(cx, thisObj, &JSI_IGUIObject::JSI_class, NULL);
 	if (!e)
 		return false;
@@ -646,7 +647,7 @@ bool JSI_IGUIObject::focus(JSContext* cx, uint argc, jsval* vp)
 	JS::CallReceiver rec = JS::CallReceiverFromVp(vp);
 
 	JS::RootedObject thisObj(cx, JS_THIS_OBJECT(cx, vp));
-
+	
 	IGUIObject* e = (IGUIObject*)JS_GetInstancePrivate(cx, thisObj, &JSI_IGUIObject::JSI_class, NULL);
 	if (!e)
 		return false;
@@ -662,8 +663,9 @@ bool JSI_IGUIObject::blur(JSContext* cx, uint argc, jsval* vp)
 	UNUSED2(argc);
 	JSAutoRequest rq(cx);
 	JS::CallReceiver rec = JS::CallReceiverFromVp(vp);
-	JS::RootedObject thisObj(cx, JS_THIS_OBJECT(cx, vp));
 
+	JS::RootedObject thisObj(cx, JS_THIS_OBJECT(cx, vp));
+ 
 	IGUIObject* e = (IGUIObject*)JS_GetInstancePrivate(cx, thisObj, &JSI_IGUIObject::JSI_class, NULL);
 	if (!e)
 		return false;

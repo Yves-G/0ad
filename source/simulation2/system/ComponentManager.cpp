@@ -708,6 +708,9 @@ void CComponentManager::AddSystemComponents(bool skipScriptedComponents, bool sk
 
 IComponent* CComponentManager::ConstructComponent(CEntityHandle ent, ComponentTypeId cid)
 {
+	JSContext* cx = m_ScriptInterface.GetContext();
+	JSAutoRequest rq(cx);
+	
 	std::map<ComponentTypeId, ComponentType>::const_iterator it = m_ComponentTypesById.find(cid);
 	if (it == m_ComponentTypesById.end())
 	{
@@ -729,11 +732,13 @@ IComponent* CComponentManager::ConstructComponent(CEntityHandle ent, ComponentTy
 	std::map<entity_id_t, IComponent*>& emap2 = m_ComponentsByTypeId[cid];
 
 	// If this is a scripted component, construct the appropriate JS object first
-	jsval obj = JSVAL_NULL;
+	JS::RootedValue obj(cx);
+	// TODO: Check if this temporary root can be removed after SpiderMonkey 31 upgrade 
+	JS::RootedValue tmpCtor(cx, ct.ctor.get());
 	if (ct.type == CT_Script)
 	{
-		obj = m_ScriptInterface.CallConstructor(ct.ctor.get(), JS::HandleValueArray::empty());
-		if (JSVAL_IS_VOID(obj))
+		m_ScriptInterface.CallConstructor(tmpCtor, JS::HandleValueArray::empty(), &obj);
+		if (obj.isNull())
 		{
 			LOGERROR(L"Script component constructor failed");
 			return NULL;
@@ -1141,13 +1146,16 @@ CScriptVal CComponentManager::Script_ReadCivJSONFile(ScriptInterface::CxPrivate*
 	return ReadJSONFile(pCxPrivate, L"civs", fileName);
 }
 
-CScriptVal CComponentManager::ReadJSONFile(ScriptInterface::CxPrivate* pCxPrivate, std::wstring filePath, std::wstring fileName)
+JS::Value CComponentManager::ReadJSONFile(ScriptInterface::CxPrivate* pCxPrivate, std::wstring filePath, std::wstring fileName)
 {
 	CComponentManager* componentManager = static_cast<CComponentManager*> (pCxPrivate->pCBData);
+	JSContext* cx = pCxPrivate->pScriptInterface->GetContext();
+	JSAutoRequest rq(cx);
 
 	VfsPath path = VfsPath(filePath) / fileName;
-
-	return componentManager->GetScriptInterface().ReadJSONFile(path).get();
+	JS::RootedValue out(cx);
+	componentManager->GetScriptInterface().ReadJSONFile(path, &out);
+	return out.get();
 }
 	
 Status CComponentManager::FindJSONFilesCallback(const VfsPath& pathname, const CFileInfo& UNUSED(fileInfo), const uintptr_t cbData)

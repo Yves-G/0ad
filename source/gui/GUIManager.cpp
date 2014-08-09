@@ -71,14 +71,14 @@ bool CGUIManager::HasPages()
 	return !m_PageStack.empty();
 }
 
-void CGUIManager::SwitchPage(const CStrW& pageName, ScriptInterface* srcScriptInterface, CScriptVal initData)
+void CGUIManager::SwitchPage(const CStrW& pageName, ScriptInterface* srcScriptInterface, JS::HandleValue initData)
 {
 	// The page stack is cleared (including the script context where initData came from),
 	// therefore we have to clone initData.
 	shared_ptr<ScriptInterface::StructuredClone> initDataClone;
-	if (initData.get() != JSVAL_VOID)
+	if (!initData.isUndefined())
 	{
-		initDataClone = srcScriptInterface->WriteStructuredClone(initData.get());
+		initDataClone = srcScriptInterface->WriteStructuredClone(initData);
 	}
 	m_PageStack.clear();
 	PushPage(pageName, initDataClone);
@@ -293,7 +293,7 @@ std::string CGUIManager::GetSavedGameData()
 	JS::RootedValue data(cx);
 	JS::RootedValue global(cx, top()->GetGlobalObject());
 	scriptInterface->CallFunction(global, "getSavedGameData", &data);
-	return scriptInterface->StringifyJSON(data, false);
+	return scriptInterface->StringifyJSON(&data, false);
 }
 
 void CGUIManager::RestoreSavedGameData(std::string jsonData)
@@ -303,7 +303,9 @@ void CGUIManager::RestoreSavedGameData(std::string jsonData)
 	JSAutoRequest rq(cx);
 	
 	JS::RootedValue global(cx, top()->GetGlobalObject());
-	scriptInterface->CallFunctionVoid(global, "restoreSavedGameData", scriptInterface->ParseJSON(jsonData));
+	JS::RootedValue dataVal(cx);
+	scriptInterface->ParseJSON(jsonData, &dataVal);
+	scriptInterface->CallFunctionVoid(global, "restoreSavedGameData", dataVal);
 }
 
 InReaction CGUIManager::HandleEvent(const SDL_Event_* ev)
@@ -315,16 +317,14 @@ InReaction CGUIManager::HandleEvent(const SDL_Event_* ev)
 	// to capture all mouse events until a mouseup after dragging).
 	// So we call two separate handler functions:
 	
-	shared_ptr<ScriptInterface> scriptInterface = top()->GetScriptInterface();
-	JSContext* cx = scriptInterface->GetContext();
-	JSAutoRequest rq(cx);
-
-	JS::RootedValue global(cx, top()->GetGlobalObject());
 	bool handled;
 
 	{
 		PROFILE("handleInputBeforeGui");
-		if (scriptInterface->CallFunction(global, "handleInputBeforeGui", *ev, top()->FindObjectUnderMouse(), handled))
+		JSContext* cx = top()->GetScriptInterface()->GetContext();
+		JSAutoRequest rq(cx);
+		JS::RootedValue global(cx, top()->GetGlobalObject());
+		if (top()->GetScriptInterface()->CallFunction(global, "handleInputBeforeGui", *ev, top()->FindObjectUnderMouse(), handled))
 			if (handled)
 				return IN_HANDLED;
 	}
@@ -337,8 +337,13 @@ InReaction CGUIManager::HandleEvent(const SDL_Event_* ev)
 	}
 
 	{
+		// We can't take the following lines out of this scope because top() may be another gui page than it was when calling handleInputBeforeGui!
+		JSContext* cx = top()->GetScriptInterface()->GetContext();
+		JSAutoRequest rq(cx);
+		JS::RootedValue global(cx, top()->GetGlobalObject());
+
 		PROFILE("handleInputAfterGui");
-		if (scriptInterface->CallFunction(global, "handleInputAfterGui", *ev, handled))
+		if (top()->GetScriptInterface()->CallFunction(global, "handleInputAfterGui", *ev, handled))
 			if (handled)
 				return IN_HANDLED;
 	}

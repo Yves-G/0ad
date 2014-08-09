@@ -883,61 +883,18 @@ AutoGCRooter* ScriptInterface::ReplaceAutoGCRooter(AutoGCRooter* rooter)
 	return ret;
 }
 
-jsval ScriptInterface::CallConstructor(jsval ctor, JS::HandleValueArray argv)
+void ScriptInterface::CallConstructor(JS::HandleValue ctor, JS::HandleValueArray argv, JS::MutableHandleValue out)
 {
 	JSAutoRequest rq(m->m_cx);
 	if (!ctor.isObject())
 	{
 		LOGERROR(L"CallConstructor: ctor is not an object");
-		return JS::UndefinedValue();
+		out.setNull();
+		return;
 	}
 	
 	JS::RootedObject ctorObj(m->m_cx, &ctor.toObject());
-	return JS::ObjectValue(*JS_New(m->m_cx, ctorObj, argv));
-}
-
-jsval ScriptInterface::NewObjectFromConstructor(jsval ctor)
-{
-	JSAutoRequest rq(m->m_cx);
-	
-	if (!ctor.isObject())
-	{
-		LOGERROR(L"NewObjectFromConstructor: ctor is not an object");
-		return JS::UndefinedValue();
-	}
-	// Get the constructor's prototype
-	// (Can't use JS_GetPrototype, since we want .prototype not .__proto__)
-	JS::RootedValue protoVal(m->m_cx);
-	JS::RootedObject ctorObj(m->m_cx, &ctor.toObject());
-	if (!JS_GetProperty(m->m_cx, ctorObj, "prototype", &protoVal))
-	{
-		LOGERROR(L"NewObjectFromConstructor: can't get prototype");
-		return JS::UndefinedValue();
-	}
-
-	if (!protoVal.isObject())
-	{
-		LOGERROR(L"NewObjectFromConstructor: prototype is not an object");
-		return JS::UndefinedValue();
-	}
-
-	JS::RootedObject proto(m->m_cx, &protoVal.toObject());
-	JS::RootedObject parent(m->m_cx, JS_GetParent(ctorObj));
-
-	if (!proto || !parent)
-	{
-		LOGERROR(L"NewObjectFromConstructor: null proto/parent");
-		return JS::UndefinedValue();
-	}
-
-	JSObject* obj = JS_NewObject(m->m_cx, NULL, proto, parent);
-	if (!obj)
-	{
-		LOGERROR(L"NewObjectFromConstructor: object creation failed");
-		return JS::UndefinedValue();
-	}
-
-	return JS::ObjectValue(*obj);
+	out.setObjectOrNull(JS_New(m->m_cx, ctorObj, argv));
 }
 
 void ScriptInterface::DefineCustomObjectType(JSClass *clasp, JSNative constructor, uint minArgs, JSPropertySpec *ps, JSFunctionSpec *fs, JSPropertySpec *static_ps, JSFunctionSpec *static_fs)
@@ -1198,11 +1155,12 @@ bool ScriptInterface::SetPrototype(JS::HandleValue objVal, JS::HandleValue proto
 	return JS_SetPrototype(m->m_cx, obj, proto);
 }
 
-bool ScriptInterface::FreezeObject(jsval objVal, bool deep)
+bool ScriptInterface::FreezeObject(JS::HandleValue objVal, bool deep)
 {
 	JSAutoRequest rq(m->m_cx);
 	if (!objVal.isObject())
 		return false;
+	
 	JS::RootedObject obj(m->m_cx, &objVal.toObject());
 
 	if (deep)
@@ -1315,23 +1273,24 @@ bool ScriptInterface::Eval_(const wchar_t* code, JS::MutableHandleValue rval)
 	return ok;
 }
 
-CScriptValRooted ScriptInterface::ParseJSON(const std::string& string_utf8)
+void ScriptInterface::ParseJSON(const std::string& string_utf8, JS::MutableHandleValue out)
 {
 	JSAutoRequest rq(m->m_cx);
 	std::wstring attrsW = wstring_from_utf8(string_utf8);
  	utf16string string(attrsW.begin(), attrsW.end());
-	JS::RootedValue vp(m->m_cx);
-	if (!JS_ParseJSON(m->m_cx, reinterpret_cast<const jschar*>(string.c_str()), (u32)string.size(), &vp))
+	if (!JS_ParseJSON(m->m_cx, reinterpret_cast<const jschar*>(string.c_str()), (u32)string.size(), out))
+	{
 		LOGERROR(L"JS_ParseJSON failed!");
-	return CScriptValRooted(m->m_cx, vp);
+		return;
+	}
 }
 
-CScriptValRooted ScriptInterface::ReadJSONFile(const VfsPath& path)
+void ScriptInterface::ReadJSONFile(const VfsPath& path, JS::MutableHandleValue out)
 {
 	if (!VfsFileExists(path))
 	{
 		LOGERROR(L"File '%ls' does not exist", path.string().c_str());
-		return CScriptValRooted();
+		return;
 	}
 
 	CVFSFile file;
@@ -1341,12 +1300,12 @@ CScriptValRooted ScriptInterface::ReadJSONFile(const VfsPath& path)
 	if (ret != PSRETURN_OK)
 	{
 		LOGERROR(L"Failed to load file '%ls': %hs", path.string().c_str(), GetErrorString(ret));
-		return CScriptValRooted();
+		return;
 	}
 
 	std::string content(file.DecodeUTF8()); // assume it's UTF-8
 
-	return ParseJSON(content);
+	ParseJSON(content, out);
 }
 
 struct Stringifier
@@ -1376,14 +1335,14 @@ struct StringifierW
 	std::wstringstream stream;
 };
 
-std::string ScriptInterface::StringifyJSON(jsval obj, bool indent)
+// TODO: It's not quite clear why JS_Stringify needs JS::MutableHandleValue. |obj| should not get modified.
+// It probably has historical reasons and could be changed by SpiderMonkey in the future.
+std::string ScriptInterface::StringifyJSON(JS::MutableHandleValue obj, bool indent)
 {
 	JSAutoRequest rq(m->m_cx);
 	Stringifier str;
-	JS::RootedValue obj1(m->m_cx, obj);
 	JS::RootedValue indentVal(m->m_cx, indent ? JS::Int32Value(2) : JS::UndefinedValue());
-	
-	if (!JS_Stringify(m->m_cx, &obj1, JS::NullPtr(), indentVal, &Stringifier::callback, &str))
+	if (!JS_Stringify(m->m_cx, obj, JS::NullPtr(), indentVal, &Stringifier::callback, &str))
 	{
 		JS_ClearPendingException(m->m_cx);
 		LOGERROR(L"StringifyJSON failed");
@@ -1395,14 +1354,12 @@ std::string ScriptInterface::StringifyJSON(jsval obj, bool indent)
 }
 
 
-std::wstring ScriptInterface::ToString(jsval obj, bool pretty)
+std::wstring ScriptInterface::ToString(JS::MutableHandleValue obj, bool pretty)
 {
 	JSAutoRequest rq(m->m_cx);
 
 	if (obj.isUndefined())
 		return L"(void 0)";
-		
-	JS::RootedValue tmpObj(m->m_cx, obj); // TODO: pass Handle as argument already
 
 	// Try to stringify as JSON if possible
 	// (TODO: this is maybe a bad idea since it'll drop 'undefined' values silently)
@@ -1414,7 +1371,7 @@ std::wstring ScriptInterface::ToString(jsval obj, bool pretty)
 		// Temporary disable the error reporter, so we don't print complaints about cyclic values
 		JSErrorReporter er = JS_SetErrorReporter(m->m_cx, NULL);
 
-		bool ok = JS_Stringify(m->m_cx, &tmpObj, JS::NullPtr(), indentVal, &StringifierW::callback, &str);
+		bool ok = JS_Stringify(m->m_cx, obj, JS::NullPtr(), indentVal, &StringifierW::callback, &str);
 
 		// Restore error reporter
 		JS_SetErrorReporter(m->m_cx, er);
@@ -1430,7 +1387,7 @@ std::wstring ScriptInterface::ToString(jsval obj, bool pretty)
 	// so fall back to obj.toSource()
 
 	std::wstring source = L"(error)";
-	CallFunction(tmpObj, "toSource", source);
+	CallFunction(obj, "toSource", source);
 	return source;
 }
 
@@ -1454,12 +1411,12 @@ bool ScriptInterface::IsExceptionPending(JSContext* cx)
 	return JS_IsExceptionPending(cx) ? true : false;
 }
 
-const JSClass* ScriptInterface::GetClass(JSObject* obj)
+const JSClass* ScriptInterface::GetClass(JS::HandleObject obj)
 {
 	return JS_GetClass(obj);
 }
 
-void* ScriptInterface::GetPrivate(JSObject* obj)
+void* ScriptInterface::GetPrivate(JS::HandleObject obj)
 {
 	// TODO: use JS_GetInstancePrivate
 	return JS_GetPrivate(obj);
@@ -1491,14 +1448,14 @@ void ScriptInterface::ForceGC()
 	JS_GC(this->GetJSRuntime());
 }
 
-jsval ScriptInterface::CloneValueFromOtherContext(ScriptInterface& otherContext, jsval val)
+JS::Value ScriptInterface::CloneValueFromOtherContext(ScriptInterface& otherContext, JS::HandleValue val)
 {
 	PROFILE("CloneValueFromOtherContext");
+	JSAutoRequest rq(m->m_cx);
+	JS::RootedValue out(m->m_cx);
 	shared_ptr<StructuredClone> structuredClone = otherContext.WriteStructuredClone(val);
-	JSAutoRequest rq(otherContext.GetContext());
-	JS::RootedValue clone(otherContext.GetContext());
-	ReadStructuredClone(structuredClone, &clone); 
-	return clone.get();
+	ReadStructuredClone(structuredClone, &out);
+	return out.get();
 }
 
 ScriptInterface::StructuredClone::StructuredClone() :
@@ -1512,13 +1469,12 @@ ScriptInterface::StructuredClone::~StructuredClone()
 		JS_ClearStructuredClone(m_Data, m_Size, NULL, NULL);
 }
 
-shared_ptr<ScriptInterface::StructuredClone> ScriptInterface::WriteStructuredClone(jsval v)
+shared_ptr<ScriptInterface::StructuredClone> ScriptInterface::WriteStructuredClone(JS::HandleValue v)
 {
 	JSAutoRequest rq(m->m_cx);
-	JS::RootedValue v1(m->m_cx, v);
 	u64* data = NULL;
 	size_t nbytes = 0;
-	if (!JS_WriteStructuredClone(m->m_cx, v1, &data, &nbytes, NULL, NULL, JS::UndefinedHandleValue))
+	if (!JS_WriteStructuredClone(m->m_cx, v, &data, &nbytes, NULL, NULL, JS::UndefinedHandleValue))
 	{
 		debug_warn(L"Writing a structured clone with JS_WriteStructuredClone failed!");
 		return shared_ptr<StructuredClone>();

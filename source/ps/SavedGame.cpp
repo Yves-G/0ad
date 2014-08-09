@@ -107,7 +107,7 @@ Status SavedGames::Save(const std::wstring& name, const std::wstring& descriptio
 	
 	simulation.GetScriptInterface().SetProperty(metadata, "description", description);
 	
-	std::string metadataString = simulation.GetScriptInterface().StringifyJSON(metadata, true);
+	std::string metadataString = simulation.GetScriptInterface().StringifyJSON(&metadata, true);
 	
 	// Write the saved game as zip file containing the various components
 	PIArchiveWriter archiveWriter = CreateArchiveWriter_Zip(tempSaveFileRealPath, false);
@@ -164,13 +164,15 @@ public:
 
 	void ReadEntry(const VfsPath& pathname, const CFileInfo& fileInfo, PIArchiveFile archiveFile)
 	{
+		JSContext* cx = m_ScriptInterface.GetContext();
+		JSAutoRequest rq(cx);
+		
 		if (pathname == L"metadata.json")
 		{
 			std::string buffer;
 			buffer.resize(fileInfo.Size());
 			WARN_IF_ERR(archiveFile->Load("", DummySharedPtr((u8*)buffer.data()), buffer.size()));
-			CScriptValRooted tmp = m_ScriptInterface.ParseJSON(buffer); // TODO: Avoid CScriptValRooted tmp
-			m_Metadata.set(tmp.get());
+			m_ScriptInterface.ParseJSON(buffer, &m_Metadata);
 		}
 		else if (pathname == L"simulation.dat" && m_SavedState)
 		{
