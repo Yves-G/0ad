@@ -485,7 +485,7 @@ static void InitVfs(const CmdLineArgs& args, int flags)
 }
 
 
-static void InitPs(bool setup_gui, const CStrW& gui_page, ScriptInterface* srcScriptInterface, CScriptVal initData)
+static void InitPs(bool setup_gui, const CStrW& gui_page, ScriptInterface* srcScriptInterface, JS::HandleValue initData)
 {
 	{
 		// console
@@ -1029,7 +1029,7 @@ void InitGraphics(const CmdLineArgs& args, int flags)
 				scriptInterface->Eval("({})", &data);
 				scriptInterface->SetProperty(data, "isStartup", true);
 			}
-			InitPs(setup_gui, L"page_pregame.xml", g_GUI->GetScriptInterface().get(), data.get());
+			InitPs(setup_gui, L"page_pregame.xml", g_GUI->GetScriptInterface().get(), data);
 		}
 	}
 	catch (PSERROR_Game_World_MapLoadFailed& e)
@@ -1037,7 +1037,7 @@ void InitGraphics(const CmdLineArgs& args, int flags)
 		// Map Loading failed
 
 		// Start the engine so we have a GUI
-		InitPs(true, L"page_pregame.xml", NULL, JSVAL_VOID);
+		InitPs(true, L"page_pregame.xml", NULL, JS::UndefinedHandleValue);
 
 		// Call script function to do the actual work
 		//	(delete game data, switch GUI page, show error, etc.)
@@ -1184,7 +1184,8 @@ bool Autostart(const CmdLineArgs& args)
 		
 		// Random map definition will be loaded from JSON file, so we need to parse it
 		std::wstring scriptPath = L"maps/" + autoStartName.FromUTF8() + L".json";
-		JS::RootedValue scriptData(cx, scriptInterface.ReadJSONFile(scriptPath).get());
+		JS::RootedValue scriptData(cx);
+		scriptInterface.ReadJSONFile(scriptPath, &scriptData);
 		if (!scriptData.isUndefined() && scriptInterface.GetProperty(scriptData, "settings", &settings))
 		{
 			// JSON loaded ok - copy script name over to game attributes
@@ -1239,9 +1240,7 @@ bool Autostart(const CmdLineArgs& args)
 		// (Omitting this may cause the loading screen to display "Loading (undefined)",
 		// for example...)
 		CStr8 mapSettingsJSON = LoadSettingsOfScenarioMap("maps/" + autoStartName + ".xml");
-		CScriptValRooted mapSettings = scriptInterface.ParseJSON(mapSettingsJSON);
-
-		settings = mapSettings.get();
+		scriptInterface.ParseJSON(mapSettingsJSON, &settings);
 		mapType = "scenario";
 	}
 	else if (mapDirectory == L"skirmishes")
@@ -1253,9 +1252,8 @@ bool Autostart(const CmdLineArgs& args)
 		// To prevent this, we mimic the behavior of the game setup screen by
 		// retrieving the map settings from the actual map xml...
 		CStr8 mapSettingsJSON = LoadSettingsOfScenarioMap("maps/" + autoStartName + ".xml");
-		CScriptValRooted mapSettings = scriptInterface.ParseJSON(mapSettingsJSON);
-
-		settings = mapSettings.get();
+		scriptInterface.ParseJSON(mapSettingsJSON, &settings);
+		
 		// ...and initialize the playerData array being edited by
 		// autostart-civ et.al. with the real map data, so sensible values
 		// are always present:
@@ -1354,7 +1352,7 @@ bool Autostart(const CmdLineArgs& args)
 
 	if (args.Has("autostart-host"))
 	{
-		InitPs(true, L"page_loading.xml", &scriptInterface, mpInitData.get());
+		InitPs(true, L"page_loading.xml", &scriptInterface, mpInitData);
 
 		size_t maxPlayers = 2;
 		if (args.Has("autostart-players"))
@@ -1364,7 +1362,7 @@ bool Autostart(const CmdLineArgs& args)
 
 		g_NetServer = new CNetServer(maxPlayers);
 
-		g_NetServer->UpdateGameAttributes(attrs.get(), scriptInterface);
+		g_NetServer->UpdateGameAttributes(&attrs, scriptInterface);
 
 		bool ok = g_NetServer->SetupConnection();
 		ENSURE(ok);
@@ -1375,7 +1373,7 @@ bool Autostart(const CmdLineArgs& args)
 	}
 	else if (args.Has("autostart-client"))
 	{
-		InitPs(true, L"page_loading.xml", &scriptInterface, mpInitData.get());
+		InitPs(true, L"page_loading.xml", &scriptInterface, mpInitData);
 
 		g_NetClient = new CNetClient(g_Game);
 		g_NetClient->SetUserName(userName);
@@ -1399,7 +1397,7 @@ bool Autostart(const CmdLineArgs& args)
 		PSRETURN ret = g_Game->ReallyStartGame();
 		ENSURE(ret == PSRETURN_OK);
 
-		InitPs(true, L"page_session.xml", NULL, JSVAL_VOID);
+		InitPs(true, L"page_session.xml", NULL, JS::UndefinedHandleValue);
 	}
 
 	return true;
