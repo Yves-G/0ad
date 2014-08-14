@@ -88,9 +88,7 @@ void CReplayLogger::Turn(u32 n, u32 turnLength, const std::vector<SimulationComm
 	*m_Stream << "turn " << n << " " << turnLength << "\n";
 	for (size_t i = 0; i < commands.size(); ++i)
 	{
-		// TODO: Check if this temporary root can be removed after SpiderMonkey 31 upgrade 
-		JS::RootedValue tmpCommand(cx, commands[i].data.get());
-		*m_Stream << "cmd " << commands[i].player << " " << m_ScriptInterface.StringifyJSON(&tmpCommand, false) << "\n";
+		*m_Stream << "cmd " << commands[i].player << " " << m_ScriptInterface.StringifyJSON(&commands[i].GetData(), false) << "\n";
 	}
 	*m_Stream << "end\n";
 	m_Stream->flush();
@@ -132,7 +130,7 @@ void CReplayPlayer::Replay(bool serializationtest)
 	new CProfileManager;
 	g_ScriptStatsTable = new CScriptStatsTable;
 	g_ProfileViewer.AddRootTable(g_ScriptStatsTable);
-	g_ScriptRuntime = ScriptInterface::CreateRuntime(384 * 1024 * 1024);
+	g_ScriptRuntime = ScriptInterface::CreateRuntime(nullptr, 384 * 1024 * 1024);
 
 	CGame game(true);
 	g_Game = &game;
@@ -166,7 +164,7 @@ void CReplayPlayer::Replay(bool serializationtest)
 			JS::RootedValue attribs(cx);
 			game.GetSimulation2()->GetScriptInterface().ParseJSON(line, &attribs);
 
-			game.StartGame(CScriptValRooted(cx, attribs), "");
+			game.StartGame(&attribs, "");
 
 			// TODO: Non progressive load can fail - need a decent way to handle this
 			LDR_NonprogressiveLoad();
@@ -189,7 +187,9 @@ void CReplayPlayer::Replay(bool serializationtest)
 			JS::RootedValue data(cx);
 			game.GetSimulation2()->GetScriptInterface().ParseJSON(line, &data);
 
-			SimulationCommand cmd = { player, CScriptValRooted(cx, data) };
+			SimulationCommand cmd;
+			cmd.player = player;
+			cmd.SetData(cx, data);
 			commands.push_back(cmd);
 		}
 		else if (type == "hash" || type == "hash-quick")

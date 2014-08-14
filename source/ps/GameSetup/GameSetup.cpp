@@ -864,7 +864,7 @@ void Init(const CmdLineArgs& args, int flags)
 	g_Logger = new CLogger;
 	
 	// Workaround until Simulation and AI use their own threads and also their own runtimes
-	g_ScriptRuntime = ScriptInterface::CreateRuntime(384 * 1024 * 1024);
+	g_ScriptRuntime = ScriptInterface::CreateRuntime(nullptr, 384 * 1024 * 1024);
 
 	// Special command-line mode to dump the entity schemas instead of running the game.
 	// (This must be done after loading VFS etc, but should be done before wasting time
@@ -1390,7 +1390,7 @@ bool Autostart(const CmdLineArgs& args)
 	else
 	{
 		g_Game->SetPlayerID(1);
-		g_Game->StartGame(CScriptValRooted(cx, attrs), "");
+		g_Game->StartGame(&attrs, "");
 
 		LDR_NonprogressiveLoad();
 

@@ -21,7 +21,7 @@ MAKE=${MAKE:="make"}
 
 MAKE_OPTS="${JOBS}"
 
-CONF_OPTS="--enable-shared-js --disable-tests --disable-exact-rooting --disable-gcgenerational" # --enable-trace-logging"
+CONF_OPTS="--enable-shared-js --disable-tests --enable-gcgenerational" # --enable-trace-logging"
 
 # We bundle prebuilt binaries for Windows and the .libs for nspr aren't included.
 # If you want to build on Windows, check README.txt and edit the absolute paths 
@@ -78,7 +78,7 @@ hg pull aurora
 hg pull central
 # I've tested with this version, but you can try a more recent one if you like.
 # Identify the current head of a repository with e.g. "hg identify -r default central" (using release, beta, aurora or central respectively).
-hg update 1fa1c76f8f9f
+hg update cd52a7f89548
 cd ..
 
 

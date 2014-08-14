@@ -177,13 +177,13 @@ public:
 		{
 			JS::RootedValue cmd(cx);
 			client1.GetScriptInterface().Eval("({type:'debug-print', message:'[>>> client1 test sim command]\\n'})", &cmd);
-			client1Game.GetTurnManager()->PostCommand(CScriptValRooted(cx, cmd));
+			client1Game.GetTurnManager()->PostCommand(cmd);
 		}
 
 		{
 			JS::RootedValue cmd(cx);
 			client2.GetScriptInterface().Eval("({type:'debug-print', message:'[>>> client2 test sim command]\\n'})", &cmd);
-			client2Game.GetTurnManager()->PostCommand(CScriptValRooted(cx, cmd));
+			client2Game.GetTurnManager()->PostCommand(cmd);
 		}
 
 		wait(clients, 100);
@@ -246,7 +246,7 @@ public:
 		{
 			JS::RootedValue cmd(cx);
 			client1.GetScriptInterface().Eval("({type:'debug-print', message:'[>>> client1 test sim command 1]\\n'})", &cmd);
-			client1Game.GetTurnManager()->PostCommand(CScriptValRooted(cx, cmd));
+			client1Game.GetTurnManager()->PostCommand(cmd);
 		}
 
 		wait(clients, 100);
@@ -258,7 +258,7 @@ public:
 		{
 			JS::RootedValue cmd(cx);
 			client1.GetScriptInterface().Eval("({type:'debug-print', message:'[>>> client1 test sim command 2]\\n'})", &cmd);
-			client1Game.GetTurnManager()->PostCommand(CScriptValRooted(cx, cmd));
+			client1Game.GetTurnManager()->PostCommand(cmd);
 		}
 
 		debug_printf(L"==== Disconnecting client 2\n");
@@ -313,7 +313,7 @@ public:
 		{
 			JS::RootedValue cmd(cx);
 			client1.GetScriptInterface().Eval("({type:'debug-print', message:'[>>> client1 test sim command 3]\\n'})", &cmd);
-			client1Game.GetTurnManager()->PostCommand(CScriptValRooted(cx, cmd));
+			client1Game.GetTurnManager()->PostCommand(cmd);
 		}
 
 
@@ -326,7 +326,7 @@ public:
 		{
 			JS::RootedValue cmd(cx);
 			client1.GetScriptInterface().Eval("({type:'debug-print', message:'[>>> client1 test sim command 4]\\n'})", &cmd);
-			client1Game.GetTurnManager()->PostCommand(CScriptValRooted(cx, cmd));
+			client1Game.GetTurnManager()->PostCommand(cmd);
 		}
 
 		for (size_t i = 0; i < 3; ++i)

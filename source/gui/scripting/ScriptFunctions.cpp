@@ -237,10 +237,6 @@ void StartGame(ScriptInterface::CxPrivate* pCxPrivate, JS::HandleValue attribs, 
 
 	ENSURE(!g_Game);
 	g_Game = new CGame();
-	
-	// TODO: With ESR31 we should be able to take JS::HandleValue directly 
-	JSContext* cx = pCxPrivate->pScriptInterface->GetContext();
-	JSAutoRequest rq(cx);
 
 	// Convert from GUI script context to sim script context
 	CSimulation2* sim = g_Game->GetSimulation2();
@@ -251,7 +247,7 @@ void StartGame(ScriptInterface::CxPrivate* pCxPrivate, JS::HandleValue attribs, 
 		sim->GetScriptInterface().CloneValueFromOtherContext(*(pCxPrivate->pScriptInterface), attribs));
 
 	g_Game->SetPlayerID(playerID);
-	g_Game->StartGame(CScriptValRooted(cxSim, gameAttribs), "");
+	g_Game->StartGame(&gameAttribs, "");
 }
 
 CScriptVal StartSavedGame(ScriptInterface::CxPrivate* pCxPrivate, std::wstring name)
@@ -292,7 +288,7 @@ CScriptVal StartSavedGame(ScriptInterface::CxPrivate* pCxPrivate, std::wstring n
 
 		// Start the game
 		g_Game->SetPlayerID(playerID);
-		g_Game->StartGame(CScriptValRooted(cxGame, gameInitAttributes), savedState);
+		g_Game->StartGame(&gameInitAttributes, savedState);
 	}
 
 	return guiContextMetadata.get();

@@ -57,9 +57,8 @@ public:
 		serialize.NumberU32_Unbounded("num commands", (u32)m_LocalQueue.size());
 		for (size_t i = 0; i < m_LocalQueue.size(); ++i)
 		{
-			tmpRoot.set(m_LocalQueue[i].data.get());
 			serialize.NumberI32_Unbounded("player", m_LocalQueue[i].player);
-			serialize.ScriptVal("data", &tmpRoot);
+			serialize.ScriptVal("data", &m_LocalQueue[i].GetData());
 		}
 	}
 
@@ -76,16 +75,20 @@ public:
 			JS::RootedValue data(cx);
 			deserialize.NumberI32_Unbounded("player", player);
 			deserialize.ScriptVal("data", &data);
-			SimulationCommand c = { player, CScriptValRooted(cx, data) };
+			SimulationCommand c;
+			c.player = player;
+			c.SetData(cx, data);
 			m_LocalQueue.push_back(c);
 		}
 	}
 
-	virtual void PushLocalCommand(player_id_t player, CScriptVal cmd)
+	virtual void PushLocalCommand(player_id_t player, JS::HandleValue cmd)
 	{
 		JSContext* cx = GetSimContext().GetScriptInterface().GetContext();
 
-		SimulationCommand c = { player, CScriptValRooted(cx, cmd) };
+		SimulationCommand c;
+		c.player = player;
+		c.SetData(cx, cmd);
 		m_LocalQueue.push_back(c);
 	}
 
@@ -102,7 +105,7 @@ public:
 
 		// TODO: would be nicer to not use globals
 		if (g_Game && g_Game->GetTurnManager())
-			g_Game->GetTurnManager()->PostCommand(CScriptValRooted(cx, cmd));
+			g_Game->GetTurnManager()->PostCommand(cmd);
 	}
 
 	virtual void FlushTurn(const std::vector<SimulationCommand>& commands)
@@ -117,14 +120,14 @@ public:
 
 		for (size_t i = 0; i < localCommands.size(); ++i)
 		{
-			bool ok = scriptInterface.CallFunctionVoid(global, "ProcessCommand", localCommands[i].player, localCommands[i].data);
+			bool ok = scriptInterface.CallFunctionVoid(global, "ProcessCommand", localCommands[i].player, localCommands[i].GetData());
 			if (!ok)
 				LOGERROR(L"Failed to call ProcessCommand() global script function");
 		}
 
 		for (size_t i = 0; i < commands.size(); ++i)
 		{
-			bool ok = scriptInterface.CallFunctionVoid(global, "ProcessCommand", commands[i].player, commands[i].data);
+			bool ok = scriptInterface.CallFunctionVoid(global, "ProcessCommand", commands[i].player, commands[i].GetData());
 			if (!ok)
 				LOGERROR(L"Failed to call ProcessCommand() global script function");
 		}

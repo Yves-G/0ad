@@ -46,7 +46,7 @@
 struct BuildDirEntListState
 {
 	JSContext* cx;
-	JS::PersistentRooted<JSObject*> filename_array;
+	JS::PersistentRootedObject filename_array;
 	int cur_idx;
 
 	BuildDirEntListState(JSContext* cx_)

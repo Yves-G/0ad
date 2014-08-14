@@ -62,7 +62,7 @@ namespace
 		g_Game->SetPlayerID(1);
 	}
 
-	void StartGame(const CScriptValRooted& attrs)
+	void StartGame(JS::MutableHandleValue attrs)
 	{
 		g_Game->StartGame(attrs, "");
 
@@ -102,7 +102,7 @@ QUERYHANDLER(GenerateMap)
 
 	try
 	{
-		StartGame(CScriptValRooted(cx, attrs));
+		StartGame(&attrs);
 
 		msg->status = 0;
 	}
@@ -120,7 +120,7 @@ QUERYHANDLER(GenerateMap)
 		si.Eval("({})", &atts);
 		si.SetProperty(atts, "mapType", std::string("scenario"));
 		si.SetProperty(atts, "map", std::wstring(L"maps/scenarios/_default"));
-		StartGame(CScriptValRooted(cx, atts));
+		StartGame(&atts);
 
 		msg->status = -1;
 	}
@@ -143,7 +143,7 @@ MESSAGEHANDLER(LoadMap)
 	scriptInterface.SetProperty(attrs, "mapType", std::string("scenario"));
 	scriptInterface.SetProperty(attrs, "map", std::wstring(mapBase));
 
-	StartGame(CScriptValRooted(cx, attrs));
+	StartGame(&attrs);
 }
 
 MESSAGEHANDLER(ImportHeightmap)

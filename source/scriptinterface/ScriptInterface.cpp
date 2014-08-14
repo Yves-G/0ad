@@ -135,17 +135,21 @@ void GCSliceCallbackHook(JSRuntime* UNUSED(rt), JS::GCProgress progress, const J
 class ScriptRuntime
 {
 public:
-	ScriptRuntime(int runtimeSize): 
+	ScriptRuntime(shared_ptr<ScriptRuntime> parentRuntime, int runtimeSize): 
 		m_rooter(NULL),
 		m_LastGCBytes(0)
 	{
 		if (!m_Initialized)
+		{
 			ENSURE(JS_Init());
-			
-		m_rt = JS_NewRuntime(runtimeSize, JS_USE_HELPER_THREADS);
+			m_Initialized = true;
+		}
+
+		JSRuntime* parentJSRuntime = parentRuntime ? parentRuntime->m_rt : nullptr;
+		m_rt = JS_NewRuntime(runtimeSize, JS_USE_HELPER_THREADS, parentJSRuntime);
 		ENSURE(m_rt); // TODO: error handling
 
-		JS_SetNativeStackQuota(m_rt, 128 * sizeof(size_t) * 1024);
+		//JS_SetNativeStackQuota(m_rt, 128 * sizeof(size_t) * 1024);
 		if (g_ScriptProfilingEnabled)
 		{
 			// Profiler isn't thread-safe, so only enable this on the main thread
@@ -380,9 +384,9 @@ private:
 
 bool ScriptRuntime::m_Initialized = false;
 
-shared_ptr<ScriptRuntime> ScriptInterface::CreateRuntime(int runtimeSize)
+shared_ptr<ScriptRuntime> ScriptInterface::CreateRuntime(shared_ptr<ScriptRuntime> parentRuntime, int runtimeSize)
 {
-	return shared_ptr<ScriptRuntime>(new ScriptRuntime(runtimeSize));
+	return shared_ptr<ScriptRuntime>(new ScriptRuntime(parentRuntime, runtimeSize));
 }
 
 ////////////////////////////////////////////////////////////////
@@ -395,10 +399,10 @@ struct ScriptInterface_impl
 
 	shared_ptr<ScriptRuntime> m_runtime;
 	JSContext* m_cx;
-	JS::PersistentRooted<JSObject*> m_glob; // global scope object
+	JS::PersistentRootedObject m_glob; // global scope object
 	JSCompartment* m_comp;
 	boost::rand48* m_rng;
-	JSObject* m_nativeScope; // native function scope object
+	JS::PersistentRootedObject m_nativeScope; // native function scope object
 
 	typedef std::map<ScriptInterface::CACHED_VAL, CScriptValRooted> ScriptValCache;
 	ScriptValCache m_ScriptValCache;
@@ -634,7 +638,7 @@ bool ScriptInterface::MathRandom(double& nbr)
 }
 
 ScriptInterface_impl::ScriptInterface_impl(const char* nativeScopeName, const shared_ptr<ScriptRuntime>& runtime) :
-	m_runtime(runtime), m_glob(runtime->m_rt)
+	m_runtime(runtime), m_glob(runtime->m_rt), m_nativeScope(runtime->m_rt)
 {
 	bool ok;
 
@@ -725,7 +729,7 @@ void ScriptInterface_impl::Register(const char* name, JSNative fptr, uint nargs)
 {
 	JSAutoRequest rq(m_cx);
 	JS::RootedObject nativeScope(m_cx, m_nativeScope);
-	JSFunction* func = JS_DefineFunction(m_cx, nativeScope, name, fptr, nargs, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+	JS::RootedFunction func(m_cx, JS_DefineFunction(m_cx, nativeScope, name, fptr, nargs, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT));
 
 	if (!func)
 		return;
@@ -743,7 +747,9 @@ void ScriptInterface_impl::Register(const char* name, JSNative fptr, uint nargs)
 		> LockedStringFlyweight;
 
 		LockedStringFlyweight fw(name);
-		JS_SetReservedSlot(JS_GetFunctionObject(func), 0, PRIVATE_TO_JSVAL((void*)fw.get().c_str()));
+		JS::RootedObject funcObj(m_cx, JS_GetFunctionObject(func));
+		JS::RootedValue privateVal(m_cx, JS::PrivateValue((void*)fw.get().c_str()));
+		JS_SetReservedSlot(funcObj, 0, privateVal);
 	}
 }
 

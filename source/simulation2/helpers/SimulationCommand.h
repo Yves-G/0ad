@@ -18,7 +18,7 @@
 #ifndef INCLUDED_SIMULATIONCOMMAND
 #define INCLUDED_SIMULATIONCOMMAND
 
-#include "scriptinterface/ScriptVal.h"
+#include "scriptinterface/ScriptInterface.h"
 #include "simulation2/helpers/Player.h"
 
 /**
@@ -27,7 +27,18 @@
 struct SimulationCommand
 {
 	player_id_t player;
-	CScriptValRooted data;
+	
+	JS::PersistentRootedValue& GetData() const { return *data; }
+	void SetData(JSContext* cx, JS::HandleValue val) 
+	{
+		data.reset(new JS::PersistentRootedValue(cx, val));
+	};
+	
+private:
+	// Manage the root as a pointer to avoid having to:
+	//  - Manually define the copy constructor and copy assignment operator.
+	//  - Store a reference to a ScriptInterface, JSContext or JSRuntime sowhere in this class
+	std::shared_ptr<JS::PersistentRootedValue> data;
 };
 
 #endif // INCLUDED_SIMULATIONCOMMAND

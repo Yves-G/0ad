@@ -276,14 +276,9 @@ void CGame::SetPlayerID(int playerID)
 		m_TurnManager->SetPlayerID(m_PlayerID);
 }
 
-void CGame::StartGame(const CScriptValRooted& attribs1, const std::string& savedState)
+void CGame::StartGame(JS::MutableHandleValue attribs, const std::string& savedState)
 {
-	JSContext* cx = m_Simulation2->GetScriptInterface().GetContext();
-	JSAutoRequest rq(cx);
-	
-	JS::RootedValue attribs(cx, attribs1.get()); // TODO: Get Handle parameter directly with SpiderMonkey 31
-	m_ReplayLogger->StartGame(&attribs);
-
+	m_ReplayLogger->StartGame(attribs);
 	RegisterInit(attribs, savedState);
 }
 

@@ -155,11 +155,14 @@ public:
 		JSContext* cxOld = oldScript.GetContext();
 		JSAutoRequest rqOld(cxOld);
 		
-		std::vector<SimulationCommand> newCommands = commands;
+		std::vector<SimulationCommand> newCommands;
+		newCommands.reserve(commands.size());
 		for (size_t i = 0; i < newCommands.size(); ++i)
 		{
-			JS::RootedValue tmpOldCommand(cxOld, newCommands[i].data.get()); // TODO: Check if this temporary root can be removed after SpiderMonkey 31 upgrade 
-			newCommands[i].data = CScriptValRooted(newScript.GetContext(), newScript.CloneValueFromOtherContext(oldScript, tmpOldCommand));
+			JSContext* cxNew = newScript.GetContext();
+			JSAutoRequest rqNew(cxNew);
+			JS::RootedValue tmpCommand(cxNew, newScript.CloneValueFromOtherContext(oldScript, commands[i].GetData()));
+			newCommands[i].SetData(cxNew, tmpCommand);
 		}
 		return newCommands;
 	}

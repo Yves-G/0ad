@@ -89,7 +89,7 @@ public:
 	 * Each runtime should only ever be used on a single thread.
 	 * @param runtimeSize Maximum size in bytes of the new runtime
 	 */
-	static shared_ptr<ScriptRuntime> CreateRuntime(int runtimeSize = DEFAULT_RUNTIME_SIZE);
+	static shared_ptr<ScriptRuntime> CreateRuntime(shared_ptr<ScriptRuntime> parentRuntime = nullptr, int runtimeSize = DEFAULT_RUNTIME_SIZE);
 
 
 	/**
@@ -457,6 +457,12 @@ template<typename T>
 inline void ScriptInterface::AssignOrToJSVal(JS::MutableHandleValue handle, const T& a)
 {
 	ToJSVal(GetContext(), handle, a);
+}
+
+template<>
+inline void ScriptInterface::AssignOrToJSVal<JS::PersistentRootedValue>(JS::MutableHandleValue handle, const JS::PersistentRootedValue& a)
+{
+	handle.set(a);
 }
 
 template<>

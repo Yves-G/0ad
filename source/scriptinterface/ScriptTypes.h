@@ -18,6 +18,9 @@
 #ifndef INCLUDED_SCRIPTTYPES
 #define INCLUDED_SCRIPTTYPES
 
+#define JSGC_GENERATIONAL 1
+#define JSGC_USE_EXACT_ROOTING 1
+
 #ifdef _WIN32
 # define XP_WIN
 # ifndef WIN32

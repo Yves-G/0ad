@@ -1036,7 +1036,7 @@ public:
 			for (size_t j = 0; j < commands[i].commands.size(); ++j)
 			{
 				scriptInterface.ReadStructuredClone(commands[i].commands[j], &clonedCommandVal);
-				cmpCommandQueue->PushLocalCommand(commands[i].player, CScriptVal(clonedCommandVal));
+				cmpCommandQueue->PushLocalCommand(commands[i].player, clonedCommandVal);
 			}
 		}
 	}
