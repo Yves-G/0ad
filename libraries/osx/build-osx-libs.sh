@@ -38,6 +38,8 @@ OGG_VERSION="libogg-1.3.0"
 VORBIS_VERSION="libvorbis-1.3.3"
 # gloox is necessary for multiplayer lobby
 GLOOX_VERSION="gloox-1.0.9"
+# NSPR is necessary for threadsafe Spidermonkey
+NSPR_VERSION="4.10.3"
 # OS X only includes part of ICU, and only the dylib
 ICU_VERSION="icu4c-52_1"
 ENET_VERSION="enet-1.3.12"
@@ -524,6 +526,38 @@ fi
 popd > /dev/null
 
 # --------------------------------------------------------------
+echo -e "Building NSPR..."
+
+LIB_VERSION="${NSPR_VERSION}"
+LIB_ARCHIVE="nspr-$LIB_VERSION.tar.gz"
+LIB_DIRECTORY="nspr-$LIB_VERSION"
+LIB_URL="https://ftp.mozilla.org/pub/mozilla.org/nspr/releases/v$LIB_VERSION/src/"
+
+mkdir -p nspr
+pushd nspr > /dev/null
+
+NSPR_DIR="$(pwd)"
+
+if [[ "$force_rebuild" = "true" ]] || [[ ! -e .already-built ]] || [[ .already-built -ot $LIB_DIRECTORY ]]
+then
+  rm -f .already-built
+  download_lib $LIB_URL $LIB_ARCHIVE
+
+  rm -rf $LIB_DIRECTORY bin include lib share
+  tar -xf $LIB_ARCHIVE
+  pushd $LIB_DIRECTORY/nspr
+
+  (CFLAGS="$CFLAGS" CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS" ./configure --prefix="$NSPR_DIR" && make ${JOBS} && make install) || die "NSPR build failed"
+  popd
+  # TODO: how can we not build the dylibs?
+  rm -f lib/*.dylib
+  touch .already-built
+else
+  already_built
+fi
+popd > /dev/null
+
+# --------------------------------------------------------------
 echo -e "Building ICU..."
 
 LIB_VERSION="${ICU_VERSION}"
@@ -617,7 +651,7 @@ then
   perl -i.bak -pe 's/(^STATIC_LIBRARY_NAME\s+=).*/$1mozjs24-ps-debug/' Makefile.in
   perl -i.bak -pe 's/js_static/mozjs24-ps-debug/g' shell/Makefile.in
 
-  CONF_OPTS="--target=$ARCH-apple-darwin --prefix=${INSTALL_DIR} --with-system-zlib=${ZLIB_DIR} --disable-exact-rooting --disable-gcgenerational --disable-tests --disable-shared-js" # --enable-trace-logging"
+  CONF_OPTS="--target=$ARCH-apple-darwin --prefix=${INSTALL_DIR} --with-system-nspr --with-nspr-prefix=${NSPR_DIR} --with-system-zlib=${ZLIB_DIR} --enable-gcgenerational --disable-tests --disable-shared-js" # --enable-trace-logging"
   # Uncomment this line for 32-bit 10.5 cross compile:
   #CONF_OPTS="$CONF_OPTS --target=i386-apple-darwin9.0.0"
   if [[ $MIN_OSX_VERSION && ${MIN_OSX_VERSION-_} ]]; then

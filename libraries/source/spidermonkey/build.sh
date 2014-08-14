@@ -34,7 +34,9 @@ then
   C:/Projects/0ad/libraries/source/spidermonkey/nspr-4.10.3/nspr/dist/lib/nspr4.lib \
   C:/Projects/0ad/libraries/source/spidermonkey/nspr-4.10.3/nspr/dist/lib/plds4.lib \
   C:/Projects/0ad/libraries/source/spidermonkey/nspr-4.10.3/nspr/dist/lib/plc4.lib"
-  CONF_OPTS="${CONF_OPTS} --with-nspr-libs=\"${NSPR_LIBS}\" --with-nspr-cflags=\"${NSPR_INCLUDES}\""
+else
+  NSPR_INCLUDES="`pkg-config nspr --cflags`"
+  NSPR_LIBS="`pkg-config nspr --libs`"
 fi
 
 # If Valgrind looks like it's installed, then set up SM to support it
@@ -104,14 +106,14 @@ autoconf2.13
 perl -i.bak -pe 's/(LIBRARY_NAME\s+=).*/$1 '\''mozjs31-ps-debug'\''/' moz.build
 mkdir -p build-debug
 cd build-debug
-../configure ${CONF_OPTS} --enable-debug --disable-optimize --enable-js-diagnostics --enable-gczeal # --enable-root-analysis
+../configure ${CONF_OPTS} --with-nspr-libs="$NSPR_LIBS" --with-nspr-cflags="$NSPR_INCLUDES" --enable-debug --disable-optimize --enable-js-diagnostics --enable-gczeal # --enable-root-analysis
 ${MAKE} ${MAKE_OPTS}
 cd ..
 
 perl -i.bak -pe 's/(LIBRARY_NAME\s+=).*/$1 '\''mozjs31-ps-release'\''/' moz.build
 mkdir -p build-release
 cd build-release
-../configure ${CONF_OPTS} --enable-optimize  # --enable-gczeal --enable-debug-symbols
+../configure ${CONF_OPTS} --with-nspr-libs="$NSPR_LIBS" --with-nspr-cflags="$NSPR_INCLUDES" --enable-optimize  # --enable-gczeal --enable-debug-symbols
 ${MAKE} ${MAKE_OPTS}
 cd ..
 
