@@ -38,7 +38,7 @@ private:
 	// Manage the root as a pointer to avoid having to:
 	//  - Manually define the copy constructor and copy assignment operator.
 	//  - Store a reference to a ScriptInterface, JSContext or JSRuntime sowhere in this class
-	std::shared_ptr<JS::PersistentRootedValue> data;
+	shared_ptr<JS::PersistentRootedValue> data;
 };
 
 #endif // INCLUDED_SIMULATIONCOMMAND

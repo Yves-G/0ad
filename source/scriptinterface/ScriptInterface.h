@@ -89,7 +89,7 @@ public:
 	 * Each runtime should only ever be used on a single thread.
 	 * @param runtimeSize Maximum size in bytes of the new runtime
 	 */
-	static shared_ptr<ScriptRuntime> CreateRuntime(shared_ptr<ScriptRuntime> parentRuntime = nullptr, int runtimeSize = DEFAULT_RUNTIME_SIZE);
+	static shared_ptr<ScriptRuntime> CreateRuntime(shared_ptr<ScriptRuntime> parentRuntime = { }, int runtimeSize = DEFAULT_RUNTIME_SIZE);
 
 
 	/**
