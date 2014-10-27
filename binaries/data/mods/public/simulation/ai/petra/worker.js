@@ -13,7 +13,7 @@ m.Worker = function(ent)
 
 m.Worker.prototype.update = function(baseManager, gameState)
 {
-	if (!this.ent.position())
+	if (!this.ent.position() || this.ent.getMetadata(PlayerID, "plan") === -2 || this.ent.getMetadata(PlayerID, "plan") === -3)
 		return;
 
 	// If we are waiting for a transport or we are sailing, just wait
@@ -490,7 +490,7 @@ m.Worker.prototype.startGathering = function(gameState, baseManager)
 
 	// If we are here, we have nothing left to gather ... certainly no more resources of this type
 	gameState.ai.HQ.lastFailedGather[resource] = gameState.ai.elapsedTime;
-	if (gameState.ai.HQ.Config.debug > 1)
+	if (gameState.Config.debug > 2)
 		warn(" >>>>> worker with gather-type " + resource + " with nothing to gather ");
 	this.ent.setMetadata(PlayerID, "subrole", "idle");
 	return false;
@@ -595,7 +595,7 @@ m.Worker.prototype.startHunting = function(gameState, position)
 		// some simple accessibility check: if they're in an inaccessible square, we won't gather from them.
 		// (happen only at start of the game, as animals should not be able to walk to an inaccessible area)
 		// TODO as the animal can move, check again from time to time
-		if (supply.setMetadata(PlayerID, "inaccessible") === undefined)
+		if (supply.getMetadata(PlayerID, "inaccessible") === undefined)
 		{
 			var fakeMap = new API3.Map(gameState.sharedScript, gameState.getMap().data);
 			var mapPos = fakeMap.gamePosToMapPos(supply.position());

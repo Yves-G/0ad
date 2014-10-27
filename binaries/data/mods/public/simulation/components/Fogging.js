@@ -104,6 +104,16 @@ Fogging.prototype.LoadMirage = function(player)
 			cmpResourceSupply.GetType(), 
 			cmpResourceSupply.IsInfinite()
 		);
+
+	// Notify the GUI the entity has been replaced by a mirage, in case it is selected at this moment
+	var cmpGuiInterface = Engine.QueryInterface(SYSTEM_ENTITY, IID_GuiInterface);
+	cmpGuiInterface.AddMiragedEntity(player, this.entity, this.mirages[player]);
+};
+
+Fogging.prototype.ForceMiraging = function(player)
+{
+	this.seen[player] = true;
+	this.LoadMirage(player);
 };
 
 Fogging.prototype.IsMiraged = function(player)

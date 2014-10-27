@@ -4,12 +4,15 @@
 # Ascendant project.
 # 
 # Translators:
+# Sander Deryckere, 2014
+# tanguy lesseliers <tanguylesseliers+trsfex@gmail.com>, 2014
 msgid ""
 msgstr ""
 "Project-Id-Version: 0 A.D.\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2014-06-19 19:39+0200\n"
-"PO-Revision-Date: 2014-06-19 17:54+0000\n"
+"POT-Creation-Date: 2014-09-26 19:00+0200\n"
+"PO-Revision-Date: 2014-09-26 15:10+0000\n"
+"Last-Translator: tanguy lesseliers <tanguylesseliers+trsfex@gmail.com>\n"
 "Language-Team: Dutch (http://www.transifex.com/projects/p/0ad/language/nl/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -26,17 +29,17 @@ msgstr "burgerlijk"
 msgid "Civic Structure"
 msgstr "Civiel gebouw"
 
-#: simulation/templates/template_structure_civic_civil_centre.xml:68
-#: simulation/templates/template_structure_civic_civil_centre.xml:31
+#: simulation/templates/template_structure_civic_civil_centre.xml:71
+#: simulation/templates/template_structure_civic_civil_centre.xml:34
 msgid "CivilCentre"
 msgstr "beschavingscentrum"
 
-#: simulation/templates/template_structure_civic_civil_centre.xml:63
+#: simulation/templates/template_structure_civic_civil_centre.xml:66
 msgid ""
 "Build to acquire large tracts of territory. Train citizens. Garrison: 20."
 msgstr "Bouw om grote delen territorium te verkrijgen. Rekruteer burgers. Bemanning: 20."
 
-#: simulation/templates/template_structure_civic_civil_centre.xml:62
+#: simulation/templates/template_structure_civic_civil_centre.xml:65
 msgid "Civic Center"
 msgstr "Beschavingscentrum"
 
@@ -47,9 +50,6 @@ msgstr "Beschavingscentrum"
 #: simulation/templates/template_structure_military_barracks.xml:31
 #: simulation/templates/template_structure_military_dock.xml:27
 #: simulation/templates/template_structure_resource_corral.xml:28
-#: simulation/templates/structures/brit_blacksmith.xml:11
-#: simulation/templates/structures/celt_blacksmith.xml:11
-#: simulation/templates/structures/gaul_blacksmith.xml:11
 msgid "Village"
 msgstr "Buurtschap"
 
@@ -64,13 +64,16 @@ msgstr "Vergroot de bevolkingslimiet."
 
 #: simulation/templates/template_structure_civic_temple.xml:11
 msgid "Healing Aura"
-msgstr ""
+msgstr "Genezingsaura"
 
 #: simulation/templates/template_structure_civic_temple.xml:44
-#: simulation/templates/template_structure_defense_defense_tower.xml:63
+#: simulation/templates/template_structure_defense_defense_tower.xml:57
 #: simulation/templates/template_structure_economic_market.xml:24
 #: simulation/templates/template_structure_military_blacksmith.xml:31
 #: simulation/templates/template_structure_military_embassy.xml:24
+#: simulation/templates/structures/brit_blacksmith.xml:11
+#: simulation/templates/structures/celt_blacksmith.xml:11
+#: simulation/templates/structures/gaul_blacksmith.xml:11
 msgid "Town"
 msgstr "Dorp"
 
@@ -83,14 +86,14 @@ msgstr "Tempel"
 msgid ""
 "Train healers. Garrison up to 20 units to heal them at a quick rate (3 HP "
 "per second). Research healing and religious improvements."
-msgstr ""
+msgstr "Rekruteer helers. Genees tot 20 eenheden in de tempel aan een snel tempo (3 levens per seconde). Onderzoek technologieën i.v.m. helen en religie."
 
 #: simulation/templates/template_structure_civic_temple.xml:12
 msgid "Heals nearby units at 1 HP per second."
-msgstr ""
+msgstr "Genees nabije eenheden aan 1 leven per seconde."
 
 #: simulation/templates/template_structure_defense.xml:15
-#: simulation/templates/template_structure_military_fortress.xml:63
+#: simulation/templates/template_structure_military_fortress.xml:57
 msgid "Defensive"
 msgstr "Defensief"
 
@@ -98,16 +101,16 @@ msgstr "Defensief"
 msgid "Defensive Structure"
 msgstr "Defensieve structuur"
 
-#: simulation/templates/template_structure_defense_defense_tower.xml:63
-#: simulation/templates/template_structure_defense_defense_tower.xml:32
+#: simulation/templates/template_structure_defense_defense_tower.xml:57
+#: simulation/templates/template_structure_defense_defense_tower.xml:26
 msgid "DefenseTower"
 msgstr "defensietoren"
 
-#: simulation/templates/template_structure_defense_defense_tower.xml:61
+#: simulation/templates/template_structure_defense_defense_tower.xml:55
 msgid "Shoots arrows. Garrison to provide extra defense."
 msgstr "Schiet pijlen. Beman met extra soldaten voor een betere verdediging."
 
-#: simulation/templates/template_structure_defense_defense_tower.xml:60
+#: simulation/templates/template_structure_defense_defense_tower.xml:54
 msgid "Defense Tower"
 msgstr "Verdedigingstoren"
 
@@ -118,9 +121,9 @@ msgstr "Voorpost"
 
 #: simulation/templates/template_structure_defense_outpost.xml:58
 msgid ""
-"Build in neutral and friendly territories to scout areas of the map. Slowly "
-"loses health while in neutral territory."
-msgstr "Bouw in neutraal en geallieerd territorium om gebieden van de kaart te verkennen. Verliest sterkte in neutraal gebied."
+"Build in neutral and own territories to scout areas of the map. Slowly loses"
+" health while in neutral territory."
+msgstr "Bouw op neutrale of eigen territorium om delen van de kaart te  herkennen. Als je op neutraal gebied bouwt, verlies je geleidelijk aan je sterkte"
 
 #: simulation/templates/template_structure_defense_wall.xml:24
 #: simulation/templates/template_structure_defense_wallset.xml:11
@@ -143,7 +146,7 @@ msgstr "Stadspoort"
 #: simulation/templates/template_structure_defense_wall_long.xml:13
 #: simulation/templates/template_structure_defense_wall_medium.xml:13
 msgid "Wall Protection"
-msgstr ""
+msgstr "Muurbescherming"
 
 #: simulation/templates/template_structure_defense_wall_long.xml:53
 msgid "Long wall segments can be converted to gates."
@@ -152,17 +155,17 @@ msgstr "Lange muursegmenten kunnen omgebouwd worden tot poorten."
 #: simulation/templates/template_structure_defense_wall_long.xml:14
 #: simulation/templates/template_structure_defense_wall_medium.xml:14
 msgid "Units on walls have 3 extra Armor levels"
-msgstr ""
+msgstr "Eenheden op de muren hebben +3 pantser."
 
 #: simulation/templates/template_structure_defense_wall_long.xml:54
 msgid "Convert Stone Wall into City Gate"
 msgstr "Verbouw het muursegment tot een stadspoort."
 
-#: simulation/templates/template_structure_defense_wall_tower.xml:56
+#: simulation/templates/template_structure_defense_wall_tower.xml:50
 msgid "Shoots arrows. Garrison to defend a city wall against attackers."
 msgstr "Schiet pijlen. Beman met extra soldaten om het aantal pijlen te verhogen."
 
-#: simulation/templates/template_structure_defense_wall_tower.xml:55
+#: simulation/templates/template_structure_defense_wall_tower.xml:49
 msgid "Wall Turret"
 msgstr "Muurtoren"
 
@@ -264,17 +267,17 @@ msgstr "Bouw langs een kustlijn om schepen te bouwen en zeehandel te starten. On
 msgid "Embassy"
 msgstr "Ambassade"
 
-#: simulation/templates/template_structure_military_fortress.xml:63
+#: simulation/templates/template_structure_military_fortress.xml:57
 msgid "City"
 msgstr "Stad"
 
-#: simulation/templates/template_structure_military_fortress.xml:63
-#: simulation/templates/template_structure_military_fortress.xml:31
-#: simulation/templates/template_structure_military_fortress.xml:60
+#: simulation/templates/template_structure_military_fortress.xml:57
+#: simulation/templates/template_structure_military_fortress.xml:25
+#: simulation/templates/template_structure_military_fortress.xml:54
 msgid "Fortress"
 msgstr "Vesting"
 
-#: simulation/templates/template_structure_military_fortress.xml:61
+#: simulation/templates/template_structure_military_fortress.xml:55
 msgid ""
 "Train heroes, champions, and siege weapons. Research siege weapon "
 "improvements. Garrison: 20."
@@ -299,12 +302,12 @@ msgid ""
 " food or other bonus (Not yet implemented)."
 msgstr "Fok kuddedieren voor extra voedsel. Leid tamme dieren naar hier voor een continue, maar kleine, voedselbonus of andere bonus (nog niet geïmplementeerd)."
 
-#: simulation/templates/template_structure_resource_field.xml:25
-#: simulation/templates/template_structure_resource_field.xml:24
+#: simulation/templates/template_structure_resource_field.xml:27
+#: simulation/templates/template_structure_resource_field.xml:26
 msgid "Field"
 msgstr "Veld"
 
-#: simulation/templates/template_structure_resource_field.xml:26
+#: simulation/templates/template_structure_resource_field.xml:28
 msgid "Harvest vegetables for food. Max gatherers: 5."
 msgstr "Oogst groenten voor voedsel. Max. 5 verzamelaars."
 
@@ -548,12 +551,6 @@ msgstr "Neṓs Parthenos"
 msgid "Gwersyllty"
 msgstr "Gwersyllty"
 
-#: simulation/templates/structures/brit_blacksmith.xml:11
-#: simulation/templates/structures/celt_blacksmith.xml:11
-#: simulation/templates/structures/gaul_blacksmith.xml:11
-msgid "-Town"
-msgstr "-Dorp"
-
 #: simulation/templates/structures/brit_blacksmith.xml:8
 #: simulation/templates/structures/celt_blacksmith.xml:8
 #: simulation/templates/structures/gaul_blacksmith.xml:8
@@ -705,7 +702,6 @@ msgstr "Kan geen pijlen schieten of bemanning bevatten."
 #: simulation/templates/structures/brit_wonder.xml:9
 #: simulation/templates/structures/celt_wonder.xml:9
 #: simulation/templates/structures/gaul_wonder.xml:9
-#: simulation/templates/structures/iber_wonder.xml:9
 msgid "Stonehenge"
 msgstr "Stonehenge"
 
@@ -1001,6 +997,10 @@ msgstr "Zabal Horma"
 msgid "Biko Sarbide"
 msgstr "Biko Sarbide"
 
+#: simulation/templates/structures/iber_wonder.xml:17
+msgid "Cancho Roano"
+msgstr "Cancho Roano"
+
 #: simulation/templates/structures/mace_fortress.xml:16
 msgid ""
 "Train Champions and Heroes. Garrison up to 15 soldiers inside for stout "
@@ -1270,10 +1270,6 @@ msgstr "Perzisch speciaal gebouw"
 #: simulation/templates/structures/pers_sb2.xml:23
 msgid "Parihuvādā"
 msgstr "Parihuvādā"
-
-#: simulation/templates/structures/pers_stables.xml:20
-msgid "-Barracks"
-msgstr "-Barakken"
 
 #: simulation/templates/structures/pers_stables.xml:20
 msgid "Stables"
@@ -1579,10 +1575,6 @@ msgstr "Tempel van Vesta"
 msgid "Aedes Vestae"
 msgstr "Aedes Vestae"
 
-#: simulation/templates/structures/rome_tent.xml:31
-msgid "-Village"
-msgstr "-Buurtschap"
-
 #: simulation/templates/structures/rome_tent.xml:32
 msgid "A temporary shelter for soldiers. +5 population bonus."
 msgstr "Een tijdelijk onderdak voor soldaten. +5 maximum bevolking."
@@ -1642,7 +1634,7 @@ msgid ""
 "This is the Seleucid expansion building, similar to Civic Centers for other factions. It is weaker and carries a smaller territory influence, but is cheaper and built faster.\n"
 "- Train settler-soldiers of various nationalities.\n"
 "- Min. distance from other Military Colonies: 120 meters."
-msgstr ""
+msgstr "Dit is het Seleucidische expansiegebouw, gelijkaardig aan de beschavingscentra voor andere facties. Het is minder sterk, en veroorzaakt een kleiner territorium, maar het is goedkoper en sneller te bouwen.\n- Rekruteer immigrant-soldaten van verschillende nationaliteiten.\n- Minimum afstand tot andere kolonies: 120m."
 
 #: simulation/templates/structures/sele_outpost.xml:5
 msgid "Prophylax"

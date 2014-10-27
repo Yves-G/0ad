@@ -40,35 +40,6 @@
 			z="3"
 		/>
 		
-		<object	name="backgroundPers1-1"
-			type="image"
-			sprite="background-persians1-1"
-			hidden="true"
-			ghost="true"
-			z="1"
-		/>
-		<object	name="backgroundPers1-2"
-			type="image"
-			sprite="background-persians1-2"
-			hidden="true"
-			ghost="true"
-			z="2"
-		/>
-		<object	name="backgroundPers1-3"
-			type="image"
-			sprite="background-persians1-3"
-			hidden="true"
-			ghost="true"
-			z="3"
-		/>
-		<object	name="backgroundPers1-4"
-			type="image"
-			sprite="background-persians1-4"
-			hidden="true"
-			ghost="true"
-			z="4"
-		/>
-
 		<!--
 		==========================================
 		- MAIN MENU - STATIC TOOLTIP WINDOW
@@ -235,7 +206,7 @@
 					size="0 0 100% 28"
 					tooltip_style="pgToolTip"
 				>
-					<translatableAttribute id="caption">Join Game</translatableAttribute>
+					<translatableAttribute id="caption" comment="Join a game by specifying the host's IP address.">Join Game</translatableAttribute>
 					<translatableAttribute id="tooltip">Joining an existing multiplayer game.</translatableAttribute>
 					<action on="Press">
 						closeMenu();
@@ -294,7 +265,6 @@
 					type="button"
 					size="0 0 100% 28"
 					tooltip_style="pgToolTip"
-					enabled="true"
 				>
 					<translatableAttribute id="caption">Options</translatableAttribute>
 					<translatableAttribute id="tooltip">Adjust game settings.</translatableAttribute>
@@ -349,6 +319,18 @@
 						closeMenu();
 						Engine.PushGuiPage("page_splashscreen.xml", { "page": "splashscreen", callback : "SplashScreenClosedCallback" } );
 						]]>
+					</action>
+				</object>
+				<object name="submenuModSelection"
+					style="StoneButtonFancy"
+					type="button"
+					size="0 128 100% 156"
+					tooltip_style="pgToolTip"
+				>
+					<translatableAttribute id="caption">Mod Selection</translatableAttribute>
+					<translatableAttribute id="tooltip">Select mods to use.</translatableAttribute>
+					<action on="Press">
+						Engine.SwitchGuiPage("page_modmod.xml", {});
 					</action>
 				</object>
 			</object>
@@ -450,7 +432,7 @@
 					<translatableAttribute id="tooltip">Game options and scenario design tools.</translatableAttribute>
 					<action on="Press">
 						closeMenu();
-						openMenu("submenuToolsAndOptions", (this.parent.size.top+this.size.top), (this.size.bottom-this.size.top), 4);
+						openMenu("submenuToolsAndOptions", (this.parent.size.top+this.size.top), (this.size.bottom-this.size.top), 5);
 					</action>
 				</object>
 
@@ -501,7 +483,7 @@
 					<!-- IMPORTANT: remember to update session/session.xml in sync with this: -->
 					<attribute id="caption">
 						<keep>[font="sans-bold-16"]</keep>
-						<translate>Alpha XVI: Patañjali</translate>
+						<translate>Alpha XVII: Quercus</translate>
 						<keep>[/font]\n\n</keep>
 						<translate>WARNING: This is an early development version of the game. Many features have not been added yet.</translate>
 						<keep>\n\n</keep>

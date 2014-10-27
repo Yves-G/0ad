@@ -22,6 +22,7 @@ GuiInterface.prototype.Init = function()
 	this.placementWallLastAngle = 0;
 	this.notifications = [];
 	this.renamedEntities = [];
+	this.miragedEntities = [];
 	this.timeNotificationID = 1;
 	this.timeNotifications = [];
 	this.entsRallyPointsDisplayed = [];
@@ -98,6 +99,7 @@ GuiInterface.prototype.GetSimulationState = function(player)
 			"entityLimits": cmpPlayerEntityLimits.GetLimits(),
 			"entityCounts": cmpPlayerEntityLimits.GetCounts(),
 			"entityLimitChangers": cmpPlayerEntityLimits.GetLimitChangers(),
+			"disabledTemplates": cmpPlayer.GetDisabledTemplates(),
 			"researchQueued": cmpTechnologyManager.GetQueuedResearch(),
 			"researchStarted": cmpTechnologyManager.GetStartedResearch(),
 			"researchedTechs": cmpTechnologyManager.GetResearchedTechs(),
@@ -148,12 +150,24 @@ GuiInterface.prototype.GetExtendedSimulationState = function(player)
 
 GuiInterface.prototype.GetRenamedEntities = function(player)
 {
-	return this.renamedEntities;
+	if (this.miragedEntities[player])
+		return this.renamedEntities.concat(this.miragedEntities[player]);
+	else
+		return this.renamedEntities;
 };
 
 GuiInterface.prototype.ClearRenamedEntities = function(player)
 {
 	this.renamedEntities = [];
+	this.miragedEntities = [];
+};
+
+GuiInterface.prototype.AddMiragedEntity = function(player, entity, mirage)
+{
+	if (!this.miragedEntities[player])
+		this.miragedEntities[player] = [];
+
+	this.miragedEntities[player].push({"entity": entity, "newentity": mirage});
 };
 
 /**
@@ -173,7 +187,7 @@ GuiInterface.prototype.GetEntityState = function(player, ent)
 		"template": template,
 
 		"alertRaiser": null,
-		"buildEntities": null,
+		"builder": null,
 		"identity": null,
 		"fogging": null,
 		"foundation": null,
@@ -185,6 +199,7 @@ GuiInterface.prototype.GetEntityState = function(player, ent)
 		"position": null,
 		"production": null,
 		"rallyPoint": null,
+		"resourceCarrying": null,
 		"rotation": null,
 		"trader": null,
 		"unitAI": null,
@@ -229,9 +244,7 @@ GuiInterface.prototype.GetEntityState = function(player, ent)
 
 	var cmpBuilder = Engine.QueryInterface(ent, IID_Builder);
 	if (cmpBuilder)
-	{
-		ret.buildEntities = cmpBuilder.GetEntitiesList();
-	}
+		ret.builder = true;
 
 	var cmpPack = Engine.QueryInterface(ent, IID_Pack);
 	if (cmpPack)
@@ -332,6 +345,12 @@ GuiInterface.prototype.GetEntityState = function(player, ent)
 		};
 	}
 
+	var cmpResourceGatherer = Engine.QueryInterface(ent, IID_ResourceGatherer);
+	if (cmpResourceGatherer)
+	{
+		ret.resourceCarrying = cmpResourceGatherer.GetCarryingStatus();
+	}
+
 	var cmpGate = Engine.QueryInterface(ent, IID_Gate);
 	if (cmpGate)
 	{
@@ -371,7 +390,6 @@ GuiInterface.prototype.GetExtendedEntityState = function(player, ent)
 		"obstruction": null,
 		"turretParent":null,
 		"promotion": null,
-		"resourceCarrying": null,
 		"resourceDropsite": null,
 		"resourceGatherRates": null,
 		"resourceSupply": null,
@@ -489,7 +507,6 @@ GuiInterface.prototype.GetExtendedEntityState = function(player, ent)
 	if (cmpResourceGatherer)
 	{
 		ret.resourceGatherRates = cmpResourceGatherer.GetGatherRates();
-		ret.resourceCarrying = cmpResourceGatherer.GetCarryingStatus();
 	}
 	
 	var cmpResourceDropsite = Engine.QueryInterface(ent, IID_ResourceDropsite);
@@ -966,6 +983,26 @@ GuiInterface.prototype.IsStanceSelected = function(player, data)
 		}
 	}
 	return false;
+};
+
+GuiInterface.prototype.GetAllBuildableEntities = function(player, cmd)
+{
+	var buildableEnts = [];
+	for each (var ent in cmd.entities)
+	{
+		var cmpBuilder = Engine.QueryInterface(ent, IID_Builder);
+		if (!cmpBuilder)
+			continue;
+		if (buildableEnts.length)
+		{
+			for (var building of cmpBuilder.GetEntitiesList())
+				if (buildableEnts.indexOf(building) === -1)
+					buildableEnts.push(building);
+		}
+		else
+			buildableEnts = cmpBuilder.GetEntitiesList();
+	}
+	return buildableEnts;
 };
 
 GuiInterface.prototype.SetSelectionHighlight = function(player, cmd)
@@ -1988,6 +2025,7 @@ var exposedFunctions = {
 	"IsStanceSelected": 1,
 
 	"SetSelectionHighlight": 1,
+	"GetAllBuildableEntities": 1,
 	"SetStatusBars": 1,
 	"GetPlayerEntities": 1,
 	"DisplayRallyPoint": 1,

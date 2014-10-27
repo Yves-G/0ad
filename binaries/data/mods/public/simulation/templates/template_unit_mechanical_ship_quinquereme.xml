@@ -41,8 +41,8 @@
   <GarrisonHolder>
     <Max>50</Max>
     <EjectHealth>0</EjectHealth>
-    <EjectClassesOnDestroy datatype="tokens">Female Infantry</EjectClassesOnDestroy>
-    <List datatype="tokens">Support Infantry Cavalry Siege Elephant</List>
+    <EjectClassesOnDestroy datatype="tokens">Female Infantry Dog</EjectClassesOnDestroy>
+    <List datatype="tokens">Support Infantry Cavalry Dog Siege Elephant</List>
     <BuffHeal>1</BuffHeal>
     <LoadingRange>10</LoadingRange>
     <Pickup>true</Pickup>
@@ -52,9 +52,7 @@
   </Health>
   <Identity>
     <GenericName>Heavy Warship</GenericName>
-    <Tooltip>Classes: Mechanical Warship Heavy Ranged Melee.
-Garrison with catapults to increase ranged fire power.
-Secondary Attack: Ramming.</Tooltip>
+    <Tooltip>Garrison with catapults to increase ranged fire power.</Tooltip>
     <Classes datatype="tokens">Warship Heavy Ranged</Classes>
 	<RequiredTechnology>phase_city</RequiredTechnology>
   </Identity>
@@ -70,7 +68,7 @@ Secondary Attack: Ramming.</Tooltip>
     <HeightOffset>6.0</HeightOffset>
   </StatusBars>
   <UnitMotion>
-    <WalkSpeed>14.5</WalkSpeed>
+    <WalkSpeed>16</WalkSpeed>
     <Run>
       <Speed>20</Speed>
     </Run>

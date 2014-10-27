@@ -4,12 +4,14 @@
 # Ascendant project.
 # 
 # Translators:
+# Haommin <tfs.msimangu@gmail.com>, 2014
 msgid ""
 msgstr ""
 "Project-Id-Version: 0 A.D.\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2014-06-19 19:38+0200\n"
-"PO-Revision-Date: 2014-06-19 17:51+0000\n"
+"POT-Creation-Date: 2014-09-26 18:59+0200\n"
+"PO-Revision-Date: 2014-09-26 09:31+0000\n"
+"Last-Translator: Haommin <tfs.msimangu@gmail.com>\n"
 "Language-Team: Catalan (http://www.transifex.com/projects/p/0ad/language/ca/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -114,7 +116,7 @@ msgid ""
 "and may not always be up to date on the new features, but you can test "
 "playing the game against an actual opponent if you aren't able to play with "
 "a human."
-msgstr "• [font=\"sans-bold-14\"]Un sol jugador[font=\"sans-14\"] — jugueu en una partida de prova contra un o més contrincants de la IA. La IA encara està en desenvolupament i és possible que no sempre estigui actualitzada amb les noves característiques, però servirà perquè pugueu provar el joc si no podeu jugar contra una persona."
+msgstr "• [font=\"sans-bold-14\"]Un sol jugador[font=\"sans-14\"] — jugueu en una partida de prova contra un o més adversaris de la IA. La IA encara està en desenvolupament i és possible que no sempre estigui actualitzada amb les noves característiques, però servirà perquè pugueu provar el joc si no podeu jugar contra una persona."
 
 #: gui/manual/intro.txt:24
 msgid ""
@@ -369,12 +371,15 @@ msgid "Ctrl + Right Click with units selected:"
 msgstr "Ctrl + Clic dret amb unitats seleccionades:"
 
 #: gui/manual/intro.txt:82
-msgid "    - If the cursor is over a structure: Garrison"
-msgstr "- Si el cursor està damunt d'una estructura: Refugia"
+msgid "    - If the cursor is over an allied structure: Garrison"
+msgstr "- Si el cursor està damunt d'una estructura aliada: Refugia"
 
 #: gui/manual/intro.txt:83
-msgid "    - Otherwise: Attack move"
-msgstr "- Si no és així: Moviment d'atac"
+msgid ""
+"    - Otherwise: Attack move (by default all enemy units and structures "
+"along the way are targeted, use Ctrl + Q + Right Click to target only "
+"units). "
+msgstr "- Si no: Ataca (per defecte s'atacaran totes les estructures i unitats enemigues del camí, feu Ctrl + Q + clic dret per atacar només les unitats)."
 
 #: gui/manual/intro.txt:85
 msgid "[font=\"sans-bold-14\"]Overlays"

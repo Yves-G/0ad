@@ -81,6 +81,7 @@ AddMock(100, IID_Player, {
 	IsMutualAlly: function() { return false; },
 	IsNeutral: function() { return false; },
 	IsEnemy: function() { return true; },
+	GetDisabledTemplates: function() { return {}; },
 });
 
 AddMock(100, IID_EntityLimits, {
@@ -143,6 +144,7 @@ AddMock(101, IID_Player, {
 	IsMutualAlly: function() {return false; },
 	IsNeutral: function() { return false; },
 	IsEnemy: function() { return false; },
+	GetDisabledTemplates: function() { return {}; },
 });
 
 AddMock(101, IID_EntityLimits, {
@@ -212,6 +214,7 @@ TS_ASSERT_UNEVAL_EQUALS(cmp.GetSimulationState(), {
 			entityLimits: {"Foo": 10},
 			entityCounts: {"Foo": 5},
 			entityLimitChangers: {"Foo": {}},
+			disabledTemplates: {},
 			researchQueued: {},
 			researchStarted: {},
 			researchedTechs: {},
@@ -240,6 +243,7 @@ TS_ASSERT_UNEVAL_EQUALS(cmp.GetSimulationState(), {
 			entityLimits: {"Bar": 20},
 			entityCounts: {"Bar": 0},
 			entityLimitChangers: {"Bar": {}},
+			disabledTemplates: {},
 			researchQueued: {},
 			researchStarted: {},
 			researchedTechs: {},
@@ -276,6 +280,7 @@ TS_ASSERT_UNEVAL_EQUALS(cmp.GetExtendedSimulationState(), {
 			entityLimits: {"Foo": 10},
 			entityCounts: {"Foo": 5},
 			entityLimitChangers: {"Foo": {}},
+			disabledTemplates: {},
 			researchQueued: {},
 			researchStarted: {},
 			researchedTechs: {},
@@ -320,6 +325,7 @@ TS_ASSERT_UNEVAL_EQUALS(cmp.GetExtendedSimulationState(), {
 			entityLimits: {"Bar": 20},
 			entityCounts: {"Bar": 0},
 			entityLimitChangers: {"Bar": {}},
+			disabledTemplates: {},
 			researchQueued: {},
 			researchStarted: {},
 			researchedTechs: {},
@@ -391,7 +397,7 @@ TS_ASSERT_UNEVAL_EQUALS(cmp.GetEntityState(-1, 10), {
 	id: 10,
 	template: "example",
 	alertRaiser: null,
-	buildEntities: ["test1", "test2"],
+	builder: true,
 	identity: {
 		rank: "foo",
 		classes: ["class1", "class2"],
@@ -408,6 +414,7 @@ TS_ASSERT_UNEVAL_EQUALS(cmp.GetEntityState(-1, 10), {
 	position: {x:1, y:2, z:3},
 	production: null,
 	rallyPoint: null,
+	resourceCarrying: null,
 	rotation: {x:4, y:5, z:6},
 	trader: null,
 	unitAI: null,
@@ -430,7 +437,6 @@ TS_ASSERT_UNEVAL_EQUALS(cmp.GetExtendedEntityState(-1, 10), {
 	obstruction: null,
 	turretParent: null,
 	promotion: null,
-	resourceCarrying: null,
 	resourceDropsite: null,
 	resourceGatherRates: null,
 	resourceSupply: null,

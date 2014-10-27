@@ -287,10 +287,10 @@ public:
 	std::vector<bool> m_LosRevealAll;
 	bool m_LosCircular;
 	i32 m_TerrainVerticesPerSide;
-	size_t m_TerritoriesDirtyID;
 	
 	// Cache for visibility tracking (not serialized)
 	i32 m_LosTilesPerSide;
+	bool m_GlobalVisibilityUpdate;
 	std::vector<u8> m_DirtyVisibility;
 	std::vector<std::set<entity_id_t> > m_LosTiles;
 	// List of entities that must be updated, regardless of the status of their tile
@@ -343,8 +343,6 @@ public:
 
 		m_LosCircular = false;
 		m_TerrainVerticesPerSide = 0;
-
-		m_TerritoriesDirtyID = 0;
 	}
 
 	virtual void Deinit()
@@ -674,9 +672,10 @@ public:
 		m_LosStateRevealed.resize(m_TerrainVerticesPerSide*m_TerrainVerticesPerSide);
 		
 		m_DirtyVisibility.clear();
-		m_DirtyVisibility.resize(m_LosTilesPerSide*m_LosTilesPerSide, 1);
+		m_DirtyVisibility.resize(m_LosTilesPerSide*m_LosTilesPerSide);
 		m_LosTiles.clear();
 		m_LosTiles.resize(m_LosTilesPerSide*m_LosTilesPerSide);
+		m_GlobalVisibilityUpdate = true;
 
 		for (EntityMap<EntityData>::const_iterator it = m_EntityData.begin(); it != m_EntityData.end(); ++it)
 		{
@@ -1389,8 +1388,12 @@ public:
 		if (!cmpPosition || !cmpPosition->IsInWorld())
 			return VIS_HIDDEN;
 
-		CFixedVector2D pos = cmpPosition->GetPosition2D();
+		// Mirage entities, whatever the situation, are visible for one specific player
+		CmpPtr<ICmpMirage> cmpMirage(ent);
+		if (cmpMirage && cmpMirage->GetPlayer() != player)
+			return VIS_HIDDEN;
 
+		CFixedVector2D pos = cmpPosition->GetPosition2D();
 		int i = (pos.X / (int)TERRAIN_TILE_SIZE).ToInt_RoundToNearest();
 		int j = (pos.Y / (int)TERRAIN_TILE_SIZE).ToInt_RoundToNearest();
 
@@ -1402,11 +1405,6 @@ public:
 			else
 				return VIS_VISIBLE;
 		}
-
-		// Mirage entities, whatever their position, are visible for one specific player
-		CmpPtr<ICmpMirage> cmpMirage(ent);
-		if (cmpMirage && cmpMirage->GetPlayer() != player)
-			return VIS_HIDDEN;
 
 		// Visible if within a visible region
 		CLosQuerier los(GetSharedLosMask(player), m_LosState, m_TerrainVerticesPerSide);
@@ -1494,7 +1492,7 @@ public:
 		
 		for (i32 n = 0; n < m_LosTilesPerSide*m_LosTilesPerSide; ++n)
 		{
-			if (m_DirtyVisibility[n] == 1)
+			if (m_DirtyVisibility[n] == 1 || m_GlobalVisibilityUpdate)
 			{
 				for (std::set<entity_id_t>::iterator it = m_LosTiles[n].begin();
 					it != m_LosTiles[n].end();
@@ -1511,14 +1509,21 @@ public:
 			UpdateVisibility(*it);
 		}
 		m_ModifiedEntities.clear();
+
+		m_GlobalVisibilityUpdate = false;
 	}
 
 	void UpdateVisibility(entity_id_t ent)
 	{
+		// Warning: Code related to fogging (like posting VisibilityChanged messages) 
+		// shouldn't be invoked while keeping an iterator to an element of m_EntityData.
+		// Otherwise, by deleting mirage entities and so on, 
+		// that code will change the indexes in the map, leading to segfaults. 
 		EntityMap<EntityData>::iterator itEnts = m_EntityData.find(ent);
 		if (itEnts == m_EntityData.end())
 			return;
 
+		// So we just remember what visibilities to update and do that later.
 		std::vector<u8> oldVisibilities;
 		std::vector<u8> newVisibilities;
 		
@@ -1539,6 +1544,10 @@ public:
 			if (oldVisibilities[player-1] == newVisibilities[player-1])
 				continue;
 			
+			// Another visibility update can be necessary to take in account new mirages
+			if (std::find(m_ModifiedEntities.begin(), m_ModifiedEntities.end(), ent) == m_ModifiedEntities.end())
+				m_ModifiedEntities.push_back(ent);
+
 			CMessageVisibilityChanged msg(player, ent, oldVisibilities[player-1], newVisibilities[player-1]);
 			GetSimContext().GetComponentManager().PostMessage(ent, msg);
 		}
@@ -1553,6 +1562,9 @@ public:
 			ENSURE(player >= 0 && player <= MAX_LOS_PLAYER_ID);
 			m_LosRevealAll[player] = enabled;
 		}
+
+		// On next update, update the visibility of every entity in the world
+		m_GlobalVisibilityUpdate = true;
 	}
 
 	virtual bool GetLosRevealAll(player_id_t player)
@@ -1603,13 +1615,13 @@ public:
 				m_LosState[i + j*m_TerrainVerticesPerSide] |= (LOS_EXPLORED << (2*(p-1)));
 			}
 		}
+
+		SeeExploredEntities(p);
 	}
 
-	void UpdateTerritoriesLos()
+	virtual void ExploreTerritories()
 	{
 		CmpPtr<ICmpTerritoryManager> cmpTerritoryManager(GetSystemEntity());
-		if (!cmpTerritoryManager || !cmpTerritoryManager->NeedUpdate(&m_TerritoriesDirtyID))
-			return;
 
 		const Grid<u8>& grid = cmpTerritoryManager->GetTerritoryGrid();
 		ENSURE(grid.m_W == m_TerrainVerticesPerSide-1 && grid.m_H == m_TerrainVerticesPerSide-1);
@@ -1635,6 +1647,50 @@ public:
 					m_LosState[i+1 + (j+1)*m_TerrainVerticesPerSide] |= (LOS_EXPLORED << (2*(p-1)));
 				}
 			}
+		}
+
+		for (player_id_t p = 1; p < MAX_LOS_PLAYER_ID+1; ++p)
+			SeeExploredEntities(p);
+	}
+
+	/**
+	 * Force any entity in explored territory to appear for player p.
+	 * This is useful for miraging entities inside the territory borders at the beginning of a game,
+	 * or if the "Explore Map" option has been set.
+	 */
+	void SeeExploredEntities(player_id_t p)
+	{
+		// Warning: Code related to fogging (like ForceMiraging) shouldn't be
+		// invoked while iterating through m_EntityData.
+		// Otherwise, by deleting mirage entities and so on, that code will 
+		// change the indexes in the map, leading to segfaults. 
+		// So we just remember what entities to mirage and do that later.
+		std::vector<entity_id_t> miragableEntities;
+		
+		for (EntityMap<EntityData>::iterator it = m_EntityData.begin(); it != m_EntityData.end(); ++it)
+		{
+			CmpPtr<ICmpPosition> cmpPosition(GetSimContext(), it->first);
+			if (!cmpPosition || !cmpPosition->IsInWorld())
+				continue;
+
+			CFixedVector2D pos = cmpPosition->GetPosition2D();
+			int i = (pos.X / (int)TERRAIN_TILE_SIZE).ToInt_RoundToNearest();
+			int j = (pos.Y / (int)TERRAIN_TILE_SIZE).ToInt_RoundToNearest();
+
+			CLosQuerier los(GetSharedLosMask(p), m_LosState, m_TerrainVerticesPerSide);
+			if (!los.IsExplored(i,j) || los.IsVisible(i,j))
+				continue;
+
+			CmpPtr<ICmpFogging> cmpFogging(GetSimContext(), it->first);
+			if (cmpFogging)
+				miragableEntities.push_back(it->first);
+		}
+
+		for (std::vector<entity_id_t>::iterator it = miragableEntities.begin(); it != miragableEntities.end(); ++it)
+		{
+			CmpPtr<ICmpFogging> cmpFogging(GetSimContext(), *it);
+			ENSURE(cmpFogging && "Impossible to retrieve Fogging component, previously achieved");
+			cmpFogging->ForceMiraging(p);
 		}
 	}
 
@@ -1691,7 +1747,22 @@ public:
 					explored += !(m_LosState[idx] & (LOS_EXPLORED << (2*(owner-1))));
 					m_LosState[idx] |= ((LOS_VISIBLE | LOS_EXPLORED) << (2*(owner-1)));
 				}
-				m_DirtyVisibility[(j/LOS_TILES_RATIO)*m_LosTilesPerSide + i/LOS_TILES_RATIO] = 1;
+
+				// Mark the LoS tiles around the updated vertex
+				// 1: left-up, 2: right-up, 3: left-down, 4: right-down
+				int n1 = ((j-1)/LOS_TILES_RATIO)*m_LosTilesPerSide + (i-1)/LOS_TILES_RATIO;
+				int n2 = ((j-1)/LOS_TILES_RATIO)*m_LosTilesPerSide + i/LOS_TILES_RATIO;
+				int n3 = (j/LOS_TILES_RATIO)*m_LosTilesPerSide + (i-1)/LOS_TILES_RATIO;
+				int n4 = (j/LOS_TILES_RATIO)*m_LosTilesPerSide + i/LOS_TILES_RATIO;
+
+				if (j > 0 && i > 0)
+					m_DirtyVisibility[n1] = 1;
+				if (n2 != n1 && j > 0 && i < m_TerrainVerticesPerSide)
+					m_DirtyVisibility[n2] = 1;
+				if (n3 != n1 && j < m_TerrainVerticesPerSide && i > 0)
+					m_DirtyVisibility[n3] = 1;
+				if (n4 != n1 && j < m_TerrainVerticesPerSide && i < m_TerrainVerticesPerSide)
+					m_DirtyVisibility[n4] = 1;
 			}
 
 			ASSERT(counts[idx] < 65535);
@@ -1721,7 +1792,22 @@ public:
 				m_LosState[idx] &= ~(LOS_VISIBLE << (2*(owner-1)));
 
 				i32 i = i0 + idx - idx0;
-				m_DirtyVisibility[(j/LOS_TILES_RATIO)*m_LosTilesPerSide + i/LOS_TILES_RATIO] = 1;
+
+				// Mark the LoS tiles around the updated vertex
+				// 1: left-up, 2: right-up, 3: left-down, 4: right-down
+				int n1 = ((j-1)/LOS_TILES_RATIO)*m_LosTilesPerSide + (i-1)/LOS_TILES_RATIO;
+				int n2 = ((j-1)/LOS_TILES_RATIO)*m_LosTilesPerSide + i/LOS_TILES_RATIO;
+				int n3 = (j/LOS_TILES_RATIO)*m_LosTilesPerSide + (i-1)/LOS_TILES_RATIO;
+				int n4 = (j/LOS_TILES_RATIO)*m_LosTilesPerSide + i/LOS_TILES_RATIO;
+
+				if (j > 0 && i > 0)
+					m_DirtyVisibility[n1] = 1;
+				if (n2 != n1 && j > 0 && i < m_TerrainVerticesPerSide)
+					m_DirtyVisibility[n2] = 1;
+				if (n3 != n1 && j < m_TerrainVerticesPerSide && i > 0)
+					m_DirtyVisibility[n3] = 1;
+				if (n4 != n1 && j < m_TerrainVerticesPerSide && i < m_TerrainVerticesPerSide)
+					m_DirtyVisibility[n4] = 1;
 			}
 		}
 	}

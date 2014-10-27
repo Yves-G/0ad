@@ -7,15 +7,19 @@
 # Attila Kocsner, 2014
 # chris020891 <chris020891@gmail.com>, 2013-2014
 # davesajt <davesajthun@gmail.com>, 2014
+# Gellért Gyuris <gellert.gyuris@gmail.com>, 2014
+# Kristóf Kófiás <kristof.kofias@gmail.com>, 2014
+# lkishalmi <lkishalmi@ovi.com>, 2014
 # Nagy András <asd0707@freemail.hu>, 2014
 # Peter Darvasi <darvasipeter@windowslive.com>, 2013-2014
+# ricsipontaz <ricsipontaz@googlemail.com>, 2014
 msgid ""
 msgstr ""
 "Project-Id-Version: 0 A.D.\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2014-06-19 19:38+0200\n"
-"PO-Revision-Date: 2014-06-19 18:08+0000\n"
-"Last-Translator: Adrián Chaves Fernández <adriyetichaves@gmail.com>\n"
+"POT-Creation-Date: 2014-09-26 18:59+0200\n"
+"PO-Revision-Date: 2014-10-17 23:10+0000\n"
+"Last-Translator: Gellért Gyuris <gellert.gyuris@gmail.com>\n"
 "Language-Team: Hungarian (http://www.transifex.com/projects/p/0ad/language/hu/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -27,7 +31,7 @@ msgstr ""
 #: gui/aiconfig/aiconfig.js:10
 msgctxt "ai"
 msgid "None"
-msgstr ""
+msgstr "Nincs"
 
 #: gui/aiconfig/aiconfig.js:10
 msgid "AI will be disabled for this player."
@@ -60,255 +64,235 @@ msgid "Very Hard"
 msgstr "Nagyon Nehéz"
 
 #. Translation: Type of victory condition.
-#: gui/gamesetup/gamesetup.js:8
-msgctxt "victory"
-msgid "Conquest"
-msgstr ""
-
-#: gui/gamesetup/gamesetup.js:8
-msgctxt "victory"
-msgid "Wonder"
-msgstr "Csoda"
-
-#: gui/gamesetup/gamesetup.js:8
-msgctxt "victory"
-msgid "None"
-msgstr ""
-
-#: gui/gamesetup/gamesetup.js:11
+#: gui/gamesetup/gamesetup.js:10
 msgid "Unlimited"
 msgstr "Nem megszabott"
 
 #. Translation: Amount of starting resources.
-#: gui/gamesetup/gamesetup.js:15
+#: gui/gamesetup/gamesetup.js:14
 msgctxt "startingResources"
 msgid "Very Low"
 msgstr "Nagyon alacsony"
 
-#: gui/gamesetup/gamesetup.js:15
+#: gui/gamesetup/gamesetup.js:14
 msgctxt "startingResources"
 msgid "Low"
 msgstr "Alacsony"
 
-#: gui/gamesetup/gamesetup.js:15
+#: gui/gamesetup/gamesetup.js:14
 msgctxt "startingResources"
 msgid "Medium"
 msgstr "Közepes"
 
-#: gui/gamesetup/gamesetup.js:15
+#: gui/gamesetup/gamesetup.js:14
 msgctxt "startingResources"
 msgid "High"
 msgstr "Magas"
 
-#: gui/gamesetup/gamesetup.js:15
+#: gui/gamesetup/gamesetup.js:14
 msgctxt "startingResources"
 msgid "Very High"
 msgstr "Nagyon Magas"
 
-#: gui/gamesetup/gamesetup.js:15
+#: gui/gamesetup/gamesetup.js:14
 msgctxt "startingResources"
 msgid "Deathmatch"
 msgstr "Halálmeccs"
 
-#: gui/gamesetup/gamesetup.js:72
-#, python-format
-msgid ""
-"%(warning)s The AI does not support naval maps and may cause severe "
-"performance issues. Naval maps are recommended to be played with human "
-"opponents only. Nonetheless, Petra has now an experimental support for naval"
-" maps."
-msgstr ""
-
-#: gui/gamesetup/gamesetup.js:73
-msgid "Warning:"
-msgstr "Figyelem:"
-
-#: gui/gamesetup/gamesetup.js:113
+#: gui/gamesetup/gamesetup.js:106
 msgid "Return to the main menu."
 msgstr "Visszatérés a főmenübe."
 
-#: gui/gamesetup/gamesetup.js:117
+#: gui/gamesetup/gamesetup.js:110
 msgid "Return to the lobby."
 msgstr "Visszatérés a váróba."
 
-#: gui/gamesetup/gamesetup.js:146
+#: gui/gamesetup/gamesetup.js:139
 msgctxt "map"
 msgid "Skirmish"
-msgstr ""
+msgstr "Csata"
 
-#: gui/gamesetup/gamesetup.js:146 gui/gamesetup/gamesetup.js:635
-#: gui/gamesetup/gamesetup.js:1223
+#: gui/gamesetup/gamesetup.js:139 gui/gamesetup/gamesetup.js:652
+#: gui/gamesetup/gamesetup.js:1257
 msgctxt "map"
 msgid "Random"
-msgstr ""
+msgstr "Véletlenszerű"
 
-#: gui/gamesetup/gamesetup.js:146
+#: gui/gamesetup/gamesetup.js:139
 msgid "Scenario"
 msgstr "Játszma"
 
-#: gui/gamesetup/gamesetup.js:150 gui/gamesetup/gamesetup.js:1129
-#: gui/gamesetup/gamesetup.js:1206
+#: gui/gamesetup/gamesetup.js:143 gui/gamesetup/gamesetup.js:1163
+#: gui/gamesetup/gamesetup.js:1240
 msgid "Default"
 msgstr "Alapértelmezett"
 
-#: gui/gamesetup/gamesetup.js:151
+#: gui/gamesetup/gamesetup.js:144
 msgid "Naval Maps"
-msgstr ""
+msgstr "Tengeri térképek"
 
-#: gui/gamesetup/gamesetup.js:152
+#: gui/gamesetup/gamesetup.js:145
 msgid "Demo Maps"
 msgstr "Demó Térképek"
 
-#: gui/gamesetup/gamesetup.js:153
+#: gui/gamesetup/gamesetup.js:146
 msgid "All Maps"
 msgstr "Összes térkép"
 
-#: gui/gamesetup/gamesetup.js:364
+#: gui/gamesetup/gamesetup.js:367
 msgctxt "team"
 msgid "None"
-msgstr ""
+msgstr "Nincs"
 
-#: gui/gamesetup/gamesetup.js:569 gui/gamesetup/gamesetup.js:1276
+#: gui/gamesetup/gamesetup.js:586 gui/gamesetup/gamesetup.js:1318
 msgctxt "civilization"
 msgid "Random"
-msgstr ""
+msgstr "Véletlenszerű"
 
-#: gui/gamesetup/gamesetup.js:759 gui/gamesetup/gamesetup.js:876
+#: gui/gamesetup/gamesetup.js:776 gui/gamesetup/gamesetup.js:897
 msgid "You"
 msgstr "Te"
 
-#: gui/gamesetup/gamesetup.js:953
+#: gui/gamesetup/gamesetup.js:978
 #, python-format
 msgid "%(playerName)s %(romanNumber)s"
-msgstr ""
+msgstr "%(playerName)s %(romanNumber)s"
 
-#: gui/gamesetup/gamesetup.js:1092 gui/gamesetup/gamesetup.xml:110 (caption)
+#: gui/gamesetup/gamesetup.js:1126 gui/gamesetup/gamesetup.xml:112 (caption)
 msgid "Map Size:"
 msgstr "Térkép mérete:"
 
 #. Make sure to differentiate between the revealed map and explored map
 #. options!
-#: gui/gamesetup/gamesetup.js:1094 gui/gamesetup/gamesetup.js:1153
-#: gui/gamesetup/gamesetup.xml:310 (caption)
+#: gui/gamesetup/gamesetup.js:1128 gui/gamesetup/gamesetup.js:1187
+#: gui/gamesetup/gamesetup.xml:315 (caption)
 msgid "Revealed Map:"
-msgstr ""
+msgstr "Felderített térkép:"
 
 #. Make sure to differentiate between the revealed map and explored map
 #. options!
-#: gui/gamesetup/gamesetup.js:1095 gui/gamesetup/gamesetup.js:1154
-#: gui/gamesetup/gamesetup.xml:320 (caption)
+#: gui/gamesetup/gamesetup.js:1129 gui/gamesetup/gamesetup.js:1188
+#: gui/gamesetup/gamesetup.xml:325 (caption)
 msgid "Explored Map:"
-msgstr ""
+msgstr "Felfedezett térkép:"
 
-#: gui/gamesetup/gamesetup.js:1099 gui/gamesetup/gamesetup.js:1158
-#: gui/gamesetup/gamesetup.xml:280 (caption)
+#: gui/gamesetup/gamesetup.js:1133 gui/gamesetup/gamesetup.js:1192
+#: gui/gamesetup/gamesetup.xml:285 (caption)
 msgid "Victory Condition:"
-msgstr "Győzelmi Feltétel:"
+msgstr "Győzelmi feltétel:"
 
-#: gui/gamesetup/gamesetup.js:1101 gui/gamesetup/gamesetup.js:1160
-#: gui/gamesetup/gamesetup.xml:330 (caption)
+#: gui/gamesetup/gamesetup.js:1135 gui/gamesetup/gamesetup.js:1194
+#: gui/gamesetup/gamesetup.xml:335 (caption)
 msgid "Teams Locked:"
-msgstr "Zárolt Csapatok:"
+msgstr "Zárolt csapatok:"
 
-#: gui/gamesetup/gamesetup.js:1120 gui/gamesetup/gamesetup.js:1121
-#: gui/gamesetup/gamesetup.js:1123 gui/gamesetup/gamesetup.js:1176
-#: gui/gamesetup/gamesetup.js:1177 gui/gamesetup/gamesetup.js:1179
-#: gui/gamesetup/gamesetup.js:1207 gui/gamesetup/gamesetup.js:1208
-#: gui/gamesetup/gamesetup.js:1210
+#: gui/gamesetup/gamesetup.js:1154 gui/gamesetup/gamesetup.js:1155
+#: gui/gamesetup/gamesetup.js:1157 gui/gamesetup/gamesetup.js:1210
+#: gui/gamesetup/gamesetup.js:1211 gui/gamesetup/gamesetup.js:1213
+#: gui/gamesetup/gamesetup.js:1241 gui/gamesetup/gamesetup.js:1242
+#: gui/gamesetup/gamesetup.js:1244
 msgid "Yes"
 msgstr "Igen"
 
-#: gui/gamesetup/gamesetup.js:1120 gui/gamesetup/gamesetup.js:1121
-#: gui/gamesetup/gamesetup.js:1123 gui/gamesetup/gamesetup.js:1176
-#: gui/gamesetup/gamesetup.js:1177 gui/gamesetup/gamesetup.js:1179
-#: gui/gamesetup/gamesetup.js:1207 gui/gamesetup/gamesetup.js:1208
-#: gui/gamesetup/gamesetup.js:1210
+#: gui/gamesetup/gamesetup.js:1154 gui/gamesetup/gamesetup.js:1155
+#: gui/gamesetup/gamesetup.js:1157 gui/gamesetup/gamesetup.js:1210
+#: gui/gamesetup/gamesetup.js:1211 gui/gamesetup/gamesetup.js:1213
+#: gui/gamesetup/gamesetup.js:1241 gui/gamesetup/gamesetup.js:1242
+#: gui/gamesetup/gamesetup.js:1244
 msgid "No"
-msgstr "Ne"
+msgstr "Nem"
 
-#: gui/gamesetup/gamesetup.js:1224
+#: gui/gamesetup/gamesetup.js:1258
 msgid "Randomly selects a map from the list"
 msgstr "Véletlenszerűen választ a listán szereplő térképekből"
 
-#: gui/gamesetup/gamesetup.js:1231
+#: gui/gamesetup/gamesetup.js:1265
 msgid "Sorry, no description available."
 msgstr "Sajnos nem érhető el leírás."
 
-#: gui/gamesetup/gamesetup.js:1237
+#: gui/gamesetup/gamesetup.js:1268
 #, python-format
 msgid "%(number)s player. %(description)s"
 msgid_plural "%(number)s players. %(description)s"
 msgstr[0] "%(number)s játékos. %(description)s"
 msgstr[1] "%(number)s játékos. %(description)s"
 
-#: gui/gamesetup/gamesetup.js:1377
+#: gui/gamesetup/gamesetup.js:1304
+msgid "Loading..."
+msgstr "Betöltés…"
+
+#: gui/gamesetup/gamesetup.js:1417
 #, python-format
 msgid "AI: %(ai)s"
 msgstr "MI: %(ai)s"
 
-#: gui/gamesetup/gamesetup.js:1382
+#: gui/gamesetup/gamesetup.js:1422
 msgid "Unassigned"
 msgstr "Nincs hozzárendelve"
 
-#: gui/gamesetup/gamesetup.js:1587 gui/gamesetup/gamesetup.js:1592
-#: gui/gamesetup/gamesetup.js:1610
+#: gui/gamesetup/gamesetup.js:1610 gui/gamesetup/gamesetup.js:1615
+#: gui/gamesetup/gamesetup.js:1633
 #, python-format
 msgid "== %(message)s"
 msgstr "== %(message)s"
 
-#: gui/gamesetup/gamesetup.js:1587
+#: gui/gamesetup/gamesetup.js:1610
 #, python-format
 msgid "%(username)s has joined"
 msgstr "%(username)s csatlakozott"
 
-#: gui/gamesetup/gamesetup.js:1592
+#: gui/gamesetup/gamesetup.js:1615
 #, python-format
 msgid "%(username)s has left"
-msgstr "%(username)s lekapcsolódott"
+msgstr "%(username)s kilépett"
 
-#: gui/gamesetup/gamesetup.js:1597
+#: gui/gamesetup/gamesetup.js:1620
 #, python-format
 msgid "<%(username)s>"
 msgstr "<%(username)s>"
 
-#: gui/gamesetup/gamesetup.js:1598
+#: gui/gamesetup/gamesetup.js:1621
 #, python-format
 msgid "%(username)s %(message)s"
 msgstr "%(username)s %(message)s"
 
-#: gui/gamesetup/gamesetup.js:1604
+#: gui/gamesetup/gamesetup.js:1627
 #, python-format
 msgid "* %(username)s is ready!"
-msgstr ""
+msgstr "*%(username)s készen áll!"
 
-#: gui/gamesetup/gamesetup.js:1606
+#: gui/gamesetup/gamesetup.js:1629
 #, python-format
 msgid "* %(username)s is not ready."
-msgstr ""
+msgstr "* %(username)s nem áll készen."
 
-#: gui/gamesetup/gamesetup.js:1610
+#: gui/gamesetup/gamesetup.js:1633
 msgid "Game settings have been changed"
-msgstr ""
+msgstr "Játékbeállítások módosítva"
 
-#: gui/gamesetup/gamesetup.js:1635
+#: gui/gamesetup/gamesetup.js:1658
 msgid "I'm not ready"
-msgstr ""
+msgstr "Nem állok készen"
 
-#: gui/gamesetup/gamesetup.js:1636
+#: gui/gamesetup/gamesetup.js:1659
 msgid "State that you are not ready to play."
-msgstr ""
+msgstr "Kijelented, hogy nem állsz készen a játékra."
 
-#: gui/gamesetup/gamesetup.js:1641 gui/gamesetup/gamesetup.js:1715
+#: gui/gamesetup/gamesetup.js:1664 gui/gamesetup/gamesetup.js:1740
 msgid "I'm ready!"
-msgstr ""
+msgstr "Készen állok!"
 
-#: gui/gamesetup/gamesetup.js:1642
+#: gui/gamesetup/gamesetup.js:1665
 msgid "State that you are ready to play!"
-msgstr ""
+msgstr "Kijelented, hogy készen állsz a játékra!"
 
-#: gui/gamesetup/gamesetup.js:1716
+#: gui/gamesetup/gamesetup.js:1741
 msgid "State that you accept the current settings and are ready to play!"
-msgstr ""
+msgstr "Kijelented, hogy elfogadod a jelenlegi beállításokat és készen állsz a játékra!"
+
+#: gui/gamesetup/gamesetup.js:1860
+msgid "None"
+msgstr "Nincs"
 
 #: gui/gamesetup/gamesetup_mp.js:34
 #, python-format
@@ -317,7 +301,7 @@ msgstr "%(name)s játéka"
 
 #: gui/gamesetup/gamesetup_mp.js:60
 msgid "Connecting to server..."
-msgstr ""
+msgstr "Csatlakozás a kiszolgálóhoz…"
 
 #: gui/gamesetup/gamesetup_mp.js:79
 #, python-format
@@ -326,227 +310,243 @@ msgstr "Hálózati üzenet: %(message)s"
 
 #: gui/gamesetup/gamesetup_mp.js:136
 msgid "Registering with server..."
-msgstr ""
+msgstr "Regisztráció a kiszolgálón…"
 
 #: gui/gamesetup/gamesetup_mp.js:142
 msgid "Game has already started, rejoining..."
-msgstr ""
+msgstr "A játék már elkezdődött, újrakapcsolódás…"
 
-#: gui/gamesetup/gamesetup_mp.js:185
+#: gui/gamesetup/gamesetup_mp.js:188
 msgid "Game name already in use."
 msgstr "A játéknév már használatban van."
 
-#: gui/gamesetup/gamesetup_mp.js:241
+#: gui/gamesetup/gamesetup_mp.js:249
 #, python-format
 msgid "%(playername)s's game"
 msgstr "%(playername)s játéka"
 
+#: gui/gamesetup/victory_conditions/conquest.js:6
+msgid "Conquest"
+msgstr "Hódítás"
+
+#: gui/gamesetup/victory_conditions/conquest.js:7
+msgid "Defeat all opponents"
+msgstr "Ellenfelek legyőzése"
+
+#: gui/gamesetup/victory_conditions/wonder.js:6
+msgid "Wonder"
+msgstr "Csoda"
+
+#: gui/gamesetup/victory_conditions/wonder.js:7
+msgid "Build a wonder to win"
+msgstr "Építs egy „csodát” a győzelemhez."
+
 #: gui/loading/loading.js:51
 #, python-format
 msgid "Loading “%(map)s”"
-msgstr ""
+msgstr "„%(map)s” betöltése"
 
 #: gui/loading/loading.js:55
 #, python-format
 msgid "Generating “%(map)s”"
-msgstr ""
+msgstr "„%(map)s” készítése"
 
 #: gui/aiconfig/aiconfig.xml:13 (caption)
 msgid "AI Configuration"
-msgstr "MI Beállítása"
+msgstr "MI beállítása"
 
 #: gui/aiconfig/aiconfig.xml:18 (caption)
 msgid "AI Player:"
-msgstr ""
+msgstr "MI játékos:"
 
 #: gui/aiconfig/aiconfig.xml:26 (caption)
 msgid "AI Difficulty:"
-msgstr ""
+msgstr "MI nehézség:"
 
-#: gui/aiconfig/aiconfig.xml:36 (caption) gui/gamesetup/gamesetup_mp.xml:109
+#: gui/aiconfig/aiconfig.xml:36 (caption) gui/gamesetup/gamesetup_mp.xml:104
 #: (caption)
 msgid "Cancel"
 msgstr "Mégse"
 
-#: gui/aiconfig/aiconfig.xml:41 (caption) gui/gamesetup/gamesetup.xml:366
+#: gui/aiconfig/aiconfig.xml:41 (caption) gui/gamesetup/gamesetup.xml:371
 #: (caption)
 msgid "OK"
-msgstr "OK."
+msgstr "Ok"
 
-#: gui/gamesetup/gamesetup.xml:15 (caption)
+#: gui/gamesetup/gamesetup.xml:16 (caption)
 msgid "Match Setup"
-msgstr "Játszma Beállítás"
+msgstr "Játszma beállítás"
 
-#: gui/gamesetup/gamesetup.xml:21 (caption)
+#: gui/gamesetup/gamesetup.xml:22 (caption)
 msgid "Loading"
 msgstr "Betöltés"
 
-#: gui/gamesetup/gamesetup.xml:25 (caption)
+#: gui/gamesetup/gamesetup.xml:26 (caption)
 msgid "Loading map data. Please wait..."
-msgstr ""
+msgstr "Térképadatok betöltése. Légy türelmes!"
 
-#: gui/gamesetup/gamesetup.xml:40 (caption)
+#: gui/gamesetup/gamesetup.xml:41 (caption)
 msgid "Player Name"
 msgstr "Játékos neve"
 
-#: gui/gamesetup/gamesetup.xml:43 (caption)
+#: gui/gamesetup/gamesetup.xml:44 (caption)
 msgid "Player Placement"
-msgstr "Játékos Elhelyezése"
+msgstr "Játékos elhelyezése"
 
-#: gui/gamesetup/gamesetup.xml:46 (caption)
+#: gui/gamesetup/gamesetup.xml:47 (caption)
 msgid "Civilization"
 msgstr "Civilizáció"
 
-#: gui/gamesetup/gamesetup.xml:55 (tooltip)
+#: gui/gamesetup/gamesetup.xml:56 (tooltip)
 msgid "View civilization info"
 msgstr "Civilizációs információ megtekintése"
 
-#: gui/gamesetup/gamesetup.xml:61 (caption)
+#: gui/gamesetup/gamesetup.xml:62 (caption)
 msgid "Team"
 msgstr "Csapat"
 
-#: gui/gamesetup/gamesetup.xml:70 (tooltip)
+#: gui/gamesetup/gamesetup.xml:71 (tooltip)
 msgid "Select player."
 msgstr "Játékos választása."
 
-#: gui/gamesetup/gamesetup.xml:79 (tooltip)
+#: gui/gamesetup/gamesetup.xml:81 (tooltip)
 msgid "Configure AI settings."
-msgstr "MI beállítás."
+msgstr "MI beállítása."
 
-#: gui/gamesetup/gamesetup.xml:82 (tooltip)
+#: gui/gamesetup/gamesetup.xml:84 (tooltip)
 msgid "Select player's civilization."
 msgstr "Civilizáció kiválasztása."
 
-#: gui/gamesetup/gamesetup.xml:86 (tooltip)
+#: gui/gamesetup/gamesetup.xml:88 (tooltip)
 msgid "Select player's team."
 msgstr "Csapat kiválasztása."
 
-#: gui/gamesetup/gamesetup.xml:98 (caption)
+#: gui/gamesetup/gamesetup.xml:100 (caption)
 msgid "Map Type:"
-msgstr "Térkép Típusa:"
+msgstr "Térkép típusa:"
 
-#: gui/gamesetup/gamesetup.xml:101 (caption)
+#: gui/gamesetup/gamesetup.xml:103 (caption)
 msgid "Map Filter:"
 msgstr "Térkép szűrő:"
 
-#: gui/gamesetup/gamesetup.xml:104 (caption)
+#: gui/gamesetup/gamesetup.xml:106 (caption)
 msgid "Select Map:"
 msgstr "Térkép választása:"
 
-#: gui/gamesetup/gamesetup.xml:107 (caption)
+#: gui/gamesetup/gamesetup.xml:109 (caption)
 msgid "Number of Players:"
-msgstr ""
+msgstr "Játékosok száma:"
 
-#: gui/gamesetup/gamesetup.xml:127 (tooltip)
+#: gui/gamesetup/gamesetup.xml:129 (tooltip)
 msgid "Select a map type."
 msgstr "Térkép típusának kiválasztása."
 
-#: gui/gamesetup/gamesetup.xml:136 (tooltip)
+#: gui/gamesetup/gamesetup.xml:138 (tooltip)
 msgid "Select a map filter."
 msgstr "Térkép szűrő kiválasztása."
 
-#: gui/gamesetup/gamesetup.xml:146 (tooltip)
+#: gui/gamesetup/gamesetup.xml:148 (tooltip)
 msgid "Select a map to play on."
 msgstr "Térkép kiválasztása a játékhoz."
 
-#: gui/gamesetup/gamesetup.xml:157 (tooltip)
+#: gui/gamesetup/gamesetup.xml:162 (tooltip)
 msgid "Select number of players."
 msgstr "Játékosok számának kiválasztása."
 
-#: gui/gamesetup/gamesetup.xml:162 (tooltip)
+#: gui/gamesetup/gamesetup.xml:167 (tooltip)
 msgid "Select map size. (Larger sizes may reduce performance.)"
 msgstr "Térkép méretének kiválasztása. (Nagyobb méret csökkentheti a teljesítményt.)"
 
-#: gui/gamesetup/gamesetup.xml:187 (caption)
+#: gui/gamesetup/gamesetup.xml:192 (caption)
 msgid "Send"
 msgstr "Küldés"
 
-#: gui/gamesetup/gamesetup.xml:201 (caption)
+#: gui/gamesetup/gamesetup.xml:206 (caption)
 msgid "[Tooltip text]"
 msgstr "[Tipp szöveg]"
 
-#: gui/gamesetup/gamesetup.xml:213 (caption)
+#: gui/gamesetup/gamesetup.xml:218 (caption)
 msgid "Start game!"
 msgstr "Játék kezdése!"
 
-#: gui/gamesetup/gamesetup.xml:214 (tooltip)
+#: gui/gamesetup/gamesetup.xml:219 (tooltip)
 msgid "Start a new game with the current settings."
 msgstr "Új játék kezdése a meglévő beállításokkal."
 
-#: gui/gamesetup/gamesetup.xml:231 (caption)
+#: gui/gamesetup/gamesetup.xml:236 (caption)
 msgid "Back"
 msgstr "Vissza"
 
-#: gui/gamesetup/gamesetup.xml:253 (caption) gui/gamesetup/gamesetup.xml:265
+#: gui/gamesetup/gamesetup.xml:258 (caption) gui/gamesetup/gamesetup.xml:270
 #: (caption)
 msgid "More Options"
 msgstr "További beállítások"
 
-#: gui/gamesetup/gamesetup.xml:254 (tooltip)
+#: gui/gamesetup/gamesetup.xml:259 (tooltip)
 msgid "See more game options"
 msgstr "További beállítások mutatása"
 
-#: gui/gamesetup/gamesetup.xml:270 (caption)
+#: gui/gamesetup/gamesetup.xml:275 (caption)
 msgid "Game Speed:"
-msgstr "Játék Sebessége:"
+msgstr "Játék sebessége:"
 
-#: gui/gamesetup/gamesetup.xml:274 (tooltip)
+#: gui/gamesetup/gamesetup.xml:279 (tooltip)
 msgid "Select game speed."
 msgstr "Játék sebességének kiválasztása."
 
-#: gui/gamesetup/gamesetup.xml:284 (tooltip)
+#: gui/gamesetup/gamesetup.xml:289 (tooltip)
 msgid "Select victory condition."
 msgstr "Győzelmi feltétel kiválasztása."
 
-#: gui/gamesetup/gamesetup.xml:290 (caption)
+#: gui/gamesetup/gamesetup.xml:295 (caption)
 msgid "Population Cap:"
 msgstr "Népességhatár:"
 
-#: gui/gamesetup/gamesetup.xml:294 (tooltip)
+#: gui/gamesetup/gamesetup.xml:299 (tooltip)
 msgid "Select population cap."
 msgstr "Népességhatár kiválasztása."
 
-#: gui/gamesetup/gamesetup.xml:300 (caption)
+#: gui/gamesetup/gamesetup.xml:305 (caption)
 msgid "Starting Resources:"
-msgstr "Kezdő Nyersanyagok:"
+msgstr "Kezdő nyersanyagok:"
 
-#: gui/gamesetup/gamesetup.xml:304 (tooltip)
+#: gui/gamesetup/gamesetup.xml:309 (tooltip)
 msgid "Select the game's starting resources."
 msgstr "Kezdő nyersanyagok kiválasztása."
 
 #. Make sure to differentiate between the revealed map and explored map
 #. options!
-#: gui/gamesetup/gamesetup.xml:314 (tooltip)
+#: gui/gamesetup/gamesetup.xml:319 (tooltip)
 msgid "Toggle revealed map (see everything)."
-msgstr "Felfedezett térkép bekapcsolása (mindent látni)."
+msgstr "Felfedezett térkép bekapcsolása (minden látszik)."
 
 #. Make sure to differentiate between the revealed map and explored map
 #. options!
-#: gui/gamesetup/gamesetup.xml:324 (tooltip)
+#: gui/gamesetup/gamesetup.xml:329 (tooltip)
 msgid "Toggle explored map (see gaia and buildings)."
 msgstr "Felfedezett térkép bekapcsolása (épületek és a természet látszik)."
 
-#: gui/gamesetup/gamesetup.xml:334 (tooltip)
+#: gui/gamesetup/gamesetup.xml:339 (tooltip)
 msgid "Toggle locked teams."
 msgstr "Csapat zárolás váltása."
 
-#: gui/gamesetup/gamesetup.xml:340 (caption)
+#: gui/gamesetup/gamesetup.xml:345 (caption)
 msgid "Cheats:"
 msgstr "Csalások:"
 
-#: gui/gamesetup/gamesetup.xml:344 (tooltip)
+#: gui/gamesetup/gamesetup.xml:349 (tooltip)
 msgid "Toggle the usability of cheats."
 msgstr "Csalás használhatóság váltása."
 
-#: gui/gamesetup/gamesetup.xml:350 (caption)
+#: gui/gamesetup/gamesetup.xml:355 (caption)
 msgid "Rated Game:"
-msgstr ""
+msgstr "Pontozott játék:"
 
-#: gui/gamesetup/gamesetup.xml:354 (tooltip)
+#: gui/gamesetup/gamesetup.xml:359 (tooltip)
 msgid "Toggle if this game will be rated for the leaderboard."
-msgstr ""
+msgstr "Kapcsold be, ha szerentél pontozott játékot indítani. "
 
-#: gui/gamesetup/gamesetup.xml:367 (tooltip)
+#: gui/gamesetup/gamesetup.xml:372 (tooltip)
 msgid "Close more game options window"
 msgstr "További beállítások ablak bezárása"
 
@@ -559,28 +559,28 @@ msgid "Joining an existing game."
 msgstr "Csatlakozás egy meglévő játékba."
 
 #: gui/gamesetup/gamesetup_mp.xml:29 (caption)
-#: gui/gamesetup/gamesetup_mp.xml:72 (caption)
+#: gui/gamesetup/gamesetup_mp.xml:67 (caption)
 msgid "Player name:"
 msgstr "Játékos neve:"
 
 #: gui/gamesetup/gamesetup_mp.xml:39 (caption)
 msgid "Server Hostname or IP:"
-msgstr "Szerver Neve vagy IP-je:"
+msgstr "Kiszolgáló neve vagy IP címe:"
 
 #: gui/gamesetup/gamesetup_mp.xml:49 (caption)
-#: gui/gamesetup/gamesetup_mp.xml:95 (caption)
+#: gui/gamesetup/gamesetup_mp.xml:91 (caption)
 msgid "Continue"
 msgstr "Tovább"
 
-#: gui/gamesetup/gamesetup_mp.xml:67 (caption)
+#: gui/gamesetup/gamesetup_mp.xml:62 (caption)
 msgid "Set up your server to host."
-msgstr "Szerver beállítása a kiszolgáláshoz."
+msgstr "Kiszolgáló beállítása."
 
-#: gui/gamesetup/gamesetup_mp.xml:84 (caption)
+#: gui/gamesetup/gamesetup_mp.xml:80 (caption)
 msgid "Server name:"
-msgstr "Szerver neve:"
+msgstr "Kiszolgáló neve:"
 
-#: gui/gamesetup/gamesetup_mp.xml:115 (caption)
+#: gui/gamesetup/gamesetup_mp.xml:110 (caption)
 msgid "[Connection status]"
 msgstr "[Csatlakozás állapota]"
 
@@ -881,25 +881,25 @@ msgstr ""
 msgid ""
 "\"Thus always to tyrants.\" - Marcus Junius Brutus, after assassinating "
 "Gaius Julius Caesar"
-msgstr ""
+msgstr "„Így jár minden zsarnok!” ‒ Marcus Junius Brutus, miután meggyilkolta Gaius Julius Caesart"
 
 #: gui/text/quotes.txt:57
 msgid ""
 "\"Escape, yes, but this time with my hands, not my feet.\" - Marcus Junius "
 "Brutus, before committing suicide"
-msgstr ""
+msgstr "„Menekülni, igen, de ezúttal nem a lábunkkal, hanem a kezünkkel.” ‒ Marcus Junius Brutus, mielőtt öngyilkos lett"
 
 #: gui/text/quotes.txt:58
 msgid "\"I came, I saw, I conquered.\" - Gaius Julius Caesar"
-msgstr ""
+msgstr "\"Jöttem, láttam, győztem.\" - Gaius Julius Caesar"
 
 #: gui/text/quotes.txt:59
 msgid "\"Men willingly believe what they wish.\" - Gaius Julius Caesar"
-msgstr ""
+msgstr "\"Az emberek szívesen elhiszik azt, amire vágynak.\" - Gaius Julius Caesar"
 
 #: gui/text/quotes.txt:60
 msgid "\"The die is cast.\" - Gaius Julius Caesar"
-msgstr ""
+msgstr "\"A kocka el van vetve.\" - Gaius Julius Caesar"
 
 #: gui/text/quotes.txt:61
 msgid ""

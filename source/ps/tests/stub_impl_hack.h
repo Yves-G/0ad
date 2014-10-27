@@ -1,4 +1,4 @@
-/* Copyright (C) 2009 Wildfire Games.
+/* Copyright (C) 2014 Wildfire Games.
  * This file is part of 0 A.D.
  *
  * 0 A.D. is free software: you can redistribute it and/or modify
@@ -17,13 +17,17 @@
 
 #include "lib/self_test.h"
 
-// usually defined by main.cpp, used by engine's scripting/ScriptGlue.cpp,
+// usually defined by main.cpp, used by engine's scripting/ScriptFunctions.cpp,
 // must be included here to placate linker.
 void kill_mainloop()
 {
 }
 
 void restart_mainloop_in_atlas()
+{
+}
+
+void restart_engine()
 {
 }
 

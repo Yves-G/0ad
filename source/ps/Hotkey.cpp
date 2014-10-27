@@ -1,4 +1,4 @@
-/* Copyright (C) 2013 Wildfire Games.
+/* Copyright (C) 2014 Wildfire Games.
  * This file is part of 0 A.D.
  *
  * 0 A.D. is free software: you can redistribute it and/or modify
@@ -172,6 +172,12 @@ void LoadHotkeys()
 	}
 }
 
+void UnloadHotkeys()
+{
+	g_HotkeyMap.clear();
+	g_HotkeyStatus.clear();
+}
+
 bool isNegated(const SKey& key)
 {
 	// Normal keycodes are below EXTRA_KEYS_BASE
@@ -200,8 +206,16 @@ InReaction HotkeyInputHandler( const SDL_Event_* ev )
 
 	case SDL_MOUSEBUTTONDOWN:
 	case SDL_MOUSEBUTTONUP:
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+		// Mousewheel events are no longer buttons, but we want to maintain the order
+		// expected by g_mouse_buttons for compatibility
+		if (ev->ev.button.button >= SDL_BUTTON_X1)
+			keycode = MOUSE_BASE + (int)ev->ev.button.button + 2;
+		else
+#endif
 		keycode = MOUSE_BASE + (int)ev->ev.button.button;
 		break;
+
 #if SDL_VERSION_ATLEAST(2, 0, 0)
 	case SDL_MOUSEWHEEL:
 		if (ev->ev.wheel.y > 0)
@@ -212,6 +226,16 @@ InReaction HotkeyInputHandler( const SDL_Event_* ev )
 		else if (ev->ev.wheel.y < 0)
 		{
 			keycode = MOUSE_WHEELDOWN;
+			break;
+		}
+		else if (ev->ev.wheel.x > 0)
+		{
+			keycode = MOUSE_X2;
+			break;
+		}
+		else if (ev->ev.wheel.x < 0)
+		{
+			keycode = MOUSE_X1;
 			break;
 		}
 		return IN_PASS;
@@ -229,10 +253,12 @@ InReaction HotkeyInputHandler( const SDL_Event_* ev )
 		return IN_PASS;
 	}
 
+#if !SDL_VERSION_ATLEAST(2, 0, 0)
 	// Rather ugly hack to make the '"' key work better on a MacBook Pro on Windows so it doesn't
 	// always close the console. (Maybe this would be better handled in wsdl or something?)
 	if (keycode == SDLK_BACKQUOTE && (ev->ev.key.keysym.unicode == '\'' || ev->ev.key.keysym.unicode == '"'))
 		keycode = ev->ev.key.keysym.unicode;
+#endif
 
 	// Somewhat hackish:
 	// Create phantom 'unified-modifier' events when left- or right- modifier keys are pressed

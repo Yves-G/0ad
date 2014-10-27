@@ -1,4 +1,4 @@
-/* Copyright (C) 2013 Wildfire Games.
+/* Copyright (C) 2014 Wildfire Games.
  * This file is part of 0 A.D.
  *
  * 0 A.D. is free software: you can redistribute it and/or modify
@@ -34,6 +34,8 @@
 #include "ps/GameSetup/Config.h"
 #include "ps/GameSetup/GameSetup.h"
 #include "renderer/Renderer.h"
+#include "simulation2/Simulation2.h"
+#include "simulation2/components/ICmpSoundManager.h"
 
 extern void (*Atlas_GLSwapBuffers)(void* context);
 
@@ -133,6 +135,10 @@ MESSAGEHANDLER(SimStateSave)
 
 MESSAGEHANDLER(SimStateRestore)
 {
+	CmpPtr<ICmpSoundManager> cmpSoundManager(*g_Game->GetSimulation2(), SYSTEM_ENTITY);
+	if (cmpSoundManager)
+		cmpSoundManager->StopMusic();
+
 	AtlasView::GetView_Game()->RestoreState(*msg->label);
 }
 
@@ -189,8 +195,8 @@ MESSAGEHANDLER(GuiKeyEvent)
 	ev.ev.key.keysym.sym = (SDL_Keycode)(int)msg->sdlkey;
 #else
 	ev.ev.key.keysym.sym = (SDLKey)(int)msg->sdlkey;
-#endif
 	ev.ev.key.keysym.unicode = msg->unichar;
+#endif
 	in_dispatch_event(&ev);
 }
 
@@ -206,8 +212,8 @@ MESSAGEHANDLER(GuiCharEvent)
 	ev.ev.key.keysym.sym = (SDL_Keycode)(int)msg->sdlkey;
 #else
 	ev.ev.key.keysym.sym = (SDLKey)(int)msg->sdlkey;
-#endif
 	ev.ev.key.keysym.unicode = msg->unichar;
+#endif
 	in_dispatch_event(&ev);
 
 	ev.ev.type = SDL_KEYUP;

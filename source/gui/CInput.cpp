@@ -1,4 +1,4 @@
-/* Copyright (C) 2013 Wildfire Games.
+/* Copyright (C) 2014 Wildfire Games.
  * This file is part of 0 A.D.
  *
  * 0 A.D. is free software: you can redistribute it and/or modify
@@ -28,8 +28,10 @@ CInput
 #include "graphics/ShaderManager.h"
 #include "graphics/TextRenderer.h"
 #include "lib/ogl.h"
+#include "lib/external_libraries/libsdl.h"
 #include "lib/sysdep/clipboard.h"
 #include "lib/timer.h"
+#include "lib/utf8.h"
 #include "ps/CLogger.h"
 #include "ps/ConfigDB.h"
 #include "ps/Globals.h"
@@ -45,7 +47,8 @@ extern int g_yres;
 //-------------------------------------------------------------------
 CInput::CInput()
 	: m_iBufferPos(-1), m_iBufferPos_Tail(-1), m_SelectingText(false), m_HorizontalScroll(0.f),
-	  m_PrevTime(0.0), m_CursorVisState(true), m_CursorBlinkRate(0.5)
+	m_PrevTime(0.0), m_CursorVisState(true), m_CursorBlinkRate(0.5), m_ComposingText(false),
+	m_iComposedLength(0), m_iComposedPos(0), m_iInsertPos(0)
 {
 	AddSetting(GUIST_float,					"buffer_zone");
 	AddSetting(GUIST_CStrW,					"caption");
@@ -76,24 +79,124 @@ CInput::~CInput()
 {
 }
 
+void CInput::ClearComposedText()
+{
+	CStrW *pCaption = (CStrW*)m_Settings["caption"].m_pSetting;
+	pCaption->erase(m_iInsertPos, m_iComposedLength);
+	m_iBufferPos = m_iInsertPos;
+	m_iComposedLength = 0;
+	m_iComposedPos = 0;
+}
+
 InReaction CInput::ManuallyHandleEvent(const SDL_Event_* ev)
 {
 	ENSURE(m_iBufferPos != -1);
 
 	if (ev->ev.type == SDL_HOTKEYDOWN)
 	{
+		if (m_ComposingText)
+			return IN_HANDLED;
 		return(ManuallyHandleHotkeyEvent(ev));
 	}
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+	// SDL2 has a new method of text input that better supports Unicode and CJK
+	// see https://wiki.libsdl.org/Tutorials/TextInput
+	else if (ev->ev.type == SDL_TEXTINPUT)
+	{
+		// Text has been committed, either single key presses or through an IME
+		CStrW *pCaption = (CStrW*)m_Settings["caption"].m_pSetting;
+		std::wstring text = wstring_from_utf8(ev->ev.text.text);
+
+		m_WantedX=0.0f;
+
+		if (SelectingText())
+			DeleteCurSelection();
+
+		if (m_ComposingText)
+		{
+			ClearComposedText();
+			m_ComposingText = false;
+		}
+
+		if (m_iBufferPos == (int)pCaption->length())
+			pCaption->append(text);
+		else
+			pCaption->insert(m_iBufferPos, text);
+
+		UpdateText(m_iBufferPos, m_iBufferPos, m_iBufferPos+1);
+		
+		m_iBufferPos += text.length();
+		m_iBufferPos_Tail = -1;
+		
+		UpdateAutoScroll();
+
+		return IN_HANDLED;
+	}
+	else if (ev->ev.type == SDL_TEXTEDITING)
+	{
+		// Text is being composed with an IME
+		// TODO: indicate this by e.g. underlining the uncommitted text
+		CStrW *pCaption = (CStrW*)m_Settings["caption"].m_pSetting;
+		const char *rawText = ev->ev.edit.text;
+		int rawLength = strlen(rawText);
+		std::wstring wtext = wstring_from_utf8(rawText);
+		
+		debug_printf(L"SDL_TEXTEDITING: text=%hs, start=%d, length=%d\n", rawText, ev->ev.edit.start, ev->ev.edit.length);
+		m_WantedX=0.0f;
+
+		if (SelectingText())
+			DeleteCurSelection();
+
+		// Remember cursor position when text composition begins
+		if (!m_ComposingText)
+			m_iInsertPos = m_iBufferPos;
+		else
+		{
+			// Composed text is replaced each time
+			ClearComposedText();
+		}
+
+		m_ComposingText = ev->ev.edit.start != 0 || rawLength != 0;
+		if (m_ComposingText)
+		{
+			pCaption->insert(m_iInsertPos, wtext);
+
+			// The text buffer is limited to SDL_TEXTEDITINGEVENT_TEXT_SIZE bytes, yet start
+			// increases without limit, so don't let it advance beyond the composed text length
+			m_iComposedLength = wtext.length();
+			m_iComposedPos = ev->ev.edit.start < m_iComposedLength ? ev->ev.edit.start : m_iComposedLength;
+			m_iBufferPos = m_iInsertPos + m_iComposedPos;
+		
+			// TODO: composed text selection - what does ev.edit.length do?
+			m_iBufferPos_Tail = -1;
+		}
+		
+		UpdateText(m_iBufferPos, m_iBufferPos, m_iBufferPos+1);
+
+		UpdateAutoScroll();
+
+		return IN_HANDLED;
+	}
+#endif
 	else if (ev->ev.type == SDL_KEYDOWN)
 	{
+		if (m_ComposingText)
+			return IN_HANDLED;
 		// Since the GUI framework doesn't handle to set settings
 		//  in Unicode (CStrW), we'll simply retrieve the actual
 		//  pointer and edit that.
 		CStrW *pCaption = (CStrW*)m_Settings["caption"].m_pSetting;
 		bool shiftKeyPressed = g_keys[SDLK_RSHIFT] || g_keys[SDLK_LSHIFT];
 
+#if !SDL_VERSION_ATLEAST(2, 0, 0)
 		int szChar = ev->ev.key.keysym.sym;
 		wchar_t cooked = (wchar_t)ev->ev.key.keysym.unicode;
+#else // SDL2
+		int szChar = 0;
+		if (ev->ev.type == SDL_KEYDOWN)
+			szChar = ev->ev.key.keysym.sym;
+		wchar_t cooked = 0;
+#endif
 
 		switch (szChar)
 		{
@@ -411,8 +514,15 @@ InReaction CInput::ManuallyHandleEvent(const SDL_Event_* ev)
 				}
 			default: //Insert a character
 				{
+#if !SDL_VERSION_ATLEAST(2, 0, 0)
 				if (cooked == 0)
 					return IN_PASS; // Important, because we didn't use any key
+#else // SDL2
+				// In SDL2, we no longer get Unicode wchars via SDL_Keysym
+				// we use text input events instead and they provide UTF-8 chars
+				if (ev->ev.type == SDL_KEYDOWN && cooked == 0)
+					return IN_HANDLED;
+#endif
 
 				// check max length
 				int max_length;
@@ -521,7 +631,7 @@ InReaction CInput::ManuallyHandleHotkeyEvent(const SDL_Event_* ev)
 		{
 			DeleteCurSelection();
 		}
-		if (!pCaption->empty() && !m_iBufferPos == 0)
+		if (!pCaption->empty() && m_iBufferPos != 0)
 		{
 			m_iBufferPos_Tail = m_iBufferPos;
 			CStrW searchString = pCaption->Left( m_iBufferPos );
@@ -601,7 +711,7 @@ InReaction CInput::ManuallyHandleHotkeyEvent(const SDL_Event_* ev)
 				m_iBufferPos_Tail = m_iBufferPos;
 			}
 
-			if (!pCaption->empty() && !m_iBufferPos == 0)
+			if (!pCaption->empty() && m_iBufferPos != 0)
 			{
 				CStrW searchString = pCaption->Left( m_iBufferPos );
 
@@ -774,6 +884,9 @@ void CInput::HandleMessage(SGUIMessage &Message)
 				break;
 		}
 
+		if (m_ComposingText)
+			break;
+
 		// Okay, this section is about pressing the mouse and
 		//  choosing where the point should be placed. For
 		//  instance, if we press between a and b, the point
@@ -799,6 +912,9 @@ void CInput::HandleMessage(SGUIMessage &Message)
 
 	case GUIM_MOUSE_DBLCLICK_LEFT:
 		{
+			if (m_ComposingText)
+				break;
+
 			CStrW *pCaption = (CStrW*)m_Settings["caption"].m_pSetting;
 
 			if (pCaption->length() == 0)
@@ -947,10 +1063,34 @@ void CInput::HandleMessage(SGUIMessage &Message)
 		m_iBufferPos = 0;
 		m_PrevTime = 0.0;
 		m_CursorVisState = false;
-		
+
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+		// Tell the IME where to draw the candidate list
+		SDL_Rect rect;
+		rect.h = m_CachedActualSize.GetSize().cy;
+		rect.w = m_CachedActualSize.GetSize().cx;
+		rect.x = m_CachedActualSize.TopLeft().x;
+		rect.y = m_CachedActualSize.TopLeft().y;
+		SDL_SetTextInputRect(&rect);
+		SDL_StartTextInput();
+#endif
 		break;
 
 	case GUIM_LOST_FOCUS:
+#if SDL_VERSION_ATLEAST(2, 0, 0)
+		if (m_ComposingText)
+		{
+			// Simulate a final text editing event to clear the composition
+			SDL_Event_ evt;
+			evt.ev.type = SDL_TEXTEDITING;
+			evt.ev.edit.length = 0;
+			evt.ev.edit.start = 0;
+			evt.ev.edit.text[0] = 0;
+			ManuallyHandleEvent(&evt);
+		}
+		SDL_StopTextInput();
+#endif
+
 		m_iBufferPos = -1;
 		m_iBufferPos_Tail = -1;
 		break;

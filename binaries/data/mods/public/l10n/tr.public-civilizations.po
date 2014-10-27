@@ -5,10 +5,12 @@
 # 
 # Translators:
 # Abdullah Ilgaz <abdullahilgaz@live.com>, 2013-2014
+# efrasiyab1 <ado.ender@gmail.com>, 2014
 # Ebubekir Tabak <tec.1905@windowslive.com>, 2013
 # Emre AYTAÇ <eaytac@gmail.com>, 2013
 # faradundamarti <faradundamarti@yandex.com>, 2013
 # Furkan Çevik <furkan_ts1967@hotmail.com>, 2013
+# Kudret Emre <kudretemre@hotmail.com.tr>, 2014
 # mehmet akar <mehmettakar.35@gmail.com>, 2013
 # Merve BİÇKES <dark_angel_369_06@hotmail.com>, 2014
 # Mete Han <scorpion000000@hotmail.com>, 2013
@@ -16,7 +18,9 @@
 # reprezalio <yenilmezzserdar@gmail.com>, 2014
 # schaft <neooneone@gmail.com>, 2014
 # Serkan <fkserkank@gmail.com>, 2013
+# Sinan Özgün <ozgunsinan@gmail.com>, 2014
 # ubuntuki <aleverzurumlu@gmail.com>, 2014
+# utkugun <utkugundogan@gmail.com>, 2014
 # Vilender <gokhanlnx@gmail.com>, 2013
 # volcanology <volkansag@hotmail.com>, 2014
 # Volkan Gezer <volkangezer@gmail.com>, 2014
@@ -27,8 +31,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0 A.D.\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2014-06-19 19:38+0200\n"
-"PO-Revision-Date: 2014-06-19 17:44+0000\n"
+"POT-Creation-Date: 2014-09-26 18:59+0200\n"
+"PO-Revision-Date: 2014-10-14 13:34+0000\n"
+"Last-Translator: yakup <mutouk@yandex.ru>\n"
 "Language-Team: Turkish (http://www.transifex.com/projects/p/0ad/language/tr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -53,7 +58,7 @@ msgstr "Gümüş Baykuşlar"
 msgid ""
 "The mines at Laureion in Attica provided Athens with a wealth of silver from"
 " which to mint her famous and highly prized coin, The Athenian Owl."
-msgstr ""
+msgstr "Laureion, Attica'daki madenler Atina'ya ünlü ve değerli Atina sikkesinin basımı için yüksek miktarda gümüş sağlamıştır, Atinalı Baykuş. "
 
 #: civs/athen.jsonCivBonuses[1].Description
 #: civs/hele.jsonCivBonuses[1].Description
@@ -63,7 +68,7 @@ msgstr ""
 msgid ""
 "Constructing a Theatron increases the territory expanse of all buildings by "
 "+20%."
-msgstr ""
+msgstr "Bir Theatron inşası bölgedeki diğer tüm yapıları %+20 oranında etkiler."
 
 #: civs/athen.jsonCivBonuses[1].Name civs/hele.jsonCivBonuses[1].Name
 #: civs/mace.jsonCivBonuses[2].Name civs/spart.jsonCivBonuses[2].Name
@@ -77,7 +82,7 @@ msgid ""
 "The Greeks were highly successful in Hellenising various foreigners. During "
 "the Hellenistic Age, Greek was the lingua franca of the Ancient World, "
 "spoken widely from Spain to India."
-msgstr ""
+msgstr "Yunanlılar birçok yabancıyı Helenleştirmek konusunda çok başarılıydılar. Helenik Çağ'da, Yunanca Antik Dünya'nın İspanya'dan Hindistan'a kadar konuşulan yaygın diliydi."
 
 #: civs/athen.jsonTeamBonuses[0].Description
 msgid "Ships construct 25% faster."
@@ -95,7 +100,7 @@ msgid ""
 "city-states instituted the so-called Delian League in 478 B.C., whose "
 "purpose was to push the Persians out of the Aegean region. The allied states"
 " contributed ships and money, while the Athenians offered their entire navy."
-msgstr ""
+msgstr "Salamis ve Mycale'deki zaferlerden kısa süre sonra, Yunan şehir devletleri M.Ö. 478'de amacı Persleri Ege Bölgesi'nden atmak olan  Delian Ligini kurdular. Atinalılar bütün donanmalarını seferber ederken müttefik devletler gemiler ve para ile katkıda bulundular."
 
 #: civs/athen.jsonAINames[0] civs/athen.jsonFactions[0].Heroes[0].Name
 #: civs/hele.jsonFactions[0].Heroes[0].Name
@@ -160,7 +165,7 @@ msgstr "Demostenes"
 
 #: civs/athen.jsonFactions[0].Technologies[0].Description
 msgid "Athenian triremes can train Marines (Epibastes Athenaikos)."
-msgstr ""
+msgstr "Atinalılar üç sıra kürekli kadırga denizcilik yönetimi yapabilirler (Epibastes Athenaikos)."
 
 #: civs/athen.jsonFactions[0].Technologies[0].Name
 msgid "Iphicratean Reforms"
@@ -182,13 +187,13 @@ msgid ""
 "Themistocles and extended 6 km from the city to the port of Piraeus. This "
 "secured the city's sea supply routes and prevented an enemy from starving "
 "out the city during a siege."
-msgstr ""
+msgstr "Atina'nın uzun duvarları kurnaz Themistocles'in himayesi altında inşa edilmiştir ve şehir limanından Piraeus'a kadar 6 km uzunluğa ulaşmıştır. Bu bir kuşatma sırasında düşmanın tedarik yollarını kapatarak şehri açlığa mahkum etmesini engellemiştir."
 
 #: civs/athen.jsonFactions[0].Technologies[2].Description
 msgid ""
 "The player gains the ability to order spear-armed troops into Phalanx "
 "formation, providing greater attack and armor."
-msgstr ""
+msgstr "Oyuncu mızraklı birliklere daha fazla saldırı ve zırh veren Falanks dizilişine geçme emri verme özelliğini kazanır."
 
 #: civs/athen.jsonFactions[0].Technologies[2].Name
 #: civs/hele.jsonFactions[0].Technologies[0].Name
@@ -202,7 +207,7 @@ msgid ""
 "eight men deep and up to eight hundred men wide. The men within overlapped "
 "their shields, presenting a formidable shield wall brimming with 8 foot "
 "spears."
-msgstr ""
+msgstr "Klasik falanks düzeni millattan önce yaklaşık VIII. yüzyılda geliştirildi. Sekiz insan derinliğinde ve sekiz yüz insan genişliğindeydi. Birimler kalkanlarını birbirine geçirerek 8 feet mızraktan daha büyük bir görkemli kalkan oluşturuyordu."
 
 #: civs/athen.jsonFactions[0].Heroes[0].History
 #: civs/hele.jsonFactions[0].Heroes[0].History
@@ -213,11 +218,11 @@ msgid ""
 "in 479 B.C. Later, he pursued an active policy against the Persians in the "
 "Aegean, thereby laying the foundations of future Athenian power. Ostracised "
 "by the Athenians, he was forced to flee to the protection of the Persians."
-msgstr ""
+msgstr "The general whom persuaded the Athenians to invest their income from silver mines in a war navy of 200 Triremes. A key figure during the Persian Wars, he commanded the victorious Athenian navy at the decisive battle of Salamis in 479 B.C. Later, he pursued an active policy against the Persians in the Aegean, thereby laying the foundations of future Athenian power. Ostracised by the Athenians, he was forced to flee to the protection of the Persians."
 
 #: civs/athen.jsonFactions[0].Heroes[1].History
 msgid "Pericles was the foremost Athenian politician of the 5th Century B.C."
-msgstr ""
+msgstr "Perikles M.Ö 5. yüzyılda önde gelen Atinalı politikacı oldu."
 
 #: civs/athen.jsonFactions[0].Heroes[2].History
 #: civs/maur.jsonFactions[0].Technologies[0].History
@@ -249,7 +254,7 @@ msgstr "Tiyatro"
 msgid ""
 "The Hellenization civ bonus. Building a Theatron increases the territory "
 "effect of all buildings by 25%."
-msgstr ""
+msgstr "Bu Helenleştirme medeniyet ikramiyesi. Bir Theatron yapısı bölgedeki diğer tüm binalara %25 etki eder."
 
 #: civs/athen.jsonStructures[0].History civs/hele.jsonStructures[0].History
 #: civs/mace.jsonStructures[0].History civs/spart.jsonStructures[0].History
@@ -287,7 +292,7 @@ msgstr "Kahramanları eğit ve kahramanlara yönelik teknolojileri araştır."
 msgid ""
 "The Prytaneion is the meeting place for the city elders to dine and to make "
 "swift decisions."
-msgstr ""
+msgstr "Prytaneion şehir önde gelenleri için yemek ve hızlı kararlar vermek için bir toplanma yeridir."
 
 #: civs/athen.jsonHistory
 msgid ""
@@ -402,7 +407,7 @@ msgstr "Vosenius"
 #: civs/brit.jsonFactions[0].Technologies[0].Description
 #: civs/celt.jsonFactions[0].Technologies[0].Description
 msgid "Increased attack and movement rate for melee soldiers."
-msgstr "Melee askerleri için arttırılmış saldırı ve hareket oranı."
+msgstr "Yakın dövüş askerleri için arttırılmış saldırı ve hareket oranı."
 
 #: civs/brit.jsonFactions[0].Technologies[0].Name
 #: civs/celt.jsonFactions[0].Technologies[0].Name
@@ -456,41 +461,38 @@ msgid ""
 msgstr ""
 
 #: civs/brit.jsonFactions[0].Heroes[1].History
-#: civs/celt.jsonFactions[0].Heroes[1].History
 msgid ""
-"Kunobelinos, perhaps better known by the latinized form of Cunobelin, was a "
-"powerful ruler centered in the territory around modern day Colchester. "
-"Ruling the Catuvellauni from Kamulodunon(better known as Camulodunum), he "
-"was a warrior king who conquered a neighboring tribe, the Trinovantes, and "
-"was referred to by the Romans as the King of the Britons. The Trinovantes, "
-"while having been Roman allies, were not able to call for Roman aide, as "
-"they were conquered shortly after the Roman's own disaster in Germania. "
-"Kunobelinos died of disease after subjugating the great majority of the "
-"southern half of Britain (his coins were being minted as far as the borders "
-"of what would become Wales). When he died, his son Togdumnos replaced him, "
-"who died in battle with the Romans, and was subsequently replaced by his "
-"brother, Karatakos. It is an irony that it was his third son that initially "
-"invited this Roman reprisal. Kunobelinos seems to have been indifferent to "
-"the Romans. He traded with them freely, but had few qualms subjugating known"
-" Roman allies, and even sent Adminius as a fosterling to be educated in "
-"Roman Gaul. This accounted for Adminius's friendships among the Romans, and "
-"he was given lordship over the Cantaci, who inhabited Kent, by his father. "
-"This area was the prime area of Roman influence and trade in Britain, and he"
-" shrewdly observed his youngest son's friendship with powerful Roman and "
-"Gallo-Roman politicians and traders would be of use administrating the "
-"region. His other sons though had no love for the Romans, and when "
-"Kunobelinos died, Togdumnos, now king, arrested, executed, or expelled "
-"numerous Roman sympathizers, including his own brother Adminius, and the "
-"deposed Atrebates king, Verica, who appealed to their connections in the "
-"Roman Empire for aide in recovering their lands. Kunobelinos in his own time"
-" though was possibly one of the greatest of all British kings. He conquered "
-"huge portions of land from originally ruling over only four minor tribes in "
-"a confederation, the Catuvellauni, and achieved recognition as king of "
-"Britain. This recognition was so great that tribes in Cambria even came to "
-"assist his sons against the Romans and their British allies, and Kunobelinos"
-" was held up by the post-Roman Britons as one of their great heroes; a "
-"conqueror and uniter of petty kingdoms, something the post-Roman Britons or "
-"Romano-British sorely needed."
+"Kunobelinos (perhaps better known by the latinized form of Cunobelin) was a "
+"powerful ruler of the Catuvellauni. He was referred to by Romans as the King"
+" of the Britons. His domains extended around the city of Kamulodunon (known "
+"as Camulodunum), modern day Colchester. The Roman defeat in the battle of "
+"Teutoburg Forest (Germania) allowed Kunobelinos to conquer a neighboring "
+"tribe, the Trinovantes, who were Roman allies and couldn't receive Roman "
+"aide. Kunobelinos seems to have been indifferent to the Romans. He traded "
+"with them freely, but had few qualms subjugating known Roman allies, and "
+"even sent his youngest son Adminius as a fosterling to be educated in Roman "
+"Gaul. This accounted for Adminius's friendships among the Romans. Adminius "
+"was given lordship over the Cantaci, who inhabited Kent, by his father. This"
+" area was the prime area of Roman influence and trade in Britain, and "
+"Kunobelinos shrewdly observed his youngest son's friendship with powerful "
+"Roman and Gallo-Roman politicians and traders would be of use administrating"
+" the region. His other sons though had no love for the Romans. When "
+"Kunobelinos died of disease, he was replaced by his son Togdumnos, who "
+"arrested, executed, or expelled numerous Roman sympathizers. These included "
+"his own brother Adminius, and the deposed Atrebates king, Verica, who "
+"appealed to their connections in the Roman Empire for aide in recovering "
+"their lands. Togdumnos died in battle with the Romans, and was subsequently "
+"replaced by his brother, Karatakos. It is an irony that it was his third son"
+" that initially invited this Roman reprisal. Kunobelinos in his own time "
+"though was possibly one of the greatest of all British kings. He conquered "
+"the great majority of the southern half of Britain (his coins were being "
+"minted as far as the borders of what would become Wales). He started ruling "
+"over only four minor tribes in a confederation, the Catuvellauni, and ended "
+"up achieving recognition as king of Britain. This recognition was so great "
+"that tribes in Cambria even came to assist his sons against the Romans and "
+"their British allies, and Kunobelinos was held up by the post-Roman Britons "
+"as one of their great heroes; a conqueror and uniter of petty kingdoms, "
+"something the post-Roman Britons or Romano-British sorely needed."
 msgstr ""
 
 #: civs/brit.jsonFactions[0].Heroes[2].History
@@ -637,7 +639,7 @@ msgstr "Mago Barca"
 
 #: civs/cart.jsonAINames[7]
 msgid "Hasdrubal the Fair"
-msgstr ""
+msgstr "Adil Hasdrubal"
 
 #: civs/cart.jsonAINames[8]
 msgid "Hanno the Great"
@@ -669,7 +671,7 @@ msgstr "Himilco Phameas"
 
 #: civs/cart.jsonAINames[15]
 msgid "Hasdrubal the Boetharch"
-msgstr ""
+msgstr "Hasdrubal Boetharch"
 
 #: civs/cart.jsonFactions[0].Technologies[0].Description
 msgid "All Traders and Ships +25% vision range."
@@ -684,7 +686,7 @@ msgid ""
 "Nobody knew better than the Carthaginians where in the ancient world they "
 "were going and going to go; their merchant traders had missions to "
 "everywhere."
-msgstr "Hiç kimse tüccarlığı Kartacalılardan daha iyi bilmezdi antik dünyada onlar gider de giderlerdi, onların satış tüccarları her yere gitmekle görevliydiler."
+msgstr "Hiç kimse tüccarlığı Kartacalılardan daha iyi bilmezdi. Antik dünyada onlar gider de giderlerdi, onların satış tüccarları her yere gitmekle görevliydiler."
 
 #: civs/cart.jsonFactions[0].Technologies[1].Description
 msgid "Civic Centers, Temples, and Houses -25% build time."
@@ -734,7 +736,7 @@ msgstr "Tersane"
 
 #: civs/cart.jsonStructures[0].Special
 msgid "Construct the powerful warships of the Carthaginian navy."
-msgstr ""
+msgstr "Kartaca donanmasının güçlü savaş gemilerini oluştur."
 
 #: civs/cart.jsonStructures[0].History
 msgid ""
@@ -796,6 +798,43 @@ msgstr ""
 msgid "Celts"
 msgstr "Keltler"
 
+#: civs/celt.jsonFactions[0].Heroes[1].History
+msgid ""
+"Kunobelinos, perhaps better known by the latinized form of Cunobelin, was a "
+"powerful ruler centered in the territory around modern day Colchester. "
+"Ruling the Catuvellauni from Kamulodunon(better known as Camulodunum), he "
+"was a warrior king who conquered a neighboring tribe, the Trinovantes, and "
+"was referred to by the Romans as the King of the Britons. The Trinovantes, "
+"while having been Roman allies, were not able to call for Roman aide, as "
+"they were conquered shortly after the Roman's own disaster in Germania. "
+"Kunobelinos died of disease after subjugating the great majority of the "
+"southern half of Britain (his coins were being minted as far as the borders "
+"of what would become Wales). When he died, his son Togdumnos replaced him, "
+"who died in battle with the Romans, and was subsequently replaced by his "
+"brother, Karatakos. It is an irony that it was his third son that initially "
+"invited this Roman reprisal. Kunobelinos seems to have been indifferent to "
+"the Romans. He traded with them freely, but had few qualms subjugating known"
+" Roman allies, and even sent Adminius as a fosterling to be educated in "
+"Roman Gaul. This accounted for Adminius's friendships among the Romans, and "
+"he was given lordship over the Cantaci, who inhabited Kent, by his father. "
+"This area was the prime area of Roman influence and trade in Britain, and he"
+" shrewdly observed his youngest son's friendship with powerful Roman and "
+"Gallo-Roman politicians and traders would be of use administrating the "
+"region. His other sons though had no love for the Romans, and when "
+"Kunobelinos died, Togdumnos, now king, arrested, executed, or expelled "
+"numerous Roman sympathizers, including his own brother Adminius, and the "
+"deposed Atrebates king, Verica, who appealed to their connections in the "
+"Roman Empire for aide in recovering their lands. Kunobelinos in his own time"
+" though was possibly one of the greatest of all British kings. He conquered "
+"huge portions of land from originally ruling over only four minor tribes in "
+"a confederation, the Catuvellauni, and achieved recognition as king of "
+"Britain. This recognition was so great that tribes in Cambria even came to "
+"assist his sons against the Romans and their British allies, and Kunobelinos"
+" was held up by the post-Roman Britons as one of their great heroes; a "
+"conqueror and uniter of petty kingdoms, something the post-Roman Britons or "
+"Romano-British sorely needed."
+msgstr ""
+
 #: civs/celt.jsonFactions[0].Description
 msgid "British Isles"
 msgstr "İngiliz Adaları"
@@ -803,7 +842,7 @@ msgstr "İngiliz Adaları"
 #: civs/celt.jsonFactions[1].Technologies[0].Description
 msgid ""
 "A set amount of ore and food from every structure destroyed or captured "
-msgstr ""
+msgstr "Yıkılan veya ele geçirilen her yapıdan gıda ve maden miktar ayarı"
 
 #: civs/celt.jsonFactions[1].Technologies[0].Name
 #: civs/gaul.jsonFactions[0].Technologies[0].Name
@@ -961,7 +1000,7 @@ msgstr "Valetiakos"
 #: civs/gaul.jsonFactions[0].Technologies[0].Description
 msgid ""
 "A set amount of metal and food from every structure destroyed or captured."
-msgstr ""
+msgstr "Yıkılan veya ele geçirilen her yapıdan metal ve gıda miktar ayarı"
 
 #: civs/gaul.jsonFactions[0].Technologies[0].History
 msgid ""
@@ -1003,7 +1042,7 @@ msgstr ""
 
 #: civs/hele.jsonTeamBonuses[0].Description
 msgid "All units and allied units have increased LOS. ~ 10%"
-msgstr ""
+msgstr "Tüm birimler ve müttefik birimler artmaktadır LOS. ~ 10%"
 
 #: civs/hele.jsonTeamBonuses[0].Name
 msgid "Oracle at Delphi"
@@ -1032,7 +1071,7 @@ msgstr ""
 
 #: civs/hele.jsonFactions[0].Technologies[1].Description
 msgid "Triremes are 20% cheaper and build 20% faster."
-msgstr ""
+msgstr "Triremeler % 20 daha ucuzdur ve% 20 daha hızlı inşa edilir."
 
 #: civs/hele.jsonFactions[0].Heroes[1].History
 msgid ""
@@ -1090,7 +1129,7 @@ msgstr ""
 
 #: civs/hele.jsonFactions[1].Technologies[1].Description
 msgid "Civic Centers have double Health."
-msgstr ""
+msgstr "Halk Merkezleri iki katı Sağlığa sahiptir."
 
 #: civs/hele.jsonFactions[1].Technologies[1].Name
 #: civs/mace.jsonFactions[0].Technologies[2].Name
@@ -1107,7 +1146,7 @@ msgid ""
 "Beginning with Alexander, the Hellenistic monarchs founded many cities "
 "throughout their empires, where Greek culture and art blended with local "
 "customs to create the motley Hellenistic civilization."
-msgstr ""
+msgstr "İskender ile birlikte, Helenik hükümdarlar imparatorluk boyunca Yunan kültürü ile yerel geleneklerin karıştığı, mozaik Helenik medeniyetini oluşturan birçok şehir kurdular."
 
 #: civs/hele.jsonFactions[1].Heroes[0].History
 #: civs/mace.jsonFactions[0].Heroes[0].History
@@ -1202,7 +1241,7 @@ msgstr "Alüvyonlu ovalar ve nehir vadileri hariç, İberya Yarımadasında taş
 msgid ""
 "The resource cost of training horse-mounted units (cavalry) is reduced by 5%"
 " per animal corralled."
-msgstr ""
+msgstr "Atlı birim (süvari) eğitim maliyeti her hayvan yakalandığında %5 daha azalmaktadır."
 
 #: civs/iber.jsonCivBonuses[1].Name
 msgid "Zaldi Saldoa"
@@ -1218,7 +1257,7 @@ msgstr "Kuzey afrikadaki Numidia'nın aksine, İber yarımadası \"at ülkesi\" 
 msgid ""
 "Citizen-soldier infantry skirmishers and cavalry skirmishers -20% cost for "
 "allies."
-msgstr ""
+msgstr "Vatandaş asker piyade avcılar ve süvari avcılar tüm müttefikler için %-20 maliyet sağlar."
 
 #: civs/iber.jsonTeamBonuses[0].Name
 msgid "Saripeko"
@@ -1354,7 +1393,7 @@ msgid ""
 "Defensive Aura - Gives all Iberian units and buildings within vision range "
 "of the monument a 10-15% attack boost. Build Limit: Only 5 may be built per "
 "map."
-msgstr ""
+msgstr "Savunma Gücü - Tüm İber birimler ve yapılar anıtın görüş alanı içinde %10-15 daha fazla saldırı sağlarlar. Yapı Limiti: Her haritada yalnız 5 yapı."
 
 #: civs/iber.jsonStructures[0].History
 msgid ""
@@ -1515,7 +1554,7 @@ msgstr ""
 #: civs/ptol.jsonFactions[0].Technologies[0].Description
 #: civs/sele.jsonFactions[0].Technologies[0].Description
 msgid "Civic Centers have double Health and double default arrows."
-msgstr ""
+msgstr "Halk Merkezleri iki katı Sağlığa ve iki katı korunmaya sahiptir."
 
 #: civs/mace.jsonFactions[0].Heroes[0].Name
 msgid "Philip II of Macedon"
@@ -1533,7 +1572,7 @@ msgstr "Helenistik bir krallık Yunan şehir-devletleriyle sınır komşusu oldu
 msgid ""
 "The Hellenization civ bonus. Building a Theatron increases the territory "
 "effect of all buildings by 25%. Build limit: 1."
-msgstr ""
+msgstr "Bu Helenleştirme medeniyet ikramiyesi. Bir Theatron yapısı bölgedeki diğer tüm binalara %25 etki eder. Yapı limiti: 1."
 
 #: civs/mace.jsonStructures[1].Name civs/ptol.jsonStructures[0].Name
 #: civs/sele.jsonStructures[0].Name
@@ -1544,7 +1583,7 @@ msgstr "Kütüphane"
 msgid ""
 "All Special Technologies are researched here. Building one reduces the cost "
 "of all other remaining technologies by 10%. Build limit: 1."
-msgstr ""
+msgstr "Tüm Özel Teknolojiler burada araştırılmıştır. Bir yapı diğer tüm kalan teknolojilerin maliyetini  %10  azaltır. Yapı limiti: 1."
 
 #: civs/mace.jsonStructures[1].History civs/ptol.jsonStructures[0].History
 #: civs/sele.jsonStructures[0].History
@@ -1560,11 +1599,11 @@ msgstr "Kuşatma Atölyesi"
 
 #: civs/mace.jsonStructures[2].Special
 msgid "Constructs and upgrades all Macedonian siege engines."
-msgstr ""
+msgstr "Yapılar ve yükseltmeler tüm Makedon kuşatma araçları."
 
 #: civs/mace.jsonStructures[2].History
 msgid "The Macedonians were innovators in area of siegecraft."
-msgstr ""
+msgstr "Bu Makedonların bölgesinde kuşatma sanatında yenilikler vardır."
 
 #: civs/mace.jsonHistory
 msgid ""
@@ -1583,7 +1622,7 @@ msgstr "Mauryalılar"
 msgid ""
 "Mauryans have a +10% population cap bonus (i.e., 330 pop cap instead of the "
 "usual 300)."
-msgstr ""
+msgstr "Mauryalılar %+10 nüfus kapasite bonusuna sahiptir (yani, 300 nufüs kapasitesi 330 olur)."
 
 #: civs/maur.jsonCivBonuses[0].Name
 msgid "Emperor of Emperors."
@@ -1597,15 +1636,15 @@ msgid ""
 "commanded a standing army of 600,000 infantry, 9000 elephants, 8000 "
 "chariots, and 30,000 cavalry, making it arguably the largest army of its "
 "time."
-msgstr ""
+msgstr "Maurya İmparatorluğu önceden bağımsız olan düzinelerce krallığı bünyesine katarak 60 milyon insanın yaşadığı 5 milyon kilometre karelik bir alana hakim olmuştur. Maurya hükümdarları İmparatorların İmparatoru unvanını taşırdı ve 600,000 piyade, 9000 fil, 8000 savaş arabası ve 30,000 süvariden oluşan zamanının en büyük ordusu sayılabilecek bir güce komuta ederdi."
 
 #: civs/maur.jsonCivBonuses[1].Description
 msgid "The Mauryans enjoy access to 4 champions."
-msgstr ""
+msgstr "Mauryalıların 4 şampiyona erişmesinin keyfini çıkarın."
 
 #: civs/maur.jsonCivBonuses[1].Name
 msgid "Kṣhatriya Warrior Caste."
-msgstr ""
+msgstr "Kṣhatriya Savaşcı Sınıftan."
 
 #: civs/maur.jsonCivBonuses[1].History
 msgid ""
@@ -1626,7 +1665,7 @@ msgstr "Evanjelizm."
 #: civs/maur.jsonTeamBonuses[0].History
 msgid ""
 "Ashoka the Great sent embassies West to spread knowledge of the Buddha."
-msgstr ""
+msgstr "Ashoka the Great sent embassies West to spread knowledge of the Buddha."
 
 #: civs/maur.jsonAINames[0] civs/maur.jsonFactions[0].Heroes[0].Name
 msgid "Chandragupta Maurya"
@@ -1638,7 +1677,7 @@ msgstr "Büyük Asoka"
 
 #: civs/maur.jsonAINames[2]
 msgid "Ashokavardhan Maurya"
-msgstr ""
+msgstr "Ashokavardhan Maurya"
 
 #: civs/maur.jsonAINames[3]
 msgid "Acharya Bhadrabahu"
@@ -1646,11 +1685,11 @@ msgstr "Acharya Bhadrabahu"
 
 #: civs/maur.jsonAINames[4]
 msgid "Bindusara Maurya"
-msgstr ""
+msgstr "Bindusara Maurya"
 
 #: civs/maur.jsonAINames[5]
 msgid "Dasaratha Maurya"
-msgstr ""
+msgstr "Dasaratha Maurya"
 
 #: civs/maur.jsonAINames[6]
 msgid "Samprati Maurya"
@@ -1658,7 +1697,7 @@ msgstr "Samprati Maurya"
 
 #: civs/maur.jsonAINames[7]
 msgid "Salisuka Maurya"
-msgstr ""
+msgstr "Salisuka Maurya"
 
 #: civs/maur.jsonAINames[8]
 msgid "Devavarman Maurya"
@@ -1666,7 +1705,7 @@ msgstr "Devavarman Maurya"
 
 #: civs/maur.jsonAINames[9]
 msgid "Satadhanvan Maurya"
-msgstr ""
+msgstr "Satadhanvan Maurya"
 
 #: civs/maur.jsonAINames[10]
 msgid "Brihadratha Maurya"
@@ -1684,7 +1723,7 @@ msgstr "Fil Sürüsü"
 
 #: civs/maur.jsonFactions[0].Technologies[1].Description
 msgid "Greater range and faster train time for Mauryan infantry archers."
-msgstr ""
+msgstr "Mauryalı okcu piyade için büyük menzil ve hızlı eğitim zamanı."
 
 #: civs/maur.jsonFactions[0].Technologies[1].Name
 msgid "Archery Tradition"
@@ -1706,7 +1745,7 @@ msgstr "Maurya hanedanlığın son büyük imparatoru."
 
 #: civs/maur.jsonFactions[0].Heroes[2].History
 msgid "Great teacher and advisor to Chandragupta Maurya."
-msgstr ""
+msgstr "Mauryalı Çandragupta büyük öğretmen ve danışman."
 
 #: civs/maur.jsonFactions[0].Heroes[2].Name
 msgid "Acharya Chāṇakya"
@@ -1789,7 +1828,7 @@ msgid ""
 "great tenacity. However while this was true the infantry were poor hand-to-"
 "hand, close combat fighters. Also, with the exception of the elite "
 "regiments, the Persian infantry was not a standing professional force."
-msgstr ""
+msgstr "Ahameniş Hanedanlığı imparatorluğun yapısı ve büyüklüğü sebebiyle savaş zamanları çok büyük miktarlarda askere alma imkanına sahipti ve öyle de yaptı. Genellikle Pers piyadeleri iyi eğitimliydi ve yüksek cesaretle savaşırlardı. Ancak, yine de yakın dövüşte zayıf kalıyorlardı. Ayrıca, seçkin birlikler haricinde, Pers piyadeleri sürekli silah altında tutulan kuvvetler değildi."
 
 #: civs/pers.jsonTeamBonuses[0].Description
 msgid "+25% trade profit land routes."
@@ -1821,7 +1860,7 @@ msgstr "Cambyses II"
 
 #: civs/pers.jsonAINames[3]
 msgid "Bardiya"
-msgstr ""
+msgstr "Bardiya"
 
 #: civs/pers.jsonAINames[4] civs/pers.jsonFactions[0].Heroes[2].Name
 msgid "Xsayarsa I"
@@ -1857,7 +1896,7 @@ msgstr "Xsayarsa II"
 
 #: civs/pers.jsonFactions[0].Technologies[0].Description
 msgid "Phoenician triremes gain the unique ability to train cavalry units."
-msgstr ""
+msgstr "Fenike üç sıra kürekli kadırgalar benzersiz süvari eğitim yeteneği kazandırır."
 
 #: civs/pers.jsonFactions[0].Technologies[0].Name
 msgid "Naval Craftsmanship"
@@ -1872,13 +1911,13 @@ msgid ""
 "example, a canal was built in Egypt and a Persian navy was sent exploring "
 "the Indus river. According to Herodotus, some 300 ships in the Persian navy "
 "were retrofitted to carry horses and their riders."
-msgstr ""
+msgstr "Erken Ahameniş yöneticileri İran'ı Asya'nın denizlere hükmeden ilk imparatorluğu yapmak için çabaladılar. Büyük Kral çeşitli denizci halklara servislerini elde etmek için yakın davrandı ama ayrıca birçok denizcilik inisiyatifi de kullandı. Örneğin Büyük Darius zamanında Mısır'da Indus Nehri'ne Pers donanmasını keşfe göndermek için bir kanal inşa edilmiştir. Heredot'a göre Pers donanmasında 300 gemi süvarileri ve atlarını taşımak için yeniden düzenlenmiştir."
 
 #: civs/pers.jsonFactions[0].Technologies[1].Description
 msgid ""
 "Increases hitpoints of all structures, but build time increased "
 "appropriately."
-msgstr ""
+msgstr "Bütün yapıların yaşam puanına artırır, ama inşa zamanında değişiklik yapmaz."
 
 #: civs/pers.jsonFactions[0].Technologies[1].Name
 msgid "Persian Architecture"
@@ -1890,11 +1929,11 @@ msgid ""
 " Susa; Darius the Great and Xerxes also built the magnificent Persepolis; "
 "Cyrus the Great greatly improved Ecbatana and virtually 'rebuilt' the old "
 "Elamite capital of Susa."
-msgstr ""
+msgstr "İranlılar Sardis'ten Susa'ya uzanan 1677 mil uzunluğundaki olağanüstü Saltanat Yolu'nu yaptı; ayrıca Büyük Darius ve Xerxes muhteşem Persepolis'i kurdu; Büyük Cyrus Ecbatana'yı büyük ölçüde geliştirdi ve eski Elamite başkenti Susa'yı neredeyse baştan inşa etti."
 
 #: civs/pers.jsonFactions[0].Technologies[2].Description
 msgid "Reduces train time for Anusiya champion infantry by half."
-msgstr ""
+msgstr "Yarı yarıya Anusiya mükemmel piyade için eğitim süresini azaltır."
 
 #: civs/pers.jsonFactions[0].Technologies[2].Name
 msgid "Immortals"
@@ -1903,7 +1942,7 @@ msgstr "Ölümsüzler"
 #: civs/pers.jsonFactions[0].Technologies[3].Description
 #: civs/sele.jsonFactions[0].Technologies[3].Description
 msgid "+25% health for cavalry, but +10% train time."
-msgstr ""
+msgstr "Süvariler için +25% sağlık ikramiyesi, fakat +10% eğitim zamanı."
 
 #: civs/pers.jsonFactions[0].Technologies[3].Name
 #: civs/sele.jsonFactions[0].Technologies[3].Name
@@ -1914,7 +1953,7 @@ msgstr "Nisean Savaş Atları"
 msgid ""
 "The beautiful and powerful breed of Nisean horses increases health for "
 "Persian cavalry."
-msgstr ""
+msgstr "Bu güzel ve güçlü Nisean atları Pers süvarisinin sağlığını arttırır."
 
 #: civs/pers.jsonFactions[0].Heroes[0].History
 msgid ""
@@ -1952,7 +1991,7 @@ msgstr "süvari ahırları"
 
 #: civs/pers.jsonStructures[0].Special
 msgid "Train Cavalry citizen-soldiers."
-msgstr "tren süvari yuttaş askerler"
+msgstr "Süvari vatandaş askerleri eğit."
 
 #: civs/pers.jsonStructures[0].History
 msgid "The Persian Empire's best soldiers were Eastern horsemen."
@@ -1966,7 +2005,7 @@ msgstr "apadana"
 msgid ""
 "Train heroes and Persian Immortals. Gives a slow trickle of all resources as"
 " 'Satrapy Tribute.'"
-msgstr ""
+msgstr "Kahramanları ve Pers Ölümsüzleri eğit. Tüm kaynakları yavaş yavaş  'Satrapy Ganimeti' olarak verecek."
 
 #: civs/pers.jsonStructures[1].History
 msgid ""
@@ -2038,15 +2077,15 @@ msgstr "Bilinmeyen."
 
 #: civs/ptol.jsonCivBonuses[2].Description
 msgid "Can capture gaia elephants and camels to reduce their training cost."
-msgstr ""
+msgstr "Gaiayı elegeçirebilir ve filler ve develerin eğitim maliyetlerini düşürebilirsin."
 
 #: civs/ptol.jsonTeamBonuses[0].Description
 msgid "All allies automatically gain a slow trickle of food income."
-msgstr ""
+msgstr "Tüm müttefikler otomatik olarak yavaş yavaş gıda geliri kazanır."
 
 #: civs/ptol.jsonTeamBonuses[0].Name
 msgid "Breadbasket of the Mediterranean"
-msgstr ""
+msgstr "Akdeniz'in Tahıl ambarı"
 
 #: civs/ptol.jsonTeamBonuses[0].History
 msgid ""
@@ -2133,11 +2172,11 @@ msgstr "II. Arsinoe"
 
 #: civs/ptol.jsonFactions[0].Technologies[1].Description
 msgid "Hero aura range boosted by 50%."
-msgstr ""
+msgstr "Kahraman gücü %50 oranında arttı."
 
 #: civs/ptol.jsonFactions[0].Technologies[1].Name
 msgid "Pharaonic Cult."
-msgstr ""
+msgstr "Pharaonik Mezhebi."
 
 #: civs/ptol.jsonFactions[0].Technologies[1].History
 msgid ""
@@ -2177,7 +2216,7 @@ msgstr "Ptolemaioslu Mısırlılar"
 
 #: civs/ptol.jsonFactions[0].Description
 msgid "The great Greek-Macedonian dynastic rule over Ancient Egypt."
-msgstr ""
+msgstr "Bu Eski Mısır üzerindeki büyük Yunan-Makedon hanedanlığıdır."
 
 #: civs/ptol.jsonStructures[0].Special civs/sele.jsonStructures[0].Special
 msgid ""
@@ -2194,7 +2233,7 @@ msgstr "Stratópedo Misthophóron"
 msgid ""
 "Must be constructed in neutral territory. Has no territory radius effect. "
 "Trains all 'mercenary' units."
-msgstr ""
+msgstr "Tarafsız bölgede inşa edilmiş. Herhangibir çevre etkisi yoktur. Tüm birimler 'paralı' olarak eğitilir."
 
 #: civs/ptol.jsonStructures[2].Name
 msgid "Lighthouse"
@@ -2245,7 +2284,7 @@ msgstr ""
 msgid ""
 "Any Roman citizen-soldier fighting within Roman territory gains a non-"
 "permanent +10% bonus in armor."
-msgstr ""
+msgstr "Roma topraklarında savaşan herhangi bir Roma vatandaş-askeri zırhta değişken olarak %+10 ikramiye kazanır."
 
 #: civs/rome.jsonCivBonuses[1].Name
 msgid "Citizenship"
@@ -2262,7 +2301,7 @@ msgstr ""
 
 #: civs/rome.jsonTeamBonuses[0].Description
 msgid "Allied citizen-soldiers gain a +15% attack when in Roman territory."
-msgstr ""
+msgstr "Müttefik şehirli askerler Roma topraklarında %+15 daha fazla saldırı sağlarlar."
 
 #: civs/rome.jsonTeamBonuses[0].Name
 msgid "Socii"
@@ -2354,7 +2393,7 @@ msgstr ""
 
 #: civs/rome.jsonFactions[0].Heroes[0].Name
 msgid "Quintus Fabius Maximus"
-msgstr ""
+msgstr "Quintus Fabius Maximus"
 
 #: civs/rome.jsonFactions[0].Heroes[1].History
 msgid ""
@@ -2391,7 +2430,7 @@ msgstr "Yerleşik Kamp"
 
 #: civs/rome.jsonStructures[0].Special
 msgid "Trains citizen-soldiers from neutral or enemy territory."
-msgstr ""
+msgstr "Düşman topraklarından asker-yurttaşlar yetiştirin."
 
 #: civs/rome.jsonStructures[0].History
 msgid ""
@@ -2413,7 +2452,7 @@ msgstr "Tuğla Duvar"
 
 #: civs/rome.jsonStructures[1].Special
 msgid "Can be built in neutral and enemy territory to strangle enemy towns."
-msgstr ""
+msgstr "Düşman şehirlerin gelişimini engellemek maksadıyla  tarafsız  ve düşman topraklarında inşa edilebilir."
 
 #: civs/rome.jsonStructures[1].History
 msgid "Turf walls built by legionaries during sieges."
@@ -2449,7 +2488,7 @@ msgstr "Klerukya"
 msgid ""
 "Choose between Traditional Army and Reform Army technologies that unlock "
 "different Champions."
-msgstr ""
+msgstr "Geleneksel Ordu ile Yenilikçi ordu arasında arasında tercih yaparak bu farklı şampiyonları meydana çıkarın."
 
 #: civs/sele.jsonCivBonuses[1].History
 #: civs/sele.jsonFactions[0].Technologies[1].History
@@ -2465,11 +2504,11 @@ msgstr ""
 
 #: civs/sele.jsonTeamBonuses[0].Description
 msgid "Allied Civic Centers are 20% cheaper."
-msgstr ""
+msgstr "Müttefik Halk Merkezleri %20 daha ucuzdur."
 
 #: civs/sele.jsonTeamBonuses[0].Name
 msgid "Syrian Tetrapolis"
-msgstr ""
+msgstr "Suriye Tetrapolisi"
 
 #: civs/sele.jsonTeamBonuses[0].History
 msgid ""
@@ -2601,12 +2640,12 @@ msgstr ""
 
 #: civs/sele.jsonFactions[0].Technologies[1].Name
 msgid "Traditional Army vs. Reform Army"
-msgstr ""
+msgstr "Geleneksel Ordu vs. Değişim Ordusu"
 
 #: civs/sele.jsonFactions[0].Technologies[2].Description
 msgid ""
 "A one-time purchase of 20 Indian War Elephants from the Mauryan Empire."
-msgstr ""
+msgstr "Maurya İmparatorluğundan bir kerelik 20 Hint Savaş Fili satın al."
 
 #: civs/sele.jsonFactions[0].Technologies[2].Name
 msgid "Marriage Alliance"
@@ -2628,7 +2667,7 @@ msgstr ""
 msgid ""
 "The beautiful and powerful breed of Nisean horses increases health for "
 "Seleucid cavalry."
-msgstr ""
+msgstr "Bu güzel ve güçlü Nisean atları Selevkos süvarisinin sağlığını arttırır."
 
 #: civs/sele.jsonFactions[0].Heroes[0].History
 msgid ""
@@ -2682,11 +2721,11 @@ msgstr "Antiochus IV. Epiphanes"
 msgid ""
 "The Macedonian-Greek dynasty that ruled the Eastern part of Alexander's "
 "former empire."
-msgstr ""
+msgstr "Bu Makedon-Yunan hanedanlığı İskender'in yönettiği en eski imparatorluğunun doğu parçasıdır."
 
 #: civs/sele.jsonStructures[1].Special
 msgid "Trains all cavalry units except Citizen-Militia Cavalry."
-msgstr ""
+msgstr "Vatandaş Milis Süvarisi hariç tüm süvari birimlerinin eğitimleri."
 
 #: civs/sele.jsonStructures[2].Name
 msgid "Military Colony"
@@ -2716,7 +2755,7 @@ msgstr ""
 #: civs/sele.jsonHistory
 msgid ""
 "The Macedonian-Greek dynasty that ruled most of Alexander's former empire."
-msgstr ""
+msgstr "Bu Makedon-Yunan hanedanlığı İskender'in yönettiği en eski imparatorluktur."
 
 #: civs/spart.jsonName civs/spart.jsonFactions[0].Name
 msgid "Spartans"
@@ -2738,7 +2777,7 @@ msgstr ""
 #: civs/spart.jsonCivBonuses[1].Description
 msgid ""
 "The Spartan rank upgrades at the Barracks cost no resources, except time."
-msgstr ""
+msgstr "Sparta rütbe güncellemeleri Kışlalarda hergangibir maliyete ve zamana sebep olmayacak."
 
 #: civs/spart.jsonCivBonuses[1].Name
 msgid "Laws of Lycurgus"
@@ -2831,7 +2870,7 @@ msgstr ""
 
 #: civs/spart.jsonFactions[0].Technologies[1].Description
 msgid "Units in phalanx formation move faster."
-msgstr ""
+msgstr "Falanks tertibindeki birimler daha hızlı hareket eder."
 
 #: civs/spart.jsonFactions[0].Technologies[1].Name
 msgid "Tyrtean Paeans"
@@ -2856,7 +2895,7 @@ msgstr "The Agoge"
 msgid ""
 "Spartans were housed and trained from a young age to be superlative warriors"
 " and to endure any hardship a military life can give them."
-msgstr ""
+msgstr "Spartalılar askeri hayatın doğurabileceği tüm zorluklara göğüs gerebilmeleri için küçük yaştan itibaren üstün savaşçılar olarak yetiştirilirlerdi."
 
 #: civs/spart.jsonFactions[0].Heroes[0].History
 msgid ""

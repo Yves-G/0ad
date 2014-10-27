@@ -4,13 +4,13 @@
 # 
 # Translators:
 # Fabio Pedretti <fabio.ped@libero.it>, 2013-2014
-# Damiano, 2013
-# The_Blinded <the_reg_tb@yahoo.it>, 2013
+# Damtux, 2013
+# The_Blinded <inactive+The_Blinded@transifex.com>, 2013
 msgid ""
 msgstr ""
 "Project-Id-Version: 0 A.D.\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2014-05-27 09:06+0200\n"
+"POT-Creation-Date: 2014-09-26 18:59+0200\n"
 "PO-Revision-Date: 2014-05-09 13:50+0000\n"
 "Last-Translator: Fabio Pedretti <fabio.ped@libero.it>\n"
 "Language-Team: Italian (http://www.transifex.com/projects/p/0ad/language/it/)\n"
@@ -23,19 +23,19 @@ msgstr ""
 
 #. Translation: First item is a date and time, item between parenthesis is the
 #. Subversion revision number of the current build.
-#: gui/scripting/ScriptFunctions.cpp:733
+#: gui/scripting/ScriptFunctions.cpp:799
 #, c-format
 msgid "%s (custom build)"
 msgstr "%s (personalizzata)"
 
 #. Translation: First item is a date and time, item between parenthesis is the
 #. Subversion revision number of the current build.
-#: gui/scripting/ScriptFunctions.cpp:738
+#: gui/scripting/ScriptFunctions.cpp:804
 #, c-format
 msgid "%s (%ls)"
 msgstr "%s (%ls)"
 
-#: gui/scripting/ScriptFunctions.cpp:759
+#: gui/scripting/ScriptFunctions.cpp:825
 msgid "custom build"
 msgstr "personalizzata"
 
@@ -43,7 +43,7 @@ msgstr "personalizzata"
 msgid "Long strings"
 msgstr "Stringhe Lunghe"
 
-#: ps/SavedGame.cpp:126
+#: ps/SavedGame.cpp:129
 #, c-format
 msgid "Saved game to '%ls'"
 msgstr "Partita salvata in '%ls'"

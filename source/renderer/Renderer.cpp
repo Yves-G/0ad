@@ -494,13 +494,11 @@ void CRenderer::EnumCaps()
 	m_Caps.m_VertexShader = false;
 	m_Caps.m_FragmentShader = false;
 	m_Caps.m_Shadows = false;
+	m_Caps.m_PrettyWater = false;
 
 	// now start querying extensions
-	if (!m_Options.m_NoVBO) {
-		if (ogl_HaveExtension("GL_ARB_vertex_buffer_object")) {
-			m_Caps.m_VBO=true;
-		}
-	}
+	if (!m_Options.m_NoVBO && ogl_HaveExtension("GL_ARB_vertex_buffer_object"))
+		m_Caps.m_VBO = true;
 
 	if (0 == ogl_HaveExtensions(0, "GL_ARB_vertex_program", "GL_ARB_fragment_program", NULL))
 	{
@@ -525,6 +523,13 @@ void CRenderer::EnumCaps()
 		if (ogl_max_tex_units >= 4)
 			m_Caps.m_Shadows = true;
 	}
+#endif
+
+#if CONFIG2_GLES
+	m_Caps.m_PrettyWater = true;
+#else
+	if (0 == ogl_HaveExtensions(0, "GL_ARB_vertex_shader", "GL_ARB_fragment_shader", "GL_EXT_framebuffer_object", NULL))
+		m_Caps.m_PrettyWater = true;
 #endif
 }
 
@@ -646,7 +651,7 @@ bool CRenderer::Open(int width, int height)
 }
 
 // resize renderer view
-void CRenderer::Resize(int width,int height)
+void CRenderer::Resize(int width, int height)
 {
 	// need to recreate the shadow map object to resize the shadow texture
 	m->shadow.RecreateTexture();
@@ -654,8 +659,7 @@ void CRenderer::Resize(int width,int height)
 	m_Width = width;
 	m_Height = height;
 	
-	if (m_Options.m_Postproc)
-		m->postprocManager.RecreateBuffers();
+	m->postprocManager.Resize();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -1540,7 +1544,7 @@ void CRenderer::RenderSubmissions(const CBoundingBoxAligned& waterScissor)
 	}
 
 	// render debug-related terrain overlays
-	ITerrainOverlay::RenderOverlaysAfterWater();
+	ITerrainOverlay::RenderOverlaysAfterWater(cullGroup);
 	ogl_WarnIfError();
 
 	// render some other overlays after water (so they can be displayed on top of water)

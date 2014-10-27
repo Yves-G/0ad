@@ -28,7 +28,10 @@ m.GarrisonManager.prototype.update = function(gameState, queues)
 			{
 				var ent = gameState.getEntityById(entId);
 				if (ent && ent.getMetadata(PlayerID, "garrisonHolder") == +id)
+				{
 					this.leaveGarrison(ent);
+					ent.stopMoving();
+				}
 			}
 			this.holders[id] = undefined;
 			continue;
@@ -46,12 +49,44 @@ m.GarrisonManager.prototype.update = function(gameState, queues)
 				this.leaveGarrison(ent);
 				list.splice(j--, 1);
 			}
+			else
+			{
+				var ok = false;
+				var orders = ent.unitAIOrderData();
+				for (var order of orders)
+				{
+					if (!order.target || order.target != id)
+						continue;
+					ok = true;
+					break;
+				}
+				if (ok)
+					continue;
+				if (ent.getMetadata(PlayerID, "garrisonHolder") == +id)
+				{
+					// The garrison order must have failed
+					this.leaveGarrison(ent);
+					list.splice(j--, 1);
+				}
+				else
+				{
+					if (gameState.Config.debug > 0)
+					{
+						API3.warn("Petra garrison error: unit " + ent.id() + " (" + ent.genericName()
+							+ ") is expected to garrison in " + id + " (" + holder.genericName()
+							+ "), but has no such garrison order " + uneval(orders));
+						m.dumpEntity(ent);
+					}
+					list.splice(j--, 1);
+				}
+			}
+
 		}
 
 		if (!holder.position())     // could happen with siege unit inside a ship
 			continue;
 
-		if (gameState.ai.playedTurn - holder.getMetadata(PlayerID, "holderUpdate") > 5)
+		if (gameState.ai.elapsedTime - holder.getMetadata(PlayerID, "holderTimeUpdate") > 3)
 		{
 			if (holder.attackRange("Ranged"))
 				var range = holder.attackRange("Ranged").max;
@@ -77,14 +112,17 @@ m.GarrisonManager.prototype.update = function(gameState, queues)
 				var ent = gameState.getEntityById(list[j]);
 				if (this.keepGarrisoned(ent, holder, enemiesAround))
 					continue;
-				if (ent.getMetadata(PlayerID, "garrisonHolder") === id)
+				if (ent.getMetadata(PlayerID, "garrisonHolder") == +id)
+				{
 					this.leaveGarrison(ent);
+					ent.stopMoving();
+				}
 				list.splice(j--, 1);
 			}
 			if (this.numberOfGarrisonedUnits(holder) === 0)
 				this.holders[id] = undefined;
 			else
-				holder.setMetadata(PlayerID, "holderUpdate", gameState.ai.playedTurn);
+				holder.setMetadata(PlayerID, "holderTimeUpdate", gameState.ai.elapsedTime);
 		}
 	}
 };
@@ -107,7 +145,7 @@ m.GarrisonManager.prototype.garrison = function(gameState, ent, holder, type)
 	this.registerHolder(gameState, holder);
 	this.holders[holder.id()].push(ent.id());
 
-	if (gameState.ai.HQ.Config.debug > 1)
+	if (gameState.Config.debug > 2)
 	{
 		warn("garrison unit " + ent.genericName() + " in " + holder.genericName() + " with type " + type);
 		warn(" we try to garrison a unit with plan " + ent.getMetadata(PlayerID, "plan") + " and role " + ent.getMetadata(PlayerID, "role")
@@ -164,7 +202,7 @@ m.GarrisonManager.prototype.registerHolder = function(gameState, holder)
 	if (this.holders[holder.id()])    // already registered
 		return;
 	this.holders[holder.id()] = [];
-	holder.setMetadata(PlayerID, "holderUpdate", gameState.ai.playedTurn);
+	holder.setMetadata(PlayerID, "holderTimeUpdate", gameState.ai.elapsedTime);
 };
 
 return m;

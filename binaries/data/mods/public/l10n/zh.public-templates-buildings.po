@@ -4,12 +4,16 @@
 # Ascendant project.
 # 
 # Translators:
+# rentt777 <35974380@qq.com>, 2014
+# loms126 <loms126@126.com>, 2014
+# Mysterelee <8161525@qq.com>, 2014
 msgid ""
 msgstr ""
 "Project-Id-Version: 0 A.D.\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2014-06-19 19:39+0200\n"
-"PO-Revision-Date: 2014-06-19 17:54+0000\n"
+"POT-Creation-Date: 2014-09-26 19:00+0200\n"
+"PO-Revision-Date: 2014-10-10 11:17+0000\n"
+"Last-Translator: Mysterelee <8161525@qq.com>\n"
 "Language-Team: Chinese (http://www.transifex.com/projects/p/0ad/language/zh/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -20,23 +24,23 @@ msgstr ""
 
 #: simulation/templates/template_structure_civic.xml:15
 msgid "Civic"
-msgstr ""
+msgstr "市政厅"
 
 #: simulation/templates/template_structure_civic.xml:14
 msgid "Civic Structure"
 msgstr "市政建筑"
 
-#: simulation/templates/template_structure_civic_civil_centre.xml:68
-#: simulation/templates/template_structure_civic_civil_centre.xml:31
+#: simulation/templates/template_structure_civic_civil_centre.xml:71
+#: simulation/templates/template_structure_civic_civil_centre.xml:34
 msgid "CivilCentre"
 msgstr "市政中心"
 
-#: simulation/templates/template_structure_civic_civil_centre.xml:63
+#: simulation/templates/template_structure_civic_civil_centre.xml:66
 msgid ""
 "Build to acquire large tracts of territory. Train citizens. Garrison: 20."
 msgstr "建设以增大领土。可训练市民。驻军: 20。"
 
-#: simulation/templates/template_structure_civic_civil_centre.xml:62
+#: simulation/templates/template_structure_civic_civil_centre.xml:65
 msgid "Civic Center"
 msgstr "市政大厅"
 
@@ -47,11 +51,8 @@ msgstr "市政大厅"
 #: simulation/templates/template_structure_military_barracks.xml:31
 #: simulation/templates/template_structure_military_dock.xml:27
 #: simulation/templates/template_structure_resource_corral.xml:28
-#: simulation/templates/structures/brit_blacksmith.xml:11
-#: simulation/templates/structures/celt_blacksmith.xml:11
-#: simulation/templates/structures/gaul_blacksmith.xml:11
 msgid "Village"
-msgstr ""
+msgstr "村庄"
 
 #: simulation/templates/template_structure_civic_house.xml:33
 #: simulation/templates/template_structure_civic_house.xml:30
@@ -64,15 +65,18 @@ msgstr "增加人口上限"
 
 #: simulation/templates/template_structure_civic_temple.xml:11
 msgid "Healing Aura"
-msgstr ""
+msgstr "治疗光环"
 
 #: simulation/templates/template_structure_civic_temple.xml:44
-#: simulation/templates/template_structure_defense_defense_tower.xml:63
+#: simulation/templates/template_structure_defense_defense_tower.xml:57
 #: simulation/templates/template_structure_economic_market.xml:24
 #: simulation/templates/template_structure_military_blacksmith.xml:31
 #: simulation/templates/template_structure_military_embassy.xml:24
+#: simulation/templates/structures/brit_blacksmith.xml:11
+#: simulation/templates/structures/celt_blacksmith.xml:11
+#: simulation/templates/structures/gaul_blacksmith.xml:11
 msgid "Town"
-msgstr ""
+msgstr "城镇"
 
 #: simulation/templates/template_structure_civic_temple.xml:44
 #: simulation/templates/template_structure_civic_temple.xml:42
@@ -83,14 +87,14 @@ msgstr "寺庙"
 msgid ""
 "Train healers. Garrison up to 20 units to heal them at a quick rate (3 HP "
 "per second). Research healing and religious improvements."
-msgstr ""
+msgstr "训练医疗者。一个医疗者可以使驻守的20个单位快速恢复生命值(每秒3点生命)。研究改进医疗技术及宗教。"
 
 #: simulation/templates/template_structure_civic_temple.xml:12
 msgid "Heals nearby units at 1 HP per second."
-msgstr ""
+msgstr "使周围单位每秒恢复1点生命值。"
 
 #: simulation/templates/template_structure_defense.xml:15
-#: simulation/templates/template_structure_military_fortress.xml:63
+#: simulation/templates/template_structure_military_fortress.xml:57
 msgid "Defensive"
 msgstr "防守的"
 
@@ -98,16 +102,16 @@ msgstr "防守的"
 msgid "Defensive Structure"
 msgstr "防御建筑"
 
-#: simulation/templates/template_structure_defense_defense_tower.xml:63
-#: simulation/templates/template_structure_defense_defense_tower.xml:32
+#: simulation/templates/template_structure_defense_defense_tower.xml:57
+#: simulation/templates/template_structure_defense_defense_tower.xml:26
 msgid "DefenseTower"
 msgstr "防御塔"
 
-#: simulation/templates/template_structure_defense_defense_tower.xml:61
+#: simulation/templates/template_structure_defense_defense_tower.xml:55
 msgid "Shoots arrows. Garrison to provide extra defense."
 msgstr "可发射弩箭。驻军可增加额外攻击力。"
 
-#: simulation/templates/template_structure_defense_defense_tower.xml:60
+#: simulation/templates/template_structure_defense_defense_tower.xml:54
 msgid "Defense Tower"
 msgstr "防御塔"
 
@@ -118,14 +122,14 @@ msgstr "哨岗"
 
 #: simulation/templates/template_structure_defense_outpost.xml:58
 msgid ""
-"Build in neutral and friendly territories to scout areas of the map. Slowly "
-"loses health while in neutral territory."
-msgstr ""
+"Build in neutral and own territories to scout areas of the map. Slowly loses"
+" health while in neutral territory."
+msgstr "建立在中立和自己的领土的地图区域侦察。同时在中立领土失去稳定"
 
 #: simulation/templates/template_structure_defense_wall.xml:24
 #: simulation/templates/template_structure_defense_wallset.xml:11
 msgid "Wall off your town for a stout defense."
-msgstr ""
+msgstr "在城镇周围建造围墙，可以用来侦查和防御。"
 
 #: simulation/templates/template_structure_defense_wall.xml:23
 msgid "Stone Wall"
@@ -134,7 +138,7 @@ msgstr "石墙"
 #: simulation/templates/template_structure_defense_wall_gate.xml:28
 msgid ""
 "Allow units access through a city wall. Can be locked to prevent access."
-msgstr ""
+msgstr "任何单位都不能穿过城墙。"
 
 #: simulation/templates/template_structure_defense_wall_gate.xml:27
 msgid "City Gate"
@@ -143,26 +147,26 @@ msgstr "城门"
 #: simulation/templates/template_structure_defense_wall_long.xml:13
 #: simulation/templates/template_structure_defense_wall_medium.xml:13
 msgid "Wall Protection"
-msgstr ""
+msgstr "防御城墙"
 
 #: simulation/templates/template_structure_defense_wall_long.xml:53
 msgid "Long wall segments can be converted to gates."
-msgstr ""
+msgstr "一定长度的城墙可以转变为城门。"
 
 #: simulation/templates/template_structure_defense_wall_long.xml:14
 #: simulation/templates/template_structure_defense_wall_medium.xml:14
 msgid "Units on walls have 3 extra Armor levels"
-msgstr ""
+msgstr "驻守在城墙上的单位能额外获得3点护甲"
 
 #: simulation/templates/template_structure_defense_wall_long.xml:54
 msgid "Convert Stone Wall into City Gate"
-msgstr ""
+msgstr "把城墙转变为城门"
 
-#: simulation/templates/template_structure_defense_wall_tower.xml:56
+#: simulation/templates/template_structure_defense_wall_tower.xml:50
 msgid "Shoots arrows. Garrison to defend a city wall against attackers."
-msgstr ""
+msgstr "箭垛。驻兵用弓箭抵御进攻者。"
 
-#: simulation/templates/template_structure_defense_wall_tower.xml:55
+#: simulation/templates/template_structure_defense_wall_tower.xml:49
 msgid "Wall Turret"
 msgstr "城墙箭塔"
 
@@ -182,7 +186,7 @@ msgstr "经济建筑"
 #: simulation/templates/template_structure_economic_farmstead.xml:24
 #: simulation/templates/template_structure_economic_farmstead.xml:21
 msgid "Farmstead"
-msgstr ""
+msgstr "农场"
 
 #: simulation/templates/template_structure_economic_farmstead.xml:22
 msgid "Dropsite for the food resource. Research food gathering improvements."
@@ -198,7 +202,7 @@ msgstr "市场"
 msgid ""
 "Create trade units to trade between other markets. Barter resources. "
 "Research trading and bartering improvements."
-msgstr ""
+msgstr "创建贸易单位用来和其他市场进行贸易，交换资源。研究改进贸易技术。"
 
 #: simulation/templates/template_structure_economic_storehouse.xml:29
 #: simulation/templates/template_structure_economic_storehouse.xml:21
@@ -213,12 +217,12 @@ msgstr "收集 木材，石料，金属。对以上资源的收集技术升级�
 
 #: simulation/templates/template_structure_gaia_settlement.xml:11
 msgid "Build a Civic Center at this location to expand your territory."
-msgstr ""
+msgstr "建造一个市政厅可以扩张你的领土。"
 
 #: simulation/templates/template_structure_gaia_settlement.xml:9
 #: simulation/templates/template_structure_gaia_settlement.xml:10
 msgid "Settlement"
-msgstr ""
+msgstr "殖民地"
 
 #: simulation/templates/template_structure_military.xml:15
 msgid "Military"
@@ -264,25 +268,25 @@ msgstr "建立在海岸边，用于建造海军舰艇和海上贸易。海军升
 msgid "Embassy"
 msgstr "大使馆"
 
-#: simulation/templates/template_structure_military_fortress.xml:63
+#: simulation/templates/template_structure_military_fortress.xml:57
 msgid "City"
-msgstr ""
+msgstr "城市"
 
-#: simulation/templates/template_structure_military_fortress.xml:63
-#: simulation/templates/template_structure_military_fortress.xml:31
-#: simulation/templates/template_structure_military_fortress.xml:60
+#: simulation/templates/template_structure_military_fortress.xml:57
+#: simulation/templates/template_structure_military_fortress.xml:25
+#: simulation/templates/template_structure_military_fortress.xml:54
 msgid "Fortress"
 msgstr "城堡"
 
-#: simulation/templates/template_structure_military_fortress.xml:61
+#: simulation/templates/template_structure_military_fortress.xml:55
 msgid ""
 "Train heroes, champions, and siege weapons. Research siege weapon "
 "improvements. Garrison: 20."
-msgstr ""
+msgstr "训练英雄，勇士以及攻城武器。研究改进攻城武器技术。可驻守单位：20"
 
 #: simulation/templates/template_structure_resource.xml:19
 msgid "Resource"
-msgstr ""
+msgstr "资源"
 
 #: simulation/templates/template_structure_resource.xml:17
 msgid "Resource Structure"
@@ -291,20 +295,20 @@ msgstr "资源建筑"
 #: simulation/templates/template_structure_resource_corral.xml:28
 #: simulation/templates/template_structure_resource_corral.xml:26
 msgid "Corral"
-msgstr ""
+msgstr "畜栏"
 
 #: simulation/templates/template_structure_resource_corral.xml:27
 msgid ""
 "Raise herd animals for food. Task domestic animals here to gain a trickle of"
 " food or other bonus (Not yet implemented)."
-msgstr ""
+msgstr "养一群动物来获得食物。通过圈养动物可以源源不断地获得食物或其他奖励(未实现)"
 
-#: simulation/templates/template_structure_resource_field.xml:25
-#: simulation/templates/template_structure_resource_field.xml:24
+#: simulation/templates/template_structure_resource_field.xml:27
+#: simulation/templates/template_structure_resource_field.xml:26
 msgid "Field"
 msgstr "麦田"
 
-#: simulation/templates/template_structure_resource_field.xml:26
+#: simulation/templates/template_structure_resource_field.xml:28
 msgid "Harvest vegetables for food. Max gatherers: 5."
 msgstr "收获蔬菜作为食物。采集者上限：5"
 
@@ -322,7 +326,7 @@ msgstr "特殊建筑"
 msgid ""
 "Bring glory to your civilization and add large tracts of land to your "
 "empire."
-msgstr ""
+msgstr "给你的文明带来荣耀，并且能增加你帝国的领土"
 
 #: simulation/templates/template_structure_wonder.xml:35
 msgid "Wonder"
@@ -333,12 +337,12 @@ msgstr "奇迹"
 #: simulation/templates/structures/mace_barracks.xml:18
 #: simulation/templates/structures/spart_barracks.xml:18
 msgid "Stratēgeîon"
-msgstr "Stratēgeîon"
+msgstr "十将军会议室"
 
 #: simulation/templates/structures/athen_blacksmith.xml:5
 #: simulation/templates/structures/spart_blacksmith.xml:5
 msgid "Khalkeîon"
-msgstr "Khalkeîon"
+msgstr "铁匠"
 
 #: simulation/templates/structures/athen_civil_centre.xml:8
 #: simulation/templates/structures/hele_civil_centre.xml:12
@@ -346,7 +350,7 @@ msgstr "Khalkeîon"
 #: simulation/templates/structures/sele_civil_centre.xml:8
 #: simulation/templates/structures/spart_civil_centre.xml:8
 msgid "Agorā́"
-msgstr "Agorā́"
+msgstr "市政广场"
 
 #: simulation/templates/structures/athen_corral.xml:12
 #: simulation/templates/structures/hele_corral.xml:16
@@ -354,7 +358,7 @@ msgstr "Agorā́"
 #: simulation/templates/structures/sele_corral.xml:12
 #: simulation/templates/structures/spart_corral.xml:12
 msgid "Épaulos"
-msgstr "Épaulos"
+msgstr "畜栏"
 
 #: simulation/templates/structures/athen_defense_tower.xml:9
 #: simulation/templates/structures/hele_defense_tower.xml:15
@@ -362,14 +366,14 @@ msgstr "Épaulos"
 #: simulation/templates/structures/sele_defense_tower.xml:9
 #: simulation/templates/structures/spart_defense_tower.xml:9
 msgid "Pyrgíon"
-msgstr "Pyrgíon"
+msgstr "防御塔"
 
 #: simulation/templates/structures/athen_dock.xml:12
 #: simulation/templates/structures/hele_dock.xml:16
 #: simulation/templates/structures/mace_dock.xml:12
 #: simulation/templates/structures/spart_dock.xml:12
 msgid "Limḗn"
-msgstr "Limḗn"
+msgstr "码头"
 
 #: simulation/templates/structures/athen_farmstead.xml:12
 #: simulation/templates/structures/hele_farmstead.xml:16
@@ -377,7 +381,7 @@ msgstr "Limḗn"
 #: simulation/templates/structures/sele_farmstead.xml:12
 #: simulation/templates/structures/spart_farmstead.xml:12
 msgid "Sītobólion"
-msgstr "Sītobólion"
+msgstr "粮仓"
 
 #: simulation/templates/structures/athen_field.xml:5
 #: simulation/templates/structures/hele_field.xml:5
@@ -391,16 +395,16 @@ msgstr "阿尔戈斯"
 #: simulation/templates/structures/hele_fortress.xml:16
 msgid ""
 "Build siege engines. Garrison up to 20 soldiers inside for stout defense."
-msgstr ""
+msgstr "建造攻城车。最多可以驻守20个士兵用来增加防御。"
 
 #: simulation/templates/structures/athen_fortress.xml:9
 msgid "Epiteíchisma"
-msgstr "Epiteíchisma"
+msgstr "城堡"
 
 #: simulation/templates/structures/athen_gymnasion.xml:22
 #: simulation/templates/structures/hele_gymnasion.xml:23
 msgid "Train champion units."
-msgstr ""
+msgstr "训练精英单位"
 
 #: simulation/templates/structures/athen_gymnasion.xml:20
 #: simulation/templates/structures/hele_gymnasion.xml:21
@@ -409,7 +413,7 @@ msgstr "体育馆"
 
 #: simulation/templates/structures/athen_gymnasion.xml:21
 msgid "Gymnásieon"
-msgstr "Gymnásieon"
+msgstr "体育馆"
 
 #: simulation/templates/structures/athen_house.xml:18
 #: simulation/templates/structures/hele_house.xml:18
@@ -417,7 +421,7 @@ msgstr "Gymnásieon"
 #: simulation/templates/structures/sele_house.xml:18
 #: simulation/templates/structures/spart_house.xml:18
 msgid "Oîkos"
-msgstr "Oîkos"
+msgstr "贵族家庭"
 
 #: simulation/templates/structures/athen_market.xml:5
 #: simulation/templates/structures/hele_market.xml:11
@@ -425,7 +429,7 @@ msgstr "Oîkos"
 #: simulation/templates/structures/sele_market.xml:5
 #: simulation/templates/structures/spart_market.xml:5
 msgid "Empórion"
-msgstr "Empórion"
+msgstr "市场"
 
 #: simulation/templates/structures/athen_outpost.xml:5
 #: simulation/templates/structures/hele_outpost.xml:5
@@ -436,7 +440,7 @@ msgstr "希腊前哨"
 
 #: simulation/templates/structures/athen_prytaneion.xml:26
 msgid "Train heroes. Research special technologies."
-msgstr ""
+msgstr "训练英雄。研究特别技能。"
 
 #: simulation/templates/structures/athen_prytaneion.xml:24
 #: simulation/templates/structures/hele_prytaneion.xml:21
@@ -446,7 +450,7 @@ msgstr "会议室"
 #: simulation/templates/structures/athen_prytaneion.xml:25
 #: simulation/templates/structures/hele_prytaneion.xml:22
 msgid "Prytaneîon"
-msgstr "Prytaneîon"
+msgstr "会议室"
 
 #: simulation/templates/structures/athen_storehouse.xml:5
 #: simulation/templates/structures/hele_storehouse.xml:11
@@ -454,12 +458,12 @@ msgstr "Prytaneîon"
 #: simulation/templates/structures/sele_storehouse.xml:5
 #: simulation/templates/structures/spart_storehouse.xml:5
 msgid "Apothḗkē"
-msgstr "Apothḗkē"
+msgstr "仓库"
 
 #: simulation/templates/structures/athen_temple.xml:9
 #: simulation/templates/structures/hele_temple.xml:15
 msgid "Neṓs"
-msgstr "Neṓs"
+msgstr "万神殿"
 
 #: simulation/templates/structures/athen_theatron.xml:35
 #: simulation/templates/structures/hele_theatron.xml:35
@@ -469,7 +473,7 @@ msgstr "Neṓs"
 msgid ""
 "Exellinismós (Hellenization): +20% territory influence for all buildings "
 "while the Theatron exists."
-msgstr ""
+msgstr "希腊化：如果有古希腊戏剧院，领域内所有建筑的领地半径增加+20%"
 
 #: simulation/templates/structures/athen_theatron.xml:32
 #: simulation/templates/structures/hele_theatron.xml:32
@@ -485,7 +489,7 @@ msgstr "希腊剧院"
 #: simulation/templates/structures/spart_theatron.xml:33
 #: simulation/templates/structures/theb_theatron.xml:33
 msgid "Théātron"
-msgstr "Théātron"
+msgstr "希腊剧院"
 
 #: simulation/templates/structures/athen_wall_gate.xml:9
 #: simulation/templates/structures/hele_wall_gate.xml:9
@@ -493,7 +497,7 @@ msgstr "Théātron"
 #: simulation/templates/structures/sele_wall_gate.xml:9
 #: simulation/templates/structures/spart_wall_gate.xml:9
 msgid "Pýlai"
-msgstr "Pýlai"
+msgstr "城门"
 
 #: simulation/templates/structures/athen_wall_long.xml:10
 #: simulation/templates/structures/athen_wall_medium.xml:10
@@ -516,7 +520,7 @@ msgstr "Pýlai"
 #: simulation/templates/structures/spart_wall_short.xml:13
 #: simulation/templates/structures/spart_wallset_stone.xml:5
 msgid "Teîkhos"
-msgstr "Teîkhos"
+msgstr "城墙"
 
 #: simulation/templates/structures/athen_wall_tower.xml:9
 #: simulation/templates/structures/hele_wall_tower.xml:9
@@ -524,7 +528,7 @@ msgstr "Teîkhos"
 #: simulation/templates/structures/sele_wall_tower.xml:9
 #: simulation/templates/structures/spart_wall_tower.xml:9
 msgid "Pýrgos"
-msgstr "皮尔戈斯"
+msgstr "箭塔"
 
 #: simulation/templates/structures/athen_wonder.xml:19
 #: simulation/templates/structures/hele_wonder.xml:19
@@ -533,26 +537,20 @@ msgstr "皮尔戈斯"
 msgid ""
 "Bring glory to your civilization and add large tracts of land to your "
 "empire. Garrison up to 30 units to heal them at a quick rate."
-msgstr ""
+msgstr "给你的文明带来荣耀，并且能增加你帝国的领土。可以驻守30个单位，并且使他们的生命快速恢复。"
 
 #: simulation/templates/structures/athen_wonder.xml:17
 #: simulation/templates/structures/hele_wonder.xml:17
 #: simulation/templates/structures/mace_wonder.xml:17
 #: simulation/templates/structures/spart_wonder.xml:17
 msgid "Neṓs Parthenos"
-msgstr "Neṓs Parthenos"
+msgstr "帕特农神庙"
 
 #: simulation/templates/structures/brit_barracks.xml:15
 #: simulation/templates/structures/celt_barracks.xml:15
 #: simulation/templates/structures/gaul_barracks.xml:15
 msgid "Gwersyllty"
 msgstr "Gwersyllty"
-
-#: simulation/templates/structures/brit_blacksmith.xml:11
-#: simulation/templates/structures/celt_blacksmith.xml:11
-#: simulation/templates/structures/gaul_blacksmith.xml:11
-msgid "-Town"
-msgstr ""
 
 #: simulation/templates/structures/brit_blacksmith.xml:8
 #: simulation/templates/structures/celt_blacksmith.xml:8
@@ -578,7 +576,7 @@ msgstr "增加人口上限并防御水路"
 
 #: simulation/templates/structures/brit_crannog.xml:21
 msgid "Island Settlement"
-msgstr "Island Settlement"
+msgstr "岛屿殖民地"
 
 #: simulation/templates/structures/brit_crannog.xml:25
 #: simulation/templates/structures/brit_dock.xml:15
@@ -606,17 +604,17 @@ msgstr "Ffermdy"
 #: simulation/templates/structures/celt_field.xml:5
 #: simulation/templates/structures/gaul_field.xml:5
 msgid "Varmo"
-msgstr "Varmo"
+msgstr "瓦尔莫"
 
 #: simulation/templates/structures/brit_fortress.xml:22
 #: simulation/templates/structures/celt_fortress_b.xml:22
 msgid "Train Brythonic heroes and champions. Construct siege rams."
-msgstr ""
+msgstr "训练布立吞英雄及精英。建造攻城槌。"
 
 #: simulation/templates/structures/brit_fortress.xml:21
 #: simulation/templates/structures/celt_fortress_b.xml:21
 msgid "Brythonic Broch"
-msgstr ""
+msgstr "布立吞石塔"
 
 #: simulation/templates/structures/brit_house.xml:9
 #: simulation/templates/structures/celt_house.xml:9
@@ -627,7 +625,7 @@ msgstr "Annedd"
 #: simulation/templates/structures/brit_kennel.xml:35
 #: simulation/templates/structures/celt_kennel.xml:35
 msgid "Train Celtic war dogs."
-msgstr ""
+msgstr "训练凯尔特战犬。"
 
 #: simulation/templates/structures/brit_kennel.xml:33
 #: simulation/templates/structures/celt_kennel.xml:33
@@ -642,7 +640,7 @@ msgstr "Marchnaty"
 
 #: simulation/templates/structures/brit_outpost.xml:5
 msgid "Brythonic Outpost"
-msgstr ""
+msgstr "布立吞前哨"
 
 #: simulation/templates/structures/brit_rotarymill.xml:22
 #: simulation/templates/structures/celt_sb1.xml:25
@@ -650,7 +648,7 @@ msgstr ""
 msgid ""
 "Increase nearby farming output +25%. (Currently, a special technology can be"
 " researched to serve this function)"
-msgstr ""
+msgstr "增加临近的农田产量+25%。(目前需要研发一个特殊科技才能使用此功能)"
 
 #: simulation/templates/structures/brit_rotarymill.xml:20
 #: simulation/templates/structures/celt_sb1.xml:23
@@ -700,12 +698,11 @@ msgstr "Gwarchglawdd"
 #: simulation/templates/structures/celt_wall_tower.xml:13
 #: simulation/templates/structures/gaul_wall_tower.xml:13
 msgid "Does not shoot or garrison."
-msgstr ""
+msgstr "无法攻击或驻军。"
 
 #: simulation/templates/structures/brit_wonder.xml:9
 #: simulation/templates/structures/celt_wonder.xml:9
 #: simulation/templates/structures/gaul_wonder.xml:9
-#: simulation/templates/structures/iber_wonder.xml:9
 msgid "Stonehenge"
 msgstr "巨石阵"
 
@@ -713,7 +710,7 @@ msgstr "巨石阵"
 msgid ""
 "Train North African citizen-soldiers. Research improvements for North "
 "African units."
-msgstr "训练北美民兵。研究北美单位升级。"
+msgstr "训练北非民兵。研究北非单位升级。"
 
 #: simulation/templates/structures/cart_barracks.xml:18
 msgid "Maḥanēt"
@@ -743,11 +740,11 @@ msgstr "Mijdil"
 msgid ""
 "Construct fishing boats to gather meat and merchant ships to trade with "
 "other docks."
-msgstr ""
+msgstr "建造渔船采集鱼肉并建造商船与其他码头交易。"
 
 #: simulation/templates/structures/cart_dock.xml:17
 msgid "Commercial Port"
-msgstr ""
+msgstr "商港"
 
 #: simulation/templates/structures/cart_dock.xml:18
 msgid "Namel"
@@ -755,11 +752,11 @@ msgstr ""
 
 #: simulation/templates/structures/cart_embassy.xml:22
 msgid "Hire mercenaries."
-msgstr ""
+msgstr "雇佣佣兵。"
 
 #: simulation/templates/structures/cart_embassy_celtic.xml:22
 msgid "Hire Celtic mercenaries. Research improvements for these mercenaries."
-msgstr ""
+msgstr "雇佣凯尔特雇佣兵。为这些雇佣兵研究改进的科技。"
 
 #: simulation/templates/structures/cart_embassy_celtic.xml:20
 msgid "Celtic Embassy"
@@ -767,7 +764,7 @@ msgstr "凯尔特使馆"
 
 #: simulation/templates/structures/cart_embassy_iberian.xml:15
 msgid "Hire Iberian mercenaries. Research improvements for these mercenaries."
-msgstr ""
+msgstr "雇用伊比利亚雇佣兵。为这些雇佣兵研究改进的科技。"
 
 #: simulation/templates/structures/cart_embassy_iberian.xml:13
 msgid "Iberian Embassy"
@@ -775,7 +772,7 @@ msgstr "伊比利亚使馆"
 
 #: simulation/templates/structures/cart_embassy_italiote.xml:22
 msgid "Hire Italian mercenaries. Research improvements for these mercenaries."
-msgstr ""
+msgstr "雇用意大利雇佣兵。为这些雇佣兵研究改进的科技。"
 
 #: simulation/templates/structures/cart_embassy_italiote.xml:20
 msgid "Italiote Embassy"
@@ -791,7 +788,7 @@ msgstr "Šadd"
 
 #: simulation/templates/structures/cart_fortress.xml:9
 msgid "Blockhouse Fort"
-msgstr ""
+msgstr "碉堡"
 
 #: simulation/templates/structures/cart_fortress.xml:10
 msgid "Ḥamet"
@@ -829,7 +826,7 @@ msgstr "Cothon"
 msgid ""
 "Train priestesses to heal your troops. Train Sacred Band pikemen. Garrison "
 "up to 15 units to heal them at a quick rate."
-msgstr ""
+msgstr "训练女祭司以治疗您的军队。训练圣队矛兵。可驻守最多15个单位以较快速的治疗他们。"
 
 #: simulation/templates/structures/cart_temple.xml:14
 msgid "Maqdaš"
@@ -852,17 +849,17 @@ msgstr "Homah"
 
 #: simulation/templates/structures/cart_wonder.xml:17
 msgid "Temple of Ba'al Hammon"
-msgstr ""
+msgstr "Ba'al Hammon 的神庙"
 
 #: simulation/templates/structures/celt_fortress_g.xml:12
 #: simulation/templates/structures/gaul_fortress.xml:9
 msgid "Train Gallic heroes and champions. Construct siege rams."
-msgstr ""
+msgstr "训练高卢英雄及精英。建造攻城槌。"
 
 #: simulation/templates/structures/celt_fortress_g.xml:11
 #: simulation/templates/structures/gaul_fortress.xml:8
 msgid "Gallic Dun"
-msgstr "Gallic Dun"
+msgstr "高卢堡垒"
 
 #: simulation/templates/structures/celt_outpost.xml:5
 msgid "Celtic Outpost"
@@ -883,7 +880,7 @@ msgstr ""
 
 #: simulation/templates/structures/gaul_tavern.xml:26
 msgid "Add +10 to Population Cap. Recruit Naked Fanatics."
-msgstr ""
+msgstr "将 +10 到人口限制中。招募狂信者。"
 
 #: simulation/templates/structures/gaul_tavern.xml:23
 msgid "Tavern"
@@ -953,7 +950,7 @@ msgstr "Soro"
 
 #: simulation/templates/structures/iber_fortress.xml:16
 msgid "Castro"
-msgstr ""
+msgstr "卡斯楚"
 
 #: simulation/templates/structures/iber_house.xml:12
 msgid "Etxe"
@@ -967,7 +964,7 @@ msgstr ""
 msgid ""
 "All units within vision of this monument will fight harder. Effect Range: 50"
 " meters."
-msgstr ""
+msgstr "所有在这座纪念碑视野内的单位将会变得更难打。影响范围：50米。"
 
 #: simulation/templates/structures/iber_monument.xml:37
 msgid "Revered Monument"
@@ -979,7 +976,7 @@ msgstr "Gur Oroigarri"
 
 #: simulation/templates/structures/iber_outpost.xml:5
 msgid "Iberian Outpost"
-msgstr ""
+msgstr "伊比利亚前哨"
 
 #: simulation/templates/structures/iber_storehouse.xml:5
 msgid "Ola"
@@ -1001,11 +998,15 @@ msgstr "Zabal Horma"
 msgid "Biko Sarbide"
 msgstr "Biko Sarbide"
 
+#: simulation/templates/structures/iber_wonder.xml:17
+msgid "Cancho Roano"
+msgstr ""
+
 #: simulation/templates/structures/mace_fortress.xml:16
 msgid ""
 "Train Champions and Heroes. Garrison up to 15 soldiers inside for stout "
 "defense."
-msgstr ""
+msgstr "训练精英及英雄。可驻守最多15个士兵以获得坚固的防御。"
 
 #: simulation/templates/structures/mace_library.xml:17
 #: simulation/templates/structures/ptol_library.xml:17
@@ -1013,7 +1014,7 @@ msgstr ""
 msgid ""
 "Research special technologies and reduce the research time of all remaining "
 "technologies."
-msgstr ""
+msgstr "研究特殊科技並减少其余科技的研究时间。"
 
 #: simulation/templates/structures/mace_library.xml:15
 #: simulation/templates/structures/ptol_library.xml:15
@@ -1028,11 +1029,11 @@ msgstr "Bibliothikon"
 
 #: simulation/templates/structures/mace_siege_workshop.xml:20
 msgid "Build siege engines. Research siege technologies."
-msgstr ""
+msgstr "建造攻城武器。研究攻城武器科技。"
 
 #: simulation/templates/structures/mace_siege_workshop.xml:18
 msgid "Siege Workshop"
-msgstr "攻城车厂"
+msgstr "攻城武器制造所"
 
 #: simulation/templates/structures/mace_siege_workshop.xml:17
 msgid "Synergeíon Poliorkías"
@@ -1068,7 +1069,7 @@ msgstr "Naukasthanaka"
 
 #: simulation/templates/structures/maur_elephant_stables.xml:26
 msgid "Train elephant units."
-msgstr ""
+msgstr "训练大象单位。"
 
 #: simulation/templates/structures/maur_elephant_stables.xml:21
 msgid "Elephant Stables"
@@ -1088,7 +1089,7 @@ msgstr "Kshetra"
 
 #: simulation/templates/structures/maur_fortress.xml:7
 msgid "Train heroes and champion units."
-msgstr "训练英雄和冠军单位。"
+msgstr "训练英雄和精英单位。"
 
 #: simulation/templates/structures/maur_fortress.xml:5
 msgid "Durg"
@@ -1108,7 +1109,7 @@ msgstr "Uparaksana"
 
 #: simulation/templates/structures/maur_pillar_ashoka.xml:29
 msgid "The famous pillar of Ashoka. Currently a useless structure."
-msgstr ""
+msgstr "著名的阿育王法敕。現在只是个无用的建筑物。"
 
 #: simulation/templates/structures/maur_pillar_ashoka.xml:26
 msgid "Edict Pillar of Ashoka"
@@ -1149,15 +1150,15 @@ msgstr "桑吉大塔"
 #: simulation/templates/structures/merc_camp_egyptian.xml:7
 #: simulation/templates/structures/ptol_mercenary_camp.xml:7
 msgid "MercenaryCamp"
-msgstr ""
+msgstr "雇佣兵训练营"
 
 #: simulation/templates/structures/merc_camp_egyptian.xml:33
 msgid "Capture this structure to train mercenaries from Hellenistic Egypt."
-msgstr ""
+msgstr "占领这个建筑物以训练来自希腊及埃及的雇佣兵。"
 
 #: simulation/templates/structures/merc_camp_egyptian.xml:29
 msgid "Mercenary Camp (Egyptian)"
-msgstr ""
+msgstr "雇佣兵训练营(埃及)"
 
 #: simulation/templates/structures/merc_camp_egyptian.xml:30
 msgid "Stratópedo Misthophóron Aigyptiakós"
@@ -1168,7 +1169,7 @@ msgid ""
 "\"Satrapy Tribute\": Gain a trickle of food, wood, stone, and metal "
 "resources. Train Persian heroes and their \"Immortals\" bodyguards. Build "
 "Limit: 1."
-msgstr ""
+msgstr "「进献总督」：以缓慢的速度增加食物、木头、石头以及金属资源。训练波斯英雄及他们的「长生军」英雄。建造限制：1。"
 
 #: simulation/templates/structures/pers_apadana.xml:26
 #: simulation/templates/structures/pers_palace.xml:23
@@ -1222,7 +1223,7 @@ msgstr "Kaštrya"
 
 #: simulation/templates/structures/pers_fortress.xml:7
 msgid "Train Champion Cavalry and Construct Siege Rams."
-msgstr ""
+msgstr "训练精英骑兵并建造攻城槌。"
 
 #: simulation/templates/structures/pers_fortress.xml:5
 msgid "Didā"
@@ -1235,11 +1236,11 @@ msgstr "Huvādā"
 #: simulation/templates/structures/pers_ishtar_gate.xml:21
 #: simulation/templates/structures/rome_arch.xml:23
 msgid "Special Imperial Roman building."
-msgstr ""
+msgstr "特殊的罗马帝国建筑物。"
 
 #: simulation/templates/structures/pers_ishtar_gate.xml:20
 msgid "Ishtar Gate of Babylon"
-msgstr "伊什塔尔城门"
+msgstr "巴比伦的伊什塔尔城门"
 
 #: simulation/templates/structures/pers_market.xml:12
 msgid "Ardatašta"
@@ -1261,27 +1262,23 @@ msgstr "宫殿"
 msgid ""
 "Special Building.\n"
 "Train War Elephants and Kardakes mercenaries."
-msgstr ""
+msgstr "特殊建筑物。\n训练战象或 Kardakes 傭兵。"
 
 #: simulation/templates/structures/pers_sb2.xml:22
 msgid "Persian Special Building"
-msgstr ""
+msgstr "波斯特殊建筑物"
 
 #: simulation/templates/structures/pers_sb2.xml:23
 msgid "Parihuvādā"
 msgstr "Parihuvādā"
 
 #: simulation/templates/structures/pers_stables.xml:20
-msgid "-Barracks"
-msgstr ""
-
-#: simulation/templates/structures/pers_stables.xml:20
 msgid "Stables"
-msgstr ""
+msgstr "马厩"
 
 #: simulation/templates/structures/pers_stables.xml:25
 msgid "Train citizen-cavalry units."
-msgstr ""
+msgstr "训练骑兵民兵单位。"
 
 #: simulation/templates/structures/pers_stables.xml:18
 msgid "Cavalry Stables"
@@ -1319,7 +1316,7 @@ msgstr "巴比伦空中花园"
 msgid ""
 "Train Egyptian and Middle-Eastern citizen-soldiers. Research training "
 "improvements. Garrison: 10."
-msgstr ""
+msgstr "训练埃及中东民兵。研究训练的改进科技。驻军：10。"
 
 #: simulation/templates/structures/ptol_barracks.xml:17
 msgid "ḥwt-n-mš'"
@@ -1361,7 +1358,7 @@ msgstr "Bibliothí̱ki̱"
 msgid ""
 "Build along the shore to reveal the shorelines over the entire map (Not "
 "implemented). Very large vision range: 180 meters."
-msgstr ""
+msgstr "建造在海岸旁可揭露整张地图(尚未实现)。非常大的视野：180米。"
 
 #: simulation/templates/structures/ptol_lighthouse.xml:17
 msgid "Lighthouse"
@@ -1380,11 +1377,11 @@ msgid ""
 "Cheap barracks-like structure that is buildable in Neutral territory, but casts no territory influence.\n"
 "- Train Mercenaries. \n"
 "- Min. distance from other Military Settlements: 100 meters."
-msgstr ""
+msgstr "便宜的类军营式的建筑，可以在中立的领土上建造，但对领土范围则无任何影响。\n- 训练雇佣兵。 \n- 与其他军事殖民地的最小距离：100米。"
 
 #: simulation/templates/structures/ptol_mercenary_camp.xml:29
 msgid "Mercenary Camp"
-msgstr ""
+msgstr "雇佣兵营"
 
 #: simulation/templates/structures/ptol_mercenary_camp.xml:30
 msgid "Stratópedo Misthophóron"
@@ -1400,7 +1397,7 @@ msgid ""
 "This is the Ptolemaic expansion building, similar to Civic Centers for other factions. It is weaker and carries a smaller territory influence, but is cheaper and built faster.\n"
 "- Train settler-soldiers of various nationalities.\n"
 "- Min. distance from other Military Colonies: 100 meters."
-msgstr ""
+msgstr "這是托勒密的扩张建筑物，类似于其他文明的城镇中心。它比较脆弱且领土范围较小，但它比较便宜且建造较快。\n- 训练不同民族的开拓者士兵。\n- 与其他军事殖民地的最小距离：100米。"
 
 #: simulation/templates/structures/ptol_military_colony.xml:29
 #: simulation/templates/structures/sele_military_colony.xml:29
@@ -1441,29 +1438,29 @@ msgstr "埃德富神庙"
 
 #: simulation/templates/structures/rome_arch.xml:22
 msgid "Triumphal Arch"
-msgstr ""
+msgstr "凯旋门"
 
 #: simulation/templates/structures/rome_army_camp.xml:65
 msgid ""
 "Build anywhere on the map, even in enemy territory. Construct siege weapons "
 "and train citizen-soldiers. Heal garrisoned units slowly."
-msgstr ""
+msgstr "可以建设在地图上的任何地方，甚至是在敌方领土上。建设攻城武器与训练民兵。缓慢的治疗驻军。"
 
 #: simulation/templates/structures/rome_army_camp.xml:59
 msgid "Entrenched Army Camp"
-msgstr "加强型营垒"
+msgstr "加强型军营"
 
 #: simulation/templates/structures/rome_army_camp.xml:60
 msgid "Castrum Vallum"
-msgstr ""
+msgstr "军营壁垒"
 
 #: simulation/templates/structures/rome_barracks.xml:18
 msgid "Castrum"
-msgstr ""
+msgstr "军营"
 
 #: simulation/templates/structures/rome_blacksmith.xml:5
 msgid "Armamentarium"
-msgstr "Armamentarium"
+msgstr "医疗器械"
 
 #: simulation/templates/structures/rome_civil_centre.xml:9
 msgid "Forum"
@@ -1483,7 +1480,7 @@ msgstr "Portus"
 
 #: simulation/templates/structures/rome_farmstead.xml:12
 msgid "Villa"
-msgstr ""
+msgstr "别墅"
 
 #: simulation/templates/structures/rome_field.xml:5
 msgid "Ager"
@@ -1518,7 +1515,7 @@ msgstr ""
 #: simulation/templates/structures/rome_siege_wall_short.xml:38
 #: simulation/templates/structures/rome_wallset_siege.xml:8
 msgid "A wooden and turf palisade buildable in enemy and neutral territories."
-msgstr ""
+msgstr "可在敌对及中立领土上建造的木造柵欄。。"
 
 #: simulation/templates/structures/rome_siege_wall_long.xml:51
 #: simulation/templates/structures/rome_siege_wall_medium.xml:45
@@ -1535,7 +1532,7 @@ msgstr ""
 
 #: simulation/templates/structures/rome_siege_wall_long.xml:58
 msgid "Convert Siege Wall into Siege Wall Gate"
-msgstr ""
+msgstr "将城墙转换为城门"
 
 #: simulation/templates/structures/rome_siege_wall_tower.xml:31
 msgid "Siege Wall Tower"
@@ -1555,11 +1552,11 @@ msgstr ""
 
 #: simulation/templates/structures/rome_temple_mars.xml:15
 msgid "Train healers. Garrison up to 30 units to heal them at a quick rate."
-msgstr ""
+msgstr "最多训练医生。可驻守30个单位以较快的速度治疗他们。"
 
 #: simulation/templates/structures/rome_temple_mars.xml:12
 msgid "Temple of Mars"
-msgstr "Temple of Mars"
+msgstr "战神马尔斯神庙"
 
 #: simulation/templates/structures/rome_temple_mars.xml:13
 msgid "Aedes Martis"
@@ -1569,19 +1566,15 @@ msgstr "Aedes Martis"
 msgid ""
 "Build this temple to greatly increase the loyalty of your buildings and "
 "female-citizens (helps prevent their capture)."
-msgstr ""
+msgstr "建造这个神庙以大大的提高您的建筑及女性公民的忠诚度(有助于防止其被俘虜)。"
 
 #: simulation/templates/structures/rome_temple_vesta.xml:12
 msgid "Temple of Vesta"
-msgstr "灶神庙"
+msgstr "灶神维斯塔神庙"
 
 #: simulation/templates/structures/rome_temple_vesta.xml:13
 msgid "Aedes Vestae"
 msgstr "灶神庙"
-
-#: simulation/templates/structures/rome_tent.xml:31
-msgid "-Village"
-msgstr ""
 
 #: simulation/templates/structures/rome_tent.xml:32
 msgid "A temporary shelter for soldiers. +5 population bonus."
@@ -1631,7 +1624,7 @@ msgstr "Liménas"
 msgid ""
 "Build siege engines and train Champions. Garrison up to 20 soldiers inside "
 "for stout defense."
-msgstr ""
+msgstr "建造攻城武器及训练精英。可驻守最多20个士兵以获得坚固的防御。"
 
 #: simulation/templates/structures/sele_fortress.xml:9
 msgid "Phrourion"
@@ -1642,7 +1635,7 @@ msgid ""
 "This is the Seleucid expansion building, similar to Civic Centers for other factions. It is weaker and carries a smaller territory influence, but is cheaper and built faster.\n"
 "- Train settler-soldiers of various nationalities.\n"
 "- Min. distance from other Military Colonies: 120 meters."
-msgstr ""
+msgstr "这是塞琉古的扩张建筑物，类似于其他文明的城鎮中心。它比较脆弱且领土范围较小，但它较便宜且建造较快。\n- 训练不同民族的开拓者士兵。\n- 与其他军事殖民地的最小距离：120米。"
 
 #: simulation/templates/structures/sele_outpost.xml:5
 msgid "Prophylax"
@@ -1659,7 +1652,7 @@ msgstr ""
 #: simulation/templates/structures/spart_fortress.xml:10
 msgid ""
 "Build siege engines. Garrison up to 15 soldiers inside for stout defense."
-msgstr ""
+msgstr "建造攻城武器。可驻守最多15個士兵以获得坚固的防御。"
 
 #: simulation/templates/structures/spart_gerousia.xml:21
 msgid "Spartan Senate"
@@ -1671,7 +1664,7 @@ msgstr "Gerousia"
 
 #: simulation/templates/structures/spart_syssiton.xml:26
 msgid "Train Spartan heroes and Spartiate champion hoplites."
-msgstr ""
+msgstr "训练斯巴达英雄及斯巴达重裝步兵。"
 
 #: simulation/templates/structures/spart_syssiton.xml:21
 msgid "Military Mess Hall"

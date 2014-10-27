@@ -10,8 +10,7 @@ endif
 CXX ?= g++
 CXXFLAGS += -fvisibility=hidden -W -Wall -Wno-unused-parameter -Wno-unused-function $(OS_DEFINE) $(PIC_FLAGS) $(CPPFLAGS)
 CXXFLAGS_DEBUG := -O0 -g -D_DEBUG -DRETAIL
-CXXFLAGS_RELEASE := -O1 -DNDEBUG -DRETAIL
-# (-O2 with gcc 4.3 causes linker errors when using this library, for unknown reasons, so stick with -O1 until gcc >4.3 is typical.)
+CXXFLAGS_RELEASE := -O2 -DNDEBUG -DRETAIL
 CXXFLAGS_TEST := -O0 -g -D_DEBUG
 LIBS += `pkg-config libxml-2.0 --libs`
 INCLUDES += -IFCollada `pkg-config libxml-2.0 --cflags`
@@ -225,7 +224,7 @@ OBJECTS_RELEASE = $(addprefix output/release/,$(SOURCE:.cpp=.o))
 OBJECTS_TEST = $(addprefix output/test/,$(SOURCE:.cpp=.o) $(TEST_SOURCE:.cpp=.o))
 OBJECTS_ALL = $(OBJECTS_DEBUG) $(OBJECTS_RELEASE) $(OBJECTS_TEST)
 
-all: output_dirs output/libFColladaSD.a output/libFColladaSR.a install
+all: output/libFColladaSD.a output/libFColladaSR.a install
 
 output_dirs:
 	bash -c 'mkdir -p output/{debug,release,test}/{FCollada/{FCDocument,FMath,FUtils,FColladaTest/{FCTestAssetManagement,FCTestExportImport,FCTestXRef}},FColladaPlugins/FArchiveXML}'
@@ -234,15 +233,15 @@ test: FCollada/FColladaTest/ output/FColladaTest
 	( cd FCollada/FColladaTest/ ; ../../output/FColladaTest )
 	cat FCollada/FColladaTest/FColladaTestLog.txt
 
-output/libFColladaSD.a: $(OBJECTS_DEBUG)
+output/libFColladaSD.a: $(OBJECTS_DEBUG) | output_dirs
 	@echo "$@"
 	@ar -cr $@ $(OBJECTS_DEBUG); ranlib $@
 
-output/libFColladaSR.a: $(OBJECTS_RELEASE)
+output/libFColladaSR.a: $(OBJECTS_RELEASE) | output_dirs
 	@echo "$@"
 	@ar -cr $@ $(OBJECTS_RELEASE); ranlib $@
 
-output/FColladaTest: $(OBJECTS_TEST)
+output/FColladaTest: $(OBJECTS_TEST) | output_dirs
 	$(CXX) -o $@ $(LDFLAGS) $(OBJECTS_TEST) $(LIBS)
 
 install: output/libFColladaSD.a output/libFColladaSR.a
@@ -256,15 +255,15 @@ gendep = \
 		sed -e 's/\#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
 		    -e '/^$$/ d' -e 's/$$/ :/' < $(dfile) >> $(Pfile) && \
 		rm -f $(dfile)
-output/debug/%.o: %.cpp
+output/debug/%.o: %.cpp | output_dirs
 	@echo "$<"
 	$(CXX) $(CXXFLAGS) $(CXXFLAGS_DEBUG) $(INCLUDES) -MD -MF $(dfile) -c $< -o $@
 	$(gendep)
-output/release/%.o: %.cpp
+output/release/%.o: %.cpp | output_dirs
 	@echo "$<"
 	$(CXX) $(CXXFLAGS) $(CXXFLAGS_RELEASE) $(INCLUDES) -MD -MF $(dfile) -c $< -o $@
 	$(gendep)
-output/test/%.o: %.cpp
+output/test/%.o: %.cpp | output_dirs
 	@echo "$<"
 	$(CXX) $(CXXFLAGS) $(CXXFLAGS_TEST) $(INCLUDES_TEST) -MD -MF $(dfile) -c $< -o $@
 	$(gendep)

@@ -207,7 +207,12 @@ function getActionInfo(action, target)
 			var data = {command: "walk"};
 			if (Engine.HotkeyIsPressed("session.attackmove"))
 			{
-				data = {command: "attack-walk"};
+				if (Engine.HotkeyIsPressed("session.attackmoveUnit"))
+					var targetClasses = { "attack": ["Unit"] };
+				else
+					var targetClasses = { "attack": ["Unit", "Structure"] };
+				data.command = "attack-walk";
+				data.targetClasses = targetClasses;
 				cursor = "action-attack-move";
 			}
 			return {"possible": true, "data": data, "cursor": cursor};
@@ -1087,6 +1092,14 @@ function handleInputAfterGui(ev)
 			}
 			else
 			{
+				// cancel if not enough resources
+				if (placementSupport.template && Engine.GuiInterfaceCall("GetNeededResources", GetTemplateData(placementSupport.template).cost))
+				{
+					placementSupport.Reset();
+					inputState = INPUT_NORMAL;
+					return true;
+				}
+
 				var snapData = Engine.GuiInterfaceCall("GetFoundationSnapData", {
 					"template": placementSupport.template,
 					"x": placementSupport.position.x,

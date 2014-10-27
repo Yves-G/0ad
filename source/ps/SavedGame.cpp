@@ -28,12 +28,12 @@
 #include "ps/CLogger.h"
 #include "ps/Filesystem.h"
 #include "ps/Game.h"
+#include "ps/Mod.h"
 #include "scriptinterface/ScriptInterface.h"
 #include "simulation2/Simulation2.h"
 
 static const int SAVED_GAME_VERSION_MAJOR = 1; // increment on incompatible changes to the format
 static const int SAVED_GAME_VERSION_MINOR = 0; // increment on compatible changes to the format
-std::vector<std::string> g_modsLoaded; // list of mods loaded
 
 // TODO: we ought to check version numbers when loading files
 
@@ -126,7 +126,7 @@ Status SavedGames::Save(const std::wstring& name, const std::wstring& descriptio
 
 	OsPath realPath;
 	WARN_RETURN_STATUS_IF_ERR(g_VFS->GetRealPath(filename, realPath));
-	LOGMESSAGERENDER(wstring_from_utf8(L10n::Instance().Translate("Saved game to '%ls'") + "\n").c_str(), realPath.string().c_str());
+	LOGMESSAGERENDER(wstring_from_utf8(g_L10n.Translate("Saved game to '%ls'") + "\n").c_str(), realPath.string().c_str());
 
 	return INFO::OK;
 }

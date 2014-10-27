@@ -4920,10 +4920,11 @@ UnitAI.prototype.WalkToTarget = function(target, queued)
 /**
  * Adds walk-and-fight order to queue, this only occurs in response
  * to a player order, and so is forced.
+ * If targetClasses is given, only entities matching the targetClasses can be attacked.
  */
-UnitAI.prototype.WalkAndFight = function(x, z, queued)
+UnitAI.prototype.WalkAndFight = function(x, z, targetClasses, queued)
 {
-	this.AddOrder("WalkAndFight", { "x": x, "z": z, "force": true }, queued);
+	this.AddOrder("WalkAndFight", { "x": x, "z": z, "targetClasses": targetClasses, "force": true }, queued);
 };
 
 /**
@@ -5057,7 +5058,10 @@ UnitAI.prototype.GatherNearPosition = function(x, z, type, template, queued)
 	if (template.indexOf("resource|") != -1)
 		template = template.slice(9);
 
-	this.AddOrder("GatherNearPosition", { "type": type, "template": template, "x": x, "z": z, "force": false }, queued);
+	if (!Engine.QueryInterface(this.entity, IID_ResourceGatherer))
+		this.AddOrder("Walk", { "x": x, "z": z, "force": false }, queued);
+	else
+		this.AddOrder("GatherNearPosition", { "type": type, "template": template, "x": x, "z": z, "force": false }, queued);
 };
 
 /**
@@ -5328,29 +5332,47 @@ UnitAI.prototype.FindWalkAndFightTargets = function()
 		var cmpFormation = Engine.QueryInterface(this.entity, IID_Formation);
 		for each (var ent in cmpFormation.members)
 		{
-			if (!(cmpUnitAI =  Engine.QueryInterface(ent, IID_UnitAI)))
+			if (!(cmpUnitAI = Engine.QueryInterface(ent, IID_UnitAI)))
 				continue;
 			var targets = cmpUnitAI.GetTargetsFromUnit();
-			for each (var targ in targets)
+			for (var targ of targets)
 			{
-				if (cmpUnitAI.CanAttack(targ))
+				if (!cmpUnitAI.CanAttack(targ))
+					continue;
+				if (this.order.data.targetClasses)
 				{
-					this.PushOrderFront("Attack", { "target": targ, "force": true });
-					return true;
+					var cmpIdentity = Engine.QueryInterface(targ, IID_Identity);
+					if (this.order.data.targetClasses.attack && cmpIdentity
+						&& !MatchesClassList(cmpIdentity.GetClassesList(), this.order.data.targetClasses.attack))
+						continue;
+					if (this.order.data.targetClasses.avoid && cmpIdentity
+						&& MatchesClassList(cmpIdentity.GetClassesList(), this.order.data.targetClasses.avoid))
+						continue;
 				}
+				this.PushOrderFront("Attack", { "target": targ, "force": true });
+				return true;
 			}
 		}
 		return false;
 	}
 
 	var targets = this.GetTargetsFromUnit();
-	for each (var targ in targets)
+	for (var targ of targets)
 	{
-		if (this.CanAttack(targ))
+		if (!this.CanAttack(targ))
+			continue;
+		if (this.order.data.targetClasses)
 		{
-			this.PushOrderFront("Attack", { "target": targ, "force": true });
-			return true;
+			var cmpIdentity = Engine.QueryInterface(targ, IID_Identity);
+			if (cmpIdentity && this.order.data.targetClasses.attack
+				&& !MatchesClassList(cmpIdentity.GetClassesList(), this.order.data.targetClasses.attack))
+				continue;
+			if (cmpIdentity && this.order.data.targetClasses.avoid
+				&& MatchesClassList(cmpIdentity.GetClassesList(), this.order.data.targetClasses.avoid))
+				continue;
 		}
+		this.PushOrderFront("Attack", { "target": targ, "force": true });
+		return true;
 	}
 	return false;
 };

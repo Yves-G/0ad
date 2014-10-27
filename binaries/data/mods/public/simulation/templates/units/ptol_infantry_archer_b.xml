@@ -10,7 +10,7 @@
     </Entities>
   </Builder>
   <Cost>
-    <BuildTime>5</BuildTime>
+    <BuildTime>7</BuildTime>
     <Resources>
       <food>0</food>
       <metal>50</metal>
@@ -26,9 +26,7 @@
     <GenericName>Nubian Mercenary Archer</GenericName>
     <SpecificName>Kousít Misthophóros Toxóti̱s</SpecificName>
     <History>?</History>
-    <Tooltip>Classes: Ranged Mercenary Infantry Archer Worker.
-Counters: 2x vs. Swordsmen, 1.25x vs. Cavalry Spearmen.
-Countered by: Cavalry Swordsmen, Cavalry Skirmishers.</Tooltip>
+    <Tooltip>Classes: Ranged Mercenary Infantry Archer Worker.</Tooltip>
     <Icon>units/hele_infantry_archer.png</Icon>
     <RequiredTechnology>phase_village</RequiredTechnology>
   </Identity>
@@ -36,7 +34,7 @@ Countered by: Cavalry Swordsmen, Cavalry Skirmishers.</Tooltip>
     <Entity>units/ptol_infantry_archer_a</Entity>
   </Promotion>
   <UnitMotion>
-    <WalkSpeed>10.0</WalkSpeed>
+    <WalkSpeed>11.5</WalkSpeed>
     <Run>
       <Speed>20.0</Speed>
     </Run>

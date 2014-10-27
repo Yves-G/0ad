@@ -7,8 +7,8 @@ newoption { trigger = "icc", description = "Use Intel C++ Compiler (Linux only; 
 newoption { trigger = "jenkins-tests", description = "Configure CxxTest to use the XmlPrinter runner which produces Jenkins-compatible output" }
 newoption { trigger = "minimal-flags", description = "Only set compiler/linker flags that are really needed. Has no effect on Windows builds" }
 newoption { trigger = "outpath", description = "Location for generated project files" }
+newoption { trigger = "sdl2", description = "Experimental build using SDL 2" }
 newoption { trigger = "with-c++11", description = "Enable C++11 on GCC" }
-newoption { trigger = "with-system-miniupnpc", description = "Search standard paths for libminiupnpc, instead of using bundled copy" }
 newoption { trigger = "with-system-mozjs24", description = "Search standard paths for libmozjs24, instead of using bundled copy" }
 newoption { trigger = "with-system-nvtt", description = "Search standard paths for nvidia-texture-tools library, instead of using bundled copy" }
 newoption { trigger = "without-audio", description = "Disable use of OpenAL/Ogg/Vorbis APIs" }
@@ -37,6 +37,33 @@ rootdir = "../.."
 
 dofile("extern_libs4.lua")
 
+-- detect compiler for non-Windows
+if os.is("macosx") then
+	cc = "clang"
+elseif os.is("linux") and _OPTIONS["icc"] then
+	cc = "icc"
+elseif not os.is("windows") then
+	cc = os.getenv("CC")
+	if cc == nil or cc == "" then
+		local hasgcc = os.execute("which gcc > .gccpath")
+		local f = io.open(".gccpath", "r")
+		local gccpath = f:read("*line")
+		f:close()
+		os.execute("rm .gccpath")
+		if gccpath == nil then
+			cc = "clang"
+		else
+			cc = "gcc"
+		end
+	end
+end
+
+-- TODO: proper clang support
+if cc == "clang" then
+	premake.gcc.cc  = "clang"
+	premake.gcc.cxx = "clang++"
+end
+
 -- detect CPU architecture (simplistic, currently only supports x86, amd64 and ARM)
 arch = "x86"
 if _OPTIONS["android"] then
@@ -50,7 +77,7 @@ else
 	if arch == "x86_64" or arch == "amd64" then
 		arch = "amd64"
 	else
-		os.execute("gcc -dumpmachine > .gccmachine.tmp")
+		os.execute(cc .. " -dumpmachine > .gccmachine.tmp")
 		local f = io.open(".gccmachine.tmp", "r")
 		local machine = f:read("*line")
 		f:close()
@@ -83,7 +110,7 @@ if os.is("windows") then
 	has_broken_pch = false
 else
 
-	lcxxtestpath = rootdir.."/libraries/source/cxxtest-4.3/bin/cxxtestgen"
+	lcxxtestpath = rootdir.."/libraries/source/cxxtest-4.4/bin/cxxtestgen"
 
 	if os.is("linux") and arch == "amd64" then
 		nasmformat "elf64"
@@ -101,7 +128,7 @@ else
 	-- It's too late to do this test by the time we start compiling the PCH file, so
 	-- do the test in this build script instead (which is kind of ugly - please fix if
 	-- you have a better idea)
-	if not _OPTIONS["icc"] then
+	if cc == "gcc" then
 		os.execute("gcc -dumpversion > .gccver.tmp")
 		local f = io.open(".gccver.tmp", "r")
 		major, dot, minor = f:read(1, 1, 1)
@@ -149,8 +176,13 @@ end
 
 function project_set_build_flags()
 
-	flags { "Symbols", "NoEditAndContinue" }
-	if not _OPTIONS["icc"] and (os.is("windows") or not _OPTIONS["minimal-flags"]) then
+	flags { "NoEditAndContinue" }
+
+	if not _OPTIONS["minimal-flags"] then
+		flags { "Symbols" }
+	end
+
+	if cc ~= "icc" and (os.is("windows") or not _OPTIONS["minimal-flags"]) then
 		-- adds the -Wall compiler flag
 		flags { "ExtraWarnings" } -- this causes far too many warnings/remarks on ICC
 	end
@@ -210,7 +242,7 @@ function project_set_build_flags()
 		end
 
 	else	-- *nix
-		if _OPTIONS["icc"] and not _OPTIONS["minimal-flags"] then
+		if cc == "icc" and not _OPTIONS["minimal-flags"] then
 			buildoptions {
 				"-w1",
 				-- "-Wabi",
@@ -338,13 +370,11 @@ function project_set_build_flags()
 			end
 		end
 
-		if not _OPTIONS["minimal-flags"] then
-			buildoptions {
-				-- Hide symbols in dynamic shared objects by default, for efficiency and for equivalence with
-				-- Windows - they should be exported explicitly with __attribute__ ((visibility ("default")))
-				"-fvisibility=hidden"
-			}
-		end
+		buildoptions {
+			-- Hide symbols in dynamic shared objects by default, for efficiency and for equivalence with
+			-- Windows - they should be exported explicitly with __attribute__ ((visibility ("default")))
+			"-fvisibility=hidden"
+		}
 
 		if _OPTIONS["bindir"] then
 			defines { "INSTALLED_BINDIR=" .. _OPTIONS["bindir"] }
@@ -383,11 +413,13 @@ end
 -- bundled libs
 function project_add_x11_dirs()
 	if not os.is("windows") and not os.is("macosx") then
-		-- X11 includes may be installed in one of a gadzillion of three places
+		-- X11 includes may be installed in one of a gadzillion of five places
 		-- Famous last words: "You can't include too much! ;-)"
 		includedirs {
 			"/usr/X11R6/include/X11",
 			"/usr/X11R6/include",
+			"/usr/local/include/X11",
+			"/usr/local/include",
 			"/usr/include/X11"
 		}
 		libdirs { "/usr/X11R6/lib" }
@@ -1297,13 +1329,9 @@ function configure_cxxtestgen()
 	local lcxxtestrootoptions = "--have-std"
 
 	if _OPTIONS["jenkins-tests"] then
-		lcxxtestrootoptions = lcxxtestrootoptions .. " --gui=PsTestWrapper --runner=XmlPrinter"
+		lcxxtestrootoptions = lcxxtestrootoptions .. " --runner=XmlPrinter"
 	else
-		if os.is("windows") then
-			lcxxtestrootoptions = lcxxtestrootoptions .. " --gui=PsTestWrapper --runner=Win32ODSPrinter"
-		else
-			lcxxtestrootoptions = lcxxtestrootoptions .. " --gui=PsTestWrapper --runner=ErrorPrinter"
-		end
+		lcxxtestrootoptions = lcxxtestrootoptions .. " --runner=ErrorPrinter"
 	end
 
 	-- Precompiled headers - the header is added to all generated .cpp files
