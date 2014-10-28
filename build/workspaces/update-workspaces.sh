@@ -40,7 +40,6 @@ premake_args=""
 
 without_nvtt=false
 with_system_nvtt=false
-with_system_miniupnpc=false
 with_system_mozjs24=false
 enable_atlas=true
 
@@ -49,8 +48,7 @@ do
   case $i in
     --without-nvtt ) without_nvtt=true; premake_args="${premake_args} --without-nvtt" ;;
     --with-system-nvtt ) with_system_nvtt=true; premake_args="${premake_args} --with-system-nvtt" ;;
-    --with-system-enet ) echo "NOTE: the --with-system-enet option is deprecated, system ENet is now required"; echo ;;
-    --with-system-miniupnpc ) with_system_miniupnpc=true; premake_args="${premake_args} --with-system-miniupnpc" ;;
+    --with-system-miniupnpc ) echo "NOTE: the --with-system-miniupnpc option is deprecated, system miniupnpc is now required"; echo ;;
     --with-system-mozjs24 ) with_system_mozjs24=true; premake_args="${premake_args} --with-system-mozjs24" ;;
     --enable-atlas ) enable_atlas=true ;;
     --disable-atlas ) enable_atlas=false ;;
@@ -69,10 +67,11 @@ cd "$(dirname $0)"
 # Now in build/workspaces/ (where we assume this script resides)
 
 if [ "`uname -s`" = "Darwin" ]; then
-  # Set *_CONFIG variables on OS X, to override the path to e.g. sdl-config
+  premake_args="${premake_args} --sdl2"
+  # Set *_CONFIG variables on OS X, to override the path to e.g. sdl2-config
   export GLOOX_CONFIG=${GLOOX_CONFIG:="$(pwd)/../../libraries/osx/gloox/bin/gloox-config"}
   export ICU_CONFIG=${ICU_CONFIG:="$(pwd)/../../libraries/osx/icu/bin/icu-config"}
-  export SDL_CONFIG=${SDL_CONFIG:="$(pwd)/../../libraries/osx/sdl/bin/sdl-config"}
+  export SDL2_CONFIG=${SDL2_CONFIG:="$(pwd)/../../libraries/osx/sdl2/bin/sdl2-config"}
   export WX_CONFIG=${WX_CONFIG:="$(pwd)/../../libraries/osx/wxwidgets/bin/wx-config"}
   export XML2_CONFIG=${XML2_CONFIG:="$(pwd)/../../libraries/osx/libxml2/bin/xml2-config"}
 fi
@@ -92,10 +91,6 @@ if [ "`uname -s`" != "Darwin" ]; then
   echo
   if [ "$with_system_nvtt" = "false" ] && [ "$without_nvtt" = "false" ]; then
     (cd ../../libraries/source/nvtt && MAKE=${MAKE} JOBS=${JOBS} ./build.sh) || die "NVTT build failed"
-  fi
-  echo
-  if [ "$with_system_miniupnpc" = "false" ]; then
-    (cd ../../libraries/source/miniupnpc && MAKE=${MAKE} JOBS=${JOBS} ./build.sh) || die "MiniUPnPc build failed"
   fi
   echo
 fi

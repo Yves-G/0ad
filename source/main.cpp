@@ -109,6 +109,8 @@ static InReaction MainInputHandler(const SDL_Event_* ev)
 			g_ResizedW = ev->ev.window.data1;
 			g_ResizedH = ev->ev.window.data2;
 			break;
+		case SDL_WINDOWEVENT_MOVED:
+			g_VideoMode.UpdatePosition(ev->ev.window.data1, ev->ev.window.data2);
 		}
 		break;
 #else
@@ -153,18 +155,17 @@ static InReaction MainInputHandler(const SDL_Event_* ev)
 		}
 		else if (hotkey == "togglefullscreen")
 		{
-#if !OS_MACOSX
-			// TODO: Fix fullscreen toggling on OS X, see http://trac.wildfiregames.com/ticket/741
+#if !OS_MACOSX || SDL_VERSION_ATLEAST(2, 0, 0)
+			// Fullscreen toggling is broken on OS X w/ SDL 1.2, see http://trac.wildfiregames.com/ticket/741
 			g_VideoMode.ToggleFullscreen();
 #else
 			LOGWARNING(L"Toggling fullscreen and resizing are disabled on OS X due to a known bug. Please use the config file to change display settings.");
 #endif
 			return IN_HANDLED;
 		}
-		else if (hotkey == "profile2.enable")
+		else if (hotkey == "profile2.toggle")
 		{
-			g_Profiler2.EnableGPU();
-			g_Profiler2.EnableHTTP();
+			g_Profiler2.Toggle();
 			return IN_HANDLED;
 		}
 		break;
@@ -392,6 +393,7 @@ static void MainControllerInit()
 
 static void MainControllerShutdown()
 {
+	in_reset_handlers();
 }
 
 
@@ -412,11 +414,23 @@ void restart_mainloop_in_atlas()
 	restart_in_atlas = true;
 }
 
+static bool restart = false;
+// trigger an orderly shutdown and restart the game.
+void restart_engine()
+{
+	quit = true;
+	restart = true;
+}
+
+extern CmdLineArgs g_args;
+
 // moved into a helper function to ensure args is destroyed before
 // exit(), which may result in a memory leak.
 static void RunGameOrAtlas(int argc, const char* argv[])
 {
 	CmdLineArgs args(argc, argv);
+
+	g_args = args;
 
 	// We need to initialise libxml2 in the main thread before
 	// any thread uses it. So initialise it here before we
@@ -433,11 +447,10 @@ static void RunGameOrAtlas(int argc, const char* argv[])
 	// run non-visual simulation replay if requested
 	if (args.Has("replay"))
 	{
-		// TODO: Support mods
 		Paths paths(args);
 		g_VFS = CreateVfs(20 * MiB);
 		g_VFS->Mount(L"cache/", paths.Cache(), VFS_MOUNT_ARCHIVABLE);
-		g_VFS->Mount(L"", paths.RData()/"mods"/"public", VFS_MOUNT_MUST_EXIST);
+		MountMods(paths, GetMods(args, INIT_MODS));
 
 		{
 			CReplayPlayer replay;
@@ -481,13 +494,25 @@ static void RunGameOrAtlas(int argc, const char* argv[])
 	g_frequencyFilter = CreateFrequencyFilter(res, 30.0);
 
 	// run the game
-	Init(args, 0);
-	InitGraphics(args, 0);
-	MainControllerInit();
-	while(!quit)
-		Frame();
-	Shutdown(0);
-	MainControllerShutdown();
+	int flags = INIT_MODS;
+	do
+	{
+		restart = false;
+		quit = false;
+		if (!Init(args, flags))
+		{
+			flags &= ~INIT_MODS;
+			Shutdown(SHUTDOWN_FROM_CONFIG);
+			continue;
+		}
+		InitGraphics(args, 0);
+		MainControllerInit();
+		while (!quit)
+			Frame();
+		Shutdown(0);
+		MainControllerShutdown();
+		flags &= ~INIT_MODS;
+	} while (restart);
 
 	if (restart_in_atlas)
 	{
@@ -519,7 +544,7 @@ extern "C" int main(int argc, char* argv[])
 				  << "This is not allowed because it can alter home directory \n"
 				  << "permissions and opens your system to vulnerabilities.   \n"
 				  << "(You received this message because you were either      \n"
-				  <<"  logged in as root or used e.g. the 'sudo' command.) \n"
+				  <<"  logged in as root or used e.g. the 'sudo' command.)    \n"
 				  << "********************************************************\n\n";
 		return EXIT_FAILURE;
 	}

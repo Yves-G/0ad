@@ -24,8 +24,7 @@ ZLIB_VERSION="zlib-1.2.8"
 CURL_VERSION="curl-7.32.0"
 ICONV_VERSION="libiconv-1.14"
 XML2_VERSION="libxml2-2.9.1"
-# * SDL 1.2.15+ required for Lion support
-SDL_VERSION="SDL-1.2.15"
+SDL2_VERSION="SDL-2.0.4-9134"
 BOOST_VERSION="boost_1_52_0"
 # * wxWidgets 2.9+ is necessary for 64-bit OS X build w/ OpenGL support
 WXWIDGETS_VERSION="wxWidgets-3.0.1"
@@ -43,12 +42,12 @@ NSPR_VERSION="4.10.3"
 # OS X only includes part of ICU, and only the dylib
 ICU_VERSION="icu4c-52_1"
 ENET_VERSION="enet-1.3.12"
+MINIUPNPC_VERSION="miniupnpc-1.9"
 # --------------------------------------------------------------
 # Bundled with the game:
 # * SpiderMonkey 24
 # * NVTT
 # * FCollada
-# * MiniUPnPc
 # --------------------------------------------------------------
 # Provided by OS X:
 # * OpenAL
@@ -62,9 +61,10 @@ ENET_VERSION="enet-1.3.12"
 # Choices are "x86_64" or  "i386" (ppc and ppc64 not supported)
 ARCH=${ARCH:="x86_64"}
 
-# Define compiler as "gcc" (in case anything expects e.g. gcc-4.2)
-# On newer OS X versions, this will be a symbolic link to LLVM GCC
-# TODO: don't rely on that
+# Define compiler as "clang", this is all Mavericks supports.
+# gcc symlinks may still exist, but they are simply clang with
+# slightly different config, which confuses build scripts.
+# llvm-gcc and gcc 4.2 are no longer supported by SpiderMonkey.
 export CC=${CC:="clang"} CXX=${CXX:="clang++"}
 export MIN_OSX_VERSION=${MIN_OSX_VERSION:="10.9"}
 
@@ -112,7 +112,7 @@ download_lib()
 
   if [ ! -e $filename ]; then
     echo "Downloading $filename"
-    curl -L -O ${url}${filename} || die "Download of $url$filename failed"
+    curl -L -o ${filename} ${url}${filename} || die "Download of $url$filename failed"
   fi
 }
 
@@ -263,15 +263,15 @@ popd > /dev/null
 
 # --------------------------------------------------------------
 
-echo -e "Building SDL..."
+echo -e "Building SDL2..."
 
-LIB_VERSION="${SDL_VERSION}"
+LIB_VERSION="${SDL2_VERSION}"
 LIB_ARCHIVE="$LIB_VERSION.tar.gz"
 LIB_DIRECTORY=$LIB_VERSION
-LIB_URL="http://www.libsdl.org/release/"
+LIB_URL="https://www.libsdl.org/tmp/"
 
-mkdir -p sdl
-pushd sdl > /dev/null
+mkdir -p sdl2
+pushd sdl2 > /dev/null
 
 if [[ "$force_rebuild" = "true" ]] || [[ ! -e .already-built ]] || [[ .already-built -ot $LIB_DIRECTORY ]]
 then
@@ -284,10 +284,9 @@ then
   tar -xf $LIB_ARCHIVE
   pushd $LIB_DIRECTORY
 
-
-  # patch SDL to fix Mavericks build (fixed upstream, see https://bugzilla.libsdl.org/show_bug.cgi?id=2085 )
+  # We don't want SDL2 to pull in system iconv, force it to detect ours with flags.
   # Don't use X11 - we don't need it and Mountain Lion removed it
-  (patch -p0 -i ../../patches/sdl-mavericks-quartz-fix.diff && ./configure CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" --prefix="$INSTALL_DIR" --disable-video-x11 --without-x --enable-shared=no && make $JOBS && make install) || die "SDL build failed"
+  (./configure CPPFLAGS="-I${ICONV_DIR}/include" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS -L${ICONV_DIR}/lib" --prefix="$INSTALL_DIR" --disable-video-x11 --without-x --enable-shared=no && make $JOBS && make install) || die "SDL2 build failed"
   popd
   touch .already-built
 else
@@ -353,15 +352,14 @@ then
   mkdir -p build-release
   pushd build-release
 
-  # disable XML and richtext support, to avoid dependency on expat
-  CONF_OPTS="--prefix=$INSTALL_DIR --disable-shared --enable-unicode --with-cocoa --with-opengl --with-libiconv-prefix=${ICONV_DIR} --disable-richtext --with-expat=builtin --without-sdl"
+  CONF_OPTS="--prefix=$INSTALL_DIR --disable-shared --enable-macosx_arch=$ARCH --enable-unicode --with-cocoa --with-opengl --with-libiconv-prefix=${ICONV_DIR} --with-expat=builtin --with-libjpeg=builtin --with-png=builtin --without-libtiff --without-sdl --without-x"
   # wxWidgets configure now defaults to targeting 10.5, if not specified,
   # but that conflicts with our flags
   if [[ $MIN_OSX_VERSION && ${MIN_OSX_VERSION-_} ]]; then
     CONF_OPTS="$CONF_OPTS --with-macosx-version-min=$MIN_OSX_VERSION"
   fi
-
-  (../configure CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" $CONF_OPTS && make ${JOBS} && make install) || die "wxWidgets build failed"
+  # patch to fix Atlas on VMs w/ software rendering (fixed upstream, see http://trac.wxwidgets.org/ticket/16555 )
+  (patch -p0 -d.. -i../../patches/wxwidgets-glcanvas-fix.diff && ../configure CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" $CONF_OPTS && make ${JOBS} && make install) || die "wxWidgets build failed"
   popd
   popd
   touch .already-built
@@ -582,7 +580,7 @@ then
   mkdir -p source/build
   pushd source/build
 
-(CXX="clang" CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS -stdlib=libstdc++" LDFLAGS="$LDFLAGS -lstdc++" ../runConfigureICU MacOSX --prefix=$INSTALL_DIR --disable-shared --enable-static --disable-samples --enable-extras --enable-icuio --enable-layout --enable-tools && make ${JOBS} && make install) || die "ICU build failed"
+(CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" ../runConfigureICU MacOSX --prefix=$INSTALL_DIR --disable-shared --enable-static --disable-samples --enable-extras --enable-icuio --enable-layout --enable-tools && make ${JOBS} && make install) || die "ICU build failed"
   popd
   popd
   touch .already-built
@@ -621,6 +619,39 @@ else
 fi
 popd > /dev/null
 
+# --------------------------------------------------------------
+echo -e "Building MiniUPnPc..."
+
+LIB_VERSION="${MINIUPNPC_VERSION}"
+LIB_ARCHIVE="$LIB_VERSION.tar.gz"
+LIB_DIRECTORY="$LIB_VERSION"
+LIB_URL="http://miniupnp.tuxfamily.org/files/download.php?file="
+
+mkdir -p miniupnpc
+pushd miniupnpc > /dev/null
+
+if [[ "$force_rebuild" = "true" ]] || [[ ! -e .already-built ]] || [[ .already-built -ot $LIB_DIRECTORY ]]
+then
+  INSTALL_DIR="$(pwd)"
+
+  rm -f .already-built
+  download_lib $LIB_URL $LIB_ARCHIVE
+
+  rm -rf $LIB_DIRECTORY bin include lib share
+  tar -xf $LIB_ARCHIVE
+  pushd $LIB_DIRECTORY
+
+  # patch miniupnpc to fix symbol visibility (fixed upstream, see https://github.com/miniupnp/miniupnp/issues/63 )
+  (patch -p0 -i../../patches/miniupnpc-clang-fix.patch && make clean && CFLAGS=$CFLAGS LDFLAGS=$LDFLAGS make ${JOBS} && INSTALLPREFIX="$INSTALL_DIR" make install) || die "MiniUPnPc build failed"
+  popd
+  # TODO: how can we not build the dylibs?
+  rm -f lib/*.dylib
+  touch .already-built
+else
+  already_built
+fi
+popd > /dev/null
+
 # --------------------------------------------------------------------
 # The following libraries are shared on different OSes and may
 # be customized, so we build and install them from bundled sources
@@ -633,7 +664,7 @@ LIB_DIRECTORY="mozjs24"
 
 pushd ../source/spidermonkey/ > /dev/null
 
-if [[ "$force_rebuild" = "true" ]] || [[ ! -e .already-built ]] || [[ .already-built -ot $LIB_DIRECTORY ]]
+if [[ "$force_rebuild" = "true" ]] || [[ ! -e .already-built ]] || [[ .already-built -ot $LIB_DIRECTORY ]] || [[ .already-built -ot README.txt ]]
 then
   INSTALL_DIR="$(pwd)"
   INCLUDE_DIR_DEBUG=$INSTALL_DIR/include-unix-debug
@@ -747,31 +778,6 @@ then
   (make clean && CXXFLAGS=$CXXFLAGS make ${JOBS}) || die "FCollada build failed"
   # Undo Makefile change
   mv Makefile.bak Makefile
-  popd
-  touch .already-built
-else
-  already_built
-fi
-popd > /dev/null
-
-# --------------------------------------------------------------
-# MiniUPnPc - no install
-echo -e "Building MiniUPnPc..."
-
-pushd ../source/miniupnpc > /dev/null
-
-if [[ "$force_rebuild" = "true" ]] || [[ ! -e .already-built ]]
-then
-  rm -f .already-built
-  rm -f lib/*.a
-  pushd src
-  rm -rf output
-  mkdir -p ../lib
-
-  (make clean && CFLAGS=$CFLAGS LDFLAGS=$LDFLAGS make ${JOBS}) || die "MiniUPnPc build failed"
-
-  cp libminiupnpc.a ../lib/
-
   popd
   touch .already-built
 else

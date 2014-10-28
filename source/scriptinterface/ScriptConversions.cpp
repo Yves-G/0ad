@@ -425,6 +425,7 @@ VECTOR(u32)
 VECTOR(u16)
 VECTOR(std::string)
 VECTOR(std::wstring)
+VECTOR(CStr8)
 VECTOR(CScriptValRooted)
 
 

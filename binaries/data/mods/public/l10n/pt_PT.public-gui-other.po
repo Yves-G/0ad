@@ -4,12 +4,14 @@
 # Ascendant project.
 # 
 # Translators:
+# mogafi, 2014
 msgid ""
 msgstr ""
 "Project-Id-Version: 0 A.D.\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2014-06-19 19:38+0200\n"
-"PO-Revision-Date: 2014-06-19 17:51+0000\n"
+"POT-Creation-Date: 2014-09-26 18:59+0200\n"
+"PO-Revision-Date: 2014-09-27 13:10+0000\n"
+"Last-Translator: mogafi\n"
 "Language-Team: Portuguese (Portugal) (http://www.transifex.com/projects/p/0ad/language/pt_PT/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -18,27 +20,22 @@ msgstr ""
 "Language: pt_PT\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: globalscripts/l10n.js:112
-msgctxt "enumeration"
-msgid ", "
-msgstr ", "
-
 #: gui/civinfo/civinfo.js:108
 #, python-format
 msgid "%(civilization)s Gameplay"
-msgstr "Características dos %(civilization)s"
+msgstr "Características das %(civilization)s"
 
 #: gui/civinfo/civinfo.js:111
 msgid "Civilization Bonus"
 msgid_plural "Civilization Bonuses"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Bónus das Civilizaçôes"
+msgstr[1] "Bónus da Civilização"
 
 #: gui/civinfo/civinfo.js:116
 msgid "Team Bonus"
 msgid_plural "Team Bonuses"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Bónus de equipa"
+msgstr[1] "Bónus de equipa"
 
 #: gui/civinfo/civinfo.js:125
 msgid "Special Technologies"
@@ -47,8 +44,8 @@ msgstr "Tecnologias Especiais"
 #: gui/civinfo/civinfo.js:134
 msgid "Special Building"
 msgid_plural "Special Buildings"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Edifício especial"
+msgstr[1] "Edifícios especiais"
 
 #: gui/civinfo/civinfo.js:143 gui/summary/summary.xml:423 (caption)
 msgid "Heroes"
@@ -59,18 +56,18 @@ msgstr "Heróis "
 msgid "History of the %(civilization)s"
 msgstr "História dos %(civilization)s"
 
-#: gui/common/functions_global_object.js:75
+#: gui/common/functions_global_object.js:74
 #, python-format
 msgid ""
 "Opening %(url)s\n"
 " in default web browser. Please wait...."
 msgstr "A abrir %(url)s\nno navegador pré-definido. Por favor, aguarde..."
 
-#: gui/common/functions_global_object.js:75
+#: gui/common/functions_global_object.js:74
 msgid "Opening page"
 msgstr "A abrir página"
 
-#: gui/common/functions_global_object.js:80
+#: gui/common/functions_global_object.js:79
 #, python-format
 msgid "FPS: %(fps)s"
 msgstr "FPS: %(fps)s"
@@ -86,23 +83,6 @@ msgstr "HH:mm:ss"
 #: gui/common/functions_utility_error.js:22
 msgid "Loading Aborted"
 msgstr "Carregamento Abortado"
-
-#: gui/common/functions_utility_list.js:14
-#: gui/common/functions_utility_list.js:44
-#: gui/common/functions_utility_list.js:69
-#: gui/common/functions_utility_list.js:84
-#: gui/common/functions_utility_list.js:101
-#: gui/common/functions_utility_list.js:113
-#: gui/common/functions_utility_list.js:125
-#: gui/common/functions_utility_list.js:141
-#, python-format
-msgid "%(functionName)s: %(object)s not found."
-msgstr "%(functionName)s: %(object)s não encontrado."
-
-#: gui/common/functions_utility_list.js:161
-#, python-format
-msgid "Requested string '%(string)s' not found in %(object)s's list."
-msgstr "A cadeia de texto solicitada '%(string)s' não estava presente na lista de %(object)s."
 
 #: gui/common/functions_utility_loadsave.js:8
 msgid "yyyy-MM-dd HH:mm:ss"
@@ -166,32 +146,32 @@ msgstr "Nenhum(a)"
 msgid "<invalid>"
 msgstr "<inválido>"
 
-#: gui/msgbox/msgbox.js:33 gui/pregame/mainmenu.js:308
+#: gui/msgbox/msgbox.js:40 gui/pregame/mainmenu.js:280
 #: gui/savedgames/load.js:44 gui/savedgames/load.js:106
 #: gui/savedgames/save.js:59 gui/savedgames/save.js:89
 msgid "Yes"
 msgstr "Sim"
 
-#: gui/msgbox/msgbox.js:33 gui/pregame/mainmenu.js:308
+#: gui/msgbox/msgbox.js:40 gui/pregame/mainmenu.js:280
 #: gui/savedgames/load.js:44 gui/savedgames/load.js:106
 #: gui/savedgames/save.js:59 gui/savedgames/save.js:89
 msgid "No"
 msgstr "Não"
 
-#: gui/msgbox/msgbox.js:37 gui/pregame/mainmenu.js:186
+#: gui/msgbox/msgbox.js:44 gui/pregame/mainmenu.js:158
 #: gui/splashscreen/splashscreen.xml:27 (caption)
 msgid "OK"
 msgstr "OK"
 
-#: gui/msgbox/msgbox.js:41
+#: gui/msgbox/msgbox.js:48
 msgid "Retry"
 msgstr "Tentar novamente"
 
-#: gui/msgbox/msgbox.js:41
+#: gui/msgbox/msgbox.js:48
 msgid "Ignore"
 msgstr "Ignorar"
 
-#: gui/msgbox/msgbox.js:41
+#: gui/msgbox/msgbox.js:48
 msgid "Abort"
 msgstr "Abortar"
 
@@ -230,224 +210,244 @@ msgid ""
 "Show detailed tooltips for trainable units in unit-producing buildings."
 msgstr "Mostrar textos de ajuda detalhados para as unidades recrutáveis nos edifícios de produção de unidades."
 
-#: gui/options/options.js:16
+#: gui/options/options.js:13
+msgid "FPS Overlay"
+msgstr "Mostrar FPS"
+
+#: gui/options/options.js:13
+msgid "Show frames per second in top right corner."
+msgstr "Mostrar frames por segundo no canto superior direito."
+
+#: gui/options/options.js:14
+msgid "Realtime Overlay"
+msgstr "Mostrar hora actual"
+
+#: gui/options/options.js:14
+msgid "Show current system time in top right corner."
+msgstr "Mostrar a hora actual no canto superior direito."
+
+#: gui/options/options.js:15
+msgid "Gametime Overlay"
+msgstr "Mostrar tempo de jogo"
+
+#: gui/options/options.js:15
+msgid "Show current simulation time in top right corner."
+msgstr "Mostrar hora actual da simulação no canto superior direito."
+
+#: gui/options/options.js:19
 msgid "Prefer GLSL"
 msgstr "Preferir GLSL"
 
-#: gui/options/options.js:16
+#: gui/options/options.js:19
 msgid "Use OpenGL 2.0 shaders (recommended)"
 msgstr "Usar os shaders OpenGL 2.0 (recomendado)"
 
-#: gui/options/options.js:17
+#: gui/options/options.js:20
 msgid "Post Processing"
 msgstr "Pós-processamento"
 
-#: gui/options/options.js:17
-msgid "Use screen-space postprocessing filters (HDR, Bloom, DOF, etc)"
-msgstr "Usar filtros de pós-processionamento (HDR, Bloom, DOF, etc)"
+#: gui/options/options.js:20
+msgid ""
+"Use screen-space postprocessing filters (HDR, Bloom, DOF, etc). REQUIRES "
+"GAME RESTART"
+msgstr "Usar filtros de pos-processamento (HDR, Bloom, DOF, etc). REQUER REINÍCIO DO JOGO"
 
-#: gui/options/options.js:18
+#: gui/options/options.js:21
 msgid "Shadows"
 msgstr "Sombras"
 
-#: gui/options/options.js:18
+#: gui/options/options.js:21
 msgid "Enable shadows"
 msgstr "Activar sombras"
 
-#: gui/options/options.js:19
+#: gui/options/options.js:22
 msgid "Particles"
 msgstr "Partículas"
 
-#: gui/options/options.js:19
+#: gui/options/options.js:22
 msgid "Enable particles"
 msgstr "Activar partículas"
 
-#: gui/options/options.js:20
+#: gui/options/options.js:23
 msgid "Show Sky"
 msgstr "Mostrar o Céu"
 
-#: gui/options/options.js:20
+#: gui/options/options.js:23
 msgid "Render Sky"
 msgstr "Renderizar o Céu"
 
-#: gui/options/options.js:21
+#: gui/options/options.js:24
 msgid "Smooth LOS"
 msgstr "Suavizar Campo de Visão"
 
-#: gui/options/options.js:21
+#: gui/options/options.js:24
 msgid "Lift darkness and fog-of-war smoothly (Requires Prefer GLSL)"
 msgstr "Desvanecer suavemente a obscuridade e a névoa da guerra (Requer 'Preferir GLSL')."
 
-#: gui/options/options.js:22
+#: gui/options/options.js:25
 msgid "Unit Silhouettes"
 msgstr "Silhuetas das Unidades"
 
-#: gui/options/options.js:22
+#: gui/options/options.js:25
 msgid "Show outlines of units behind buildings"
 msgstr "Mostrar os contornos de unidades que estejam atrás de edifícios"
 
-#: gui/options/options.js:23
+#: gui/options/options.js:26
 msgid "Shadow Filtering"
 msgstr "Filtro de Sombras"
 
-#: gui/options/options.js:23
+#: gui/options/options.js:26
 msgid "Smooth shadows"
 msgstr "Suavizar as sombras"
 
-#: gui/options/options.js:24
-msgid "HQ Waviness"
-msgstr "Ondulação HQ"
+#: gui/options/options.js:27
+msgid "Fast & Ugly Water"
+msgstr "Água rápida e feia"
 
-#: gui/options/options.js:24
+#: gui/options/options.js:27
 msgid ""
-"Use real normals for ocean-wave rendering, instead of applying them as a "
-"flat texture"
-msgstr "Usar normais reais para a renderização da ondulação do oceano, em vez de os aplicar como uma textura plana"
+"Use the lowest settings possible to render water. This makes other settings "
+"irrelevant."
+msgstr "Usar as definições mais baixas possíveis para mostrar renderização de água. Esta definição torna as outras irrelevantes."
 
-#: gui/options/options.js:25
+#: gui/options/options.js:28
+msgid "HQ Water Effects"
+msgstr "Efeitos de água em alta qualidade"
+
+#: gui/options/options.js:28
+msgid ""
+"Use higher-quality effects for water, rendering coastal waves, shore foam, "
+"and ships trails."
+msgstr "Usar efeitos de alta qualidade para a água, renderização de ondas, espuma, e rastos de barcos."
+
+#: gui/options/options.js:29
 msgid "Real Water Depth"
 msgstr "Profundidade Real da Água"
 
-#: gui/options/options.js:25
+#: gui/options/options.js:29
 msgid "Use actual water depth in rendering calculations"
 msgstr "Usar a verdadeira profundidade da água nos cálculos de renderização"
 
-#: gui/options/options.js:26
+#: gui/options/options.js:30
 msgid "Water Reflections"
 msgstr "Reflexos da Água"
 
-#: gui/options/options.js:26
+#: gui/options/options.js:30
 msgid "Allow water to reflect a mirror image"
 msgstr "Permite que a água espelhe imagens"
 
-#: gui/options/options.js:27
+#: gui/options/options.js:31
 msgid "Water Refraction"
 msgstr "Refracção da Água"
 
-#: gui/options/options.js:27
+#: gui/options/options.js:31
 msgid "Use a real water refraction map and not transparency"
 msgstr "Usar um mapa de refracção de água e não de transparência"
 
-#: gui/options/options.js:28
-msgid "Shore Foam"
-msgstr "Espuma na Costa"
+#: gui/options/options.js:32
+msgid "Shadows on Water"
+msgstr "Sombras na água"
 
-#: gui/options/options.js:28
-msgid "Show foam on water near shore depending on water waviness"
-msgstr "Mostrar a espuma do mar perto da costa, dependendo da ondulação da água"
-
-#: gui/options/options.js:29
-msgid "Shore Waves"
-msgstr "Rebentamento das Ondas"
-
-#: gui/options/options.js:29
-msgid "Show breaking waves on water near shore (Requires HQ Waviness)"
-msgstr "Mostrar rebentamento de ondas perto da costa (Requer Ondulação HQ)"
-
-#: gui/options/options.js:30
-msgid "Water Shadows"
-msgstr "Sombras na Água"
-
-#: gui/options/options.js:30
+#: gui/options/options.js:32
 msgid "Cast shadows on water"
 msgstr "Projectar sombras sobre a água"
 
-#: gui/options/options.js:31
+#: gui/options/options.js:33
 msgid "VSync"
 msgstr "VSync"
 
-#: gui/options/options.js:31
+#: gui/options/options.js:33
 msgid "Run vertical sync to fix screen tearing. REQUIRES GAME RESTART"
 msgstr "Activar sincronização vertical para corrigir efeitos de tearing. REQUER REINÍCIO DO JOGO"
 
-#: gui/options/options.js:35
+#: gui/options/options.js:37
 msgid "Master Gain"
 msgstr "Ganho Principal"
 
-#: gui/options/options.js:35
+#: gui/options/options.js:37
 msgid "Master audio gain"
 msgstr "Ganho áudio principal"
 
-#: gui/options/options.js:36
+#: gui/options/options.js:38
 msgid "Music Gain"
 msgstr "Ganho de Música"
 
-#: gui/options/options.js:36
+#: gui/options/options.js:38
 msgid "In game music gain"
 msgstr "Ganho da música do jogo"
 
-#: gui/options/options.js:37
+#: gui/options/options.js:39
 msgid "Ambient Gain"
 msgstr "Ganho da Ambiência"
 
-#: gui/options/options.js:37
+#: gui/options/options.js:39
 msgid "In game ambient sound gain"
 msgstr "Ganho dos sons de ambiência no jogo"
 
-#: gui/options/options.js:38
+#: gui/options/options.js:40
 msgid "Action Gain"
 msgstr "Ganho da Acção"
 
-#: gui/options/options.js:38
+#: gui/options/options.js:40
 msgid "In game unit action sound gain"
 msgstr "Ganho dos sons de acção no jogo"
 
-#: gui/options/options.js:39
+#: gui/options/options.js:41
 msgid "UI Gain"
 msgstr "Ganho do Interface"
 
-#: gui/options/options.js:39
+#: gui/options/options.js:41
 msgid "UI sound gain"
 msgstr "Ganho dos sons do interface"
 
-#: gui/options/options.js:43
+#: gui/options/options.js:45
 msgid "Chat Backlog"
 msgstr "Histórico do Chat"
 
-#: gui/options/options.js:43
+#: gui/options/options.js:45
 msgid "Number of backlogged messages to load when joining the lobby"
 msgstr "Número de mensagens antigas que são carregadas no momento em que entra no lobby"
 
-#: gui/options/options.js:44
+#: gui/options/options.js:46
 msgid "Chat Timestamp"
 msgstr "Marca de Data e Hora"
 
-#: gui/options/options.js:44
+#: gui/options/options.js:46
 msgid "Show time that messages are posted in the lobby chat"
 msgstr "Mostrar a data e hora a que as mensagens são publicadas no chat do lobby"
 
-#: gui/pregame/mainmenu.js:106
+#: gui/pregame/mainmenu.js:78
 msgid "disabled"
 msgstr "inactivo"
 
-#: gui/pregame/mainmenu.js:109
+#: gui/pregame/mainmenu.js:81
 msgid "connecting to server"
 msgstr "a ligar ao servidor"
 
-#: gui/pregame/mainmenu.js:114
+#: gui/pregame/mainmenu.js:86
 #, c-format
 msgid "uploading (%f%%)"
 msgstr "a enviar (%f%%)"
 
-#: gui/pregame/mainmenu.js:121
+#: gui/pregame/mainmenu.js:93
 msgid "upload succeeded"
 msgstr "envio bem sucedido"
 
-#: gui/pregame/mainmenu.js:123
+#: gui/pregame/mainmenu.js:95
 #, python-format
 msgid "upload failed (%(errorCode)s)"
 msgstr "não foi possível fazer o carregamento (%(errorCode)s)"
 
-#: gui/pregame/mainmenu.js:130
+#: gui/pregame/mainmenu.js:102
 #, python-format
 msgid "upload failed (%(errorMessage)s)"
 msgstr "não foi possível fazer o carregamento (%(errorMessage)s)"
 
-#: gui/pregame/mainmenu.js:133
+#: gui/pregame/mainmenu.js:105
 msgid "unknown"
 msgstr "desconhecido"
 
-#: gui/pregame/mainmenu.js:177
+#: gui/pregame/mainmenu.js:149
 #, python-format
 msgid ""
 "%(startWarning)sWarning:%(endWarning)s You appear to be using non-shader "
@@ -460,51 +460,51 @@ msgstr "%(startWarning)sAviso:%(endWarning)s Parece estar a usar gráficos sem s
 #. warning explains that the user is using “non-shader“ graphics,
 #. and that in the future this will not be supported by the game, so
 #. the user will need a better graphics card.
-#: gui/pregame/mainmenu.js:183
+#: gui/pregame/mainmenu.js:155
 msgid "Please press \"Read More\" for more information or \"OK\" to continue."
 msgstr "Por favor carregue em \"Ler Mais\" para obter mais informações ou \"OK\" para continuar."
 
-#: gui/pregame/mainmenu.js:184
+#: gui/pregame/mainmenu.js:156
 msgid "WARNING!"
 msgstr "AVISO!"
 
-#: gui/pregame/mainmenu.js:186
+#: gui/pregame/mainmenu.js:158
 msgid "Read More"
 msgstr "Ler Mais"
 
-#: gui/pregame/mainmenu.js:279
+#: gui/pregame/mainmenu.js:251
 #, python-format
 msgid "Build: %(buildDate)s (%(revision)s)"
 msgstr "Versão: %(buildDate)s (%(revision)s)"
 
-#: gui/pregame/mainmenu.js:310
+#: gui/pregame/mainmenu.js:282
 msgid "Are you sure you want to quit 0 A.D.?"
 msgstr "Tem a certeza de que quer sair do 0 A.D.?"
 
-#: gui/pregame/mainmenu.js:310
+#: gui/pregame/mainmenu.js:282
 msgid "Confirmation"
 msgstr "Confirmação"
 
-#: gui/pregame/mainmenu.js:320
+#: gui/pregame/mainmenu.js:292
 msgid ""
 "The scenario editor is not available or failed to load. See the game logs "
 "for additional information."
-msgstr ""
+msgstr "O editor de cenários não está disponível ou o seu carregamento falhou. Veja os registos do jogo para mais informação."
 
-#: gui/pregame/mainmenu.js:320
+#: gui/pregame/mainmenu.js:292
 msgid "Error"
 msgstr "Erro"
 
-#: gui/pregame/mainmenu.js:325
+#: gui/pregame/mainmenu.js:297
 msgid "Launch the multiplayer lobby. [DISABLED BY BUILD]"
 msgstr "Iniciar o lobby multiplayer. [DESACTIVADO NESTA VERSÃO]"
 
-#: gui/pregame/mainmenu.js:330 gui/pregame/mainmenu.xml:114 (caption)
-#: gui/pregame/mainmenu.xml:145 (caption)
+#: gui/pregame/mainmenu.js:302 gui/pregame/mainmenu.xml:85 (caption)
+#: gui/pregame/mainmenu.xml:116 (caption)
 msgid "Technical Details"
 msgstr "Detalhes Técnicos"
 
-#: gui/pregame/mainmenu.js:335
+#: gui/pregame/mainmenu.js:307
 msgid "Manual"
 msgstr "Manual"
 
@@ -597,7 +597,7 @@ msgid "Close"
 msgstr "Fechar"
 
 #: gui/locale/locale.xml:14 (caption) gui/locale/locale_advanced.xml:14
-#: (caption) gui/pregame/mainmenu.xml:316 (caption)
+#: (caption) gui/pregame/mainmenu.xml:286 (caption)
 msgid "Language"
 msgstr "Idioma"
 
@@ -694,212 +694,221 @@ msgstr "Definições do Lobby"
 msgid "Save"
 msgstr "Guardar"
 
-#: gui/pregame/mainmenu.xml:104
+#: gui/pregame/mainmenu.xml:75
 msgid "Help improve 0 A.D.!"
 msgstr "Ajude-nos a melhorar o 0 A.D.!"
 
-#: gui/pregame/mainmenu.xml:106
+#: gui/pregame/mainmenu.xml:77
 msgid ""
 "You can automatically send us anonymous feedback that will help us fix bugs,"
 " and improve performance and compatibility."
 msgstr "Pode enviar automaticamente relatórios de erro anónimos que nos ajudarão a corrigir problemas e a melhorar o desempenho e a compatibilidade do jogo."
 
-#: gui/pregame/mainmenu.xml:132
+#: gui/pregame/mainmenu.xml:103
 msgid "Thank you for helping improve 0 A.D.!"
 msgstr "Obrigado por nos ajudar a melhorar o 0 A.D.!"
 
-#: gui/pregame/mainmenu.xml:134
+#: gui/pregame/mainmenu.xml:105
 msgid "Anonymous feedback is currently enabled."
 msgstr "O envio de relatórios de erro anónimos está activado."
 
-#: gui/pregame/mainmenu.xml:136
+#: gui/pregame/mainmenu.xml:107
 msgid "Status: $status."
 msgstr "Progresso: $status."
 
-#: gui/pregame/mainmenu.xml:504
-msgid "Alpha XVI: Patañjali"
-msgstr "Alfa XVI: Patañjali"
+#: gui/pregame/mainmenu.xml:486
+msgid "Alpha XVII: Quercus"
+msgstr "Alpha XVII: Quercus"
 
-#: gui/pregame/mainmenu.xml:506
+#: gui/pregame/mainmenu.xml:488
 msgid ""
 "WARNING: This is an early development version of the game. Many features "
 "have not been added yet."
 msgstr "AVISO: Esta versão do jogo ainda está em desenvolvimento. Muitas funcionalidades ainda não foram adicionadas."
 
-#: gui/pregame/mainmenu.xml:508
+#: gui/pregame/mainmenu.xml:490
 msgid "Get involved at: play0ad.com"
 msgstr "Participe em: play0ad.com"
 
-#: gui/pregame/mainmenu.xml:110 (caption)
+#: gui/pregame/mainmenu.xml:81 (caption)
 msgid "Enable Feedback"
 msgstr "Activar Relatórios"
 
-#: gui/pregame/mainmenu.xml:141 (caption)
+#: gui/pregame/mainmenu.xml:112 (caption)
 msgid "Disable Feedback"
 msgstr "Desactivar Relatórios"
 
-#: gui/pregame/mainmenu.xml:184 (caption)
+#: gui/pregame/mainmenu.xml:155 (caption)
 msgid "Matches"
 msgstr "Partida"
 
-#: gui/pregame/mainmenu.xml:185 (tooltip)
+#: gui/pregame/mainmenu.xml:156 (tooltip)
 msgid "Click here to start a new single player game."
 msgstr "Clique aqui para iniciar um novo jogo no modo de um jogador."
 
-#: gui/pregame/mainmenu.xml:198 (caption)
+#: gui/pregame/mainmenu.xml:169 (caption)
 msgid "Campaigns"
 msgstr "Campanhas"
 
-#: gui/pregame/mainmenu.xml:199 (tooltip)
+#: gui/pregame/mainmenu.xml:170 (tooltip)
 msgid ""
 "Relive history through historical military campaigns. [NOT YET IMPLEMENTED]"
 msgstr "Reviva a História através de campanhas militares históricas. [AINDA NÃO IMPLEMENTADO]"
 
-#: gui/pregame/mainmenu.xml:215 (caption) gui/savedgames/load.xml:15 (caption)
+#: gui/pregame/mainmenu.xml:186 (caption) gui/savedgames/load.xml:15 (caption)
 msgid "Load Game"
 msgstr "Carregar Jogo"
 
-#: gui/pregame/mainmenu.xml:216 (tooltip)
+#: gui/pregame/mainmenu.xml:187 (tooltip)
 msgid "Click here to load a saved game."
 msgstr "Clique aqui para carregar um jogo guardado."
 
-#: gui/pregame/mainmenu.xml:238 (caption)
+#. Join a game by specifying the host's IP address.
+#: gui/pregame/mainmenu.xml:209 (caption)
 msgid "Join Game"
 msgstr "Entrar num Jogo"
 
-#: gui/pregame/mainmenu.xml:239 (tooltip)
+#: gui/pregame/mainmenu.xml:210 (tooltip)
 msgid "Joining an existing multiplayer game."
 msgstr "Entrar num jogo de vários jogadores existente."
 
-#: gui/pregame/mainmenu.xml:253 (caption)
+#: gui/pregame/mainmenu.xml:224 (caption)
 msgid "Host Game"
 msgstr "Alojar Jogo"
 
-#: gui/pregame/mainmenu.xml:254 (tooltip)
+#: gui/pregame/mainmenu.xml:225 (tooltip)
 msgid "Host a multiplayer game.\\n\\nRequires UDP port 20595 to be open."
 msgstr "Alojar jogo multijogador.\\n\\nRequer que a porta UDP 20595 esteja aberta."
 
-#: gui/pregame/mainmenu.xml:268 (caption)
+#: gui/pregame/mainmenu.xml:239 (caption)
 msgid "Game Lobby"
 msgstr "Entrada do jogo"
 
-#: gui/pregame/mainmenu.xml:269 (tooltip)
+#: gui/pregame/mainmenu.xml:240 (tooltip)
 msgid "Launch the multiplayer lobby."
 msgstr "Iniciar a entrada de multijogador "
 
-#: gui/pregame/mainmenu.xml:299 (caption)
+#: gui/pregame/mainmenu.xml:269 (caption)
 msgid "Options"
 msgstr "Opções"
 
-#: gui/pregame/mainmenu.xml:300 (tooltip)
+#: gui/pregame/mainmenu.xml:270 (tooltip)
 msgid "Adjust game settings."
 msgstr "Ajuste as configurações do jogo."
 
-#: gui/pregame/mainmenu.xml:317 (tooltip)
+#: gui/pregame/mainmenu.xml:287 (tooltip)
 msgid "Choose the language of the game."
 msgstr "Escolha o idioma do jogo."
 
-#: gui/pregame/mainmenu.xml:332 (caption)
+#: gui/pregame/mainmenu.xml:302 (caption)
 msgid "Scenario Editor"
 msgstr "Editor de Cenários"
 
-#: gui/pregame/mainmenu.xml:333 (tooltip)
+#: gui/pregame/mainmenu.xml:303 (tooltip)
 msgid ""
 "Open the Atlas Scenario Editor in a new window. You can run this more "
 "reliably by starting the game with the command-line argument \"-editor\"."
 msgstr "Abre o editor de cenário Atlas numa nova janela. O editor pode ser executado com mais estabilidade se lançar o jogo com o argumento \"-editor\" através da linha de comandos."
 
-#: gui/pregame/mainmenu.xml:345 (caption)
+#: gui/pregame/mainmenu.xml:315 (caption)
 msgid "Welcome Screen"
 msgstr "Ecrã de Boas-Vindas"
 
-#: gui/pregame/mainmenu.xml:346 (tooltip)
+#: gui/pregame/mainmenu.xml:316 (tooltip)
 msgid "Show the Welcome Screen. Useful if you hid it by mistake."
 msgstr "Mostrar o Ecrã de Boas-Vindas. Útil se o tiver ocultado por engano."
 
-#: gui/pregame/mainmenu.xml:402 (caption)
+#: gui/pregame/mainmenu.xml:330 (caption)
+msgid "Mod Selection"
+msgstr "Selecção de mod"
+
+#: gui/pregame/mainmenu.xml:331 (tooltip)
+msgid "Select mods to use."
+msgstr "Selecione mods a usar."
+
+#: gui/pregame/mainmenu.xml:384 (caption)
 msgid "Learn To Play"
 msgstr "Aprenda a Jogar"
 
-#: gui/pregame/mainmenu.xml:403 (tooltip)
+#: gui/pregame/mainmenu.xml:385 (tooltip)
 msgid "Open the 0 A.D. Game Manual."
 msgstr "Abrir o manual do jogo 0 A.D."
 
-#: gui/pregame/mainmenu.xml:419 (caption)
+#: gui/pregame/mainmenu.xml:401 (caption)
 msgid "Single Player"
 msgstr "Um Jogador"
 
-#: gui/pregame/mainmenu.xml:420 (tooltip)
+#: gui/pregame/mainmenu.xml:402 (tooltip)
 msgid "Challenge the computer player to a single player match."
 msgstr "Jogue uma partida contra o computador."
 
-#: gui/pregame/mainmenu.xml:434 (caption)
+#: gui/pregame/mainmenu.xml:416 (caption)
 msgid "Multiplayer"
 msgstr "Multijogador"
 
-#: gui/pregame/mainmenu.xml:435 (tooltip)
+#: gui/pregame/mainmenu.xml:417 (tooltip)
 msgid "Fight against one or more human players in a multiplayer game."
 msgstr "Combata contra outras pessoas num jogo multijogador."
 
-#: gui/pregame/mainmenu.xml:449 (caption)
+#: gui/pregame/mainmenu.xml:431 (caption)
 msgid "Tools & Options"
 msgstr "Ferramentas e Opções"
 
-#: gui/pregame/mainmenu.xml:450 (tooltip)
+#: gui/pregame/mainmenu.xml:432 (tooltip)
 msgid "Game options and scenario design tools."
 msgstr "Opções do jogo e ferramentas de criação de cenários."
 
-#: gui/pregame/mainmenu.xml:464 (caption)
+#: gui/pregame/mainmenu.xml:446 (caption)
 msgid "History"
 msgstr "História"
 
-#: gui/pregame/mainmenu.xml:465 (tooltip)
+#: gui/pregame/mainmenu.xml:447 (tooltip)
 msgid "Learn about the many civilizations featured in 0 A.D."
 msgstr "Informações sobre as diversas civilizações do jogo."
 
-#: gui/pregame/mainmenu.xml:481 (caption)
+#: gui/pregame/mainmenu.xml:463 (caption)
 msgid "Exit"
 msgstr "Sair"
 
-#: gui/pregame/mainmenu.xml:482 (tooltip)
+#: gui/pregame/mainmenu.xml:464 (tooltip)
 msgid "Exits the game."
 msgstr "Sair do jogo."
 
-#: gui/pregame/mainmenu.xml:518 (caption)
+#: gui/pregame/mainmenu.xml:500 (caption)
 msgid "Help with the Translation!"
 msgstr "Ajude a Traduzir!"
 
-#: gui/pregame/mainmenu.xml:519 (tooltip)
+#: gui/pregame/mainmenu.xml:501 (tooltip)
 msgid "Click to open the 0 A.D. translate page in your browser."
-msgstr ""
+msgstr "Clique para abrir a página de tradução do 0 A.D. no seu browser."
 
-#: gui/pregame/mainmenu.xml:530 (caption)
+#: gui/pregame/mainmenu.xml:512 (caption)
 msgid "Website"
 msgstr "Site"
 
-#: gui/pregame/mainmenu.xml:531 (tooltip)
+#: gui/pregame/mainmenu.xml:513 (tooltip)
 msgid "Click to open play0ad.com in your web browser."
 msgstr "Clique aqui para abrir play0ad.com no seu navegador."
 
-#: gui/pregame/mainmenu.xml:542 (caption)
+#: gui/pregame/mainmenu.xml:524 (caption)
 msgid "Chat"
 msgstr "Chat"
 
-#: gui/pregame/mainmenu.xml:543 (tooltip)
+#: gui/pregame/mainmenu.xml:525 (tooltip)
 msgid ""
 "Click to open the 0 A.D. IRC chat in your browser. (#0ad on "
 "webchat.quakenet.org)"
 msgstr "Clique para abrir a sala de conversa IRC do 0 A.D. no seu navegador (#0ad on webchat.quakenet.org)."
 
-#: gui/pregame/mainmenu.xml:554 (caption)
+#: gui/pregame/mainmenu.xml:536 (caption)
 msgid "Report a Bug"
 msgstr "Comunicar um Erro"
 
-#: gui/pregame/mainmenu.xml:555 (tooltip)
+#: gui/pregame/mainmenu.xml:537 (tooltip)
 msgid "Click to visit 0 A.D. Trac to report a bug, crash, or error."
 msgstr "Clique para visitar o 0 A.D. Trac para comunicar um bug, uma falha ou um erro."
 
-#: gui/pregame/mainmenu.xml:583 (caption)
+#: gui/pregame/mainmenu.xml:565 (caption)
 msgid "WILDFIRE GAMES"
 msgstr "WILDFIRE GAMES"
 
@@ -1133,12 +1142,14 @@ msgid "[icon=iconLag]  The game lags when many units are moving."
 msgstr "[icon=iconLag] O jogo fica lento quando há muitas unidades a deslocarem-se ao mesmo tempo."
 
 #: gui/splashscreen/splashscreen.txt:7
-msgid "[icon=\"iconShip\"]  The computer opponent can't use ships."
-msgstr "[icon=\"iconShip\"] Os adversários controlados pelo computador não conseguem usar embarcações."
-
-#: gui/splashscreen/splashscreen.txt:9
 msgid "[icon=\"iconMap\"]  Large maps can cause problems."
 msgstr "[icon=\"iconMap\"] Mapas de grandes dimensões podem causar problemas."
+
+#: gui/splashscreen/splashscreen.txt:9
+msgid ""
+"[icon=\"iconFormation\"]  We disabled formations until we find out how to "
+"make them less laggy, more fun to play and historically accurate."
+msgstr "[icon=\"iconFormation\"] Desactivamos as formações até que consigamos descobrir maneiras de as fazer mais rápidas, divertidas e históricamente precisas."
 
 #: gui/text/tips/army_camp.txt:1
 msgid "ROMAN ARMY CAMP"
@@ -1423,7 +1434,7 @@ msgstr "- A maior parte das civilizações podem construí-las na Fase de Aldeia
 msgid ""
 "- Attackable by enemy soldiers, unlike City Walls, which are only attackable"
 " by siege weapons."
-msgstr "- Podem ser atacadas por soldados inimigos, ao contrário das Muralhas Urbanas, que só podem ser atacadas por maquinaria de cerco."
+msgstr "- Podem ser atacadas por soldados inimigos, ao contrário das Muralhas, que só podem ser atacadas por máquinas de cerco."
 
 #: gui/text/tips/pericles.txt:1
 msgid "PERICLES"
@@ -1462,6 +1473,24 @@ msgid ""
 "- Persians also have access to a great number of structural & defensive "
 "technologies."
 msgstr "- Os Persas ganham também acesso a um grande número de tecnologias arquitectónicas e defensivas."
+
+#: gui/text/tips/pikemen.txt:1
+msgid "PIKEMEN"
+msgstr "Piqueiros"
+
+#: gui/text/tips/pikemen.txt:2
+msgid "- Heavily armored and slow. Low attack."
+msgstr "- Com boa armadura e lento. Pouco ataque."
+
+#: gui/text/tips/pikemen.txt:4
+msgid ""
+"- Used against cavalry for a 4x attack bonus or against other melee infantry"
+" to pin them them in place."
+msgstr "- Usado contra cavalaria para um bónus de ataque de 4x ou contra outra infantaria de peleja para os encurralar."
+
+#: gui/text/tips/pikemen.txt:6
+msgid "- Available to: Macedonians, Seleucids, and Ptolemies."
+msgstr "- Disponível para: Macedónios, Selêucidas e Ptolemaicos."
 
 #: gui/text/tips/quinquereme.txt:1
 msgid "HEAVY WARSHIP"
@@ -1534,12 +1563,38 @@ msgid "- Champion Infantry available to the Spartans faction."
 msgstr "- Infantaria de Elite disponível apenas para os Espartanos."
 
 #: gui/text/tips/spartan_hoplites.txt:6
-msgid "- Long train time, but high armor and attack."
-msgstr "- Demora tempo a ser recrutada, mas tem elevados valores de armadura e ataque."
+msgid ""
+"- Use them to slaughter enemy cavalry or as a shock force to support your "
+"regular infantry."
+msgstr "- Utilize-os para chacinar cavalaria inimiga ou como uma força de choque para apoiar a sua infantaria regular."
 
 #: gui/text/tips/spartan_hoplites.txt:8
 msgid "- Use the 'Phalanx' formation for extra armor bonuses."
 msgstr "- Use a formação de Falange para obter bónus adicionais de armadura."
+
+#: gui/text/tips/spearmen.txt:1
+msgid "SPEARMEN"
+msgstr "LANCEIROS"
+
+#: gui/text/tips/spearmen.txt:2
+msgid "- The basic melee infantry for every faction in the game."
+msgstr "- A infantaria basica de corpo-a-corpo para todas as facções do jogo."
+
+#: gui/text/tips/spearmen.txt:4
+msgid "- Used against cavalry for a 2x attack bonus."
+msgstr "- Usada contra cavalaria para um bónus de ataque de 2x."
+
+#: gui/text/tips/spearmen.txt:6
+msgid ""
+"- Decent hack attack and a good charge bonus make them good front line "
+"troops."
+msgstr "- Ataque de corte decente e um bom bónus de carga fazem deles boas tropas da linha da frente."
+
+#: gui/text/tips/spearmen.txt:8
+msgid ""
+"- They are countered by ranged units and swordsmen, so support your spearmen"
+" with slingers or cavalry."
+msgstr "- São fracos contra unidades de alcance e espadachins, portanto suporte os seus lanceiros com fundeiros ou cavalaria."
 
 #: gui/text/tips/stoa.txt:1
 msgid "STOA"

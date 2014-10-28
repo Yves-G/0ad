@@ -52,6 +52,7 @@
 #include "ps/SavedGame.h"
 #include "ps/scripting/JSInterface_ConfigDB.h"
 #include "ps/scripting/JSInterface_Console.h"
+#include "ps/scripting/JSInterface_Mod.h"
 #include "ps/scripting/JSInterface_VFS.h"
 #include "ps/UserReport.h"
 #include "ps/GameSetup/Atlas.h"
@@ -757,11 +758,11 @@ int GetFps(ScriptInterface::CxPrivate* UNUSED(pCxPrivate))
 
 CScriptVal GetGUIObjectByName(ScriptInterface::CxPrivate* UNUSED(pCxPrivate), CStr name)
 {
-		IGUIObject* guiObj = g_GUI->FindObjectByName(name);
-		if (guiObj)
-			return OBJECT_TO_JSVAL(guiObj->GetJSObject());
-		else
-			return JSVAL_VOID;
+	IGUIObject* guiObj = g_GUI->FindObjectByName(name);
+	if (guiObj)
+		return OBJECT_TO_JSVAL(guiObj->GetJSObject());
+	else
+		return JSVAL_VOID;
 }
 
 // Return the date/time at which the current executable was compiled.
@@ -783,31 +784,31 @@ std::wstring GetBuildTimestamp(ScriptInterface::CxPrivate* UNUSED(pCxPrivate), i
 	char buf[200];
 	if (mode == -1) // Date, time and revision.
 	{
-		UDate dateTime = L10n::Instance().ParseDateTime(__DATE__ " " __TIME__, "MMM d yyyy HH:mm:ss", Locale::getUS());
-		std::string dateTimeString = L10n::Instance().LocalizeDateTime(dateTime, L10n::DateTime, SimpleDateFormat::DATE_TIME);
+		UDate dateTime = g_L10n.ParseDateTime(__DATE__ " " __TIME__, "MMM d yyyy HH:mm:ss", Locale::getUS());
+		std::string dateTimeString = g_L10n.LocalizeDateTime(dateTime, L10n::DateTime, SimpleDateFormat::DATE_TIME);
 		char svnRevision[32];
 		sprintf_s(svnRevision, ARRAY_SIZE(svnRevision), "%ls", svn_revision);
 		if (strcmp(svnRevision, "custom build") == 0)
 		{
 			// Translation: First item is a date and time, item between parenthesis is the Subversion revision number of the current build.
-			sprintf_s(buf, ARRAY_SIZE(buf), L10n::Instance().Translate("%s (custom build)").c_str(), dateTimeString.c_str());
+			sprintf_s(buf, ARRAY_SIZE(buf), g_L10n.Translate("%s (custom build)").c_str(), dateTimeString.c_str());
 		}
 		else
 		{
 			// Translation: First item is a date and time, item between parenthesis is the Subversion revision number of the current build.
-			sprintf_s(buf, ARRAY_SIZE(buf), L10n::Instance().Translate("%s (%ls)").c_str(), dateTimeString.c_str(), svn_revision);
+			sprintf_s(buf, ARRAY_SIZE(buf), g_L10n.Translate("%s (%ls)").c_str(), dateTimeString.c_str(), svn_revision);
 		}
 	}
 	else if (mode == 0) // Date.
 	{
-		UDate dateTime = L10n::Instance().ParseDateTime(__DATE__, "MMM d yyyy", Locale::getUS());
-		std::string dateTimeString = L10n::Instance().LocalizeDateTime(dateTime, L10n::Date, SimpleDateFormat::MEDIUM);
+		UDate dateTime = g_L10n.ParseDateTime(__DATE__, "MMM d yyyy", Locale::getUS());
+		std::string dateTimeString = g_L10n.LocalizeDateTime(dateTime, L10n::Date, SimpleDateFormat::MEDIUM);
 		sprintf_s(buf, ARRAY_SIZE(buf), "%s", dateTimeString.c_str());
 	}
 	else if (mode == 1) // Time.
 	{
-		UDate dateTime = L10n::Instance().ParseDateTime(__TIME__, "HH:mm:ss", Locale::getUS());
-		std::string dateTimeString = L10n::Instance().LocalizeDateTime(dateTime, L10n::Time, SimpleDateFormat::MEDIUM);
+		UDate dateTime = g_L10n.ParseDateTime(__TIME__, "HH:mm:ss", Locale::getUS());
+		std::string dateTimeString = g_L10n.LocalizeDateTime(dateTime, L10n::Time, SimpleDateFormat::MEDIUM);
 		sprintf_s(buf, ARRAY_SIZE(buf), "%s", dateTimeString.c_str());
 	}
 	else if (mode == 2) // Revision.
@@ -816,7 +817,7 @@ std::wstring GetBuildTimestamp(ScriptInterface::CxPrivate* UNUSED(pCxPrivate), i
 		sprintf_s(svnRevision, ARRAY_SIZE(svnRevision), "%ls", svn_revision);
 		if (strcmp(svnRevision, "custom build") == 0)
 		{
-			sprintf_s(buf, ARRAY_SIZE(buf), "%s", L10n::Instance().Translate("custom build").c_str());
+			sprintf_s(buf, ARRAY_SIZE(buf), "%s", g_L10n.Translate("custom build").c_str());
 		}
 		else
 		{
@@ -904,6 +905,7 @@ void GuiScriptingInit(ScriptInterface& scriptInterface)
 	JSI_Renderer::RegisterScriptFunctions(scriptInterface);
 	JSI_Console::RegisterScriptFunctions(scriptInterface);
 	JSI_ConfigDB::RegisterScriptFunctions(scriptInterface);
+	JSI_Mod::RegisterScriptFunctions(scriptInterface);
 	JSI_Sound::RegisterScriptFunctions(scriptInterface);
 	JSI_L10n::RegisterScriptFunctions(scriptInterface);
  
@@ -1020,6 +1022,7 @@ void GuiScriptingInit(ScriptInterface& scriptInterface)
 	scriptInterface.RegisterFunction<void, &JSI_Lobby::SendGetGameList>("SendGetGameList");
 	scriptInterface.RegisterFunction<void, &JSI_Lobby::SendGetBoardList>("SendGetBoardList");
 	scriptInterface.RegisterFunction<void, &JSI_Lobby::SendGetRatingList>("SendGetRatingList");
+	scriptInterface.RegisterFunction<void, std::wstring, &JSI_Lobby::SendGetProfile>("SendGetProfile");
 	scriptInterface.RegisterFunction<void, CScriptVal, &JSI_Lobby::SendRegisterGame>("SendRegisterGame");
 	scriptInterface.RegisterFunction<void, CScriptVal, &JSI_Lobby::SendGameReport>("SendGameReport");
 	scriptInterface.RegisterFunction<void, &JSI_Lobby::SendUnregisterGame>("SendUnregisterGame");
@@ -1027,6 +1030,7 @@ void GuiScriptingInit(ScriptInterface& scriptInterface)
 	scriptInterface.RegisterFunction<JS::Value, &JSI_Lobby::GetPlayerList>("GetPlayerList");
 	scriptInterface.RegisterFunction<CScriptVal, &JSI_Lobby::GetGameList>("GetGameList");
 	scriptInterface.RegisterFunction<CScriptVal, &JSI_Lobby::GetBoardList>("GetBoardList");
+	scriptInterface.RegisterFunction<CScriptVal, &JSI_Lobby::GetProfile>("GetProfile");
 	scriptInterface.RegisterFunction<CScriptVal, &JSI_Lobby::LobbyGuiPollMessage>("LobbyGuiPollMessage");
 	scriptInterface.RegisterFunction<void, std::wstring, &JSI_Lobby::LobbySendMessage>("LobbySendMessage");
 	scriptInterface.RegisterFunction<void, std::wstring, &JSI_Lobby::LobbySetPlayerPresence>("LobbySetPlayerPresence");

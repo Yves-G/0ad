@@ -15,9 +15,7 @@ m.PetraBot = function PetraBot(settings)
 	this.playedTurn = 0;
 	this.elapsedTime = 0;
 
-	this.Config = new m.Config();
-	this.Config.updateDifficulty(settings.difficulty);	
-	//this.Config.personality = settings.personality;	
+	this.Config = new m.Config(settings.difficulty);
 
 	this.savedEvents = {};
 };
@@ -26,7 +24,7 @@ m.PetraBot.prototype = new API3.BaseAI();
 
 m.PetraBot.prototype.CustomInit = function(gameState, sharedScript)
 {
-	this.initPersonality();
+	this.Config.setConfig(gameState);
 
 	this.priorities = this.Config.priorities;
 	// this.queues can only be modified by the queue manager or things will go awry.
@@ -99,30 +97,6 @@ m.PetraBot.prototype.OnUpdate = function(sharedScript)
 	}
 	
 	this.turn++;
-};
-
-// defines our core components strategy-wise.
-// TODO: the sky's the limit here.
-m.PetraBot.prototype.initPersonality = function()
-{
-	if (this.Config.difficulty >= 2)
-	{
-		this.Config.personality.aggressive = Math.random();
-		this.Config.personality.cooperative = Math.random();
-	}
-
-	if (this.Config.personality.aggressive > 0.7)
-	{
-		this.Config.Military.popForBarracks1 = 12;
-		this.Config.Economy.popForTown = 55;
-		this.Config.Economy.popForMarket = 70;
-		this.Config.Economy.femaleRatio = 0.3;
-		this.Config.priorities.defenseBuilding = 60;
-	}
-
-	if (this.Config.debug == 0)
-		return;
-	API3.warn(" >>>  Petra bot: personality = " + uneval(this.Config.personality));
 };
 
 /*m.PetraBot.prototype.Deserialize = function(data, sharedScript)

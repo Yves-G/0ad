@@ -868,6 +868,10 @@ function selectMap(name)
 	if (!name)
 		return;
 
+	// reset some map specific properties which are not necessarily redefined on each map
+	g_GameAttributes.settings.TriggerScripts = undefined;
+	g_GameAttributes.settings.CircularMap = undefined;
+
 	var mapData = loadMapData(name);
 	var mapSettings = (mapData && mapData.settings ? deepcopy(mapData.settings) : {});
 
@@ -1029,10 +1033,17 @@ function onGameAttributesChange()
 		var mapSelectionBox = Engine.GetGUIObjectByName("mapSelection");
 		mapSelectionBox.selected = mapSelectionBox.list_data.indexOf(mapName);
 		Engine.GetGUIObjectByName("mapSelectionText").caption = translate(getMapDisplayName(mapName));
-		var populationCapBox = Engine.GetGUIObjectByName("populationCap");
-		populationCapBox.selected = populationCapBox.list_data.indexOf(mapSettings.PopulationCap);
-		var startingResourcesBox = Engine.GetGUIObjectByName("startingResources");
-		startingResourcesBox.selected = startingResourcesBox.list_data.indexOf(mapSettings.StartingResources);
+		if (mapSettings.PopulationCap)
+		{
+			var populationCapBox = Engine.GetGUIObjectByName("populationCap");
+			populationCapBox.selected = populationCapBox.list_data.indexOf(mapSettings.PopulationCap);
+		}		
+		if (mapSettings.StartingResources)
+		{
+			var startingResourcesBox = Engine.GetGUIObjectByName("startingResources");
+			startingResourcesBox.selected = startingResourcesBox.list_data.indexOf(mapSettings.StartingResources);
+		}
+
 		initMapNameList();
 	}
 
@@ -1335,15 +1346,13 @@ function onGameAttributesChange()
 function updateGameAttributes()
 {
 	if (g_IsNetworked)
-    {
+	{
 		Engine.SetNetworkGameAttributes(g_GameAttributes);
 		if (g_IsController && g_LoadingState >= 2)
 			sendRegisterGameStanza();
 	}
 	else
-    {
 		onGameAttributesChange();
-    }
 }
 
 function AIConfigCallback(ai) 
@@ -1659,6 +1668,8 @@ function toggleReady()
 
 function updateReadyUI()
 {
+	if (!g_IsNetworked)
+		return; // Disabled for single-player games.
 	var isAI = new Array(MAX_PLAYERS + 1);
 	for (var i = 0; i < isAI.length; ++i)
 		isAI[i] = true;
@@ -1818,7 +1829,7 @@ function sendRegisterGameStanza()
 
 	// Map sizes only apply to random maps.
 	if (g_GameAttributes.mapType == "random")
-		var mapSize = Engine.GetGUIObjectByName("mapSize").list[selectedMapSize];
+		var mapSize = Engine.GetGUIObjectByName("mapSize").list_data[selectedMapSize];
 	else
 		var mapSize = "Default";
 

@@ -237,12 +237,12 @@ void CBinarySerializerScriptImpl::HandleScriptVal(JS::HandleValue val)
 				
 				JS::RootedValue keyValueIterator(cx);
 				m_ScriptInterface.CallFunction(val, "entries", &keyValueIterator);
-				for(u32 i=0; i<mapSize; ++i)
+				for (u32 i=0; i<mapSize; ++i)
 				{
 					JS::RootedValue currentIterator(cx);
 					JS::RootedValue keyValuePair(cx);
 					ENSURE(m_ScriptInterface.CallFunction(keyValueIterator, "next", &currentIterator));
-					
+
 					// the Iterator has a property called "value" that contains the key-value pair of the map
 					m_ScriptInterface.GetProperty(currentIterator, "value", &keyValuePair);
 					JS::RootedObject keyValuePairObj(cx, &keyValuePair.toObject());

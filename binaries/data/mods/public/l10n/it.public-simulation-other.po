@@ -4,12 +4,15 @@
 # Ascendant project.
 # 
 # Translators:
+# SecondCloud500 <eddieven2000@gmail.com>, 2014
+# Me Lazzi, 2014
 msgid ""
 msgstr ""
 "Project-Id-Version: 0 A.D.\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2014-06-19 19:39+0200\n"
-"PO-Revision-Date: 2014-06-19 17:53+0000\n"
+"POT-Creation-Date: 2014-09-26 19:00+0200\n"
+"PO-Revision-Date: 2014-09-22 09:51+0000\n"
+"Last-Translator: Adrián Chaves Fernández <adriyetichaves@gmail.com>\n"
 "Language-Team: Italian (http://www.transifex.com/projects/p/0ad/language/it/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -589,19 +592,9 @@ msgid ""
 "%(resourceType3)s, %(resourceAmount4)s %(resourceType4)s"
 msgstr "Risorse Insufficienti - %(resourceAmount1)s %(resourceType1)s, %(resourceAmount2)s %(resourceType2)s, %(resourceAmount3)s %(resourceType3)s, %(resourceAmount4)s %(resourceType4)s"
 
-#: simulation/components/ProductionQueue.js:345
+#: simulation/components/ProductionQueue.js:361
 msgid "The production queue is full."
 msgstr "La coda di produzione è piena."
-
-#: simulation/components/Wonder.js:53
-#, python-format
-msgid "%(player)s will have won in %(time)s"
-msgstr "%(player)s avrà vinto in %(time)s"
-
-#: simulation/components/Wonder.js:61
-#, python-format
-msgid "You will have won in %(time)s"
-msgstr "Avrai vinto in %(time)s"
 
 #: simulation/data/game_speeds.jsonSpeeds[0].Name
 msgid "Turtle (0.1x)"
@@ -721,30 +714,24 @@ msgstr "Molto Grande (8 giocatori)"
 msgid "Giant"
 msgstr "Gigante"
 
-#: simulation/ai/aegis/data.jsonname
-msgid "Aegis Bot"
-msgstr "Aegis"
-
-#: simulation/ai/aegis/data.jsondescription
-msgid ""
-"The most stable AI currently available, Aegis is an improvement of earlier "
-"bots by Wratii. Note that it doesn't support saved games yet. Please report "
-"issues to Wildfire Games (see the link in the main menu)."
-msgstr "La più stabile IA disponibile, Aegis è un miglioramento dei bot precedenti di Wratii. Nota che non supporta il salvataggio delle partite. Ti preghiamo di riportare eventuali problemi alla Wildfire Games (link nel menu principale)."
-
 #: simulation/ai/petra/data.jsonname
 msgid "Petra Bot"
 msgstr "Petra"
 
 #: simulation/ai/petra/data.jsondescription
 msgid ""
-"Based on Aegis, but heavily modified by mimo and expected to be more robust."
-" Support for naval maps is also added. Note that it doesn't support saved "
-"games yet. Please report issues to Wildfire Games (see the link in the main "
-"menu)."
-msgstr ""
+"Started as a fork of Aegis bot, Petra is the most stable AI available. It "
+"supports naval maps and is generally more challenging, but doesn't support "
+"saved games yet. Please report issues to Wildfire Games (see the link in the"
+" main menu)."
+msgstr "Iniziata come un fork del bot Aegis, Petra è la più stabile IA disponibile. Supporta mappe navali ed è generalmente più impegnativa, ma non supporta ancora i giochi salvati. Si prega di segnalare i problemi a Wildfire Games (vedi il link nel menu principale)."
 
 #: simulation/ai/tutorial-ai/data.jsonname
-#: simulation/ai/tutorial-ai/data.jsondescription
 msgid "Tutorial AI"
 msgstr "Tutorial IA"
+
+#: simulation/ai/tutorial-ai/data.jsondescription
+msgid ""
+"The Tutorial AI should only be used on the \"Introductory Tutorial\" "
+"scenario."
+msgstr "La IA Tutorial deve essere utilizzata solo nello scenario \"Tutorial Introduttivo\"."

@@ -60,7 +60,12 @@ var unitActions =
 	{
 		"execute": function(target, action, selection, queued)
 		{
-			Engine.PostNetworkCommand({"type": "attack-walk", "entities": selection, "x": target.x, "z": target.z, "queued": queued});
+			if (Engine.HotkeyIsPressed("session.attackmoveUnit"))
+				var targetClasses = { "attack": ["Unit"] };
+			else
+				var targetClasses = { "attack": ["Unit", "Structure"] };
+
+			Engine.PostNetworkCommand({"type": "attack-walk", "entities": selection, "x": target.x, "z": target.z, "targetClasses": targetClasses, "queued": queued});
 			Engine.GuiInterfaceCall("PlaySound", { "name": "order_walk", "entity": selection[0] });
 			return true;
 		},
@@ -163,7 +168,7 @@ var unitActions =
 		},
 		"getActionInfo": function(entState, targetState)
 		{
-			if (targetState.foundation && entState.buildEntities && playerCheck(entState, targetState, ["Player", "Ally"]))
+			if (targetState.foundation && entState.builder && playerCheck(entState, targetState, ["Player", "Ally"]))
 				return {"possible": true};
 			return false;
 		},
@@ -186,7 +191,7 @@ var unitActions =
 		},
 		"getActionInfo": function(entState, targetState)
 		{
-			if (entState.buildEntities && targetState.needsRepair && playerCheck(entState, targetState, ["Player", "Ally"]))
+			if (entState.builder && targetState.needsRepair && playerCheck(entState, targetState, ["Player", "Ally"]))
 				return {"possible": true};
 			return false;
 		},
@@ -465,7 +470,12 @@ var unitActions =
 			var cursor = "";
 			if (Engine.HotkeyIsPressed("session.attackmove"))
 			{
-				data = {command: "attack-walk"};
+				if (Engine.HotkeyIsPressed("session.attackmoveUnit"))
+					var targetClasses = { "attack": ["Unit"] };
+				else
+					var targetClasses = { "attack": ["Unit", "Structure"] };
+				data.command = "attack-walk";
+				data.targetClasses = targetClasses;
 				cursor = "action-attack-move";
 			}
 
@@ -492,7 +502,7 @@ var unitActions =
 				data.resourceType = resourceType;
 				data.resourceTemplate = targetState.template;
 			}
-			else if (targetState.foundation && entState.buildEntities)
+			else if (targetState.foundation && entState.builder)
 			{
 				data.command = "build";
 				data.target = targetState.id;
@@ -738,7 +748,7 @@ var g_EntityCommands =
 	"repair": {
 		"getInfo": function(entState)
 		{
-			if (!entState.buildEntities)
+			if (!entState.builder)
 				return false;
 			return {
 				"tooltip": translate("Repair"),

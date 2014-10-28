@@ -1,4 +1,4 @@
-/* Copyright (C) 2013 Wildfire Games.
+/* Copyright (C) 2014 Wildfire Games.
  * This file is part of 0 A.D.
  *
  * 0 A.D. is free software: you can redistribute it and/or modify
@@ -45,6 +45,7 @@
 #include "gui/GUI.h"
 #include "gui/GUIManager.h"
 #include "gui/scripting/ScriptFunctions.h"
+#include "i18n/L10n.h"
 #include "maths/MathUtil.h"
 #include "network/NetServer.h"
 #include "network/NetClient.h"
@@ -64,12 +65,12 @@
 #include "ps/Hotkey.h"
 #include "ps/Joystick.h"
 #include "ps/Loader.h"
+#include "ps/Mod.h"
 #include "ps/Overlay.h"
 #include "ps/Profile.h"
 #include "ps/ProfileViewer.h"
 #include "ps/Profiler2.h"
 #include "ps/Pyrogenesis.h"	// psSetLogDir
-#include "ps/SavedGame.h"
 #include "ps/scripting/JSInterface_Console.h"
 #include "ps/TouchInput.h"
 #include "ps/UserReport.h"
@@ -101,7 +102,12 @@
 extern void wmi_Shutdown();
 #endif
 
+extern void restart_engine();
+
 #include <iostream>
+
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/split.hpp>
 
 ERROR_GROUP(System);
 ERROR_TYPE(System, SDLInitFailed);
@@ -353,7 +359,7 @@ static size_t ChooseCacheSize()
 	const ssize_t os = (ssize_t)OperatingSystemFootprint();
 	const ssize_t game = 300;	// estimated working set
 
-	ssize_t cache = 500;	// upper bound: total size of our data
+	ssize_t cache = 400;	// upper bound: total size of our data
 
 	// the cache reserves contiguous address space, which is a precious
 	// resource on 32-bit systems, so don't use too much:
@@ -392,22 +398,63 @@ ErrorReactionInternal psDisplayError(const wchar_t* UNUSED(text), size_t UNUSED(
 	return ERI_NOT_IMPLEMENTED;
 }
 
-static std::vector<CStr> GetMods(const CmdLineArgs& args)
+std::vector<CStr>& GetMods(const CmdLineArgs& args, int flags)
 {
-	std::vector<CStr> mods = args.GetMultiple("mod");
-	// List of the mods, to be used by the Gui
-	g_modsLoaded.clear();
-	for (size_t i = 0; i < mods.size(); ++i)
-		g_modsLoaded.push_back((std::string)mods[i]);
-	// TODO: It would be nice to remove this hard-coding
-	mods.insert(mods.begin(), "public");
+	const bool init_mods = (flags & INIT_MODS) == INIT_MODS;
+	const bool add_user = !InDevelopmentCopy() && !args.Has("noUserMod");
+	const bool add_public = (flags & INIT_MODS_PUBLIC) == INIT_MODS_PUBLIC;
+
+	if (!init_mods)
+	{
+		// Add the user mod if it should be present
+		if (add_user && (g_modsLoaded.empty() || g_modsLoaded.back() != "user"))
+			g_modsLoaded.push_back("user");
+
+		return g_modsLoaded;
+	}
+
+	g_modsLoaded = args.GetMultiple("mod");
+
+	if (add_public)
+		g_modsLoaded.insert(g_modsLoaded.begin(), "public");
+
+	g_modsLoaded.insert(g_modsLoaded.begin(), "mod");
 
 	// Add the user mod if not explicitly disabled or we have a dev copy so
 	// that saved files end up in version control and not in the user mod.
-	if (!InDevelopmentCopy() && !args.Has("noUserMod"))
-		mods.push_back("user");
+	if (add_user)
+		g_modsLoaded.push_back("user");
 
-	return mods;
+	return g_modsLoaded;
+}
+
+void MountMods(const Paths& paths, const std::vector<CStr>& mods)
+{
+	OsPath modPath = paths.RData()/"mods";
+	OsPath modUserPath = paths.UserData()/"mods";
+	for (size_t i = 0; i < mods.size(); ++i)
+	{
+		size_t priority = (i+1)*2;	// mods are higher priority than regular mountings, which default to priority 0
+		size_t userFlags = VFS_MOUNT_WATCH|VFS_MOUNT_ARCHIVABLE|VFS_MOUNT_REPLACEABLE;
+		size_t baseFlags = userFlags|VFS_MOUNT_MUST_EXIST;
+
+		OsPath modName(mods[i]);
+		if (InDevelopmentCopy())
+		{
+			// We are running a dev copy, so only mount mods in the user mod path
+			// if the mod does not exist in the data path.
+			if (DirectoryExists(modPath / modName/""))
+				g_VFS->Mount(L"", modPath / modName/"", baseFlags, priority);
+			else
+				g_VFS->Mount(L"", modUserPath / modName/"", userFlags, priority);
+		}
+		else
+		{
+			g_VFS->Mount(L"", modPath / modName/"", baseFlags, priority);
+			// Ensure that user modified files are loaded, if they are present
+			g_VFS->Mount(L"", modUserPath / modName/"", userFlags, priority+1);
+		}
+	}
 }
 
 static void InitVfs(const CmdLineArgs& args, int flags)
@@ -434,41 +481,13 @@ static void InitVfs(const CmdLineArgs& args, int flags)
 	const size_t cacheSize = ChooseCacheSize();
 	g_VFS = CreateVfs(cacheSize);
 	
-	// Work out whether we are a dev version to make sure saved files
-	// (maps, etc) end up in version control.
 	const OsPath readonlyConfig = paths.RData()/"config"/"";
 	g_VFS->Mount(L"config/", readonlyConfig);
 
 	// Engine localization files.
 	g_VFS->Mount(L"l10n/", paths.RData()/"l10n"/"");
 
-	const std::vector<CStr> mods = GetMods(args);
-
-	OsPath modPath = paths.RData()/"mods";
-	OsPath modUserPath = paths.UserData()/"mods";
-	for (size_t i = 0; i < mods.size(); ++i)
-	{
-		size_t priority = (i+1)*2;	// mods are higher priority than regular mountings, which default to priority 0
-		size_t userFlags = VFS_MOUNT_WATCH|VFS_MOUNT_ARCHIVABLE|VFS_MOUNT_REPLACEABLE;
-		size_t baseFlags = userFlags|VFS_MOUNT_MUST_EXIST;
-		
-		OsPath modName(mods[i]);
-		if (InDevelopmentCopy())
-		{
-			// We are running a dev copy, so only mount mods in the user mod path
-			// if the mod does not exist in the data path.
-			if (DirectoryExists(modPath / modName/""))
-				g_VFS->Mount(L"", modPath / modName/"", baseFlags, priority);
-			else
-				g_VFS->Mount(L"", modUserPath / modName/"", userFlags, priority);
-		}
-		else
-		{
-			g_VFS->Mount(L"", modPath / modName/"", baseFlags, priority);
-			// Ensure that user modified files are loaded, if they are present
-			g_VFS->Mount(L"", modUserPath / modName/"", userFlags, priority+1);
-		}
-	}
+	MountMods(paths, GetMods(args, flags));
 
 	// We mount these dirs last as otherwise writing could result in files being placed in a mod's dir.
 	g_VFS->Mount(L"screenshots/", paths.UserData()/"screenshots"/"");
@@ -564,12 +583,8 @@ static void ShutdownPs()
 {
 	SAFE_DELETE(g_GUI);
 
-	SAFE_DELETE(g_Console);
+	UnloadHotkeys();
 	
-	// This is needed to ensure that no callbacks from the JSAPI try to use 
-	// the profiler when it's already destructed
-	g_ScriptRuntime.reset();
-
 	// disable the special Windows cursor, or free textures for OGL cursors
 	cursor_draw(g_VFS, 0, g_mouse_x, g_yres-g_mouse_y, false);
 }
@@ -646,9 +661,7 @@ static void InitSDL()
 	}
 	atexit(SDL_Quit);
 
-#if SDL_VERSION_ATLEAST(2, 0, 0)
-	SDL_StartTextInput();
-#else
+#if !SDL_VERSION_ATLEAST(2, 0, 0)
 	SDL_EnableUNICODE(1);
 #endif
 }
@@ -670,15 +683,16 @@ void EndGame()
 }
 
 
-void Shutdown(int UNUSED(flags))
+void Shutdown(int flags)
 {
+	if ((flags & SHUTDOWN_FROM_CONFIG))
+		goto from_config;
+
 	EndGame();
 
 	SAFE_DELETE(g_XmppClient);
 
 	ShutdownPs();
-
-	in_reset_handlers();
 
 	TIMER_BEGIN(L"shutdown TexMan");
 	delete &g_TexMan;
@@ -691,6 +705,12 @@ void Shutdown(int UNUSED(flags))
 	TIMER_END(L"shutdown Renderer");
 
 	g_Profiler2.ShutdownGPU();
+
+	#if OS_WIN
+		TIMER_BEGIN(L"shutdown wmi");
+		wmi_Shutdown();
+		TIMER_END(L"shutdown wmi");
+	#endif
 
 	// Free cursors before shutting down SDL, as they may depend on SDL.
 	cursor_shutdown();
@@ -705,14 +725,24 @@ void Shutdown(int UNUSED(flags))
 	g_UserReporter.Deinitialize();
 	TIMER_END(L"shutdown UserReporter");
 
+
 	// JS debugger temporarily disabled during the SpiderMonkey upgrade (check trac ticket #2348 for details)
 	//TIMER_BEGIN(L"shutdown DebuggingServer (if active)");
 	//delete g_DebuggingServer;
 	//TIMER_END(L"shutdown DebuggingServer (if active)");
 
+	delete &g_L10n;
+
+from_config:
 	TIMER_BEGIN(L"shutdown ConfigDB");
 	delete &g_ConfigDB;
 	TIMER_END(L"shutdown ConfigDB");
+
+	SAFE_DELETE(g_Console);
+
+	// This is needed to ensure that no callbacks from the JSAPI try to use
+	// the profiler when it's already destructed
+	g_ScriptRuntime.reset();
 
 	// resource
 	// first shut down all resource owners, and then the handle manager.
@@ -742,12 +772,6 @@ void Shutdown(int UNUSED(flags))
 		delete &g_Profiler;
 		delete &g_ProfileViewer;
 	TIMER_END(L"shutdown misc");
-
-#if OS_WIN
-	TIMER_BEGIN(L"shutdown wmi");
-	wmi_Shutdown();
-	TIMER_END(L"shutdown wmi");
-#endif
 }
 
 #if OS_UNIX
@@ -850,7 +874,7 @@ void EarlyInit()
 
 bool Autostart(const CmdLineArgs& args);
 
-void Init(const CmdLineArgs& args, int flags)
+bool Init(const CmdLineArgs& args, int flags)
 {
 	h_mgr_init();
 
@@ -863,8 +887,11 @@ void Init(const CmdLineArgs& args, int flags)
 	// (required for finding our output log files).
 	g_Logger = new CLogger;
 	
-	// Workaround until Simulation and AI use their own threads and also their own runtimes
-	g_ScriptRuntime = ScriptInterface::CreateRuntime(shared_ptr<ScriptRuntime>(), 384 * 1024 * 1024);
+	// Using a global object for the runtime is a workaround until Simulation and AI use 
+	// their own threads and also their own runtimes.
+	const int runtimeSize = 384 * 1024 * 1024;
+	const int heapGrowthBytesGCTrigger = 20 * 1024 * 1024;
+	g_ScriptRuntime = ScriptInterface::CreateRuntime(shared_ptr<ScriptRuntime>(), runtimeSize, heapGrowthBytesGCTrigger);
 
 	// Special command-line mode to dump the entity schemas instead of running the game.
 	// (This must be done after loading VFS etc, but should be done before wasting time
@@ -898,13 +925,35 @@ void Init(const CmdLineArgs& args, int flags)
 	g_ScriptStatsTable = new CScriptStatsTable;
 	g_ProfileViewer.AddRootTable(g_ScriptStatsTable);
 
-
 #if CONFIG2_AUDIO
 	ISoundManager::CreateSoundManager();
 #endif
 
 	// g_ConfigDB, command line args, globals
 	CONFIG_Init(args);
+
+	// Check if there are mods specified on the command line,
+	// or if we already set the mods (~INIT_MODS),
+	// else check if there are mods that should be loaded specified
+	// in the config and load those (by aborting init and restarting
+	// the engine).
+	if (!args.Has("mod") && (flags & INIT_MODS) == INIT_MODS)
+	{
+		CStr modstring;
+		CFG_GET_VAL("mod.enabledmods", String, modstring);
+		if (!modstring.empty())
+		{
+			std::vector<CStr> mods;
+			boost::split(mods, modstring, boost::is_any_of(" "), boost::token_compress_on);
+			std::swap(g_modsLoaded, mods);
+
+			// Abort init and restart
+			restart_engine();
+			return false;
+		}
+	}
+
+	new L10n;
 
 	// before scripting 
 	// JS debugger temporarily disabled during the SpiderMonkey upgrade (check trac ticket #2348 for details)
@@ -914,7 +963,7 @@ void Init(const CmdLineArgs& args, int flags)
 	// Optionally start profiler HTTP output automatically
 	// (By default it's only enabled by a hotkey, for security/performance)
 	bool profilerHTTPEnable = false;
-	CFG_GET_VAL("profiler2.http.autoenable", Bool, profilerHTTPEnable);
+	CFG_GET_VAL("profiler2.autoenable", Bool, profilerHTTPEnable);
 	if (profilerHTTPEnable)
 		g_Profiler2.EnableHTTP();
 
@@ -922,6 +971,7 @@ void Init(const CmdLineArgs& args, int flags)
 		g_UserReporter.Initialize(); // after config
 
 	PROFILE2_EVENT("Init finished");
+	return true;
 }
 
 void InitGraphics(const CmdLineArgs& args, int flags)
@@ -950,7 +1000,7 @@ void InitGraphics(const CmdLineArgs& args, int flags)
 	// Optionally start profiler GPU timings automatically
 	// (By default it's only enabled by a hotkey, for performance/compatibility)
 	bool profilerGPUEnable = false;
-	CFG_GET_VAL("profiler2.gpu.autoenable", Bool, profilerGPUEnable);
+	CFG_GET_VAL("profiler2.autoenable", Bool, profilerGPUEnable);
 	if (profilerGPUEnable)
 		g_Profiler2.EnableGPU();
 
@@ -1067,7 +1117,7 @@ void RenderCursor(bool RenderingState)
  * games do not use a "map" (format) but a small JavaScript program which
  * creates a map on the fly). It contains a section to initialize the game
  * setup screen.
- * @param mapPath Absolute path (from VSF root) to the map file to peek in.
+ * @param mapPath Absolute path (from VFS root) to the map file to peek in.
  * @return ScriptSettings in JSON format extracted from the map.
  */
 CStr8 LoadSettingsOfScenarioMap(const VfsPath &mapPath)
@@ -1082,8 +1132,8 @@ CStr8 LoadSettingsOfScenarioMap(const VfsPath &mapPath)
 
 	if (INFO::OK != loadResult)
 	{
-		LOGERROR(L"Unable to load map file - maybe path typo?");
-		throw PSERROR_Game_World_MapLoadFailed("Unable to load map file - maybe path typo?");
+		LOGERROR(L"LoadSettingsOfScenarioMap: Unable to load map file '%ls'", mapPath.string().c_str());
+		throw PSERROR_Game_World_MapLoadFailed("Unable to load map file, check the path for typos.");
 	}
 	XMBElement mapElement = mapFile.GetRoot();
 
@@ -1108,38 +1158,41 @@ CStr8 LoadSettingsOfScenarioMap(const VfsPath &mapPath)
 	return mapElement.GetText();
 }
 
+/*
+ * Command line options for autostart (keep synchronized with readme.txt):
+ *
+ * -autostart="TYPEDIR/MAPNAME"		enables autostart and sets MAPNAME; TYPEDIR is skirmishes, scenarios, or random
+ * -autostart-ai=PLAYER:AI			sets the AI for PLAYER (e.g. 2:petra)
+ * -autostart-aidiff=PLAYER:DIFF	sets the DIFFiculty of PLAYER's AI (0: easy, 3: very hard)
+ * -autostart-civ=PLAYER:CIV		sets PLAYER's civilisation to CIV (skirmish and random maps only)
+ * Multiplayer:
+ * -autostart-playername=NAME		sets local player NAME (default 'anonymous')
+ * -autostart-host					sets multiplayer host mode
+ * -autostart-host-players=NUMBER	sets NUMBER of human players for multiplayer game (default 2)
+ * -autostart-client=IP				sets multiplayer client to join host at given IP address
+ * Random maps only:
+ * -autostart-seed=SEED				sets random map SEED value (default 0, use -1 for random)
+ * -autostart-size=TILES			sets random map size in TILES (default 192)
+ * -autostart-players=NUMBER		sets NUMBER of players on random map (default 2)
+ *
+ * Examples:
+ * 1) "Bob" will host a 2 player game on the Arcadia map:
+ * -autostart="scenarios/Arcadia 02" -autostart-host -autostart-host-players=2 -autostart-playername="Bob"
+ * 2) Load Alpine Lakes random map with random seed, 2 players (Athens and Britons), and player 2 is PetraBot:
+ * -autostart="random/alpine_lakes" -autostart-seed=-1 -autostart-players=2 -autostart-civ=1:athen -autostart-civ=2:brit -autostart-ai=2:petra
+*/
 bool Autostart(const CmdLineArgs& args)
 {
-	/*
-	 * Handle various command-line options, for quick testing of various features:
-	 * -autostart=name					-- map name for scenario, or rms name for random map
-	 * -autostart-ai=1:dummybot			-- adds the dummybot AI to player 1
-	 * -autostart-playername=name		-- multiplayer player name
-	 * -autostart-host					-- multiplayer host mode
-	 * -autostart-players=2				-- number of players
-	 * -autostart-client				-- multiplayer client mode
-	 * -autostart-ip=127.0.0.1			-- multiplayer connect to 127.0.0.1
-	 * -autostart-random=104			-- random map, optional seed value = 104 (default is 0, random is -1)
-	 * -autostart-size=192				-- random map size in tiles = 192 (default is 192)
-	 * -autostart-civ=1:hele			-- set player #1 civ to "hele"
-	 *
-	 * Examples:
-	 * -autostart=Acropolis -autostart-host -autostart-players=2		-- Host game on Acropolis map, 2 players
-	 * -autostart=latium -autostart-random=-1							-- Start single player game on latium random map, random rng seed
-	 */
-
 	CStr autoStartName = args.Get("autostart");
 
 #if OS_ANDROID
 	// HACK: currently the most convenient way to test maps on Android;
 	// should find a better solution
-	autoStartName = "Oasis";
+	autoStartName = "scenarios/Arcadia 02";
 #endif
 
 	if (autoStartName.empty())
-	{
 		return false;
-	}
 
 	g_Game = new CGame();
 
@@ -1157,8 +1210,7 @@ bool Autostart(const CmdLineArgs& args)
 	// The directory in front of the actual map name indicates which type
 	// of map is being loaded. Drawback of this approach is the association
 	// of map types and folders is hard-coded, but benefits are:
-	// - No need to pass the map type via command line separately (as was
-	//   done by -autostart-random)
+	// - No need to pass the map type via command line separately
 	// - Prevents mixing up of scenarios and skirmish maps to some degree
 	Path mapPath = Path(autoStartName);
 	std::wstring mapDirectory = mapPath.Parent().Filename().string();
@@ -1168,18 +1220,15 @@ bool Autostart(const CmdLineArgs& args)
 	{
 		// Default seed is 0
 		u32 seed = 0;
-		CStr seedArg = args.Get("autostart-random");
+		CStr seedArg = args.Get("autostart-seed");
 
 		if (!seedArg.empty())
 		{
-			if (seedArg.compare("-1") == 0)
-			{	// Random seed value
+			// Random seed value
+			if (seedArg != "-1")
 				seed = rand();
-			}
 			else
-			{
 				seed = seedArg.ToULong();
-			}
 		}
 		
 		// Random map definition will be loaded from JSON file, so we need to parse it
@@ -1196,7 +1245,7 @@ bool Autostart(const CmdLineArgs& args)
 		else
 		{
 			// Problem with JSON file
-			LOGERROR(L"Error reading random map script '%ls'", scriptPath.c_str());
+			LOGERROR(L"Autostart: Error reading random map script '%ls'", scriptPath.c_str());
 			throw PSERROR_Game_World_MapLoadFailed("Error reading random map script.\nCheck application log for details.");
 		}
 
@@ -1226,48 +1275,36 @@ bool Autostart(const CmdLineArgs& args)
 			scriptInterface.Eval("({})", &player);
 
 			// We could load player_defaults.json here, but that would complicate the logic
-			//	even more and autostart is only intended for developers anyway
+			// even more and autostart is only intended for developers anyway
 			scriptInterface.SetProperty(player, "Civ", std::string("athen"));
 			scriptInterface.SetPropertyInt(playerData, i, player);
 		}
 		mapType = "random";
 	}
-	else if (mapDirectory == L"scenarios")
+	else if (mapDirectory == L"scenarios" || mapDirectory == L"skirmishes")
 	{
 		// Initialize general settings from the map data so some values
 		// (e.g. name of map) are always present, even when autostart is
-		// less-than-completely configured
-		// (Omitting this may cause the loading screen to display "Loading (undefined)",
-		// for example...)
-		CStr8 mapSettingsJSON = LoadSettingsOfScenarioMap("maps/" + autoStartName + ".xml");
-		scriptInterface.ParseJSON(mapSettingsJSON, &settings);
-		mapType = "scenario";
-	}
-	else if (mapDirectory == L"skirmishes")
-	{
-		// In skirmish mode, the player initialization data is taken from the
-		// game-setup settings (see CGame::RegisterInit(...)). If some player
-		// is not initialized (PlayerData[] holding fewer/more entries than
-		// defined in map), there's a crash.
-		// To prevent this, we mimic the behavior of the game setup screen by
-		// retrieving the map settings from the actual map xml...
+		// partially configured
 		CStr8 mapSettingsJSON = LoadSettingsOfScenarioMap("maps/" + autoStartName + ".xml");
 		scriptInterface.ParseJSON(mapSettingsJSON, &settings);
 		
-		// ...and initialize the playerData array being edited by
-		// autostart-civ et.al. with the real map data, so sensible values
-		// are always present:
+		// Initialize the playerData array being modified by autostart
+		// with the real map data, so sensible values are present:
 		scriptInterface.GetProperty(settings, "PlayerData", &playerData);
-		mapType = "skirmish";
+
+		if (mapDirectory == L"scenarios")
+			mapType = "scenario";
+		else
+			mapType = "skirmish";
 	}
-	if (mapType.empty())
+	else
 	{
-		LOGERROR(L"Unrecognized map type '%ls' detected", mapType.c_str());
-		throw PSERROR_Game_World_MapLoadFailed("Unrecognized map type.\nConsult GameSetup.cpp for the currently supported types.");
+		LOGERROR(L"Autostart: Unrecognized map type '%ls'", mapDirectory.c_str());
+		throw PSERROR_Game_World_MapLoadFailed("Unrecognized map type.\nConsult readme.txt for the currently supported types.");
 	}
 	scriptInterface.SetProperty(attrs, "mapType", mapType);
 	scriptInterface.SetProperty(attrs, "map", std::string("maps/" + autoStartName));
-
 	scriptInterface.SetProperty(settings, "mapType", mapType);
 
 	// Set player data for AIs
@@ -1277,16 +1314,22 @@ bool Autostart(const CmdLineArgs& args)
 		std::vector<CStr> aiArgs = args.GetMultiple("autostart-ai");
 		for (size_t i = 0; i < aiArgs.size(); ++i)
 		{
+			int playerID = aiArgs[i].BeforeFirst(":").ToInt();
+
 			// Instead of overwriting existing player data, modify the array
 			JS::RootedValue player(cx);
-			if (!scriptInterface.GetPropertyInt(playerData, i, &player) || player.isUndefined())
+			if (!scriptInterface.GetPropertyInt(playerData, playerID-1, &player) || player.isUndefined())
 			{
+				if (mapDirectory == L"scenarios" || mapDirectory == L"skirmishes")
+				{
+					// playerID is certainly bigger than this map player number
+					LOGWARNING(L"Autostart: Invalid player %d in autostart-ai option", playerID);
+					continue;
+				}
 				scriptInterface.Eval("({})", &player);
 			}
 
-			int playerID = aiArgs[i].BeforeFirst(":").ToInt();
 			CStr name = aiArgs[i].AfterFirst(":");
-
 			scriptInterface.SetProperty(player, "AI", std::string(name));
 			scriptInterface.SetProperty(player, "AIDiff", 2);
 			scriptInterface.SetPropertyInt(playerData, playerID-1, player);
@@ -1298,16 +1341,22 @@ bool Autostart(const CmdLineArgs& args)
 		std::vector<CStr> civArgs = args.GetMultiple("autostart-aidiff");
 		for (size_t i = 0; i < civArgs.size(); ++i)
 		{
+			int playerID = civArgs[i].BeforeFirst(":").ToInt();
+
 			// Instead of overwriting existing player data, modify the array
 			JS::RootedValue player(cx);
-			if (!scriptInterface.GetPropertyInt(playerData, i, &player) || player.isUndefined())
+			if (!scriptInterface.GetPropertyInt(playerData, playerID-1, &player) || player.isUndefined())
 			{
+				if (mapDirectory == L"scenarios" || mapDirectory == L"skirmishes")
+				{
+					// playerID is certainly bigger than this map player number
+					LOGWARNING(L"Autostart: Invalid player %d in autostart-aidiff option", playerID);
+					continue;
+				}
 				scriptInterface.Eval("({})", &player);
 			}
-			
-			int playerID = civArgs[i].BeforeFirst(":").ToInt();
-			int difficulty = civArgs[i].AfterFirst(":").ToInt();
-			
+
+			int difficulty = civArgs[i].AfterFirst(":").ToInt();			
 			scriptInterface.SetProperty(player, "AIDiff", difficulty);
 			scriptInterface.SetPropertyInt(playerData, playerID-1, player);
 		}
@@ -1315,22 +1364,33 @@ bool Autostart(const CmdLineArgs& args)
 	// Set player data for Civs
 	if (args.Has("autostart-civ"))
 	{
-		std::vector<CStr> civArgs = args.GetMultiple("autostart-civ");
-		for (size_t i = 0; i < civArgs.size(); ++i)
+		if (mapDirectory != L"scenarios")
 		{
-			// Instead of overwriting existing player data, modify the array
-			JS::RootedValue player(cx);
-			if (!scriptInterface.GetPropertyInt(playerData, i, &player) || player.isUndefined())
+			std::vector<CStr> civArgs = args.GetMultiple("autostart-civ");
+			for (size_t i = 0; i < civArgs.size(); ++i)
 			{
-				scriptInterface.Eval("({})", &player);
+				int playerID = civArgs[i].BeforeFirst(":").ToInt();
+
+				// Instead of overwriting existing player data, modify the array
+				JS::RootedValue player(cx);
+				if (!scriptInterface.GetPropertyInt(playerData, playerID-1, &player) || player.isUndefined())
+				{
+					if (mapDirectory == L"skirmishes")
+					{
+						// playerID is certainly bigger than this map player number
+						LOGWARNING(L"Autostart: Invalid player %d in autostart-civ option", playerID);
+						continue;
+					}
+					scriptInterface.Eval("({})", &player);
+				}
+			
+				CStr name = civArgs[i].AfterFirst(":");			
+				scriptInterface.SetProperty(player, "Civ", std::string(name));
+				scriptInterface.SetPropertyInt(playerData, playerID-1, player);
 			}
-			
-			int playerID = civArgs[i].BeforeFirst(":").ToInt();
-			CStr name = civArgs[i].AfterFirst(":");
-			
-			scriptInterface.SetProperty(player, "Civ", std::string(name));
-			scriptInterface.SetPropertyInt(playerData, playerID-1, player);
 		}
+		else
+			LOGWARNING(L"Autostart: Option 'autostart-civ' is invalid for scenarios");
 	}
 
 	// Add player data to map settings
@@ -1355,10 +1415,8 @@ bool Autostart(const CmdLineArgs& args)
 		InitPs(true, L"page_loading.xml", &scriptInterface, mpInitData);
 
 		size_t maxPlayers = 2;
-		if (args.Has("autostart-players"))
-		{
-			maxPlayers = args.Get("autostart-players").ToUInt();
-		}
+		if (args.Has("autostart-host-players"))
+			maxPlayers = args.Get("autostart-host-players").ToUInt();
 
 		g_NetServer = new CNetServer(maxPlayers);
 
@@ -1378,11 +1436,9 @@ bool Autostart(const CmdLineArgs& args)
 		g_NetClient = new CNetClient(g_Game);
 		g_NetClient->SetUserName(userName);
 
-		CStr ip = "127.0.0.1";
-		if (args.Has("autostart-ip"))
-		{
-			ip = args.Get("autostart-ip");
-		}
+		CStr ip = args.Get("autostart-client");
+		if (ip.empty())
+			ip = "127.0.0.1";
 
 		bool ok = g_NetClient->SetupConnection(ip);
 		ENSURE(ok);

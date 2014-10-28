@@ -37,14 +37,16 @@
     <Entities datatype="tokens">
       units/celt_hero_boudicca
       units/celt_hero_caratacos
-      units/celt_hero_cynvelin
+      units/celt_hero_cunobelin
       units/celt_champion_cavalry_brit
       units/celt_champion_infantry_brit
       units/celt_mechanical_siege_ram
     </Entities>
     <Technologies datatype="tokens">
-      pair_siege_attack_cost
-      pair_siege_cost_armor
+      siege_attack
+      siege_armor
+      siege_cost_metal
+      siege_cost_wood
     </Technologies>
   </ProductionQueue>
   <Vision>

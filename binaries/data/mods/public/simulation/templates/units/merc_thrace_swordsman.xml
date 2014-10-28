@@ -2,12 +2,12 @@
 <Entity parent="template_unit_infantry_melee_swordsman">
   <Armour>
     <Hack>6</Hack>
-    <Pierce>3</Pierce>
+    <Pierce>5</Pierce>
     <Crush>5</Crush>
   </Armour>
   <Attack>
     <Melee>
-      <Hack>16.0</Hack>
+      <Hack>16.5</Hack>
     </Melee>
     <Charge>
       <Hack>32.0</Hack>
@@ -23,9 +23,7 @@
     <Rank>Elite</Rank>
     <Icon>units/sele_infantry_swordsman.png</Icon>
     <History>Thracian tribesmen who wield the fearsome rhomphaia polearm weapon in combat. They were ubiquitous mercenary swordsmen and skirmishers throughout Hellenistic times, sometimes even serving in two opposing armies.</History>
-	<Tooltip>Classes: Mercenary Melee Infantry Swordsman.
-Counters: 2x vs. Spearmen, 1.5x vs. Elephants.
-Countered by: Archers, Cavalry Spearmen, and Cavalry Archers.</Tooltip>
+	<Tooltip>Classes: Mercenary Melee Infantry Swordsman.</Tooltip>
     <RequiredTechnology>phase_town</RequiredTechnology>
   </Identity>
   <Looter disable=""/>
@@ -34,7 +32,7 @@ Countered by: Archers, Cavalry Spearmen, and Cavalry Archers.</Tooltip>
     <BaseSpeed>0.5</BaseSpeed>
   </ResourceGatherer>
   <UnitMotion>
-    <WalkSpeed>6.5</WalkSpeed>
+    <WalkSpeed>8</WalkSpeed>
     <Run>
       <Speed>13.0</Speed>
     </Run>

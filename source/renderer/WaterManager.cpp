@@ -107,6 +107,8 @@ WaterManager::WaterManager()
 	m_DistanceHeightmap = NULL;
 	m_BlurredNormalMap = NULL;
 	m_WindStrength = NULL;
+
+	m_ShoreWaves_VBIndices = NULL;
 	
 	m_WaterUgly = false;
 	m_WaterFancyEffects = false;
@@ -141,12 +143,23 @@ WaterManager::~WaterManager()
 
 	// TODO: when c++11 is around, use lambdas or something because short Korea is best Korea.
 	for (size_t i = 0; i < m_ShoreWaves.size(); ++i)
-		delete m_ShoreWaves[i];
+	{
+		WaveObject* obj = m_ShoreWaves[i];
+		if (obj->m_VBvertices)
+			g_VBMan.Release(obj->m_VBvertices);
+		delete obj;
+	}
 
-	SAFE_ARRAY_DELETE(m_DistanceHeightmap);
-	SAFE_ARRAY_DELETE(m_BlurredNormalMap);
-	SAFE_ARRAY_DELETE(m_WindStrength);
+	if (m_ShoreWaves_VBIndices)
+		g_VBMan.Release(m_ShoreWaves_VBIndices);
+
+	delete[] m_DistanceHeightmap;
+	delete[] m_BlurredNormalMap;
+	delete[] m_WindStrength;
 	
+	if (!g_Renderer.GetCapabilities().m_PrettyWater)
+		return;
+
 	glDeleteTextures(1, &m_depthTT);
 	glDeleteTextures(1, &m_FancyTextureNormal);
 	glDeleteTextures(1, &m_FancyTextureOther);
@@ -179,6 +192,13 @@ int WaterManager::LoadWaterTextures()
 		CTexturePtr texture = g_Renderer.GetTextureManager().CreateTexture(textureProps);
 		texture->Prefetch();
 		m_WaterTexture[i] = texture;
+	}
+
+	if (!g_Renderer.GetCapabilities().m_PrettyWater)
+	{
+		// Enable rendering, now that we've succeeded this far
+		m_RenderWater = true;
+		return 0;
 	}
 
 	// Load normalmaps (for fancy water)
@@ -351,14 +371,14 @@ int WaterManager::LoadWaterTextures()
 void WaterManager::UnloadWaterTextures()
 {
 	for(size_t i = 0; i < ARRAY_SIZE(m_WaterTexture); i++)
-	{
 		m_WaterTexture[i].reset();
-	}
+
+	if (!g_Renderer.GetCapabilities().m_PrettyWater)
+		return;
 
 	for(size_t i = 0; i < ARRAY_SIZE(m_NormalMap); i++)
-	{
 		m_NormalMap[i].reset();
-	}
+
 	glDeleteTextures(1, &m_ReflectionTexture);
 	glDeleteTextures(1, &m_RefractionTexture);
 	pglDeleteFramebuffersEXT(1, &m_RefractionFbo);
@@ -439,8 +459,19 @@ void WaterManager::CreateWaveMeshes()
 
 	// TODO: when c++11 is around, use lambdas or something because short Korea is best Korea.
 	for (size_t i = 0; i < m_ShoreWaves.size(); ++i)
-		delete m_ShoreWaves[i];
+	{
+		WaveObject* obj = m_ShoreWaves[i];
+		if (obj->m_VBvertices)
+			g_VBMan.Release(obj->m_VBvertices);
+		delete obj;
+	}
 	m_ShoreWaves.clear();
+
+	if (m_ShoreWaves_VBIndices)
+	{
+		g_VBMan.Release(m_ShoreWaves_VBIndices);
+		m_ShoreWaves_VBIndices = NULL;
+	}
 
 	if (m_Waviness < 5.0f && m_WaterType != L"ocean")
 		return;
@@ -455,6 +486,7 @@ void WaterManager::CreateWaveMeshes()
 	// Second step: create chains out of those coastal points.
 	static const int around[8][2] = { { -1,-1 }, { -1,0 }, { -1,1 }, { 0,1 }, { 1,1 }, { 1,0 }, { 1,-1 }, { 0,-1 } };
 
+	std::vector<std::deque<CoastalPoint> > CoastalPointsChains;
 	while (!CoastalPointsSet.empty())
 	{
 		int index = *(CoastalPointsSet.begin());
@@ -1067,7 +1099,7 @@ void WaterManager::UpdateQuality()
 
 bool WaterManager::WillRenderFancyWater()
 {
-	if (!g_Renderer.GetCapabilities().m_FragmentShader)
+	if (!g_Renderer.GetCapabilities().m_PrettyWater)
 		return false;
 	if (!m_RenderWater || m_WaterUgly)
 		return false;

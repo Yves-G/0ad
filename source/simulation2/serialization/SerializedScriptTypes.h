@@ -35,7 +35,7 @@ enum
 	SCRIPT_TYPE_OBJECT_NUMBER = 12,		// standard Number class
 	SCRIPT_TYPE_OBJECT_STRING = 13,		// standard String class
 	SCRIPT_TYPE_OBJECT_BOOLEAN = 14,	// standard Boolean class
-	SCRIPT_TYPE_OBJECT_MAP = 15				// Map class
+	SCRIPT_TYPE_OBJECT_MAP = 15			// Map class
 };
 
 // ArrayBufferView subclasses (to avoid relying directly on the JSAPI enums)

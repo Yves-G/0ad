@@ -4,12 +4,16 @@
 # Ascendant project.
 # 
 # Translators:
+# gorius <gorius05@gmail.com>, 2014
+# Nicolas Auvray <na.itms76@gmail.com>, 2014
+# Polakrity <sxk-fr@live.fr>, 2014
 msgid ""
 msgstr ""
 "Project-Id-Version: 0 A.D.\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2014-06-19 19:39+0200\n"
-"PO-Revision-Date: 2014-06-19 17:54+0000\n"
+"POT-Creation-Date: 2014-09-26 19:00+0200\n"
+"PO-Revision-Date: 2014-09-27 23:10+0000\n"
+"Last-Translator: Nicolas Auvray <na.itms76@gmail.com>\n"
 "Language-Team: French (http://www.transifex.com/projects/p/0ad/language/fr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -18,7 +22,7 @@ msgstr ""
 "Language: fr\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: simulation/templates/template_gaia.xml:5
+#: simulation/templates/template_gaia.xml:6
 msgid "Gaia"
 msgstr "Gaia"
 
@@ -45,7 +49,7 @@ msgstr "Abattre pour accumuler du bois."
 
 #: simulation/templates/template_gaia_flora_tree.xml:5
 msgid "Tree"
-msgstr "arbre"
+msgstr "Arbre"
 
 #: simulation/templates/template_gaia_geo.xml:8
 msgid "Generic Geology"
@@ -69,7 +73,7 @@ msgstr "Leur exploitation fournit des matériaux de construction en pierre."
 
 #: simulation/templates/template_gaia_geo_rock.xml:4
 msgid "Rock"
-msgstr "roche"
+msgstr "Roche"
 
 #: simulation/templates/template_gaia_geo_rock.xml:5
 msgid "Stone Mine"
@@ -88,7 +92,7 @@ msgstr "Ruines génériques"
 #: simulation/templates/gaia/special_ruins_column_doric.xml:9
 #: simulation/templates/other/unfinished_greek_temple.xml:9
 msgid "Ruins"
-msgstr "ruines"
+msgstr "Ruines"
 
 #: simulation/templates/template_gaia_treasure.xml:10
 msgid "A treasure that can be quickly gathered."
@@ -114,9 +118,9 @@ msgstr "Trésor générique"
 #: simulation/templates/other/special_treasure_shipwreck_sail_boat.xml:9
 #: simulation/templates/other/special_treasure_shipwreck_sail_boat_cut.xml:9
 msgid "Treasure"
-msgstr "trésor"
+msgstr "Trésor"
 
-#: simulation/templates/template_structure.xml:47
+#: simulation/templates/template_structure.xml:48
 msgid "Structure"
 msgstr "Structure"
 
@@ -152,7 +156,7 @@ msgstr "Armée de Léonidas Ier."
 
 #: simulation/templates/campaigns/army_spart_hero_leonidas.xml:29
 msgid "Army of Leonidas I"
-msgstr "Armée de Léonidas Ier."
+msgstr "Armée de Léonidas Ier"
 
 #: simulation/templates/campaigns/campaign_city_minor_test.xml:28
 msgid "This is a minor Greek city. Has a territory effect of 150."
@@ -237,7 +241,7 @@ msgstr "Escarmouche"
 
 #: simulation/templates/formations/skirmish.xml:5
 msgid "Only ranged units allowed"
-msgstr "Seul les unités à distance sont autorisées"
+msgstr "Seules les unités à distance sont autorisées"
 
 #: simulation/templates/formations/syntagma.xml:7
 msgid "Syntagma"
@@ -253,7 +257,7 @@ msgstr "Tortue"
 
 #: simulation/templates/formations/testudo.xml:6
 msgid "9 melee infantry units required"
-msgstr "9 soldats nécessaires"
+msgstr "9 unités d'infanterie nécessaires"
 
 #: simulation/templates/formations/wedge.xml:7
 msgid "Wedge"
@@ -978,4 +982,36 @@ msgstr "Devient une maison à 5 de population pour les civilisations qui ont ces
 #: simulation/templates/special/marker_object_sound.xml:15
 #: simulation/templates/special/marker_object_sound.xml:16
 msgid "Marker"
-msgstr ""
+msgstr "Marqueur"
+
+#: simulation/templates/special_units/athen_mechanical_siege_lithobolos_common.xml:5
+#: simulation/templates/special_units/hele_mechanical_siege_lithobolos_common.xml:5
+#: simulation/templates/special_units/mace_mechanical_siege_lithobolos_common.xml:5
+#: simulation/templates/special_units/ptol_mechanical_siege_lithobolos_common.xml:5
+#: simulation/templates/special_units/sele_mechanical_siege_lithobolos_common.xml:5
+msgid "Lithóbolos"
+msgstr "Lithóbolos"
+
+#: simulation/templates/special_units/athen_mechanical_siege_oxybeles_common.xml:5
+#: simulation/templates/special_units/hele_mechanical_siege_oxybeles_common.xml:5
+#: simulation/templates/special_units/mace_mechanical_siege_oxybeles_common.xml:5
+#: simulation/templates/special_units/spart_mechanical_siege_oxybeles_common.xml:5
+msgid "Oxybelḗs"
+msgstr "Oxybelḗs"
+
+#: simulation/templates/special_units/cart_mechanical_siege_ballista_common.xml:5
+#: simulation/templates/special_units/rome_mechanical_siege_ballista_common.xml:28
+msgid "Ballista"
+msgstr "Baliste"
+
+#: simulation/templates/special_units/cart_mechanical_siege_oxybeles_common.xml:5
+msgid "Oxybeles"
+msgstr "Oxybeles"
+
+#: simulation/templates/special_units/ptol_mechanical_siege_polybolos_common.xml:5
+msgid "Polybolos"
+msgstr "Polybolos"
+
+#: simulation/templates/special_units/rome_mechanical_siege_scorpio_common.xml:23
+msgid "Scorpio"
+msgstr "Scorpio"

@@ -13,6 +13,20 @@ function InitGame(settings)
 	if (!settings)
 		return;
 
+	if (settings.ExploreMap)
+	{
+		var cmpRangeManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_RangeManager);
+		if (cmpRangeManager)
+			for (var i = 0; i < settings.PlayerData.length; i++)
+				cmpRangeManager.ExploreAllTiles(i+1);
+	}
+	else
+	{
+		// Explore the map only inside the players' territory borders
+		var cmpRangeManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_RangeManager);
+		cmpRangeManager.ExploreTerritories();
+	}
+
 	var cmpPlayerManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_PlayerManager);
 	var cmpAIManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_AIManager);
 	for (var i = 0; i < settings.PlayerData.length; ++i)

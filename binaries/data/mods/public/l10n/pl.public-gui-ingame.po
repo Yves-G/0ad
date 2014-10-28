@@ -15,13 +15,17 @@
 # lacek, 2014
 # LenaPL <polandlena@gmail.com>, 2014
 # Leszek S, 2014
+# Leszek S, 2014
 # Mar321 <grobelskimarcin@gmail.com>, 2013
 # Michał Garapich <michal@garapich.pl>, 2013
 # Michał Olber <michal.olber@osworld.pl>, 2013
 # miragae <miragae@gmail.com>, 2014
+# zyxist <nightstorm@tlen.pl>, 2014
 # pawel10 <pawelklimek102@gmail.com>, 2014
-# Robert "Szkodnix" Wolniak <robert.wolniak@gmail.com>, 2014
+# rabusek <rabusek@gmail.com>, 2014
+# Robert Wolniak <robert.wolniak@gmail.com>, 2014
 # RosiakPL <Rosiak7777777@gmail.com>, 2014
+# slodki12341 <slodki1234@gmail.com>, 2014
 # tomekpg <tomekpg@op.pl>, 2014
 # TotalNoobPL <krzysztof.gurbala@yahoo.com>, 2013
 # youtome_metoyou <69tunes@gmail.com>, 2013
@@ -29,8 +33,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0 A.D.\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2014-06-19 19:38+0200\n"
-"PO-Revision-Date: 2014-06-19 18:10+0000\n"
+"POT-Creation-Date: 2014-09-26 18:59+0200\n"
+"PO-Revision-Date: 2014-09-27 09:51+0000\n"
 "Last-Translator: Adrián Chaves Fernández <adriyetichaves@gmail.com>\n"
 "Language-Team: Polish (http://www.transifex.com/projects/p/0ad/language/pl/)\n"
 "MIME-Version: 1.0\n"
@@ -50,7 +54,7 @@ msgstr "Podstawowy zasięg: %(range)s"
 msgid "Average bonus range: %(range)s"
 msgstr "Średni bonus do zasięgu: %(range)s"
 
-#: gui/session/input.js:725
+#: gui/session/input.js:730
 msgid "Cannot build wall here!"
 msgstr "Tutaj nie można zbudować muru!"
 
@@ -60,15 +64,15 @@ msgstr "Pauza"
 
 #: gui/session/menu.js:2
 msgid "Resume"
-msgstr ""
+msgstr "Wznów"
 
 #: gui/session/menu.js:139 gui/session/menu.js:164 gui/session/menu.js:185
-#: gui/session/session.js:478
+#: gui/session/session.js:474 gui/session/dialogs/yes_no.xml:19 (caption)
 msgid "Yes"
 msgstr "Tak"
 
 #: gui/session/menu.js:139 gui/session/menu.js:164 gui/session/menu.js:185
-#: gui/session/session.js:478
+#: gui/session/session.js:474 gui/session/dialogs/yes_no.xml:24 (caption)
 msgid "No"
 msgstr "Nie"
 
@@ -105,14 +109,14 @@ msgstr "Chcesz zrezygnować, czy zamierzasz wrócić tu wkrótce?"
 msgid "Destroy everything currently selected?"
 msgstr "Zniszczyć wszystko obecnie zaznaczone?"
 
-#: gui/session/menu.js:189 gui/session/unit_actions.js:660
+#: gui/session/menu.js:189 gui/session/unit_actions.js:676
 msgid "Delete"
 msgstr "Usuń"
 
 #: gui/session/menu.js:284
 msgctxt "team"
 msgid "None"
-msgstr ""
+msgstr "Żaden"
 
 #: gui/session/menu.js:287 gui/session/diplomacy_window.xml:28 (tooltip)
 msgid "Ally"
@@ -122,7 +126,7 @@ msgstr "Sojusznik"
 msgid "Neutral"
 msgstr "Neutralny"
 
-#: gui/session/menu.js:287 gui/session/messages.js:609
+#: gui/session/menu.js:287 gui/session/messages.js:605
 #: gui/session/diplomacy_window.xml:36 (tooltip)
 msgid "Enemy"
 msgstr "Wróg"
@@ -133,31 +137,31 @@ msgstr "x"
 
 #: gui/session/menu.js:476
 msgid "There are no land traders."
-msgstr ""
+msgstr "Nie ma żadnych kupców lądowych."
 
 #: gui/session/menu.js:482
 #, python-format
 msgid "%(numberOfLandTraders)s inactive"
 msgid_plural "%(numberOfLandTraders)s inactive"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "%(numberOfLandTraders)s nieaktywny"
+msgstr[1] "%(numberOfLandTraders)s nieaktywnych"
+msgstr[2] "%(numberOfLandTraders)s nieaktywnych"
 
 #: gui/session/menu.js:486
 #, python-format
 msgid "There is %(numberTrading)s land trader trading"
 msgid_plural "There are %(numberTrading)s land traders trading"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Istnieje %(numberTrading)s kupiec lądowy"
+msgstr[1] "Istnieje %(numberTrading)s kupców lądowych"
+msgstr[2] "Istnieje %(numberTrading)s kupców lądowych"
 
 #: gui/session/menu.js:489
 #, python-format
 msgid "%(numberGarrisoned)s garrisoned on a trading merchant ship"
 msgid_plural "%(numberGarrisoned)s garrisoned on a trading merchant ship"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "%(numberGarrisoned)s jednostka znajduje się na statku handlowym"
+msgstr[1] "Liczba jednostek na statku handlowym wynosi %(numberGarrisoned)s"
+msgstr[2] "Liczba jednostek na statku handlowym wynosi %(numberGarrisoned)s"
 
 #: gui/session/menu.js:492
 #, python-format
@@ -188,14 +192,14 @@ msgid ""
 msgid_plural ""
 "There are %(numberGarrisoned)s land traders garrisoned on a trading merchant"
 " ship"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Jest %(numberGarrisoned)s kupiec lądowy na statku handlowym"
+msgstr[1] "Liczba kupców lądowych na statku handlowym wynosi %(numberGarrisoned)s"
+msgstr[2] "Liczba kupców lądowych na statku handlowym wynosi %(numberGarrisoned)s"
 
 #: gui/session/menu.js:530
 #, python-format
 msgid "%(openingGarrisonedString)s, and %(inactiveString)s."
-msgstr ""
+msgstr "%(openingGarrisonedString)s oraz %(inactiveString)s."
 
 #: gui/session/menu.js:537
 #, python-format
@@ -206,9 +210,9 @@ msgstr "%(openingGarrisonedString)s."
 #, python-format
 msgid "%(numberOfLandTraders)s land trader inactive"
 msgid_plural "%(numberOfLandTraders)s land traders inactive"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "%(numberOfLandTraders)s kupiec lądowy nieaktywny"
+msgstr[1] "%(numberOfLandTraders)s kupców lądowych nieaktywnych"
+msgstr[2] "%(numberOfLandTraders)s kupców lądowych nieaktywnych"
 
 #: gui/session/menu.js:547 gui/session/menu.js:589
 #, python-format
@@ -226,25 +230,25 @@ msgstr "Nie ma statków kupieckich."
 #, python-format
 msgid "%(numberOfShipTraders)s inactive"
 msgid_plural "%(numberOfShipTraders)s inactive"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "%(numberOfShipTraders)s nieaktywny"
+msgstr[1] "%(numberOfShipTraders)s nieaktywnych"
+msgstr[2] "%(numberOfShipTraders)s nieaktywnych"
 
 #: gui/session/menu.js:569
 #, python-format
 msgid "There is %(numberTrading)s merchant ship trading"
 msgid_plural "There are %(numberTrading)s merchant ships trading"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Jest %(numberTrading)s statek handlowy"
+msgstr[1] "Liczba statków handlowych wynosi %(numberTrading)s"
+msgstr[2] "Liczba statków handlowych wynosi %(numberTrading)s"
 
 #: gui/session/menu.js:588
 #, python-format
 msgid "%(numberOfShipTraders)s merchant ship inactive"
 msgid_plural "%(numberOfShipTraders)s merchant ships inactive"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Jest %(numberOfShipTraders)s nieaktywny statek handlowy"
+msgstr[1] "Liczba nieaktywnych statków handlowych wynosi %(numberOfShipTraders)s"
+msgstr[2] "Liczba nieaktywnych statków handlowych wynosi %(numberOfShipTraders)s"
 
 #: gui/session/menu.js:667 gui/session/menu.xml:17 (caption)
 msgid "Manual"
@@ -265,94 +269,94 @@ msgid ""
 "to tribute %(greaterAmount)s."
 msgstr "Przekaż daninę %(resourceAmount)s %(resourceType)s dla %(playerName)s. Przytrzymaj Shift i kliknij, aby ofiarować %(greaterAmount)s."
 
-#: gui/session/messages.js:185
+#: gui/session/messages.js:196
 #, python-format
 msgid "Net message: %(message)s"
 msgstr "Wiadomość sieciowa: %(message)s"
 
-#: gui/session/messages.js:198
+#: gui/session/messages.js:209
 msgid "Waiting for other players to connect..."
 msgstr "Oczekiwanie na połączenie się innych graczy..."
 
-#: gui/session/messages.js:202
+#: gui/session/messages.js:213
 msgid "Synchronising gameplay with other players..."
 msgstr "Synchronizacja gry z innymi graczami..."
 
-#: gui/session/messages.js:210
+#: gui/session/messages.js:221
 msgid "Connected to the server."
 msgstr "Połączono z serwerem."
 
-#: gui/session/messages.js:214
+#: gui/session/messages.js:225
 msgid "Connection to the server has been authenticated."
 msgstr "Połączenie do serwera zostało uwierzytelnione."
 
-#: gui/session/messages.js:219
+#: gui/session/messages.js:230
 msgid "Connection to the server has been lost."
 msgstr "Połączenie do serwera zostało utracone."
 
-#: gui/session/messages.js:219
+#: gui/session/messages.js:230
 msgid "The game has ended."
 msgstr "Gra zakończyła się."
 
-#: gui/session/messages.js:403
+#: gui/session/messages.js:414
 msgid "Unknown player"
 msgstr "Nieznany gracz"
 
-#: gui/session/messages.js:411
+#: gui/session/messages.js:422
 #, python-format
 msgid "%(player)s has joined the game."
 msgstr "%(player)s dołączył do gry."
 
-#: gui/session/messages.js:414
+#: gui/session/messages.js:425
 #, python-format
 msgid "%(player)s has left the game."
 msgstr "%(player)s opuścił grę."
 
-#: gui/session/messages.js:419
+#: gui/session/messages.js:430
 msgid "You have been defeated."
 msgstr "Zostałeś pokonany."
 
-#: gui/session/messages.js:421
+#: gui/session/messages.js:432
 #, python-format
 msgid "%(player)s has been defeated."
 msgstr "%(player)s został pokonany."
 
-#: gui/session/messages.js:429
+#: gui/session/messages.js:440
 #, python-format
 msgid "You are now allied with %(player)s."
 msgstr "Jesteś teraz w sojuszu z %(player)s."
 
-#: gui/session/messages.js:431
+#: gui/session/messages.js:442
 #, python-format
 msgid "You are now at war with %(player)s."
 msgstr "Jesteś w stanie wojny z %(player)s."
 
-#: gui/session/messages.js:433
+#: gui/session/messages.js:444
 #, python-format
 msgid "You are now neutral with %(player)s."
 msgstr "Jesteś neutralny wobec %(player)s."
 
-#: gui/session/messages.js:439
+#: gui/session/messages.js:450
 #, python-format
 msgid "%(player)s is now allied with you."
 msgstr "%(player)s jest Twoim sojusznikiem."
 
-#: gui/session/messages.js:441
+#: gui/session/messages.js:452
 #, python-format
 msgid "%(player)s is now at war with you."
 msgstr "%(player)s jest teraz z Tobą w stanie wojny."
 
-#: gui/session/messages.js:443
+#: gui/session/messages.js:454
 #, python-format
 msgid "%(player)s is now neutral with you."
 msgstr "%(player)s jest teraz neutralny wobec Ciebie."
 
-#: gui/session/messages.js:462
+#: gui/session/messages.js:473
 #, python-format
 msgid "%(previousAmounts)s and %(lastAmount)s"
 msgstr "%(previousAmounts)s oraz %(lastAmount)s"
 
-#: gui/session/messages.js:463 gui/session/utility_functions.js:187
+#: gui/session/messages.js:474 gui/session/utility_functions.js:187
 #: gui/session/utility_functions.js:237 gui/session/utility_functions.js:263
 #: gui/session/utility_functions.js:292 gui/session/utility_functions.js:338
 #: gui/session/utility_functions.js:613 gui/session/utility_functions.js:635
@@ -360,58 +364,58 @@ msgstr "%(previousAmounts)s oraz %(lastAmount)s"
 msgid ", "
 msgstr ", "
 
-#: gui/session/messages.js:468
+#: gui/session/messages.js:479
 #, python-format
 msgid "%(player)s has sent you %(amounts)s."
 msgstr "%(player)s wysłał Ci %(amounts)s."
 
-#: gui/session/messages.js:478
+#: gui/session/messages.js:489
 #, python-format
 msgid "You have been attacked by %(attacker)s!"
 msgstr "Zostałeś zaatakowany przez %(attacker)s!"
 
-#: gui/session/messages.js:495 gui/session/messages.js:500
+#: gui/session/messages.js:506
 #, python-format
 msgid "(%(context)s) * %(user)s %(message)s"
 msgstr "(%(context)s) * %(user)s %(message)s"
 
-#: gui/session/messages.js:508 gui/session/messages.js:512
+#: gui/session/messages.js:514
 #, python-format
 msgid "* %(user)s %(message)s"
 msgstr "* %(user)s %(message)s"
 
-#: gui/session/messages.js:520 gui/session/messages.js:521
+#: gui/session/messages.js:522 gui/session/messages.js:523
 #, python-format
 msgid "<%(user)s>"
 msgstr "<%(user)s>"
 
-#: gui/session/messages.js:524 gui/session/messages.js:529
+#: gui/session/messages.js:526
 #, python-format
 msgid "(%(context)s) %(userTag)s %(message)s"
 msgstr "(%(context)s) %(userTag)s %(message)s"
 
-#: gui/session/messages.js:537 gui/session/messages.js:538
+#: gui/session/messages.js:534
 #, python-format
 msgid "%(userTag)s %(message)s"
 msgstr "%(userTag)s %(message)s"
 
-#: gui/session/messages.js:596 gui/session/diplomacy_window.xml:21 (caption)
+#: gui/session/messages.js:592 gui/session/diplomacy_window.xml:21 (caption)
 msgid "Team"
 msgstr "Drużyna"
 
-#: gui/session/messages.js:629
+#: gui/session/messages.js:625
 msgid "Private"
 msgstr "Prywatne"
 
 #: gui/session/selection_details.js:32
 #, python-format
 msgid "%(genericName)s — Packed"
-msgstr ""
+msgstr "%(genericName)s — Spakowany"
 
 #: gui/session/selection_details.js:44
 #, python-format
 msgid "[OFFLINE] %(player)s"
-msgstr ""
+msgstr "[OFFLINE] %(player)s"
 
 #: gui/session/selection_details.js:50
 #, python-format
@@ -455,11 +459,14 @@ msgstr "%(resource)s:"
 #: gui/session/selection_details.js:164
 #, python-format
 msgid "Gain: %(amount)s"
-msgstr ""
+msgstr "Zysk: %(amount)s"
 
 #: gui/session/selection_details.js:173
-msgid "Number of builders"
-msgstr "Ilość budowniczych"
+#, c-format
+msgid ""
+"Number of builders.\n"
+"Tasking another to this foundation would speed construction up by %(numb)s%%"
+msgstr "Ilość budowniczych.\nPrzydzielenie kolejnego pracownika przyspieszyłoby budowę o %(numb)s%%"
 
 #: gui/session/selection_details.js:181
 msgid "Current/max gatherers"
@@ -470,34 +477,34 @@ msgstr "Liczba zbieraczy: obecna/maksimum"
 msgid "(%(genericName)s)"
 msgstr "(%(genericName)s)"
 
-#: gui/session/selection_details.js:226 gui/session/selection_panels.js:942
-#: gui/session/session.js:641
+#: gui/session/selection_details.js:226 gui/session/selection_panels.js:976
+#: gui/session/session.js:637
 msgid "Armor:"
 msgstr "Pancerz:"
 
 #: gui/session/selection_details.js:227 gui/session/selection_details.js:238
-#: gui/session/session.js:638 gui/session/session.js:642
+#: gui/session/session.js:634 gui/session/session.js:638
 #, python-format
 msgid "%(label)s %(details)s"
 msgstr "%(label)s %(details)s"
 
 #: gui/session/selection_details.js:234
 msgid "Interval:"
-msgstr ""
+msgstr "Okres:"
 
 #: gui/session/selection_details.js:236
 msgid "Rate:"
-msgstr ""
+msgstr "Szybkość:"
 
-#: gui/session/selection_details.js:249 gui/session/session.js:633
+#: gui/session/selection_details.js:249 gui/session/session.js:629
 #: gui/session/utility_functions.js:324
 msgid "Range:"
 msgstr "Zasięg:"
 
-#: gui/session/selection_details.js:251 gui/session/session.js:634
+#: gui/session/selection_details.js:251 gui/session/session.js:630
 #: gui/session/utility_functions.js:325
 msgid "meters"
-msgstr ""
+msgstr "metrów"
 
 #: gui/session/selection_details.js:254 gui/session/selection_details.js:264
 #, python-format
@@ -522,9 +529,9 @@ msgstr "Klasy:"
 
 #: gui/session/selection_details.js:360
 msgid "Hitpoints:"
-msgstr ""
+msgstr "Żywotność:"
 
-#: gui/session/selection_details.js:361 gui/session/session.js:622
+#: gui/session/selection_details.js:361 gui/session/session.js:618
 #, python-format
 msgid "%(label)s %(current)s / %(max)s"
 msgstr "%(label)s %(current)s / %(max)s"
@@ -532,14 +539,14 @@ msgstr "%(label)s %(current)s / %(max)s"
 #: gui/session/selection_panels.js:87
 #, python-format
 msgid "Buy %(resource)s"
-msgstr ""
+msgstr "Kup %(resource)s"
 
 #: gui/session/selection_panels.js:88
 #, python-format
 msgid "Sell %(resource)s"
-msgstr ""
+msgstr "Sprzedaj %(resource)s"
 
-#: gui/session/selection_panels.js:219 gui/session/selection_panels.js:950
+#: gui/session/selection_panels.js:219 gui/session/selection_panels.js:984
 #, python-format
 msgid "Requires %(technology)s"
 msgstr "Wymaga technologii %(technology)s"
@@ -547,7 +554,7 @@ msgstr "Wymaga technologii %(technology)s"
 #: gui/session/selection_panels.js:332
 #, python-format
 msgid "Unload %(name)s"
-msgstr ""
+msgstr "Usuń %(name)s"
 
 #: gui/session/selection_panels.js:333
 msgid "Single-click to unload 1. Shift-click to unload all of this type."
@@ -590,11 +597,11 @@ msgstr "%(population)s %(neededSlots)s"
 #, python-format
 msgid "Remaining: %(number)s to build."
 msgid_plural "Remaining: %(number)s to build."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Pozostał: %(number)s do wybudowania."
+msgstr[1] "Pozostało: %(number)s do wybudowania."
+msgstr[2] "Pozostało: %(number)s do wybudowania."
 
-#: gui/session/selection_panels.js:938 gui/session/session.js:621
+#: gui/session/selection_panels.js:972 gui/session/session.js:617
 #: gui/session/selection_panels_middle/single_details_area.xml:12 (tooltip)
 msgid "Health:"
 msgstr "Zdrowie:"
@@ -632,12 +639,12 @@ msgstr "Obecny licznik: %(count)s, Limit: %(limit)s."
 #: gui/session/selection_panels_helpers.js:76
 #, python-format
 msgid "%(changer)s enlarges the limit with %(change)s."
-msgstr ""
+msgstr "%(changer)s zwiększa poziom o %(change)s."
 
 #: gui/session/selection_panels_helpers.js:78
 #, python-format
 msgid "%(changer)s lessens the limit with %(change)s."
-msgstr ""
+msgstr "%(changer)s zmniejsza poziom o %(change)s."
 
 #: gui/session/selection_panels_helpers.js:105
 #, python-format
@@ -671,166 +678,165 @@ msgstr "Ty"
 msgid "Gaia"
 msgstr "Gaja"
 
-#: gui/session/session.js:309 gui/session/session.js:325
+#: gui/session/session.js:305 gui/session/session.js:321
 msgid "You have left the game."
 msgstr "Opuściłeś grę."
 
-#: gui/session/session.js:316
+#: gui/session/session.js:312
 msgid "You have been disconnected."
 msgstr "Nastąpiło rozłączenie."
 
-#: gui/session/session.js:318
+#: gui/session/session.js:314
 msgid "You have won the battle!"
 msgstr "Zwycięstwo!"
 
-#: gui/session/session.js:320
+#: gui/session/session.js:316
 msgid "You have been defeated..."
 msgstr "Zostałeś pokonany..."
 
-#: gui/session/session.js:328
+#: gui/session/session.js:324
 msgid "You have abandoned the game."
 msgstr "Opuściłeś grę."
 
-#: gui/session/session.js:472
+#: gui/session/session.js:468
 msgid "OK"
 msgstr "OK"
 
-#: gui/session/session.js:474
+#: gui/session/session.js:470
 msgid "Press OK to continue"
 msgstr "Naciśnij OK by kontynuować"
 
-#: gui/session/session.js:480
+#: gui/session/session.js:476
 msgid "Do you want to quit?"
 msgstr "Czy chcesz wyjść?"
 
-#: gui/session/session.js:486
+#: gui/session/session.js:482
 msgid "DEFEATED!"
 msgstr "POKONANY!"
 
-#: gui/session/session.js:494
+#: gui/session/session.js:490
 msgid "VICTORIOUS!"
 msgstr "ZWYCIĘSTWO!"
 
-#: gui/session/session.js:629
+#: gui/session/session.js:625
 #, python-format
 msgid "%(attackLabel)s %(details)s, %(rangeLabel)s %(range)s"
 msgstr "%(attackLabel)s %(details)s, %(rangeLabel)s %(range)s"
 
-#: gui/session/session.js:802
+#: gui/session/session.js:795
 #, python-format
 msgid "%(time)s (%(speed)sx)"
 msgstr "%(time)s (x%(speed)s)"
 
-#: gui/session/session.js:891
-#, python-format
-msgid "Unrecognized ambient type: %(ambientType)s"
-msgstr "Nierozpoznany typ środowiskowy: %(ambientType)s"
-
-#: gui/session/session.js:908
+#: gui/session/session.js:897
 #, python-format
 msgid "Build: %(buildDate)s (%(revision)s)"
 msgstr "Kompilacja: %(buildDate)s (%(revision)s)"
 
-#: gui/session/session.js:913
+#: gui/session/session.js:902
 msgid ""
 "Note: time warp mode is a developer option, and not intended for use over "
 "long periods of time. Using it incorrectly may cause the game to run out of "
 "memory or crash."
 msgstr "Uwaga: tryb zwielokrotnienia szybkości jest narzędziem deweloperskim i nie powinien być używany przez długi okres czasu. Używanie go w sposób nieprawidłowy może spowodować wyczerpanie się dostępnej pamięci lub zamknięcie programu."
 
-#: gui/session/session.js:913
+#: gui/session/session.js:902
 msgid "Time warp mode"
 msgstr "Tryb zwielokrotnienia szybkości."
 
-#: gui/session/unit_actions.js:295
+#: gui/session/unit_actions.js:300
 msgid "Origin trade market."
 msgstr "Rynek początkowy "
 
-#: gui/session/unit_actions.js:297 gui/session/unit_actions.js:304
-#: gui/session/unit_actions.js:314 gui/session/unit_actions.js:521
+#: gui/session/unit_actions.js:302 gui/session/unit_actions.js:309
+#: gui/session/unit_actions.js:319 gui/session/unit_actions.js:531
 #, python-format
 msgid "Gain: %(gain)s"
-msgstr ""
+msgstr "Zysk: %(gain)s"
 
-#: gui/session/unit_actions.js:301
+#: gui/session/unit_actions.js:306
 msgid "Right-click on another market to set it as a destination trade market."
 msgstr "Kliknij prawym przyciskiem myszy na innym rynku, aby ustawić go jako rynek handlu docelowego."
 
-#: gui/session/unit_actions.js:304
+#: gui/session/unit_actions.js:309
 msgid "Destination trade market."
 msgstr "Rynek docelowy"
 
-#: gui/session/unit_actions.js:309
-msgid "Right-click to set as origin trade market"
-msgstr ""
-
 #: gui/session/unit_actions.js:314
-msgid "Right-click to set as destination trade market."
-msgstr ""
+msgid "Right-click to set as origin trade market"
+msgstr "Kliknij prawym przyciskiem myszy, aby ustawić rynek początkowy dla szlaku handlowego."
 
-#: gui/session/unit_actions.js:346 gui/session/unit_actions.js:477
+#: gui/session/unit_actions.js:319
+msgid "Right-click to set as destination trade market."
+msgstr "Kliknij prawym przyciskiem myszy, aby ustawić rynek docelowy dla szlaku handlowego."
+
+#: gui/session/unit_actions.js:351 gui/session/unit_actions.js:487
 #, python-format
 msgid "Current garrison: %(garrisoned)s/%(capacity)s"
 msgstr "Stan garnizonu: %(garrisoned)s/%(capacity)s"
 
-#: gui/session/unit_actions.js:519
+#: gui/session/unit_actions.js:529
 msgid "Right-click to establish a default route for new traders."
 msgstr "Kliknij prawym przyciskiem myszy, aby ustalić trasę domyślną dla nowych handlarzy."
 
-#: gui/session/unit_actions.js:523
+#: gui/session/unit_actions.js:533
 #, python-format
 msgid "Expected gain: %(gain)s"
-msgstr ""
+msgstr "Przewidywany zysk: %(gain)s"
 
-#: gui/session/unit_actions.js:645
+#: gui/session/unit_actions.js:655
 msgid "Unload All"
 msgstr "Rozładuj całkowicie"
 
-#: gui/session/unit_actions.js:680
+#: gui/session/unit_actions.js:671
+msgid "You cannot destroy this entity because it is in the fog-of-war"
+msgstr "Nie możesz zniszczyć tej jednostki, ponieważ jest ona we mgle wojny."
+
+#: gui/session/unit_actions.js:699
 msgid "Stop"
 msgstr "Stop"
 
-#: gui/session/unit_actions.js:698
+#: gui/session/unit_actions.js:717
 msgid "Garrison"
 msgstr "Garnizon"
 
-#: gui/session/unit_actions.js:719
+#: gui/session/unit_actions.js:738
 msgid "Unload"
-msgstr ""
+msgstr "Usuń"
 
-#: gui/session/unit_actions.js:735
+#: gui/session/unit_actions.js:754
 msgid "Repair"
 msgstr "Napraw"
 
-#: gui/session/unit_actions.js:752
+#: gui/session/unit_actions.js:771
 msgid "Focus on Rally Point"
-msgstr "Pokaż punkt zborny"
+msgstr "Pokaż punkt zbiórki"
 
-#: gui/session/unit_actions.js:775
+#: gui/session/unit_actions.js:794
 msgid "Back to Work"
 msgstr "Powrót do pracy"
 
-#: gui/session/unit_actions.js:791
+#: gui/session/unit_actions.js:810
 msgid "Guard"
 msgstr "Straż"
 
-#: gui/session/unit_actions.js:808
+#: gui/session/unit_actions.js:827
 msgid "Remove guard"
 msgstr "Usuń straż"
 
-#: gui/session/unit_actions.js:824
-msgid "Select trading goods"
-msgstr ""
-
-#: gui/session/unit_actions.js:841
-msgid "Increase the alert level to protect more units"
-msgstr ""
-
 #: gui/session/unit_actions.js:843
+msgid "Select trading goods"
+msgstr "Zaznacz towary handlowe"
+
+#: gui/session/unit_actions.js:860
+msgid "Increase the alert level to protect more units"
+msgstr "Zwiększ poziom gotowości, aby chronić więcej jednostek"
+
+#: gui/session/unit_actions.js:862
 msgid "Raise an alert!"
 msgstr "Podnieś alarm!"
 
-#: gui/session/unit_actions.js:861
+#: gui/session/unit_actions.js:880
 msgid "End of alert."
 msgstr "koniec alarmu."
 
@@ -935,17 +941,12 @@ msgstr "%(component)s %(cost)s"
 #: gui/session/utility_functions.js:442
 #, python-format
 msgid "%(resourceIcon)s %(minimum)s to %(resourceIcon)s %(maximum)s"
-msgstr ""
+msgstr "%(resourceIcon)s %(minimum)s do %(resourceIcon)s %(maximum)s"
 
 #: gui/session/utility_functions.js:475
 #, python-format
 msgid "Walls:  %(costs)s"
 msgstr "Mury:  %(costs)s"
-
-#: gui/session/utility_functions.js:475 gui/session/utility_functions.js:476
-#: gui/session/utility_functions.js:481 gui/session/utility_functions.js:517
-msgid "  "
-msgstr " "
 
 #: gui/session/utility_functions.js:476
 #, python-format
@@ -1282,7 +1283,7 @@ msgstr "Ustawienia"
 msgid "Resign"
 msgstr "Rezygnuj"
 
-#: gui/session/menu.xml:87 (caption) gui/session/session.xml:323 (caption)
+#: gui/session/menu.xml:87 (caption) gui/session/session.xml:333 (caption)
 msgid "Exit"
 msgstr "Wyjście"
 
@@ -1338,23 +1339,23 @@ msgstr "Włącz zwielokrotnienie szybkości"
 msgid "Promote selected units"
 msgstr "Awansuj wybrane jednostki"
 
-#: gui/session/session.xml:169 (caption)
+#: gui/session/session.xml:174 (caption)
 msgid "Game Paused"
 msgstr "Gra zatrzymana"
 
-#: gui/session/session.xml:172 (caption)
+#: gui/session/session.xml:177 (caption)
 msgid "Click to Resume Game"
 msgstr "Kliknij by wznowić grę"
 
-#: gui/session/session.xml:201 (caption)
+#: gui/session/session.xml:206 (caption)
 msgid "Cancel"
 msgstr "Anuluj"
 
-#: gui/session/session.xml:207 (caption)
+#: gui/session/session.xml:212 (caption)
 msgid "Team Only"
 msgstr "Tylko drużynowo"
 
-#: gui/session/session.xml:211 (caption)
+#: gui/session/session.xml:216 (caption)
 msgid "Send"
 msgstr "Wyślij"
 
@@ -1369,18 +1370,26 @@ msgstr "Tryb Obserwatora (eksperymentalny)"
 #: gui/session/trade_window.xml:9 (caption)
 #: gui/session/top_panel/button_trade.xml:10 (tooltip)
 msgid "Trade"
-msgstr ""
+msgstr "Handel"
 
 #: gui/session/trade_window.xml:15 (caption)
 msgid "Trading goods selection:"
-msgstr ""
+msgstr "Wybór towarów handlowych:"
 
 #: gui/session/trade_window.xml:35 (tooltip)
 msgid ""
 "Select one goods as origin of the changes, then use the arrows of the target"
 " goods to make the changes (using Shift to select will put the selected "
 "resource to 100%)."
-msgstr ""
+msgstr "Wybierz surowiec początkowy , a następnie użyj strzałek przy surowcu docelowym aby dokonać zmian (użyj klawisza Shift, wybrać 100% danego surowca)."
+
+#: gui/session/dialogs/yes_no.xml:11 (caption)
+msgid "Question"
+msgstr "Pytanie"
+
+#: gui/session/dialogs/yes_no.xml:15 (caption)
+msgid "Yes or no?"
+msgstr "Tak czy nie?"
 
 #: gui/session/selection_panels_left/barter_panel.xml:7 (tooltip)
 msgid "Exchange resources:"
@@ -1434,8 +1443,8 @@ msgid "MENU"
 msgstr "MENU"
 
 #: gui/session/top_panel/label.xml:4 (caption)
-msgid "ALPHA XVI : Patañjali"
-msgstr "ALPHA XVI : Patańdźali"
+msgid "ALPHA XVII : Quercus"
+msgstr ""
 
 #: gui/session/top_panel/resource_food.xml:3 (tooltip)
 msgid "Food"

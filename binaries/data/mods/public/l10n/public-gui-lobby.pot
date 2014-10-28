@@ -1,18 +1,15 @@
 # Translation template for 0 A.D. — Empires Ascendant.
 # Copyright © 2014 Wildfire Games
-# This file is distributed under the same license as the 0 A.D. — Empires
-# Ascendant project.
+# This file is distributed under the same license as the 0 A.D. — Empires Ascendant project.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: 0 A.D. — Empires Ascendant\n"
-"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2014-06-19 20:24+0200\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"POT-Creation-Date: 2014-10-26 02:04+0100\n"
+"PO-Revision-Date: 2014-10-26 02:04+0100\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Potter 1.0\n"
 
 #: gui/lobby/lobby.js:25
 msgctxt "map size"
@@ -43,121 +40,145 @@ msgstr ""
 msgid "Scenario"
 msgstr ""
 
-#: gui/lobby/lobby.js:305
+#: gui/lobby/lobby.js:239
+#: gui/lobby/lobby.js:240
+#: gui/lobby/lobby.js:241
+#: gui/lobby/lobby.js:242
+#: gui/lobby/lobby.js:243
+#: gui/lobby/lobby.js:244
+msgid "N/A"
+msgstr ""
+
+#: gui/lobby/lobby.js:269
+#: gui/lobby/lobby.js:297
+#, javascript-format
+msgid "%(nick)s (%(rating)s)"
+msgstr ""
+
+#: gui/lobby/lobby.js:280
+#: gui/lobby/lobby.js:308
+#, javascript-format
+msgid "%(percentage)s%%"
+msgstr ""
+
+#: gui/lobby/lobby.js:282
+#: gui/lobby/lobby.js:310
+msgid "-"
+msgstr ""
+
+#: gui/lobby/lobby.js:444
 msgid "Busy"
 msgstr ""
 
-#: gui/lobby/lobby.js:310
+#: gui/lobby/lobby.js:449
 msgid "Away"
 msgstr ""
 
-#: gui/lobby/lobby.js:314
+#: gui/lobby/lobby.js:453
 msgid "Online"
 msgstr ""
 
-#: gui/lobby/lobby.js:318
+#: gui/lobby/lobby.js:457
 msgid "Offline"
 msgstr ""
 
-#: gui/lobby/lobby.js:323
+#: gui/lobby/lobby.js:462
 msgctxt "lobby presence"
 msgid "Unknown"
 msgstr ""
 
-#: gui/lobby/lobby.js:364
+#: gui/lobby/lobby.js:499
 msgid "A randomly selected map."
 msgstr ""
 
-#: gui/lobby/lobby.js:389
+#: gui/lobby/lobby.js:524
 msgid "Sorry, no description available."
 msgstr ""
 
-#: gui/lobby/lobby.js:417
-#, python-format
+#: gui/lobby/lobby.js:552
+#, javascript-format
 msgid "This game's address '%(ip)s' does not appear to be valid."
 msgstr ""
 
-#: gui/lobby/lobby.js:495
-#, python-format
+#: gui/lobby/lobby.js:630
+#, javascript-format
 msgid "%(nick)s has joined."
 msgstr ""
 
-#: gui/lobby/lobby.js:504
-#, python-format
+#: gui/lobby/lobby.js:639
+#, javascript-format
 msgid "%(nick)s has left."
 msgstr ""
 
-#: gui/lobby/lobby.js:511
-#, python-format
+#: gui/lobby/lobby.js:646
+#, javascript-format
 msgid "Invalid nickname: %(nick)s"
 msgstr ""
 
-#: gui/lobby/lobby.js:518
-#, python-format
+#: gui/lobby/lobby.js:653
+#, javascript-format
 msgid "%(oldnick)s is now known as %(newnick)s."
 msgstr ""
 
-#: gui/lobby/lobby.js:672
-#, python-format
+#: gui/lobby/lobby.js:810
+#, javascript-format
 msgid "We're sorry, the '%(cmd)s' command is not supported."
 msgstr ""
 
 #. Translation: IRC message prefix when the sender uses the /me command.
-#: gui/lobby/lobby.js:752
-#, python-format
+#: gui/lobby/lobby.js:890
+#, javascript-format
 msgid "* %(sender)s"
 msgstr ""
 
 #. Translation: IRC message issued using the ‘/me’ command.
-#: gui/lobby/lobby.js:754
-#, python-format
+#: gui/lobby/lobby.js:892
+#, javascript-format
 msgid "%(sender)s %(action)s"
 msgstr ""
 
 #. Translation: IRC message prefix.
-#: gui/lobby/lobby.js:758
-#: gui/lobby/lobby.js:769
-#: gui/lobby/lobby.js:782
-#, python-format
+#: gui/lobby/lobby.js:896
+#: gui/lobby/lobby.js:907
+#: gui/lobby/lobby.js:920
+#, javascript-format
 msgid "<%(sender)s>"
 msgstr ""
 
 #. Translation: IRC message.
-#: gui/lobby/lobby.js:760
-#: gui/lobby/lobby.js:771
-#: gui/lobby/lobby.js:784
-#, python-format
+#: gui/lobby/lobby.js:898
+#: gui/lobby/lobby.js:909
+#: gui/lobby/lobby.js:922
+#, javascript-format
 msgid "%(sender)s %(message)s"
 msgstr ""
 
 #. Translation: IRC system message.
-#: gui/lobby/lobby.js:765
-#, python-format
+#: gui/lobby/lobby.js:903
+#, javascript-format
 msgid "== %(message)s"
 msgstr ""
 
-#. Translation: Time as shown in the multiplayer lobby (when you enable it in the
-#. options page).
+#. Translation: Time as shown in the multiplayer lobby (when you enable it in the options page).
 #. For a list of symbols that you can use, see:
 #. https://sites.google.com/site/icuprojectuserguide/formatparse/datetime?pli=1#TOC-Date-Field-Symbol-Table
-#: gui/lobby/lobby.js:796
+#: gui/lobby/lobby.js:934
 msgid "HH:mm"
 msgstr ""
 
-#. Translation: Time prefix as shown in the multiplayer lobby (when you enable it
-#. in the options page).
-#: gui/lobby/lobby.js:799
-#, python-format
+#. Translation: Time prefix as shown in the multiplayer lobby (when you enable it in the options page).
+#: gui/lobby/lobby.js:937
+#, javascript-format
 msgid "[%(time)s]"
 msgstr ""
 
 #. Translation: IRC message format when there is a time prefix.
-#: gui/lobby/lobby.js:802
-#, python-format
+#: gui/lobby/lobby.js:940
+#, javascript-format
 msgid "%(time)s %(message)s"
 msgstr ""
 
-#: gui/lobby/lobby.js:852
+#: gui/lobby/lobby.js:990
 msgid "Please do not spam. You have been blocked for thirty seconds."
 msgstr ""
 
@@ -206,138 +227,187 @@ msgid "Register"
 msgstr ""
 
 #: gui/lobby/prelobby.js:251
-#: gui/lobby/prelobby.xml:109 (caption)
+#: gui/lobby/prelobby.xml:(caption):109
 msgid "Connect"
 msgstr ""
 
 #: gui/lobby/prelobby.js:261
-#: gui/lobby/prelobby.xml:78 (caption)
+#: gui/lobby/prelobby.xml:(caption):78
 msgid "Terms of Service"
 msgstr ""
 
 #: gui/lobby/prelobby.js:270
-#: gui/lobby/prelobby.xml:83 (caption)
+#: gui/lobby/prelobby.xml:(caption):83
 msgid "Terms of Use"
 msgstr ""
 
-#: gui/lobby/lobby.xml:14 (caption)
-#: gui/lobby/prelobby.xml:18 (caption)
+#: gui/lobby/lobby.xml:(caption):14
+#: gui/lobby/prelobby.xml:(caption):18
 msgid "Multiplayer Lobby"
 msgstr ""
 
-#: gui/lobby/lobby.xml:25 (heading)
-msgid "Status"
+#: gui/lobby/lobby.xml:(caption):45
+#: gui/lobby/lobby.xml:(caption):296
+msgid "Current Rank:"
 msgstr ""
 
-#: gui/lobby/lobby.xml:28 (heading)
-#: gui/lobby/lobby.xml:128 (heading)
-#: gui/lobby/lobby.xml:207 (heading)
-msgid "Name"
+#: gui/lobby/lobby.xml:(caption):49
+#: gui/lobby/lobby.xml:(caption):300
+msgid "Highest Rating:"
 msgstr ""
 
-#: gui/lobby/lobby.xml:31 (heading)
-#: gui/lobby/lobby.xml:210 (heading)
-msgid "Rating"
+#: gui/lobby/lobby.xml:(caption):53
+#: gui/lobby/lobby.xml:(caption):304
+msgid "Total Games:"
 msgstr ""
 
-#: gui/lobby/lobby.xml:38 (caption)
-#: gui/lobby/lobby.xml:197 (caption)
+#: gui/lobby/lobby.xml:(caption):57
+#: gui/lobby/lobby.xml:(caption):308
+msgid "Wins:"
+msgstr ""
+
+#: gui/lobby/lobby.xml:(caption):61
+#: gui/lobby/lobby.xml:(caption):312
+msgid "Losses:"
+msgstr ""
+
+#: gui/lobby/lobby.xml:(caption):65
+#: gui/lobby/lobby.xml:(caption):316
+msgid "Win Rate:"
+msgstr ""
+
+#: gui/lobby/lobby.xml:(caption):74
+#: gui/lobby/lobby.xml:(caption):244
 msgid "Leaderboard"
 msgstr ""
 
-#: gui/lobby/lobby.xml:64 (caption)
+#: gui/lobby/lobby.xml:(caption):82
+#: gui/lobby/lobby.xml:(caption):279
+msgid "User Profile Lookup"
+msgstr ""
+
+#: gui/lobby/lobby.xml:(caption):111
 msgid "Map Type:"
 msgstr ""
 
-#: gui/lobby/lobby.xml:76 (caption)
+#: gui/lobby/lobby.xml:(caption):123
 msgid "Map Size:"
 msgstr ""
 
-#: gui/lobby/lobby.xml:93 (caption)
+#: gui/lobby/lobby.xml:(caption):140
 msgid "Players:"
 msgstr ""
 
-#: gui/lobby/lobby.xml:102 (caption)
+#. Join the game currently selected in the list.
+#: gui/lobby/lobby.xml:(caption):149
 msgid "Join Game"
 msgstr ""
 
-#: gui/lobby/lobby.xml:108 (caption)
+#: gui/lobby/lobby.xml:(caption):155
 msgid "Host Game"
 msgstr ""
 
-#: gui/lobby/lobby.xml:115 (caption)
+#: gui/lobby/lobby.xml:(caption):162
 msgid "Main Menu"
 msgstr ""
 
-#: gui/lobby/lobby.xml:132 (heading)
+#: gui/lobby/lobby.xml:(caption):218
+msgid "Show full games"
+msgstr ""
+
+#: gui/lobby/lobby.xml:(caption):264
+#: gui/lobby/lobby.xml:(caption):326
+msgid "Back"
+msgstr ""
+
+#: gui/lobby/lobby.xml:(caption):272
+msgid "Update"
+msgstr ""
+
+#: gui/lobby/lobby.xml:(caption):282
+msgid "Enter username:"
+msgstr ""
+
+#: gui/lobby/lobby.xml:(caption):288
+msgid "View Profile"
+msgstr ""
+
+#: gui/lobby/lobby.xml:(caption):321
+msgid "Player not found."
+msgstr ""
+
+#: gui/lobby/lobby.xml:(heading):25
+msgid "Status"
+msgstr ""
+
+#: gui/lobby/lobby.xml:(heading):28
+#: gui/lobby/lobby.xml:(heading):175
+#: gui/lobby/lobby.xml:(heading):254
+msgid "Name"
+msgstr ""
+
+#: gui/lobby/lobby.xml:(heading):31
+#: gui/lobby/lobby.xml:(heading):257
+msgid "Rating"
+msgstr ""
+
+#: gui/lobby/lobby.xml:(heading):179
 msgid "Map Name"
 msgstr ""
 
-#: gui/lobby/lobby.xml:135 (heading)
+#: gui/lobby/lobby.xml:(heading):182
 msgctxt "map"
 msgid "Size"
 msgstr ""
 
-#: gui/lobby/lobby.xml:138 (heading)
+#: gui/lobby/lobby.xml:(heading):185
 msgctxt "map"
 msgid "Type"
 msgstr ""
 
-#: gui/lobby/lobby.xml:141 (heading)
+#: gui/lobby/lobby.xml:(heading):188
 msgid "Players"
 msgstr ""
 
-#: gui/lobby/lobby.xml:171 (caption)
-msgid "Show full games"
-msgstr ""
-
-#: gui/lobby/lobby.xml:204 (heading)
+#: gui/lobby/lobby.xml:(heading):251
 msgid "Rank"
 msgstr ""
 
-#: gui/lobby/lobby.xml:214 (caption)
-msgid "Back"
-msgstr ""
-
-#: gui/lobby/lobby.xml:218 (caption)
-msgid "Update"
-msgstr ""
-
-#: gui/lobby/prelobby.xml:23 (caption)
+#: gui/lobby/prelobby.xml:(caption):23
 msgid "Create a new account"
 msgstr ""
 
-#: gui/lobby/prelobby.xml:27 (caption)
+#: gui/lobby/prelobby.xml:(caption):27
 msgid "Login to an existing account"
 msgstr ""
 
-#: gui/lobby/prelobby.xml:33 (caption)
+#: gui/lobby/prelobby.xml:(caption):33
 msgid "Connect to the game lobby"
 msgstr ""
 
-#: gui/lobby/prelobby.xml:36 (caption)
-#: gui/lobby/prelobby.xml:63 (caption)
+#: gui/lobby/prelobby.xml:(caption):36
+#: gui/lobby/prelobby.xml:(caption):63
 msgid "Login:"
 msgstr ""
 
-#: gui/lobby/prelobby.xml:44 (caption)
-#: gui/lobby/prelobby.xml:68 (caption)
+#: gui/lobby/prelobby.xml:(caption):44
+#: gui/lobby/prelobby.xml:(caption):68
 msgid "Password:"
 msgstr ""
 
-#: gui/lobby/prelobby.xml:59 (caption)
+#: gui/lobby/prelobby.xml:(caption):59
 msgid "Registration"
 msgstr ""
 
-#: gui/lobby/prelobby.xml:73 (caption)
+#: gui/lobby/prelobby.xml:(caption):73
 msgid "Password again:"
 msgstr ""
 
-#: gui/lobby/prelobby.xml:88 (caption)
+#: gui/lobby/prelobby.xml:(caption):88
 msgid "I have read and agree to the Terms of Service and Terms of Use:"
 msgstr ""
 
-#: gui/lobby/prelobby.xml:97 (caption)
+#: gui/lobby/prelobby.xml:(caption):97
 msgid "Cancel"
 msgstr ""
 
@@ -353,8 +423,8 @@ msgstr ""
 #: gui/lobby/Terms_of_Service.txt:3
 #: gui/lobby/Terms_of_Use.txt:3
 msgid ""
-" * The \"service\" is the 0 A.D. Empires Ascendant Multiplayer Lobby provided"
-" by Wildfire Games (WFG)."
+" * The \"service\" is the 0 A.D. Empires Ascendant Multiplayer Lobby "
+"provided by Wildfire Games (WFG)."
 msgstr ""
 
 #: gui/lobby/Terms_of_Service.txt:4
@@ -368,7 +438,7 @@ msgstr ""
 
 #: gui/lobby/Terms_of_Service.txt:6
 msgid ""
-" * \"Rating\" refers to the process of analysing various user statistics for "
+" * \"Rating\" refers to the process of analyzing various user statistics for "
 "the purpose of generating a single comprehensive score."
 msgstr ""
 
@@ -414,7 +484,8 @@ msgid " 4. Change the service at any time with or without announcement."
 msgstr ""
 
 #: gui/lobby/Terms_of_Service.txt:16
-msgid " 5. Delete any and all service data at any time with or without announcement."
+msgid ""
+" 5. Delete any and all service data at any time with or without announcement."
 msgstr ""
 
 #: gui/lobby/Terms_of_Service.txt:17
@@ -436,9 +507,9 @@ msgstr ""
 #: gui/lobby/Terms_of_Service.txt:20
 msgid ""
 " 7. Change this document in any way; at any time; on the condition that the "
-"user of the service is given adequate notice of the change (the definition of"
-" adequate notice will be determined at the time by a panel of Wildfire Games "
-"(WFG) team members)."
+"user of the service is given adequate notice of the change (the definition "
+"of adequate notice will be determined at the time by a panel of Wildfire "
+"Games (WFG) team members)."
 msgstr ""
 
 #: gui/lobby/Terms_of_Use.txt:1
@@ -488,7 +559,8 @@ msgid " 3. Not purposefully demean the worth of others using the service."
 msgstr ""
 
 #: gui/lobby/Terms_of_Use.txt:13
-msgid " 4. Not use the service to promote specific goods, services, or products."
+msgid ""
+" 4. Not use the service to promote specific goods, services, or products."
 msgstr ""
 
 #: gui/lobby/Terms_of_Use.txt:14
@@ -516,8 +588,7 @@ msgstr ""
 #: gui/lobby/Terms_of_Use.txt:19
 msgid ""
 " 1. Change this document in any way; at any time; on the condition that the "
-"user of the service is given adequate notice of the change (the definition of"
-" adequate notice will be determined at the time by a panel of Wildfire Games "
-"(WFG) team members)."
+"user of the service is given adequate notice of the change (the definition "
+"of adequate notice will be determined at the time by a panel of Wildfire "
+"Games (WFG) team members)."
 msgstr ""
-

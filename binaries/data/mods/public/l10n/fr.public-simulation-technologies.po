@@ -4,12 +4,18 @@
 # Ascendant project.
 # 
 # Translators:
+# BAHIDJ Ryadh <haryadh@live.fr>, 2014
+# gorius <gorius05@gmail.com>, 2014
+# Nicolas Auvray <na.itms76@gmail.com>, 2014
+# Polakrity <sxk-fr@live.fr>, 2014
+# Yannick Heintz, 2014
 msgid ""
 msgstr ""
 "Project-Id-Version: 0 A.D.\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2014-06-19 19:39+0200\n"
-"PO-Revision-Date: 2014-06-19 17:53+0000\n"
+"POT-Creation-Date: 2014-09-26 19:00+0200\n"
+"PO-Revision-Date: 2014-09-26 16:40+0000\n"
+"Last-Translator: Polakrity <sxk-fr@live.fr>\n"
 "Language-Team: French (http://www.transifex.com/projects/p/0ad/language/fr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -18,32 +24,49 @@ msgstr ""
 "Language: fr\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
+#: simulation/data/technologies/armor_cav_01.jsondescription
 #: simulation/data/technologies/armor_cav_chamfron.jsondescription
 msgid "Metal armor for a horse's face."
-msgstr "Armure métallique pour le museau des chevaux"
+msgstr "Armure métallique pour le museau des chevaux."
 
-#: simulation/data/technologies/armor_cav_chamfron.jsontooltip
-msgid "Equip your cavalry mounts with armor. All Cavalry +1 Hack armor level."
-msgstr "Équiper vos montures de cavalerie d'une armure. Toute la cavalerie gagne +1 point d'armure contre les attaques tranchantes."
+#: simulation/data/technologies/armor_cav_01.jsontooltip
+#: simulation/data/technologies/armor_cav_02.jsontooltip
+msgid ""
+"Equip your cavalry mounts with armor. All Cavalry +1 Hack and Pierce armor "
+"level."
+msgstr "Équiper vos montures de cavalerie d'une armure. Toute la cavalerie gagne +1 niveau d'armure contre les attaques tranchantes et perçantes."
 
+#: simulation/data/technologies/armor_cav_01.jsongenericName
+#: simulation/data/technologies/armor_cav_02.jsongenericName
 #: simulation/data/technologies/armor_cav_chamfron.jsongenericName
 msgid "Chamfron"
 msgstr "Chanfrein"
 
+#: simulation/data/technologies/armor_cav_01.jsonrequirementsTooltip
 #: simulation/data/technologies/armor_cav_chamfron.jsonrequirementsTooltip
+#: simulation/data/technologies/armor_infantry_01.jsonrequirementsTooltip
 #: simulation/data/technologies/armor_infantry_hack_01.jsonrequirementsTooltip
 #: simulation/data/technologies/armor_infantry_hack_02.jsonrequirementsTooltip
 #: simulation/data/technologies/armor_infantryspearmen_pierce_01.jsonrequirementsTooltip
 #: simulation/data/technologies/armor_infantryspearmen_pierce_02.jsonrequirementsTooltip
 #: simulation/data/technologies/armor_ship_hypozomata.jsonrequirementsTooltip
 #: simulation/data/technologies/attack_cav_lance.jsonrequirementsTooltip
+#: simulation/data/technologies/attack_cavalry_melee_01.jsonrequirementsTooltip
+#: simulation/data/technologies/attack_cavalry_ranged_01.jsonrequirementsTooltip
+#: simulation/data/technologies/attack_infantry_melee_01.jsonrequirementsTooltip
+#: simulation/data/technologies/attack_infantry_ranged_01.jsonrequirementsTooltip
 #: simulation/data/technologies/attack_tower_crenellations.jsonrequirementsTooltip
+#: simulation/data/technologies/attack_tower_defense.jsonrequirementsTooltip
+#: simulation/data/technologies/attack_tower_range.jsonrequirementsTooltip
 #: simulation/data/technologies/attack_tower_watch.jsonrequirementsTooltip
 #: simulation/data/technologies/buildtime_walls_rubble.jsonrequirementsTooltip
 #: simulation/data/technologies/decay_outpost.jsonrequirementsTooltip
-#: simulation/data/technologies/gather_farming_plows.jsonrequirementsTooltip
+#: simulation/data/technologies/gather_capacity_wheelbarrow.jsonrequirementsTooltip
+#: simulation/data/technologies/gather_farming_training.jsonrequirementsTooltip
+#: simulation/data/technologies/gather_lumbering_strongeraxes.jsonrequirementsTooltip
 #: simulation/data/technologies/gather_mining_serfs.jsonrequirementsTooltip
 #: simulation/data/technologies/gather_mining_shaftmining.jsonrequirementsTooltip
+#: simulation/data/technologies/heal_barracks.jsonrequirementsTooltip
 #: simulation/data/technologies/heal_range.jsonrequirementsTooltip
 #: simulation/data/technologies/heal_rate.jsonrequirementsTooltip
 #: simulation/data/technologies/health_walls_geometric_masonry.jsonrequirementsTooltip
@@ -51,6 +74,7 @@ msgstr "Chanfrein"
 #: simulation/data/technologies/pop_civic_01.jsonrequirementsTooltip
 #: simulation/data/technologies/pop_house_02.jsonrequirementsTooltip
 #: simulation/data/technologies/ranged_inf_irregulars.jsonrequirementsTooltip
+#: simulation/data/technologies/speed_cavalry_01.jsonrequirementsTooltip
 #: simulation/data/technologies/speed_trader_01.jsonrequirementsTooltip
 #: simulation/data/technologies/training_levy_cavalry.jsonrequirementsTooltip
 #: simulation/data/technologies/training_levy_infantry.jsonrequirementsTooltip
@@ -73,6 +97,13 @@ msgstr "Chanfrein"
 msgid "Unlocked in Town Phase."
 msgstr "Débloqué dans la Phase des Villes."
 
+#: simulation/data/technologies/armor_cav_01.jsonspecificName.ptol
+#: simulation/data/technologies/armor_cav_01.jsonspecificName.spart
+#: simulation/data/technologies/armor_cav_01.jsonspecificName.sele
+#: simulation/data/technologies/armor_cav_01.jsonspecificName.athen
+#: simulation/data/technologies/armor_cav_01.jsonspecificName.theb
+#: simulation/data/technologies/armor_cav_01.jsonspecificName.hele
+#: simulation/data/technologies/armor_cav_01.jsonspecificName.mace
 #: simulation/data/technologies/armor_cav_chamfron.jsonspecificName.ptol
 #: simulation/data/technologies/armor_cav_chamfron.jsonspecificName.spart
 #: simulation/data/technologies/armor_cav_chamfron.jsonspecificName.sele
@@ -83,32 +114,29 @@ msgstr "Débloqué dans la Phase des Villes."
 msgid "Prometoopidion"
 msgstr "Prometoopidion"
 
-#: simulation/data/technologies/armor_hero_01.jsondescription
-msgid ""
-"Body armor fashioned completely of iron, the hardest workable metal known to"
-" the ancients."
-msgstr "Armure corporelle entièrement façonnée en fer, le métal exploitable le plus dur connu des anciens."
+#: simulation/data/technologies/armor_cav_02.jsondescription
+msgid "Metal armor for a horse's body."
+msgstr "Armure métallique pour le corps des chevaux."
 
-#: simulation/data/technologies/armor_hero_01.jsontooltip
-msgid ""
-"All heroes +2 Hack Armor Levels and +2 Pierce Armor Levels, but also +50 "
-"Metal Cost."
-msgstr "Tous les héros gagnent +2 points d'armure tranchante et +2 points d'armure perçante, mais coûtent aussi +50 de métal."
-
-#: simulation/data/technologies/armor_hero_01.jsongenericName
-msgid "Iron Hero Armor"
-msgstr "Armure de héros en Fer"
-
+#: simulation/data/technologies/armor_cav_02.jsonrequirementsTooltip
 #: simulation/data/technologies/armor_hero_01.jsonrequirementsTooltip
+#: simulation/data/technologies/armor_infantry_02.jsonrequirementsTooltip
 #: simulation/data/technologies/armor_infantry_hack_03.jsonrequirementsTooltip
 #: simulation/data/technologies/armor_infantry_hack_04.jsonrequirementsTooltip
 #: simulation/data/technologies/armor_infantryspearmen_pierce_03.jsonrequirementsTooltip
 #: simulation/data/technologies/armor_infantryspearmen_pierce_04.jsonrequirementsTooltip
 #: simulation/data/technologies/armor_ship_hullsheathing.jsonrequirementsTooltip
 #: simulation/data/technologies/armor_trade_convoys.jsonrequirementsTooltip
+#: simulation/data/technologies/attack_cavalry_melee_02.jsonrequirementsTooltip
+#: simulation/data/technologies/attack_cavalry_ranged_02.jsonrequirementsTooltip
 #: simulation/data/technologies/attack_champions_elite.jsonrequirementsTooltip
-#: simulation/data/technologies/attack_citizensoldiers_will.jsonrequirementsTooltip
+#: simulation/data/technologies/attack_infantry_melee_02.jsonrequirementsTooltip
+#: simulation/data/technologies/attack_infantry_ranged_02.jsonrequirementsTooltip
+#: simulation/data/technologies/attack_soldiers_will.jsonrequirementsTooltip
 #: simulation/data/technologies/attack_steel_working.jsonrequirementsTooltip
+#: simulation/data/technologies/gather_capacity_carts.jsonrequirementsTooltip
+#: simulation/data/technologies/gather_farming_fertilizer.jsonrequirementsTooltip
+#: simulation/data/technologies/gather_lumbering_sharpaxes.jsonrequirementsTooltip
 #: simulation/data/technologies/gather_mining_silvermining.jsonrequirementsTooltip
 #: simulation/data/technologies/gather_mining_slaves.jsonrequirementsTooltip
 #: simulation/data/technologies/heal_range_2.jsonrequirementsTooltip
@@ -117,6 +145,7 @@ msgstr "Armure de héros en Fer"
 #: simulation/data/technologies/health_regen_units.jsonrequirementsTooltip
 #: simulation/data/technologies/melee_inf_spearheads.jsonrequirementsTooltip
 #: simulation/data/technologies/pop_civic_02.jsonrequirementsTooltip
+#: simulation/data/technologies/pop_wonder.jsonrequirementsTooltip
 #: simulation/data/technologies/ranged_inf_skirmishers.jsonrequirementsTooltip
 #: simulation/data/technologies/siege_armor.jsonrequirementsTooltip
 #: simulation/data/technologies/siege_attack.jsonrequirementsTooltip
@@ -124,6 +153,7 @@ msgstr "Armure de héros en Fer"
 #: simulation/data/technologies/siege_cost_metal.jsonrequirementsTooltip
 #: simulation/data/technologies/siege_cost_wood.jsonrequirementsTooltip
 #: simulation/data/technologies/siege_packing.jsonrequirementsTooltip
+#: simulation/data/technologies/speed_cavalry_02.jsonrequirementsTooltip
 #: simulation/data/technologies/training_conscription.jsonrequirementsTooltip
 #: simulation/data/technologies/training_naval_architects.jsonrequirementsTooltip
 #: simulation/data/technologies/unlock_champion_units.jsonrequirementsTooltip
@@ -160,6 +190,26 @@ msgstr "Armure de héros en Fer"
 msgid "Unlocked in City Phase."
 msgstr "Débloqué dans la Phase des Cités."
 
+#: simulation/data/technologies/armor_cav_chamfron.jsontooltip
+msgid "Equip your cavalry mounts with armor. All Cavalry +1 Hack armor level."
+msgstr "Équiper vos montures de cavalerie d'une armure. Toute la cavalerie gagne +1 point d'armure contre les attaques tranchantes."
+
+#: simulation/data/technologies/armor_hero_01.jsondescription
+msgid ""
+"Body armor fashioned completely of iron, the hardest workable metal known to"
+" the ancients."
+msgstr "Armure corporelle entièrement façonnée en fer, le métal exploitable le plus dur connu des anciens."
+
+#: simulation/data/technologies/armor_hero_01.jsontooltip
+msgid ""
+"All heroes +2 Hack Armor Levels and +2 Pierce Armor Levels, but also +50 "
+"Metal Cost."
+msgstr "Tous les héros gagnent +2 points d'armure contre les attaques tranchantes et +2 points d'armure contre les attaques perçantes, mais coûtent aussi +50 de métal."
+
+#: simulation/data/technologies/armor_hero_01.jsongenericName
+msgid "Iron Hero Armor"
+msgstr "Armure de héros en fer"
+
 #: simulation/data/technologies/armor_hero_01.jsonspecificName.ptol
 #: simulation/data/technologies/armor_hero_01.jsonspecificName.spart
 #: simulation/data/technologies/armor_hero_01.jsonspecificName.sele
@@ -173,20 +223,34 @@ msgstr "Sidi̱ró Panoplía"
 msgid "Lorica Ferrea"
 msgstr "Lorica Ferrea"
 
+#: simulation/data/technologies/armor_infantry_01.jsondescription
 #: simulation/data/technologies/armor_infantry_hack_01.jsondescription
 msgid "Quilted linen or leather body armor for infantrymen."
 msgstr "Armure doublée en lin ou en cuir pour les hommes d'infanterie."
 
-#: simulation/data/technologies/armor_infantry_hack_01.jsontooltip
-#: simulation/data/technologies/armor_infantry_hack_02.jsontooltip
-#: simulation/data/technologies/armor_infantry_hack_03.jsontooltip
-msgid "All Infantry +1 Hack Armor Level."
-msgstr "Toute l'infanterie gagne +1 point d'armure contre les attaques tranchantes."
+#: simulation/data/technologies/armor_infantry_01.jsontooltip
+#: simulation/data/technologies/armor_infantry_02.jsontooltip
+msgid "All Infantry +1 Hack and Pierce Armor Level."
+msgstr "Toute l'infanterie gagne +1 niveau d'armure contre les attaques tranchantes et perçantes."
 
+#: simulation/data/technologies/armor_infantry_01.jsongenericName
 #: simulation/data/technologies/armor_infantry_hack_01.jsongenericName
 msgid "Quilted Body Armor"
 msgstr "Armure matelassée"
 
+#: simulation/data/technologies/armor_infantry_01.jsonspecificName.pers
+#: simulation/data/technologies/armor_infantry_01.jsonspecificName.maur
+#: simulation/data/technologies/armor_infantry_01.jsonspecificName.spart
+#: simulation/data/technologies/armor_infantry_01.jsonspecificName.generic
+#: simulation/data/technologies/armor_infantry_01.jsonspecificName.athen
+#: simulation/data/technologies/armor_infantry_01.jsonspecificName.cart
+#: simulation/data/technologies/armor_infantry_01.jsonspecificName.brit
+#: simulation/data/technologies/armor_infantry_01.jsonspecificName.hele
+#: simulation/data/technologies/armor_infantry_01.jsonspecificName.celt
+#: simulation/data/technologies/armor_infantry_01.jsonspecificName.mace
+#: simulation/data/technologies/armor_infantry_01.jsonspecificName.rome
+#: simulation/data/technologies/armor_infantry_01.jsonspecificName.gaul
+#: simulation/data/technologies/armor_infantry_01.jsonspecificName.iber
 #: simulation/data/technologies/armor_infantry_hack_01.jsonspecificName.pers
 #: simulation/data/technologies/armor_infantry_hack_01.jsonspecificName.maur
 #: simulation/data/technologies/armor_infantry_hack_01.jsonspecificName.spart
@@ -203,14 +267,25 @@ msgstr "Armure matelassée"
 msgid "Spolas"
 msgstr "Spolas"
 
+#: simulation/data/technologies/armor_infantry_02.jsondescription
 #: simulation/data/technologies/armor_infantry_hack_02.jsondescription
 msgid "Laminated linen body armor for infantrymen."
 msgstr "Armure recouverte de lin pour les hommes d'infanterie."
 
+#: simulation/data/technologies/armor_infantry_02.jsongenericName
 #: simulation/data/technologies/armor_infantry_hack_02.jsongenericName
 msgid "Laminated Linen Body Armor"
 msgstr "Armure de lin laminé"
 
+#: simulation/data/technologies/armor_infantry_02.jsonspecificName.ptol
+#: simulation/data/technologies/armor_infantry_02.jsonspecificName.spart
+#: simulation/data/technologies/armor_infantry_02.jsonspecificName.sele
+#: simulation/data/technologies/armor_infantry_02.jsonspecificName.athen
+#: simulation/data/technologies/armor_infantry_02.jsonspecificName.cart
+#: simulation/data/technologies/armor_infantry_02.jsonspecificName.pers
+#: simulation/data/technologies/armor_infantry_02.jsonspecificName.hele
+#: simulation/data/technologies/armor_infantry_02.jsonspecificName.mace
+#: simulation/data/technologies/armor_infantry_02.jsonspecificName.rome
 #: simulation/data/technologies/armor_infantry_hack_02.jsonspecificName.ptol
 #: simulation/data/technologies/armor_infantry_hack_02.jsonspecificName.spart
 #: simulation/data/technologies/armor_infantry_hack_02.jsonspecificName.sele
@@ -222,6 +297,12 @@ msgstr "Armure de lin laminé"
 #: simulation/data/technologies/armor_infantry_hack_02.jsonspecificName.rome
 msgid "Linothorakes"
 msgstr "Linothorakes"
+
+#: simulation/data/technologies/armor_infantry_hack_01.jsontooltip
+#: simulation/data/technologies/armor_infantry_hack_02.jsontooltip
+#: simulation/data/technologies/armor_infantry_hack_03.jsontooltip
+msgid "All Infantry +1 Hack Armor Level."
+msgstr "Toute l'infanterie gagne +1 point d'armure contres les attaques tranchantes."
 
 #: simulation/data/technologies/armor_infantry_hack_03.jsondescription
 msgid "Body armor reinforced with bronze scales."
@@ -240,11 +321,11 @@ msgid ""
 "Body armor fashioned completely of bronze. Only the best soldiers were "
 "equipped with such body armor, as it was very expensive and time-consuming "
 "to fabricate."
-msgstr "Armure corporelle entièrement façonnée en bronze. Seuls les meilleurs soldats étaient équipés de telles armures corporelle, car elles étaient très cher et longues à fabriquer."
+msgstr "Armure corporelle entièrement façonnée en bronze. Seuls les meilleurs soldats étaient équipés de telles armures corporelles, car elles étaient très cher et longues à fabriquer."
 
 #: simulation/data/technologies/armor_infantry_hack_04.jsontooltip
 msgid "Champions +2 Hack Armor Levels, but also +10 Metal Cost."
-msgstr "Les Champions gagnent +2 points d'armure tranchante, mais coûtent aussi +10 de métal."
+msgstr "Les champions gagnent +2 points d'armure contre les attaques tranchantes, mais coûtent aussi +10 de métal."
 
 #: simulation/data/technologies/armor_infantry_hack_04.jsongenericName
 msgid "Bronze Cuirass Body Armor"
@@ -256,7 +337,7 @@ msgstr "Lorica Musculata"
 
 #: simulation/data/technologies/armor_infantryspearmen_pierce_01.jsondescription
 msgid "Plywood construction for large shields."
-msgstr "Grand boucliers réalisées en contre-plaqué."
+msgstr "Grands boucliers réalisées en contreplaqué."
 
 #: simulation/data/technologies/armor_infantryspearmen_pierce_01.jsontooltip
 msgid "Infantry Spearmen +2 Pierce Armor Levels."
@@ -279,11 +360,11 @@ msgstr "Aspidiskè"
 msgid ""
 "The best shields have reinforcements either on the corners (Roman scutum) or"
 " around the rim (Greek aspis)."
-msgstr "Les meilleurs boucliers ont un renforcement soit dans les coins (scutum romain) ou tout autour du bord (aspis grec)"
+msgstr "Les meilleurs boucliers ont un renforcement soit dans les coins (scutum romain) ou tout autour du bord (aspis grec)."
 
 #: simulation/data/technologies/armor_infantryspearmen_pierce_02.jsontooltip
 msgid "Infantry Spearmen +1 Pierce Armor Levels."
-msgstr "Les lanciers d'infanterie gagnent +1 point d'armure contre les attaques perçantes."
+msgstr "L’infanterie de lanciers gagne +1 point d'armure contre les attaques perçantes."
 
 #: simulation/data/technologies/armor_infantryspearmen_pierce_02.jsongenericName
 msgid "Reinforced Shield"
@@ -304,7 +385,7 @@ msgstr "Une couverture en bronze martelé sur la face du bouclier."
 
 #: simulation/data/technologies/armor_infantryspearmen_pierce_03.jsontooltip
 msgid "Infantry Spearmen +1 Pierce Armor Level."
-msgstr "Les lanciers d'infanterie gagnent +1 point d'armure contre les attaques perçantes."
+msgstr "L'infanterie de lanciers gagne +1 point d'armure contre les attaques perçantes."
 
 #: simulation/data/technologies/armor_infantryspearmen_pierce_03.jsongenericName
 msgid "Bronze Shield Facing"
@@ -326,15 +407,15 @@ msgstr "Chrysaspides"
 msgid ""
 "Only the most celebrated soldiers had shields faced with silver, as did the "
 "famous 'Silver Shields' regiment in Alexander the Great's army."
-msgstr "Seulement les soldats les plus célèbres ont des boucliers avec une face en argent, comme les célèbres 'boucliers d'argent' de l'armée d'Alexandre le Grand."
+msgstr "Seulement les soldats les plus célèbres ont des boucliers en argent, comme le célèbre régiment des 'Boucliers d'argent' de l'armée d'Alexandre le Grand."
 
 #: simulation/data/technologies/armor_infantryspearmen_pierce_04.jsontooltip
 msgid "Champions +2 Pierce Armor Levels, but also +10 Metal Cost."
-msgstr "Les Champions gagnent +2 points d'armure perçante, mais coûtent aussi +10 de métal."
+msgstr "Les champions gagnent +2 points d'armure contre les attaques perçantes, mais coûtent aussi +10 de métal."
 
 #: simulation/data/technologies/armor_infantryspearmen_pierce_04.jsongenericName
 msgid "Silver Shields"
-msgstr "Bouclier d'argent"
+msgstr "Boucliers d'argent"
 
 #: simulation/data/technologies/armor_infantryspearmen_pierce_04.jsonspecificName.ptol
 #: simulation/data/technologies/armor_infantryspearmen_pierce_04.jsonspecificName.spart
@@ -347,11 +428,11 @@ msgstr "Argyraspides"
 
 #: simulation/data/technologies/armor_ship_hullsheathing.jsondescription
 msgid "Lead sheathing protects ship hulls."
-msgstr "Les gaines en plomb protègent les coques des navires."
+msgstr "Les gaines en plomb protègent la coque des navires."
 
 #: simulation/data/technologies/armor_ship_hullsheathing.jsontooltip
 msgid "Lead sheathing protects ship hulls. +2 levels to all ship armor types."
-msgstr "Les gaines en plomb protègent la coque des navires. Ajoute +2 à tous les types d'armure des navires."
+msgstr "Les gaines en plomb protègent la coque des navires. Ajoute +2 niveaux à tous les types d'armure des navires."
 
 #: simulation/data/technologies/armor_ship_hullsheathing.jsongenericName
 msgid "Lead hull sheathing"
@@ -365,7 +446,7 @@ msgstr "Les hypozomata renforcent la structure des navires. "
 msgid ""
 "The hypozomata braces the ship's structure. +2 levels to all ship armor "
 "types."
-msgstr "Les hypozomata renforcent la structure des navires. Ajoute +2 à tous les types d'armure des navires."
+msgstr "Les hypozomata renforcent la structure des navires. Ajoute +2 niveaux à tous les types d'armure des navires."
 
 #: simulation/data/technologies/armor_ship_hypozomata.jsongenericName
 msgid "Hypozomata undergirding"
@@ -385,7 +466,8 @@ msgid "Reinforced hull"
 msgstr "Coque renforcée"
 
 #: simulation/data/technologies/armor_ship_reinforcedhull.jsonrequirementsTooltip
-#: simulation/data/technologies/gather_capacity_wheelbarrow.jsonrequirementsTooltip
+#: simulation/data/technologies/gather_capacity_basket.jsonrequirementsTooltip
+#: simulation/data/technologies/gather_farming_plows.jsonrequirementsTooltip
 #: simulation/data/technologies/gather_lumbering_ironaxes.jsonrequirementsTooltip
 #: simulation/data/technologies/health_females_01.jsonrequirementsTooltip
 #: simulation/data/technologies/pop_house_01.jsonrequirementsTooltip
@@ -396,7 +478,7 @@ msgstr "Débloqué dans la Phase des Villages."
 
 #: simulation/data/technologies/armor_trade_convoys.jsondescription
 msgid "Increases defensive capability of traders."
-msgstr "Améliorer les capacités défensives des commerçants."
+msgstr "Améliore les capacités défensives des commerçants."
 
 #: simulation/data/technologies/armor_trade_convoys.jsontooltip
 msgid "Traders +2 Hack and Pierce armor levels."
@@ -413,11 +495,11 @@ msgstr "Une longue lance façonnée spécifiquement pour la cavalerie."
 #: simulation/data/technologies/attack_cav_lance.jsontooltip
 msgid ""
 "Equip your melee cavalry with better weapons. Melee Cavalry +2 Hack Attack."
-msgstr "Équiper votre cavalerie de mêlée avec de meilleures armes. La cavalerie de mêlée gagne +2 d'attaque tranchante."
+msgstr "Équiper votre cavalerie de mêlée avec de meilleures armes. La cavalerie de mêlée gagne +2 points d'attaque tranchante."
 
 #: simulation/data/technologies/attack_cav_lance.jsongenericName
 msgid "Cavalry Lance"
-msgstr "Lance de cavalerie"
+msgstr "Lance de cavalier"
 
 #: simulation/data/technologies/attack_cav_lance.jsonspecificName.ptol
 #: simulation/data/technologies/attack_cav_lance.jsonspecificName.spart
@@ -426,12 +508,89 @@ msgstr "Lance de cavalerie"
 #: simulation/data/technologies/attack_cav_lance.jsonspecificName.theb
 #: simulation/data/technologies/attack_cav_lance.jsonspecificName.hele
 #: simulation/data/technologies/attack_cav_lance.jsonspecificName.mace
+#: simulation/data/technologies/attack_cavalry_melee_01.jsonspecificName.ptol
+#: simulation/data/technologies/attack_cavalry_melee_01.jsonspecificName.spart
+#: simulation/data/technologies/attack_cavalry_melee_01.jsonspecificName.sele
+#: simulation/data/technologies/attack_cavalry_melee_01.jsonspecificName.athen
+#: simulation/data/technologies/attack_cavalry_melee_01.jsonspecificName.theb
+#: simulation/data/technologies/attack_cavalry_melee_01.jsonspecificName.hele
+#: simulation/data/technologies/attack_cavalry_melee_01.jsonspecificName.mace
+#: simulation/data/technologies/attack_cavalry_melee_02.jsonspecificName.ptol
+#: simulation/data/technologies/attack_cavalry_melee_02.jsonspecificName.spart
+#: simulation/data/technologies/attack_cavalry_melee_02.jsonspecificName.sele
+#: simulation/data/technologies/attack_cavalry_melee_02.jsonspecificName.athen
+#: simulation/data/technologies/attack_cavalry_melee_02.jsonspecificName.theb
+#: simulation/data/technologies/attack_cavalry_melee_02.jsonspecificName.hele
+#: simulation/data/technologies/attack_cavalry_melee_02.jsonspecificName.mace
+#: simulation/data/technologies/attack_cavalry_ranged_01.jsonspecificName.ptol
+#: simulation/data/technologies/attack_cavalry_ranged_01.jsonspecificName.spart
+#: simulation/data/technologies/attack_cavalry_ranged_01.jsonspecificName.sele
+#: simulation/data/technologies/attack_cavalry_ranged_01.jsonspecificName.athen
+#: simulation/data/technologies/attack_cavalry_ranged_01.jsonspecificName.theb
+#: simulation/data/technologies/attack_cavalry_ranged_01.jsonspecificName.hele
+#: simulation/data/technologies/attack_cavalry_ranged_01.jsonspecificName.mace
+#: simulation/data/technologies/attack_cavalry_ranged_02.jsonspecificName.ptol
+#: simulation/data/technologies/attack_cavalry_ranged_02.jsonspecificName.spart
+#: simulation/data/technologies/attack_cavalry_ranged_02.jsonspecificName.sele
+#: simulation/data/technologies/attack_cavalry_ranged_02.jsonspecificName.athen
+#: simulation/data/technologies/attack_cavalry_ranged_02.jsonspecificName.theb
+#: simulation/data/technologies/attack_cavalry_ranged_02.jsonspecificName.hele
+#: simulation/data/technologies/attack_cavalry_ranged_02.jsonspecificName.mace
 msgid "Xyston"
 msgstr "Xyston"
 
 #: simulation/data/technologies/attack_cav_lance.jsonspecificName.rome
+#: simulation/data/technologies/attack_cavalry_melee_01.jsonspecificName.rome
+#: simulation/data/technologies/attack_cavalry_melee_02.jsonspecificName.rome
+#: simulation/data/technologies/attack_cavalry_ranged_01.jsonspecificName.rome
+#: simulation/data/technologies/attack_cavalry_ranged_02.jsonspecificName.rome
 msgid "Hasta"
 msgstr "Hasta"
+
+#: simulation/data/technologies/attack_cavalry_melee_01.jsondescription
+msgid "Training increases melee attack."
+msgstr "L'entrainement augmente les dégâts des attaques de mêlée."
+
+#: simulation/data/technologies/attack_cavalry_melee_01.jsontooltip
+msgid "+20% melee cavalry attack."
+msgstr "+20% de dégâts en plus pour la cavalerie de mêlée."
+
+#: simulation/data/technologies/attack_cavalry_melee_01.jsongenericName
+msgid "Close Combat Cavalry Training"
+msgstr "Entrainement de la cavalerie au combat rapproché "
+
+#: simulation/data/technologies/attack_cavalry_melee_02.jsondescription
+#: simulation/data/technologies/attack_cavalry_ranged_02.jsondescription
+msgid "Replaces bronze weapons with iron."
+msgstr "Remplace les armes en bronze par du fer."
+
+#: simulation/data/technologies/attack_cavalry_melee_02.jsontooltip
+msgid ""
+"Equip your melee cavalry with better weapons. +20% melee cavalry attack."
+msgstr "Équiper votre cavalerie de mêlée avec de meilleures armes. La cavalerie de mêlée gagne +20% de dégâts en plus."
+
+#: simulation/data/technologies/attack_cavalry_melee_02.jsongenericName
+#: simulation/data/technologies/attack_cavalry_ranged_02.jsongenericName
+#: simulation/data/technologies/attack_infantry_melee_02.jsongenericName
+msgid "Iron Weapons"
+msgstr "Armes en fer"
+
+#: simulation/data/technologies/attack_cavalry_ranged_01.jsondescription
+msgid "Training increases ranged attack."
+msgstr "L'entrainement augmente les dégâts des attaques à distance."
+
+#: simulation/data/technologies/attack_cavalry_ranged_01.jsontooltip
+msgid "+20% ranged cavalry attack."
+msgstr "+20% de dégâts en plus pour la cavalerie à distance."
+
+#: simulation/data/technologies/attack_cavalry_ranged_01.jsongenericName
+msgid "Ranged Combat Cavalry Training"
+msgstr "Entrainement de la cavalerie au combat à distance"
+
+#: simulation/data/technologies/attack_cavalry_ranged_02.jsontooltip
+msgid ""
+"Equip your ranged cavalry with better weapons. +20% ranged cavalry attack."
+msgstr "Équiper votre cavalerie à distance avec de meilleures armes. La cavalerie gagne +20% de dégâts en plus."
 
 #: simulation/data/technologies/attack_champions_elite.jsondescription
 msgid "Guard units have uncommon bravery and valor in battle."
@@ -440,7 +599,7 @@ msgstr "Les unités de la garde ont un courage et une bravoure hors du commun au
 #: simulation/data/technologies/attack_champions_elite.jsontooltip
 msgid ""
 "Guard units have uncommon courage and valor in battle. Champions +2 attack."
-msgstr "Les Unités de la garde ont un courage et une bravoure hors du commun au combat. Les champions gagnent +2 en attaque."
+msgstr "Les unités de la garde ont un courage et une bravoure hors du commun au combat. Les champions gagnent +2 points d'attaque."
 
 #: simulation/data/technologies/attack_champions_elite.jsongenericName
 msgid "Heroism"
@@ -459,24 +618,113 @@ msgstr "Andreia"
 msgid "Fortitudo"
 msgstr "Fortitudo"
 
-#: simulation/data/technologies/attack_citizensoldiers_will.jsondescription
+#: simulation/data/technologies/attack_infantry_melee_01.jsondescription
+#: simulation/data/technologies/melee_inf_sidearms.jsondescription
+msgid ""
+"Often, an infantryman would carry a secondary weapon in addition to his "
+"primary weapon of choice, to be drawn when the primary weapon has failed or "
+"been broken."
+msgstr "Souvent, un soldat d'infanterie portait avec lui une arme secondaire en supplément de son arme principale, qu'il utilisait lorsque son arme principale défaillait ou se brisait."
+
+#: simulation/data/technologies/attack_infantry_melee_01.jsontooltip
+#: simulation/data/technologies/attack_infantry_melee_02.jsontooltip
+msgid "+20% melee infantry attack."
+msgstr "L'infanterie de mêlée gagne +20% de dégâts en plus."
+
+#: simulation/data/technologies/attack_infantry_melee_01.jsongenericName
+#: simulation/data/technologies/melee_inf_sidearms.jsongenericName
+msgid "Side Arms"
+msgstr "Arme de poing"
+
+#: simulation/data/technologies/attack_infantry_melee_01.jsonspecificName.ptol
+#: simulation/data/technologies/attack_infantry_melee_01.jsonspecificName.spart
+#: simulation/data/technologies/attack_infantry_melee_01.jsonspecificName.sele
+#: simulation/data/technologies/attack_infantry_melee_01.jsonspecificName.theb
+#: simulation/data/technologies/attack_infantry_melee_01.jsonspecificName.athen
+#: simulation/data/technologies/attack_infantry_melee_01.jsonspecificName.hele
+#: simulation/data/technologies/attack_infantry_melee_01.jsonspecificName.mace
+#: simulation/data/technologies/melee_inf_sidearms.jsonspecificName.ptol
+#: simulation/data/technologies/melee_inf_sidearms.jsonspecificName.spart
+#: simulation/data/technologies/melee_inf_sidearms.jsonspecificName.sele
+#: simulation/data/technologies/melee_inf_sidearms.jsonspecificName.theb
+#: simulation/data/technologies/melee_inf_sidearms.jsonspecificName.athen
+#: simulation/data/technologies/melee_inf_sidearms.jsonspecificName.hele
+#: simulation/data/technologies/melee_inf_sidearms.jsonspecificName.mace
+msgid "Xíphos"
+msgstr "Xíphos"
+
+#: simulation/data/technologies/attack_infantry_melee_01.jsonspecificName.rome
+#: simulation/data/technologies/melee_inf_sidearms.jsonspecificName.rome
+msgid "Pugio"
+msgstr "Pugio"
+
+#: simulation/data/technologies/attack_infantry_melee_02.jsondescription
+msgid "Using iron instead of bronze gave weapons additional power."
+msgstr "Utilisation du fer au lieu du bronze donnant une puissance supplémentaire aux armes."
+
+#: simulation/data/technologies/attack_infantry_ranged_01.jsondescription
+#: simulation/data/technologies/attack_infantry_ranged_02.jsondescription
+#: simulation/data/technologies/ranged_inf_irregulars.jsondescription
+msgid "Training increases damage of ranged infantry units."
+msgstr "L'entrainement améliore les dégâts des unités d'infanterie à distance."
+
+#: simulation/data/technologies/attack_infantry_ranged_01.jsontooltip
+#: simulation/data/technologies/attack_infantry_ranged_02.jsontooltip
+#: simulation/data/technologies/ranged_inf_irregulars.jsontooltip
+msgid "+20% ranged infantry attack."
+msgstr "+20% de dégâts en plus pour l'infanterie à distance."
+
+#: simulation/data/technologies/attack_infantry_ranged_01.jsongenericName
+#: simulation/data/technologies/ranged_inf_irregulars.jsongenericName
+msgid "Ranged Infantry Irregulars"
+msgstr "Infanterie à distance irrégulière"
+
+#: simulation/data/technologies/attack_infantry_ranged_01.jsonspecificName.ptol
+#: simulation/data/technologies/attack_infantry_ranged_01.jsonspecificName.spart
+#: simulation/data/technologies/attack_infantry_ranged_01.jsonspecificName.sele
+#: simulation/data/technologies/attack_infantry_ranged_01.jsonspecificName.theb
+#: simulation/data/technologies/attack_infantry_ranged_01.jsonspecificName.athen
+#: simulation/data/technologies/attack_infantry_ranged_01.jsonspecificName.hele
+#: simulation/data/technologies/attack_infantry_ranged_01.jsonspecificName.mace
+#: simulation/data/technologies/attack_infantry_ranged_02.jsonspecificName.ptol
+#: simulation/data/technologies/attack_infantry_ranged_02.jsonspecificName.spart
+#: simulation/data/technologies/attack_infantry_ranged_02.jsonspecificName.sele
+#: simulation/data/technologies/attack_infantry_ranged_02.jsonspecificName.theb
+#: simulation/data/technologies/attack_infantry_ranged_02.jsonspecificName.athen
+#: simulation/data/technologies/attack_infantry_ranged_02.jsonspecificName.hele
+#: simulation/data/technologies/attack_infantry_ranged_02.jsonspecificName.mace
+#: simulation/data/technologies/ranged_inf_irregulars.jsonspecificName.ptol
+#: simulation/data/technologies/ranged_inf_irregulars.jsonspecificName.spart
+#: simulation/data/technologies/ranged_inf_irregulars.jsonspecificName.sele
+#: simulation/data/technologies/ranged_inf_irregulars.jsonspecificName.theb
+#: simulation/data/technologies/ranged_inf_irregulars.jsonspecificName.athen
+#: simulation/data/technologies/ranged_inf_irregulars.jsonspecificName.hele
+#: simulation/data/technologies/ranged_inf_irregulars.jsonspecificName.mace
+msgid "Átaktoi"
+msgstr "Átaktoi"
+
+#: simulation/data/technologies/attack_infantry_ranged_02.jsongenericName
+msgid "Ranged Infantry Masterclass"
+msgstr "Classe de maître: Infanterie à distance"
+
+#: simulation/data/technologies/attack_soldiers_will.jsondescription
 msgid "The will to fight is crucial to victory."
 msgstr "La volonté de combattre est cruciale pour vaincre."
 
-#: simulation/data/technologies/attack_citizensoldiers_will.jsontooltip
-msgid "Inspire your troops with higher pay. All citizen-Soldiers +2 attack."
-msgstr "Motiver vos troupes avec une solde plus élevée. Tous les citoyens-soldats gagnent +2 en attaque."
+#: simulation/data/technologies/attack_soldiers_will.jsontooltip
+msgid "Inspire your troops with higher pay. All soldiers +25% attack."
+msgstr "Motiver vos troupes avec un salaire plus élevé. Tous les soldats gagnent +25% de dégâts en plus."
 
-#: simulation/data/technologies/attack_citizensoldiers_will.jsongenericName
+#: simulation/data/technologies/attack_soldiers_will.jsongenericName
 msgid "Will to fight"
 msgstr "Volonté de combattre"
 
-#: simulation/data/technologies/attack_citizensoldiers_will.jsonspecificName.ptol
-#: simulation/data/technologies/attack_citizensoldiers_will.jsonspecificName.spart
-#: simulation/data/technologies/attack_citizensoldiers_will.jsonspecificName.sele
-#: simulation/data/technologies/attack_citizensoldiers_will.jsonspecificName.athen
-#: simulation/data/technologies/attack_citizensoldiers_will.jsonspecificName.hele
-#: simulation/data/technologies/attack_citizensoldiers_will.jsonspecificName.mace
+#: simulation/data/technologies/attack_soldiers_will.jsonspecificName.ptol
+#: simulation/data/technologies/attack_soldiers_will.jsonspecificName.spart
+#: simulation/data/technologies/attack_soldiers_will.jsonspecificName.sele
+#: simulation/data/technologies/attack_soldiers_will.jsonspecificName.athen
+#: simulation/data/technologies/attack_soldiers_will.jsonspecificName.hele
+#: simulation/data/technologies/attack_soldiers_will.jsonspecificName.mace
 msgid "Dynamis"
 msgstr "Dynamis"
 
@@ -484,11 +732,11 @@ msgstr "Dynamis"
 msgid ""
 "Secret steel working techniques give sword blades distinctive and beautiful "
 "markings. Not only that, but the steel's hardness is unparalleled."
-msgstr "Les techniques secrètes du travail de l'acier donnent aux épées des signes beaux et distinctifs. De plus, mais la dureté de l'acier est sans précédent. "
+msgstr "Les techniques secrètes du travail de l'acier donnent aux épées de magnifiques et distinctives marques. Ce n'est pas tout, la dureté de l'acier est aussi sans précédent."
 
 #: simulation/data/technologies/attack_steel_working.jsontooltip
 msgid "+2 attack for all sword units."
-msgstr "+2 d'attaque pour tous les épéistes."
+msgstr "+2 points d'attaque pour toutes les unités à épée."
 
 #: simulation/data/technologies/attack_steel_working.jsongenericName
 msgid "Steel Working"
@@ -512,11 +760,35 @@ msgstr "Les créneaux sur les remparts permettent au soldats d'avoir une plus gr
 msgid ""
 "Install crenellations and murder holes to have 40% more arrows fired per "
 "garrisoned soldier."
-msgstr "Installer créneaux et meurtrières pour augmenter de 40% le nombre de flèches tirées par soldat en garnison."
+msgstr "Installer des créneaux et meurtrières pour augmenter de 40% le nombre de flèches tirées par les soldats en garnison."
 
 #: simulation/data/technologies/attack_tower_crenellations.jsongenericName
 msgid "Crenellations"
 msgstr "Créneaux"
+
+#: simulation/data/technologies/attack_tower_defense.jsondescription
+msgid "Reinforce the foundations in preparation of an attack."
+msgstr "Renforcer les fondations en préparation d'une attaque."
+
+#: simulation/data/technologies/attack_tower_defense.jsontooltip
+msgid "Increases armour level of the defense tower by 2 levels."
+msgstr "Augmente le niveau d'armure de la tour de défense de 2 niveaux."
+
+#: simulation/data/technologies/attack_tower_defense.jsongenericName
+msgid "Sturdy Foundations"
+msgstr "Fondations solides"
+
+#: simulation/data/technologies/attack_tower_range.jsondescription
+msgid "Arrow shooters increase the maximum range of the fire arrows."
+msgstr "Tireurs de flèche augmente la portée maximale des flèches de feu."
+
+#: simulation/data/technologies/attack_tower_range.jsontooltip
+msgid "Increases defense tower maximum range by 8 meters."
+msgstr "Augmente la portée maximale des tours de défense de 8 mètres."
+
+#: simulation/data/technologies/attack_tower_range.jsongenericName
+msgid "Arrow Shooters"
+msgstr "Tireurs de flèche"
 
 #: simulation/data/technologies/attack_tower_watch.jsondescription
 msgid "A night's watch increases vigilance."
@@ -558,7 +830,7 @@ msgstr "Gravats"
 
 #: simulation/data/technologies/decay_outpost.jsondescription
 msgid "Outposts survive twice as long in neutral territory."
-msgstr "Les postes avancés survivent deux fois plus longtemps en territoire neutre."
+msgstr "Les avants-postes survivent deux fois plus longtemps en territoire neutre."
 
 #: simulation/data/technologies/decay_outpost.jsontooltip
 msgid "Territory decay -50% for Outposts."
@@ -574,15 +846,33 @@ msgstr "Élevage du bétail pour la nourriture."
 
 #: simulation/data/technologies/gather_animals_stockbreeding.jsontooltip
 msgid "Breed time -25% for domestic animals (sheep, goats, cattle, etc.)."
-msgstr "-25% de temps d'élevage des animaux domestiques (moutons, chèvres, bovins, etc.)"
+msgstr "-25% de temps d'élevage des animaux domestiques (moutons, chèvres, bovins, etc.)."
 
 #: simulation/data/technologies/gather_animals_stockbreeding.jsongenericName
 msgid "Stockbreeding"
 msgstr "Élevage"
 
+#: simulation/data/technologies/gather_capacity_basket.jsondescription
+#: simulation/data/technologies/gather_capacity_carts.jsondescription
 #: simulation/data/technologies/gather_capacity_wheelbarrow.jsondescription
 msgid "Increases shuttling capacity for all resources."
 msgstr "Augmente les capacités de transport pour toutes les ressources."
+
+#: simulation/data/technologies/gather_capacity_basket.jsontooltip
+msgid "Workers use baskets. +5 shuttle capacity for all resources."
+msgstr "Les travailleurs utilisent des paniers. +5 de capacité de transport pour toutes les ressources."
+
+#: simulation/data/technologies/gather_capacity_basket.jsongenericName
+msgid "Baskets"
+msgstr "Paniers"
+
+#: simulation/data/technologies/gather_capacity_carts.jsontooltip
+msgid "Workers use horse-drawn carts. +10 shuttle capacity for all resources."
+msgstr "Les travailleurs utilisent des charrettes tirées par des chevaux. +10 de capacité de transport pour toutes les ressources."
+
+#: simulation/data/technologies/gather_capacity_carts.jsongenericName
+msgid "Horse-drawn Carts"
+msgstr "Charrettes tirées par des chevaux"
 
 #: simulation/data/technologies/gather_capacity_wheelbarrow.jsontooltip
 msgid "Workers use wheelbarrows. +5 shuttle capacity for all resources."
@@ -592,29 +882,68 @@ msgstr "Les travailleurs utilisent des brouettes. +5 de capacité de transport p
 msgid "Wheelbarrow"
 msgstr "Brouette"
 
+#: simulation/data/technologies/gather_farming_fertilizer.jsondescription
+msgid "Extra nutrients for farms."
+msgstr "Nutriments supplémentaires pour les fermes."
+
+#: simulation/data/technologies/gather_farming_fertilizer.jsontooltip
+msgid "Workers +25% farming rate."
+msgstr "Le taux de récolte agricole augmente de +25% pour les récolteurs."
+
+#: simulation/data/technologies/gather_farming_fertilizer.jsongenericName
+msgid "Fertilizer"
+msgstr "Engrais"
+
 #: simulation/data/technologies/gather_farming_plows.jsondescription
 msgid "A horse drawn instrument to turn the sod."
 msgstr "Un instrument dessiné pour le cheval afin de retourner la terre."
 
 #: simulation/data/technologies/gather_farming_plows.jsontooltip
-msgid "Equip your workers with iron plows. +25% farming rate."
-msgstr "Équiper vos travailleurs avec des charrues de fer. +25% de taux agricole."
+msgid "Equip your workers with iron plows. +15% farming rate."
+msgstr "Équiper vos travailleurs avec des charrues en fer. +15% de vitesse de récolte agricole."
 
 #: simulation/data/technologies/gather_farming_plows.jsongenericName
 msgid "Iron Plow"
 msgstr "Charrue en fer"
 
+#: simulation/data/technologies/gather_farming_training.jsondescription
+msgid "Training for workers to increase farm gathering speed."
+msgstr "Entrainement des travailleurs pour augmenter la vitesse de récolte des fermes."
+
+#: simulation/data/technologies/gather_farming_training.jsontooltip
+msgid "Workers +15% farming rate."
+msgstr "Les travailleurs des fermes gagnent +15% de vitesse de récolte agricole."
+
+#: simulation/data/technologies/gather_farming_training.jsongenericName
+msgid "Gather Training"
+msgstr "Entrainement de récolte"
+
 #: simulation/data/technologies/gather_lumbering_ironaxes.jsondescription
+#: simulation/data/technologies/gather_lumbering_sharpaxes.jsondescription
+#: simulation/data/technologies/gather_lumbering_strongeraxes.jsondescription
 msgid "Increases wood gathering rates for trees."
 msgstr "Augmente la vitesse d'exploitation des arbres."
 
 #: simulation/data/technologies/gather_lumbering_ironaxes.jsontooltip
-msgid "Workers +25% lumbering rate for trees."
-msgstr "Les travailleurs coupent les arbres +25% plus rapidement."
+#: simulation/data/technologies/gather_lumbering_strongeraxes.jsontooltip
+msgid "Workers +15% lumbering rate for trees."
+msgstr "Le taux de collecte de bois augmente de +15% pour les travailleurs forestiers."
 
 #: simulation/data/technologies/gather_lumbering_ironaxes.jsongenericName
 msgid "Iron Ax Heads"
 msgstr "Têtes de haches en fer"
+
+#: simulation/data/technologies/gather_lumbering_sharpaxes.jsontooltip
+msgid "Workers +50% lumbering rate for trees."
+msgstr "Le taux de collecte de bois augmente de +50% pour les travailleurs forestiers."
+
+#: simulation/data/technologies/gather_lumbering_sharpaxes.jsongenericName
+msgid "Sharp Ax Heads"
+msgstr "Tête de hache tranchante"
+
+#: simulation/data/technologies/gather_lumbering_strongeraxes.jsongenericName
+msgid "Stronger Ax"
+msgstr "Hache solide"
 
 #: simulation/data/technologies/gather_mining_serfs.jsondescription
 #: simulation/data/technologies/gather_mining_servants.jsondescription
@@ -624,8 +953,8 @@ msgstr "Augmente la vitesse d'exploitation de la pierre."
 
 #: simulation/data/technologies/gather_mining_serfs.jsontooltip
 msgid ""
-"Compel serfs to help your workers mine stone. +25% stone gathering rate."
-msgstr "Obliger les serfs à aider vos travailleurs à miner la pierre. +25% de taux d'exploitation de la pierre."
+"Compel serfs to help your workers mine stone. +15% stone gathering rate."
+msgstr "Obliger les serfs à aider vos travailleurs des mines de pierre. +15% de taux de collecte de pierre."
 
 #: simulation/data/technologies/gather_mining_serfs.jsongenericName
 msgid "Serfs"
@@ -639,8 +968,8 @@ msgid "Heilotes"
 msgstr "Heilotes"
 
 #: simulation/data/technologies/gather_mining_servants.jsontooltip
-msgid "+25% stone gathering rate."
-msgstr "+25% de taux d'exploitation de pierre."
+msgid "+15% stone gathering rate."
+msgstr "+15% du taux de collecte de la pierre."
 
 #: simulation/data/technologies/gather_mining_servants.jsongenericName
 msgid "Servants"
@@ -661,19 +990,19 @@ msgstr "Douloi"
 #: simulation/data/technologies/gather_mining_silvermining.jsondescription
 #: simulation/data/technologies/gather_mining_wedgemallet.jsondescription
 msgid "Increases metal gathering rates."
-msgstr "Augmente les taux d'exploitation de métal."
+msgstr "Augmente les taux d'exploitation du métal."
 
 #: simulation/data/technologies/gather_mining_shaftmining.jsontooltip
-msgid "Develop shaft mining. +25% metal gathering rate."
-msgstr "Développer l'exploitation minière. +25% de taux d'exploitation de métal."
+msgid "Develop shaft mining. +15% metal gathering rate."
+msgstr "Développer l'exploitation minière. +15% du taux d'exploitation du métal."
 
 #: simulation/data/technologies/gather_mining_shaftmining.jsongenericName
 msgid "Shaft Mining"
 msgstr "Exploitation minière"
 
 #: simulation/data/technologies/gather_mining_silvermining.jsontooltip
-msgid "Strike a vein of precious silver. +25% metal gathering rate."
-msgstr "Trouver un filon d'argent précieux. +25% de taux d'exploitation de métal."
+msgid "Strike a vein of precious silver. +50% metal gathering rate."
+msgstr "Trouver un filon d'argent précieux. +50% du taux d'exploitation du métal."
 
 #: simulation/data/technologies/gather_mining_silvermining.jsongenericName
 msgid "Silver Mining"
@@ -689,8 +1018,8 @@ msgstr "Mines du Laureion"
 
 #: simulation/data/technologies/gather_mining_slaves.jsontooltip
 msgid ""
-"Buy slaves to help your workers mine for stone. +25% stone gathering rate."
-msgstr "Acheter des esclaves pour aider vos travailleurs des mines de pierre. +25% de taux d'exploitation de pierre."
+"Buy slaves to help your workers mine for stone. +50% stone gathering rate."
+msgstr "Acheter des esclaves pour aider vos travailleurs des mines de pierre. +50% de taux de collecte de pierre."
 
 #: simulation/data/technologies/gather_mining_slaves.jsongenericName
 msgid "Slaves"
@@ -704,8 +1033,8 @@ msgid "Andrapodon"
 msgstr "Andrapodon"
 
 #: simulation/data/technologies/gather_mining_wedgemallet.jsontooltip
-msgid "+25% metal gathering rate."
-msgstr "+25% de taux d'exploitation du métal."
+msgid "+15% metal gathering rate."
+msgstr "+15% du taux d'exploitation du métal."
 
 #: simulation/data/technologies/gather_mining_wedgemallet.jsongenericName
 msgid "Wedge and Mallet"
@@ -717,7 +1046,7 @@ msgstr "Équiper vos travailleurs avec des outils utiles. Pas de prérequis."
 
 #: simulation/data/technologies/gather_wicker_baskets.jsondescription
 msgid "Baskets to carry foraged food stuffs."
-msgstr "Paniers pour transporter la nouritture récoltée. "
+msgstr "Paniers pour transporter la nourriture récoltée. "
 
 #: simulation/data/technologies/gather_wicker_baskets.jsontooltip
 msgid "Equip your foragers with wicker baskets. +50% fruit foraging rate."
@@ -727,6 +1056,18 @@ msgstr "Équiper vos cueilleurs de paniers en osier. +50% de taux de cueillette 
 msgid "Wicker Baskets"
 msgstr "Paniers en osier"
 
+#: simulation/data/technologies/heal_barracks.jsondescription
+msgid "Units garrisoned in barracks heal over time."
+msgstr "Les unités en garnison dans les casernes se guérissent au fil du temps."
+
+#: simulation/data/technologies/heal_barracks.jsontooltip
+msgid "Units gain health over time while garrisoned in barracks."
+msgstr "Les unités se guérissent au fil du temps lorsqu'elles sont en garnison dans les casernes."
+
+#: simulation/data/technologies/heal_barracks.jsongenericName
+msgid "Living Conditions"
+msgstr "Conditions de vie"
+
 #: simulation/data/technologies/heal_range.jsondescription
 #: simulation/data/technologies/heal_range_2.jsondescription
 msgid "Increases the healing range of all healers."
@@ -734,8 +1075,8 @@ msgstr "Augmente la portée de guérison de tous les guérisseurs."
 
 #: simulation/data/technologies/heal_range.jsontooltip
 #: simulation/data/technologies/heal_range_2.jsontooltip
-msgid "Healers +4 Healing Range."
-msgstr "Les guérisseurs gagnent +4 de portée de guérison."
+msgid "Healers +8 Healing Range."
+msgstr "Les guérisseurs gagnent +8 de portée de guérison."
 
 #: simulation/data/technologies/heal_range.jsongenericName
 msgid "Healing Range"
@@ -853,34 +1194,9 @@ msgstr "Les remparts gagnent +2 points d'armure d'écrasement, mais sont +10% pl
 msgid "Geometric Masonry"
 msgstr "Maçonnerie géométrique"
 
-#: simulation/data/technologies/melee_inf_sidearms.jsondescription
-msgid ""
-"Often, an infantryman would carry a secondary weapon in addition to his "
-"primary weapon of choice, to be drawn when the primary weapon has failed or "
-"been broken."
-msgstr "Souvent, un soldat d'infanterie portait avec lui une arme secondaire en supplément de son arme principale, qu'il utilisait lorsque son arme principale défaillait ou se brisait."
-
 #: simulation/data/technologies/melee_inf_sidearms.jsontooltip
 msgid "Melee infantry +1 hack attack."
-msgstr "L'infanterie de mêlée gagne +1 d'attaque tranchante."
-
-#: simulation/data/technologies/melee_inf_sidearms.jsongenericName
-msgid "Side Arms"
-msgstr "Arme de poing"
-
-#: simulation/data/technologies/melee_inf_sidearms.jsonspecificName.ptol
-#: simulation/data/technologies/melee_inf_sidearms.jsonspecificName.spart
-#: simulation/data/technologies/melee_inf_sidearms.jsonspecificName.sele
-#: simulation/data/technologies/melee_inf_sidearms.jsonspecificName.theb
-#: simulation/data/technologies/melee_inf_sidearms.jsonspecificName.athen
-#: simulation/data/technologies/melee_inf_sidearms.jsonspecificName.hele
-#: simulation/data/technologies/melee_inf_sidearms.jsonspecificName.mace
-msgid "Xíphos"
-msgstr "Xíphos"
-
-#: simulation/data/technologies/melee_inf_sidearms.jsonspecificName.rome
-msgid "Pugio"
-msgstr "Pugio"
+msgstr "L'infanterie de mêlée gagne +1 point d'attaque tranchante."
 
 #: simulation/data/technologies/melee_inf_spearheads.jsondescription
 msgid "Using iron instead of bronze gave spears additional piercing power."
@@ -888,7 +1204,7 @@ msgstr "Utilisation du fer au lieu du bronze donne une puissance de pénétratio
 
 #: simulation/data/technologies/melee_inf_spearheads.jsontooltip
 msgid "All Spear units +2 hack attack."
-msgstr "Tous les lanciers gagnent +2 d'attaque tranchante."
+msgstr "Tous les lanciers gagnent +2 points d'attaque tranchante."
 
 #: simulation/data/technologies/melee_inf_spearheads.jsongenericName
 msgid "Iron Spearheads"
@@ -906,27 +1222,27 @@ msgstr "Siderénies Aichmés"
 
 #: simulation/data/technologies/pair_cav_01.jsongenericName
 msgid "Lance vs. Chamfron"
-msgstr "Lance vs. Chanfrein"
+msgstr "Lance c. Chanfrein"
 
 #: simulation/data/technologies/pair_champ_02.jsongenericName
 msgid "Champions vs. Part-timers"
-msgstr "Champions vs. Contractuels"
+msgstr "Champions c. Contractuels"
 
 #: simulation/data/technologies/pair_gather_01.jsongenericName
 msgid "Servants vs. Wedge and Mallet"
-msgstr "Servants vs. Marteau et burin"
+msgstr "Servants c. Marteau et burin"
 
 #: simulation/data/technologies/pair_gather_02.jsongenericName
 msgid "Serfs vs. Shaft Mining"
-msgstr "Serfs vs. Exploitation minière"
+msgstr "Serfs c. Exploitation minière"
 
 #: simulation/data/technologies/pair_gather_03.jsongenericName
 msgid "Slaves vs. Silver Mining"
-msgstr "Esclaves vs. Extraction de l'argent"
+msgstr "Esclaves c. Extraction de l'argent"
 
 #: simulation/data/technologies/pair_gather_wood_01.jsongenericName
 msgid "Iron Axes vs. Wheelbarrow"
-msgstr "Haches de fer vs. Brouette"
+msgstr "Haches de fer c. Brouette"
 
 #: simulation/data/technologies/pair_heal_01.jsongenericName
 msgid "Heal Range and Rate"
@@ -962,7 +1278,7 @@ msgstr "Armure d'infanterie contre les objets tranchants vs. Armure de lanciers 
 
 #: simulation/data/technologies/pair_levy_01.jsongenericName
 msgid "Levy Infantry vs. Levy Cavalry"
-msgstr "Levée d'infanterie vs. Levée de cavalerie"
+msgstr "Levée d'infanterie c. Levée de cavalerie"
 
 #: simulation/data/technologies/pair_siege_attack_cost.jsongenericName
 msgid "Attack vs. Cost"
@@ -1058,7 +1374,7 @@ msgstr "Évoluer vers la Phase des Cités pour débloquer davantage de structure
 
 #: simulation/data/technologies/phase_city_pair_celts.jsongenericName
 msgid "Britons vs. Gauls"
-msgstr "Bretons vs. Gaulois"
+msgstr "Bretons c. Gaulois"
 
 #: simulation/data/technologies/phase_town.jsongenericName
 #: simulation/data/technologies/phase_town_athen.jsongenericName
@@ -1158,8 +1474,9 @@ msgid ""
 msgstr "Les jardins domestiques pouvaient n'être que de simples zones clôturées ou s'étendre à de larges enceintes entretenues et traversées de colonnes."
 
 #: simulation/data/technologies/pop_house_01.jsontooltip
-msgid "Houses +1 population cap bonus."
-msgstr "Bonus de +1 de population pour les maisons."
+#: simulation/data/technologies/pop_house_02.jsontooltip
+msgid "Houses +20% population cap bonus."
+msgstr "Bonus de +20% de population pour les maisons."
 
 #: simulation/data/technologies/pop_house_01.jsongenericName
 msgid "Home Garden"
@@ -1172,10 +1489,18 @@ msgstr "Jardin"
 #: simulation/data/technologies/pop_house_01.jsonspecificName.hele
 #: simulation/data/technologies/pop_house_01.jsonspecificName.mace
 #: simulation/data/technologies/pop_house_01.jsonspecificName.rome
+#: simulation/data/technologies/pop_wonder.jsonspecificName.ptol
+#: simulation/data/technologies/pop_wonder.jsonspecificName.spart
+#: simulation/data/technologies/pop_wonder.jsonspecificName.sele
+#: simulation/data/technologies/pop_wonder.jsonspecificName.athen
+#: simulation/data/technologies/pop_wonder.jsonspecificName.hele
+#: simulation/data/technologies/pop_wonder.jsonspecificName.mace
+#: simulation/data/technologies/pop_wonder.jsonspecificName.rome
 msgid "Peristyle"
 msgstr "Péristyle"
 
 #: simulation/data/technologies/pop_house_01.jsonspecificName.pers
+#: simulation/data/technologies/pop_wonder.jsonspecificName.pers
 msgid "Paradise"
 msgstr "Paradis"
 
@@ -1183,10 +1508,6 @@ msgstr "Paradis"
 msgid ""
 "Homes tended to expand as the wealth and population of a settlement grew."
 msgstr "Les maisons avaient tendance à s'agrandir lorsque la richesse et la population d'une colonie augmentait."
-
-#: simulation/data/technologies/pop_house_02.jsontooltip
-msgid "Houses +2 population cap bonus."
-msgstr "Bonus de +2 de population pour les maisons."
 
 #: simulation/data/technologies/pop_house_02.jsongenericName
 msgid "Manors"
@@ -1196,27 +1517,17 @@ msgstr "Manoirs"
 msgid "Insulae"
 msgstr "Insulae"
 
-#: simulation/data/technologies/ranged_inf_irregulars.jsondescription
-msgid "Training increases damage of ranged infantry units."
-msgstr "La formation améliore les dommages des unités d'infanterie à distance."
+#: simulation/data/technologies/pop_wonder.jsondescription
+msgid "The wonder attracts many more people to your civilization."
+msgstr "La merveille attire beaucoup plus de personnes vers votre civilisation."
 
-#: simulation/data/technologies/ranged_inf_irregulars.jsontooltip
-msgid "Ranged infantry +2 pierce attack."
-msgstr "L'infanterie à distance gagnent +2 d'attaque perçante."
+#: simulation/data/technologies/pop_wonder.jsontooltip
+msgid "+50 maximum population cap."
+msgstr "+50 de population à la limite maximale."
 
-#: simulation/data/technologies/ranged_inf_irregulars.jsongenericName
-msgid "Ranged Infantry Irregulars"
-msgstr "Infanterie à distance irrégulière"
-
-#: simulation/data/technologies/ranged_inf_irregulars.jsonspecificName.ptol
-#: simulation/data/technologies/ranged_inf_irregulars.jsonspecificName.spart
-#: simulation/data/technologies/ranged_inf_irregulars.jsonspecificName.sele
-#: simulation/data/technologies/ranged_inf_irregulars.jsonspecificName.theb
-#: simulation/data/technologies/ranged_inf_irregulars.jsonspecificName.athen
-#: simulation/data/technologies/ranged_inf_irregulars.jsonspecificName.hele
-#: simulation/data/technologies/ranged_inf_irregulars.jsonspecificName.mace
-msgid "Átaktoi"
-msgstr "Átaktoi"
+#: simulation/data/technologies/pop_wonder.jsongenericName
+msgid "Glorious Expansion"
+msgstr "Expansion glorieuse"
 
 #: simulation/data/technologies/ranged_inf_skirmishers.jsondescription
 msgid ""
@@ -1227,7 +1538,7 @@ msgstr "La lanière de javelot (les Grecs les appelaient aussi les boucles, ou '
 
 #: simulation/data/technologies/ranged_inf_skirmishers.jsontooltip
 msgid "All Javelin units +2 pierce attack and +4 range."
-msgstr "Toutes les unités de javelot gagnent +2 d'attaque perçante et +4 de portée."
+msgstr "Toutes les unités de javelot gagnent +2 points d'attaque perçante et +4 de portée."
 
 #: simulation/data/technologies/ranged_inf_skirmishers.jsongenericName
 msgid "Javelin Thong"
@@ -1264,8 +1575,8 @@ msgid "Advanced technologies improve siege efficiency"
 msgstr "Les technologies avancées améliorent l'efficacité des armes de siège"
 
 #: simulation/data/technologies/siege_attack.jsontooltip
-msgid "All siege weapons +5 Crush damage."
-msgstr "Toutes les armes de siège gagnent +5 de dommages d'écrasement."
+msgid "All siege weapons +25% Crush damage."
+msgstr "Toutes les armes de siège gagnent +25% de dommages d'écrasement."
 
 #: simulation/data/technologies/siege_attack.jsongenericName
 msgid "Advanced Siege"
@@ -1319,6 +1630,27 @@ msgstr "Les armes de siège immobiles se montent et démontent 25% plus rapideme
 msgid "Military Engineers"
 msgstr "Génie militaire"
 
+#: simulation/data/technologies/speed_cavalry_01.jsondescription
+msgid "Breed the fastest horses."
+msgstr "Reproduire les chevaux les plus rapides."
+
+#: simulation/data/technologies/speed_cavalry_01.jsontooltip
+#: simulation/data/technologies/speed_cavalry_02.jsontooltip
+msgid "+10% cavalry walk speed."
+msgstr "+10% de vitesse de déplacement de la cavalerie."
+
+#: simulation/data/technologies/speed_cavalry_01.jsongenericName
+msgid "Cavalry Breeding"
+msgstr "Élevage de chevaux"
+
+#: simulation/data/technologies/speed_cavalry_02.jsondescription
+msgid "Train your horses to move faster."
+msgstr "Entraîne vos chevaux à se déplacer plus rapidement."
+
+#: simulation/data/technologies/speed_cavalry_02.jsongenericName
+msgid "Cavalry Speed Training"
+msgstr "Entrainement de vitesse de la cavalerie"
+
 #: simulation/data/technologies/speed_trader_01.jsondescription
 msgid ""
 "Increases movement rate of traders, which in turn increases trade income."
@@ -1342,7 +1674,7 @@ msgstr "Augmente significativement la vitesse de formation des soldats à la cas
 #: simulation/data/technologies/training_conscription.jsontooltip
 #: simulation/data/technologies/persians/training_conscription_infantry.jsontooltip
 msgid "Faster batch training speed for the Barracks."
-msgstr "Vitesse d'enrôlement dans les casernes augmentée"
+msgstr "Vitesse d'enrôlement en groupe dans les casernes augmentée."
 
 #: simulation/data/technologies/training_conscription.jsongenericName
 msgid "Conscription"
@@ -1358,7 +1690,7 @@ msgstr "L'appel à l'enrôlement pour la cavalerie en temps de guerre aide à re
 #: simulation/data/technologies/training_levy_cavalry.jsontooltip
 msgid ""
 "All cavalry -20% train time, but also -10 health. Unlocks Conscription."
-msgstr "La cavalerie s’entraîne -20% plus vite, mais perd -10 points de vie. Débloque Conscription."
+msgstr "La cavalerie s’entraîne 20% plus vite, mais perd 10 points de santé. Débloque Conscription."
 
 #: simulation/data/technologies/training_levy_cavalry.jsongenericName
 #: simulation/data/technologies/persians/training_levy_cavalry.jsongenericName
@@ -1375,7 +1707,7 @@ msgstr "L'appel à l'enrôlement pour la cavalerie en temps de guerre aide à re
 #: simulation/data/technologies/training_levy_infantry.jsontooltip
 msgid ""
 "All infantry -10% train time, but also -5 health. Unlocks Conscription."
-msgstr "Toute l'infanterie gagne -10% de temps de formation, mais perd -5 points de santé. Débloque la conscription."
+msgstr "Toute l'infanterie s'entraine 10% plus vite, mais perd 5 points de santé. Débloque Conscription."
 
 #: simulation/data/technologies/training_levy_infantry.jsongenericName
 #: simulation/data/technologies/persians/training_levy_infantry.jsongenericName
@@ -1384,7 +1716,7 @@ msgstr "Levée d'infanterie"
 
 #: simulation/data/technologies/training_naval_architects.jsondescription
 msgid "Significantly increase build speed of batches of ships at the Dock."
-msgstr "Augmenter de manière significative la vitesse de construction par groupes des navires dans le port."
+msgstr "Augmente de manière significative la vitesse de construction par groupes des navires dans le port."
 
 #: simulation/data/technologies/training_naval_architects.jsontooltip
 msgid "Docks increased batch construction speed bonus."
@@ -1398,15 +1730,15 @@ msgstr "Architectes navals"
 msgid ""
 "Guard units (Champions) are professionals who wield the best weapons and "
 "have the best training."
-msgstr "Les unités de la Garde (Champions) sont des professionnels qui détiennent les meilleures armes et ont la meilleure formation."
+msgstr "Les unités de la Garde (Champions) sont des professionnels détenant les meilleures armes et ayant le meilleur entraînement."
 
 #: simulation/data/technologies/unlock_champion_units.jsontooltip
 msgid "Unlock the ability to train Champions at the barracks."
-msgstr "Débloquer la possibilité de former des champions dans les casernes."
+msgstr "Débloque la possibilité de former les champions dans les casernes."
 
 #: simulation/data/technologies/unlock_champion_units.jsongenericName
 msgid "Unlock Champion Units"
-msgstr "Débloquer les unités championnes"
+msgstr "Débloque les unités championnes"
 
 #: simulation/data/technologies/unlock_champion_units.jsonspecificName.hele
 #: simulation/data/technologies/unlock_champion_units.jsonspecificName.mace
@@ -1467,7 +1799,7 @@ msgid ""
 "Upgrade all of your citizen-soldier infantrymen to Advanced rank. This "
 "increases their military prowess, but decreases their resource gathering "
 "rates -25%. Unlocks Elite Citizen-Infantry technology."
-msgstr "Monter tous vos fantassins citoyens-soldats au grade avancé. Cela augmente leurs prouesses militaires, mais diminue leur taux de collecte de ressources de -25%. Débloque la technologie Infanterie citoyenne d'élite."
+msgstr "Promeus tous vos fantassins citoyens-soldats au grade Avancé. Cela augmente leurs prouesses militaires, mais diminue leur taux de collecte de ressources de -25%. Débloque la technologie Infanterie citoyenne d'élite."
 
 #: simulation/data/technologies/upgrade_rank_advanced_infantry.jsongenericName
 msgid "Advanced Citizen-Infantry"
@@ -1485,7 +1817,7 @@ msgid ""
 "Promote all of your citizen-soldier cavalrymen to Elite rank. This increases"
 " their military prowess, but decreases their meat gathering rates another "
 "-25%."
-msgstr "Promouvoir tous vos cavaliers citoyens-soldats au grade d'élite. Cela augmente leurs prouesses militaires, mais diminue leur taux de collecte de viande d'un autre -25%."
+msgstr "Promeus tous vos cavaliers citoyens-soldats au grade d'Élite. Cela augmente leurs prouesses militaires, mais diminue leur taux de collecte de viande de -25%."
 
 #: simulation/data/technologies/upgrade_rank_elite_cavalry.jsongenericName
 msgid "Elite Citizen-Cavalry"
@@ -1493,14 +1825,14 @@ msgstr "Cavalerie citoyenne d'élite"
 
 #: simulation/data/technologies/upgrade_rank_elite_infantry.jsondescription
 msgid "Upgrade all of your citizen-soldier infantrymen to Elite rank."
-msgstr "Monter tous vos fantassins citoyens-soldats au grade d'élite."
+msgstr "Promeus toutes vos infanteries citoyens-soldats au grade d'Élite."
 
 #: simulation/data/technologies/upgrade_rank_elite_infantry.jsontooltip
 msgid ""
 "Upgrade all of your citizen-soldier infantrymen to Elite rank. This "
 "increases their military prowess, but decreases their resource gathering "
 "rates another -25%."
-msgstr "Monter tous vos fantassins citoyens-soldats au grade d'élite. Cela augmente leurs prouesses militaires, mais diminue encore leur taux de collecte de ressources de -25%."
+msgstr "Promeus toutes vos infanteries citoyens-soldats au grade d'Élite. Cela augmente leurs prouesses militaires, mais diminue leur taux de collecte de ressources de -25%."
 
 #: simulation/data/technologies/upgrade_rank_elite_infantry.jsongenericName
 msgid "Elite Citizen-Infantry"
@@ -1519,7 +1851,7 @@ msgstr "Les avant-postes ont un plus grand champ de vision pour la reconnaissanc
 
 #: simulation/data/technologies/vision_outpost.jsontooltip
 msgid "Vision Range +50% for Outposts."
-msgstr "Champ de vision augmenté de +50% pour les avant-postes."
+msgstr "Le champ de vision des avants-postes est +50% plus grand."
 
 #: simulation/data/technologies/vision_outpost.jsongenericName
 msgid "Carrier Pigeons"
@@ -1532,7 +1864,7 @@ msgid ""
 "was via the city's harbor, not by storming its walls. Consequently, "
 "Carthaginian walls, gates, and wall towers have 3x the health of a standard "
 "wall, but also cost twice as much and take twice as long to build."
-msgstr "Les carthaginois bâtissaient leurs remparts en trois circuits concentriques. Ces murs n'ont jamais été violés. Même quand la cité fut prises par les Romains, ce fut par le port de la ville et non en prenant d'assaut ses remparts. Par conséquent, les remparts carthaginois, les portes et les tours ont x3 plus de santé que des murs standard, mais ils ont aussi un coût multiplié par deux et un temps de construction doublé. "
+msgstr "Les Carthaginois bâtissaient leurs remparts en trois circuits concentriques. Ces murs n'ont jamais été violés. Même quand la cité fut prise par les Romains, ce fut par le port de la ville et non en prenant d'assaut ses remparts. Par conséquent, les remparts carthaginois, les portes et les tours ont x3 plus de santé que des murs standards, mais ils ont aussi un coût multiplié par deux et un temps de construction doublé. "
 
 #: simulation/data/technologies/carthaginians/civbonus_triple_walls.jsongenericName
 msgid "Triple Walls"
@@ -1607,7 +1939,7 @@ msgstr "Capitaine mercenaire italiote"
 msgid ""
 "Hire an Italiote mercenary general to reduce cost -20 metal for Italian "
 "mercenaries."
-msgstr "Embaucher un général mercenaire italiote pour réduire de -20 le coût de métal des mercenaires italiens."
+msgstr "Embauche un général mercenaire italiote pour réduire le coût des mercenaires italiens de -20 de métal."
 
 #: simulation/data/technologies/carthaginians/cost_italian_mercs_2.jsongenericName
 msgid "Italiote Mercenary General"
@@ -1647,7 +1979,7 @@ msgstr "Les Carthaginois établirent de nombreux centres commerciaux comme des c
 msgid ""
 "Carthaginians were colonizers. Civic Centers, Temples, and Houses -25% build"
 " time."
-msgstr "Les carthaginois étaient colonisateurs. Les centres-villes, temples et habitations gagnent -25% de temps de construction."
+msgstr "Les Carthaginois étaient des colonisateurs. Les centres-villes, temples et habitations gagnent -25% de temps de construction."
 
 #: simulation/data/technologies/carthaginians/special_colonisation.jsongenericName
 msgid "Colonization"
@@ -1684,7 +2016,7 @@ msgstr "Architectes navals phéniciens"
 #: simulation/data/technologies/carthaginians/traintime_celt_mercs.jsondescription
 #: simulation/data/technologies/carthaginians/traintime_celt_mercs_2.jsondescription
 msgid "Celtic mercenaries have their train time decreased."
-msgstr "Les mercenaires Celtes ont un temps de formation diminué."
+msgstr "Les mercenaires celtes ont un temps de formation diminué."
 
 #: simulation/data/technologies/carthaginians/traintime_celt_mercs.jsontooltip
 msgid ""
@@ -1769,14 +2101,14 @@ msgstr "Mercenaires celtes avancés"
 
 #: simulation/data/technologies/carthaginians/upgrade_rank_advanced_iberian.jsondescription
 msgid "Upgrade all of your Iberian mercenaries to Advanced rank."
-msgstr "Monter tous vos mercenaires ibères au grade avancé."
+msgstr "Promeus tous vos mercenaires ibères au grade Avancé."
 
 #: simulation/data/technologies/carthaginians/upgrade_rank_advanced_iberian.jsontooltip
 msgid ""
 "Upgrade all of your Iberian mercenaries to Advanced rank. This increases "
 "their military prowess, but decreases their resource gathering rates -25%. "
 "Unlocks Elite Iberian Mercenaries technology."
-msgstr "Monter tous vos mercenaires ibères au grade avancé. Cela augmente leurs prouesses militaires, mais diminue leur taux de collecte de ressources de -25%. Débloque la technologie Mercenaires ibères d'élite."
+msgstr "Promeus tous vos mercenaires ibères au grade Avancé. Cela augmente leurs prouesses militaires, mais diminue leur taux de collecte de ressources de -25%. Débloque la technologie Mercenaires ibères d'élite."
 
 #: simulation/data/technologies/carthaginians/upgrade_rank_advanced_iberian.jsongenericName
 msgid "Advanced Iberian Mercenaries"
@@ -1784,14 +2116,14 @@ msgstr "Mercenaires ibères avancés"
 
 #: simulation/data/technologies/carthaginians/upgrade_rank_advanced_italiote.jsondescription
 msgid "Upgrade all of your Italiote mercenaries to Advanced rank."
-msgstr "Monter tous vos mercenaires italiotes au grade avancé."
+msgstr "Promeus tous vos mercenaires italiotes au grade Avancé."
 
 #: simulation/data/technologies/carthaginians/upgrade_rank_advanced_italiote.jsontooltip
 msgid ""
 "Upgrade all of your Italiote mercenaries to Advanced rank. This increases "
 "their military prowess, but decreases their resource gathering rates -25%. "
 "Unlocks Elite Italiote Mercenaries technology."
-msgstr "Monter tous vos mercenaires italiotes au grade avancé. Cela augmente leurs prouesses militaires, mais diminue leur taux de collecte de ressources de -25%. Débloque la technologie Mercenaires italiotes d'élite."
+msgstr "Promeus tous vos mercenaires italiotes au grade Avancé. Cela augmente leurs prouesses militaires, mais diminue leur taux de collecte de ressources de -25%. Débloque la technologie Mercenaires italiotes d'élite."
 
 #: simulation/data/technologies/carthaginians/upgrade_rank_advanced_italiote.jsongenericName
 msgid "Advanced Italiote Mercenaries"
@@ -1799,13 +2131,13 @@ msgstr "Mercenaires italiotes avancés"
 
 #: simulation/data/technologies/carthaginians/upgrade_rank_elite_celts.jsondescription
 msgid "Upgrade all of your Celtic Mercenaries to Elite rank."
-msgstr "Monter tous vos mercenaires celtes au grade d'élite."
+msgstr "Promeus tous vos mercenaires celtes au grade d'Élite."
 
 #: simulation/data/technologies/carthaginians/upgrade_rank_elite_celts.jsontooltip
 msgid ""
 "Upgrade all of your Celtic mercenaries to Elite rank. This increases their "
 "military prowess, but decreases their resource gathering rates another -25%."
-msgstr "Monter tous vos mercenaires celtes au grade d'élite. Cela augmente leurs prouesses militaires, mais diminue encore leur taux de collecte de ressources de -25%."
+msgstr "Promeus tous vos mercenaires celtes au grade d'Élite. Cela augmente leurs prouesses militaires, mais diminue leur taux de collecte de ressources de -25%."
 
 #: simulation/data/technologies/carthaginians/upgrade_rank_elite_celts.jsongenericName
 msgid "Elite Celtic Mercenaries"
@@ -1813,13 +2145,13 @@ msgstr "Mercenaires celtes d'élite"
 
 #: simulation/data/technologies/carthaginians/upgrade_rank_elite_iberian.jsondescription
 msgid "Upgrade all of your Iberian Mercenaries to Elite rank."
-msgstr "Monter tous vos mercenaires ibères au grade d'élite."
+msgstr "Promeus tous vos mercenaires ibères au grade d'Élite."
 
 #: simulation/data/technologies/carthaginians/upgrade_rank_elite_iberian.jsontooltip
 msgid ""
 "Upgrade all of your Iberian mercenaries to Elite rank. This increases their "
 "military prowess, but decreases their resource gathering rates another -25%."
-msgstr "Monter tous vos mercenaires ibères au grade d'élite. Cela augmente leurs prouesses militaires, mais diminue encore leur taux de collecte de ressources de -25%."
+msgstr "Promeus tous vos mercenaires ibères au grade d'Élite. Cela augmente leurs prouesses militaires, mais diminue leur taux de collecte de ressources de -25%."
 
 #: simulation/data/technologies/carthaginians/upgrade_rank_elite_iberian.jsongenericName
 msgid "Elite Iberian Mercenaries"
@@ -1827,14 +2159,14 @@ msgstr "Mercenaires ibères d'élite"
 
 #: simulation/data/technologies/carthaginians/upgrade_rank_elite_italiote.jsondescription
 msgid "Upgrade all of your Italiote Mercenaries to Elite rank."
-msgstr "Monter tous vos mercenaires italiotes au grade d'élite."
+msgstr "Promeus tous vos mercenaires italiotes au grade d'Élite."
 
 #: simulation/data/technologies/carthaginians/upgrade_rank_elite_italiote.jsontooltip
 msgid ""
 "Upgrade all of your Italiote mercenaries to Elite rank. This increases their"
 " military prowess, but decreases their resource gathering rates another "
 "-25%."
-msgstr "Monter tous vos mercenaires italiotes au grade d'élite. Cela augmente leurs prouesses militaires, mais diminue encore leur taux de collecte de ressources de -25%."
+msgstr "Promeus tous vos mercenaires italiotes au grade d'Élite. Cela augmente leurs prouesses militaires, mais diminue leur taux de collecte de ressources de -25%."
 
 #: simulation/data/technologies/carthaginians/upgrade_rank_elite_italiote.jsongenericName
 msgid "Elite Italiote Mercenaries"
@@ -1845,7 +2177,7 @@ msgid ""
 "Celtic structures were mostly made of wood with rubble foundations. "
 "Consequently, their structures have less health than other cultures do, but "
 "they also construct faster."
-msgstr "Les constructions celtes étaient majoritairement en bois, avec des fondations faites de gravats. Par conséquence, ces structures sont moins résistantes que celles des autres cultures, mais elles se construisent aussi plus rapidement."
+msgstr "Les constructions celtes étaient majoritairement en bois, avec des fondations faites de gravats. En conséquence, ces structures sont moins résistantes que celles des autres cultures, mais elles se construisent plus rapidement."
 
 #: simulation/data/technologies/celts/civbonus_celts_wooden_struct.jsongenericName
 msgid "Wooden Construction"
@@ -1859,7 +2191,7 @@ msgstr "Les rotations de culture augmentent le rendement en évitant l'épuiseme
 
 #: simulation/data/technologies/celts/special_gather_crop_rotation.jsontooltip
 msgid "Increase the yield of your farms. +25% farming rate."
-msgstr "Augmenter le rendement de vos champs. +25% de rendement."
+msgstr "Augmente le rendement de vos fermes. +25% de rendement."
 
 #: simulation/data/technologies/celts/special_gather_crop_rotation.jsongenericName
 msgid "Crop Rotation"
@@ -1871,7 +2203,7 @@ msgstr "La formation de combat à la lance augmente les dommages des unités d'i
 
 #: simulation/data/technologies/hellenes/attack_inf_spearfighting.jsontooltip
 msgid "Spearmen +2 hack attack."
-msgstr "Lanciers gagnent +2 d'attaque tranchante."
+msgstr "Les lanciers gagnent +2 d'attaque tranchante."
 
 #: simulation/data/technologies/hellenes/attack_inf_spearfighting.jsongenericName
 msgid "Infantry Spear Fighting"
@@ -1994,7 +2326,7 @@ msgid ""
 "commanded a standing army of 600,000 infantry, 9000 elephants, 8000 "
 "chariots, and 30,000 cavalry, making it arguably the largest army of its "
 "time."
-msgstr "L'empire Maurya englobait des douzaines d'anciens royaumes indépendants sur une surface de 5 millions de km², et une population proche des 60 millions de personnes. Les souverains Maurya portaient le titre d'Empereur des Empereurs et commandaient une armée permanente de 600000 hommes d'infanterie, 9000 éléphants, 8000 chars et 3000 unités de cavalerie, ce qui en faisait sans doute la plus grande armée de cette époque. "
+msgstr "L'empire Maurya englobait des douzaines d'anciens royaumes indépendants sur une surface de 5 millions de km², avec une population proche des 60 millions de personnes. Les souverains Maurya portaient le titre d'Empereur des Empereurs et commandaient une armée permanente de 600 000 hommes d'infanterie, 9 000 éléphants, 8 000 chars et 3 000 cavaliers, ce qui en faisait sans doute la plus grande armée de cette époque. "
 
 #: simulation/data/technologies/mauryans/civbonus_maur_popcap.jsongenericName
 msgid "Emperor of Emperors"
@@ -2027,7 +2359,7 @@ msgid ""
 "The Mauryans built their city walls out of wood, an abundant natural "
 "resource in India. Consequently, Mauryan city walls have -20% health, but "
 "build 20% faster."
-msgstr "Les Maurya bâtissaient les murs de leurs villes en bois, une ressource naturelle abondante en Inde. Par conséquent, les murs d'enceinte Maurya ont -20% de santé, mais se construisent 20% plus rapidement."
+msgstr "Les Maurya bâtissaient les murs de leurs villes en bois, une ressource naturelle abondante en Inde. En conséquence, les murs d'enceinte Maurya ont -20% points de santé, mais se construisent 20% plus rapidement."
 
 #: simulation/data/technologies/mauryans/wooden_walls.jsongenericName
 msgid "Wooden Walls"
@@ -2067,11 +2399,11 @@ msgid ""
 " Susa; Darius the Great and Xerxes also built the magnificent Persepolis; "
 "Cyrus the Great greatly improved Ecbatana and virtually 'rebuilt' the old "
 "Elamite capital of Susa."
-msgstr "Les Perses ont construit la merveilleuse voie royale sur 2700 km de Sardes à Suse ; Darius le Grand et Xerxès ont aussi édifié la magnifique Persépolis; Cyrus le Grand a beaucoup amélioré Ecbatane et pratiquement \"reconstruit\" l'ancienne capitale élamite de Suse. "
+msgstr "Les Perses ont construit la merveilleuse voie royale sur 2 700 km de Sardes à Suse ; Darius le Grand et Xerxès ont aussi édifié la magnifique Persépolis; Cyrus le Grand a beaucoup amélioré Ecbatane et pratiquement \"reconstruit\" l'ancienne capitale élamite de Suse. "
 
 #: simulation/data/technologies/persians/persian_architecture.jsontooltip
 msgid "All Persian structures +25% health, but also +20% build time."
-msgstr "Toutes les structures perses gagnent +25% de points de santé, mais gagnent aussi +20% de temps de construction."
+msgstr "Toutes les structures perses gagnent +25% de points de santé, mais prennent aussi +20% de temps à se construire."
 
 #: simulation/data/technologies/persians/persian_architecture.jsongenericName
 msgid "Persian Architecture"
@@ -2110,7 +2442,7 @@ msgstr "Améliore significativement la vitesse de formation de la cavalerie dans
 
 #: simulation/data/technologies/persians/training_conscription_cavalry.jsontooltip
 msgid "Faster batch training speed for the Stables."
-msgstr "Vitesse d’enrôlement dans les écuries augmentée."
+msgstr "Vitesse d’enrôlement en groupe dans les écuries augmentée."
 
 #: simulation/data/technologies/persians/training_conscription_cavalry.jsongenericName
 msgid "Cavalry Conscription"
@@ -2124,13 +2456,13 @@ msgstr "Conscription d'infanterie"
 msgid ""
 "All cavalry -20% train time, but also -10 health. Unlocks Cavalry "
 "Conscription."
-msgstr "La cavalerie s’entraîne -20% plus vite, mais perd -10 points de vie. Débloque la Cavalerie Conscrite."
+msgstr "La cavalerie s’entraîne 20% plus vite, mais perd 10 points de santé. Débloque Cavalerie Conscrite."
 
 #: simulation/data/technologies/persians/training_levy_infantry.jsontooltip
 msgid ""
 "All infantry -10% train time, but also -5 health. Unlocks Infantry "
 "Conscription."
-msgstr "Toute l'infanterie gagne -10% de temps de formation, mais perd -5 points de santé. Débloque la Conscription d'infanterie."
+msgstr "Toute l'infanterie s'entraine 10% plus vite, mais perd 5 points de santé. Débloque Conscription d'infanterie."
 
 #: simulation/data/technologies/romans/decay_logistics.jsondescription
 msgid "The Romans were masters of the logistics of warfare."
@@ -2138,7 +2470,7 @@ msgstr "Les Romains étaient maîtres de la logistique de guerre."
 
 #: simulation/data/technologies/romans/decay_logistics.jsontooltip
 msgid "Entrenched Camps and Siege Walls decay 50% slower."
-msgstr ""
+msgstr "Les Camps retranchés et Murs assiégés se désintègrent 50% plus lentement."
 
 #: simulation/data/technologies/romans/decay_logistics.jsongenericName
 msgid "Roman Logistics"
@@ -2150,19 +2482,19 @@ msgid ""
 "utterances, set out in Greek hexameters, purchased from a sibyl by the last "
 "king of Rome, Tarquinius Superbus, and consulted at momentous crises through"
 " the history of the Republic and the Empire."
-msgstr ""
+msgstr "Le livre des sibyllins, ou 'Libri Sibyllini' était un recueil des prédictions des oracles, écrites en hexamètres greques, acheté à un sibyllin par le dernier roi de Rome, Tarquinius Superbus, et consulté pendant les moments de crise de l'histoire de la République et de l'Empire."
 
 #: simulation/data/technologies/romans/vision_sibylline.jsontooltip
 msgid "+25% Vision range for all units."
-msgstr ""
+msgstr "+25% champs de vision pour toutes les unités."
 
 #: simulation/data/technologies/romans/vision_sibylline.jsongenericName
 msgid "Sibylline Books"
-msgstr ""
+msgstr "Livre des Sibyllins"
 
 #: simulation/data/technologies/romans/vision_sibylline.jsonspecificName
 msgid "Libri Sibyllini"
-msgstr ""
+msgstr "Libri Sibyllini"
 
 #: simulation/data/technologies/successors/pair_unlock_champions.jsongenericName
 msgid "Traditional Army vs. Reform Army"
@@ -2177,7 +2509,7 @@ msgstr "Commençant avec Alexandre, les monarques hellénistiques fondèrent de 
 
 #: simulation/data/technologies/successors/special_hellenistic_metropolis.jsontooltip
 msgid "Civic centers +100% health and double default arrows."
-msgstr "Les centres-villes gagnent +100% de point de vie et double les flèches tirées par défaut."
+msgstr "Les centres-villes gagnent +100% de points de vie et doublent les flèches tirées par défaut."
 
 #: simulation/data/technologies/successors/special_hellenistic_metropolis.jsongenericName
 msgid "Hellenistic Metropolis"
@@ -2191,7 +2523,7 @@ msgstr "Améliore significativement la vitesse de formation des champions et des
 
 #: simulation/data/technologies/successors/special_parade_of_daphne.jsontooltip
 msgid "Faster batch training speed for the Fortress."
-msgstr "Vitesse d'enrôlement dans les forteresses augmentée."
+msgstr "Vitesse d'enrôlement en groupe dans les forteresses augmentée."
 
 #: simulation/data/technologies/successors/special_parade_of_daphne.jsongenericName
 msgid "Parade of Daphne"
@@ -2205,8 +2537,8 @@ msgid ""
 msgstr "La race de cheval Nisian aujourd'hui disparue a été l'une des plus grandes et robustes de l'Antiquité. Ces chevaux ont été très recherchés par les Séleucides et les Perses alors que le cavalier et la monture gagnaient en armure plus lourde avec le temps."
 
 #: simulation/data/technologies/successors/special_war_horses.jsontooltip
-msgid "All cavalry +20% health, but also +10% train time."
-msgstr "Les unités de cavalerie gagnent +20% de vie, mais prennent +10% de temps de formation .  "
+msgid "All cavalry +20% health."
+msgstr "La cavalerie gagne +20% de vie."
 
 #: simulation/data/technologies/successors/special_war_horses.jsongenericName
 msgid "Nisean War Horses"
@@ -2222,7 +2554,7 @@ msgstr "La réforme militaire des Séleucides."
 
 #: simulation/data/technologies/successors/unlock_reform_army.jsontooltip
 msgid "Unlock the Romanized Heavy Swordsman and Seleucid Cataphract."
-msgstr "Déverrouiller l'épéiste lourd romanisé et le cataphractaire séleucide."
+msgstr "Déverrouille l'Épéiste lourd romanisé et le Cataphracte séleucide."
 
 #: simulation/data/technologies/successors/unlock_reform_army.jsongenericName
 msgid "Reform Army"
@@ -2234,7 +2566,7 @@ msgstr "L'armée traditionnelle des Séleucides."
 
 #: simulation/data/technologies/successors/unlock_traditional_army.jsontooltip
 msgid "Unlock the Silver Shield Pikeman and Scythed Chariot."
-msgstr "Déverrouiller le piquier à bouclier d'argent et le char à faux."
+msgstr "Déverrouille le Piquier à Bouclier d'argent et le Char à faux."
 
 #: simulation/data/technologies/successors/unlock_traditional_army.jsongenericName
 msgid "Traditional Army"
@@ -2244,13 +2576,13 @@ msgstr "Armée traditionnelle"
 msgid ""
 "The Silver Shields, or Argyraspidai, were the elite heavy infantry arm of "
 "the Macedonian army."
-msgstr "Les Boucliers d'argent, ou Argyraspidai, étaient l'infanterie lourde d'élite de l'armée macédonienne."
+msgstr "Les Boucliers d'argent ou Argyraspides étaient l'infanterie lourde d'élite de l'armée macédonienne."
 
 #: simulation/data/technologies/successors/upgrade_mace_silvershields.jsontooltip
 msgid ""
 "Upgrade Shield Bearer Champion Infantry to Silver Shields, with greater "
 "attack, health, and armor."
-msgstr "Améliorer l'infanterie à bouclier championne en Boucliers d'argent, avec une plus grande attaque, santé et armure."
+msgstr "Améliore l'infanterie à bouclier championne en Boucliers d'argent avec une meilleure attaque, santé et armure."
 
 #: simulation/data/technologies/successors/upgrade_mace_silvershields.jsongenericName
 msgid "Silver Shields Regiment"

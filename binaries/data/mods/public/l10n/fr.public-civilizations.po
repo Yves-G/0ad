@@ -5,6 +5,7 @@
 # 
 # Translators:
 # Antoine Adet <antoine.adet@gmail.com>, 2013
+# Buggi <buggi@filzmail.com>, 2014
 # Calinou, 2013
 # dourouc05 <dourouc05@gmail.com>, 2014
 # François Poirotte <clicky@erebot.net>, 2014
@@ -16,10 +17,11 @@
 # lemiaou, 2014
 # LordIgorIIIofKiev <igorpono@hotmail.com>, 2014
 # minissimo <lucanium@gmail.com>, 2014
-# Nicolas Auvray <na.itms76@gmail.com>, 2013
+# Nicolas Auvray <na.itms76@gmail.com>, 2013-2014
 # nicolas caillard <nick2paris@gmail.com>, 2013
 # Oimat <pgersberg@free.fr>, 2014
 # Olivier <olivier.torrens@gmail.com>, 2013
+# PERRUSSEL Valentin <vperrus@gmail.com>, 2014
 # PRIME Gildas <prime.gildas@gmail.com>, 2013
 # Rémi Verschelde <akien@mageia.org>, 2014
 # robin moussu <robin.moussu+transifex@gmail.com>, 2013
@@ -29,19 +31,22 @@
 # Sander Deryckere, 2014
 # slimkhan, 2014
 # Slim Khan, 2014
+# Polakrity <sxk-fr@live.fr>, 2014
 # tavariz <guipoi@yahoo.fr>, 2014
 # Thedemos <thekingadn@gmail.com>, 2014
 # Timothee KNOBLOCH <timothee.knobloch@gmail.com>, 2014
 # Tito221 <Titanomachy221@hotmail.fr>, 2013
 # Tonton <tontonloul@hotmail.fr>, 2013
 # Van Calster <r.vancalster@laposte.net>, 2014
-# Yannick Heintz <yannickheintz@gmail.com>, 2014
+# Vincent Pouliquen <vins_om@hotmail.fr>, 2014
+# Yannick Heintz, 2014
 msgid ""
 msgstr ""
 "Project-Id-Version: 0 A.D.\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2014-06-19 19:38+0200\n"
-"PO-Revision-Date: 2014-06-19 17:44+0000\n"
+"POT-Creation-Date: 2014-09-26 18:59+0200\n"
+"PO-Revision-Date: 2014-10-16 14:51+0000\n"
+"Last-Translator: PERRUSSEL Valentin <vperrus@gmail.com>\n"
 "Language-Team: French (http://www.transifex.com/projects/p/0ad/language/fr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -56,7 +61,7 @@ msgstr "Athéniens"
 
 #: civs/athen.jsonCivBonuses[0].Description
 msgid "Metal mining gathering rates increased by +10% for each passing age."
-msgstr "Le taux d'exploitation des métaux augmente de +10% à chaque nouvelle phase."
+msgstr "Le taux d'exploitation du métal augmente de +10% à chaque nouvelle phase."
 
 #: civs/athen.jsonCivBonuses[0].Name
 msgid "Silver Owls"
@@ -66,7 +71,7 @@ msgstr "Chouettes d'argent"
 msgid ""
 "The mines at Laureion in Attica provided Athens with a wealth of silver from"
 " which to mint her famous and highly prized coin, The Athenian Owl."
-msgstr "Les mines du Laurion en Attique fournissaient à Athènes de l'argent en abondance, avec lequel était frappée sa célèbre et très précieuse monnaie, sur laquelle figurait la Chouette Athénienne."
+msgstr "Les mines du Laurion en Attique fournissaient à Athènes de l'argent en abondance, avec lequel était frappée sa célèbre et très précieuse monnaie, sur laquelle figurait la chouette athénienne."
 
 #: civs/athen.jsonCivBonuses[1].Description
 #: civs/hele.jsonCivBonuses[1].Description
@@ -90,11 +95,11 @@ msgid ""
 "The Greeks were highly successful in Hellenising various foreigners. During "
 "the Hellenistic Age, Greek was the lingua franca of the Ancient World, "
 "spoken widely from Spain to India."
-msgstr "Les Grecs ont très bien réussi à helléniser de nombreux étrangers. Au cours de l'époque hellénistique, le grec, largement parlé de l'Espagne à l'Inde, était la langue véhiculaire du Monde Antique."
+msgstr "Les Grecs ont très bien réussi à helléniser de nombreux étrangers. Au cours de l'époque hellénistique, le grec, largement parlé de l'Espagne à l'Inde, était la langue véhiculaire du monde antique."
 
 #: civs/athen.jsonTeamBonuses[0].Description
 msgid "Ships construct 25% faster."
-msgstr "La construction des navires est 25% plus rapide."
+msgstr "Les navires se construisent 25% plus rapidement."
 
 #: civs/athen.jsonTeamBonuses[0].Name
 #: civs/hele.jsonFactions[0].Technologies[1].Name
@@ -108,7 +113,7 @@ msgid ""
 "city-states instituted the so-called Delian League in 478 B.C., whose "
 "purpose was to push the Persians out of the Aegean region. The allied states"
 " contributed ships and money, while the Athenians offered their entire navy."
-msgstr "Peu après les grandes victoires navales de Salamine et du Cap Mycale, les cités-états grecques instituèrent la Ligue dite de Délos en 478 avant JC, dont l'objectif était de repousser les Perses hors de la région Égéenne. Les cités alliées fournissaient des navires et de l'argent, tandis que les Athéniens offraient toute leur flotte."
+msgstr "Peu après les grandes victoires navales de Salamine et du Cap Mycale, les cités-états grecques instituèrent la Ligue dite de Délos en 478 avant J.-C., dont l'objectif était de repousser les Perses hors de la région Égéenne. Les cités alliées fournissaient des navires et de l'argent, tandis que les Athéniens offraient leur flotte entière."
 
 #: civs/athen.jsonAINames[0] civs/athen.jsonFactions[0].Heroes[0].Name
 #: civs/hele.jsonFactions[0].Heroes[0].Name
@@ -173,7 +178,7 @@ msgstr "Démosthène"
 
 #: civs/athen.jsonFactions[0].Technologies[0].Description
 msgid "Athenian triremes can train Marines (Epibastes Athenaikos)."
-msgstr "Les trirèmes athéniennes peuvent former de l'infanterie de marine (Epibastes Athenaikos)."
+msgstr "Les trirèmes athéniennes peuvent former de l'infanterie maritime (Epibastes Athenaikos)."
 
 #: civs/athen.jsonFactions[0].Technologies[0].Name
 msgid "Iphicratean Reforms"
@@ -195,13 +200,13 @@ msgid ""
 "Themistocles and extended 6 km from the city to the port of Piraeus. This "
 "secured the city's sea supply routes and prevented an enemy from starving "
 "out the city during a siege."
-msgstr "Les Longs Murs d’Athènes, érigés sous les auspices de l'astucieux Thémistocle, s'étendaient sur 6 km de la cité au port du Pirée. Ils sécurisaient les voies d'approvisionnement maritimes de la cité et empêchaient l'ennemi d'affamer la cité en cas de siège."
+msgstr "Les Longs Murs d’Athènes, érigés sous les auspices de l'astucieux Thémistocle, s'étendaient sur 6 km de la cité jusqu'au port du Pirée. Ils sécurisaient les voies d'approvisionnement maritimes de la cité et empêchaient l'ennemi d'affamer la cité en cas de siège."
 
 #: civs/athen.jsonFactions[0].Technologies[2].Description
 msgid ""
 "The player gains the ability to order spear-armed troops into Phalanx "
 "formation, providing greater attack and armor."
-msgstr "Le joueur gagne la possibilité de placer ses troupes de lanciers en phalange (colonne anti-infanterie), leur conférant un bonus d'attaque et d'armure."
+msgstr "Le joueur gagne la possibilité d'ordonner à ses troupes de lanciers de se mettre en formation de la phalange, leur conférant un bonus d'attaque et d'armure."
 
 #: civs/athen.jsonFactions[0].Technologies[2].Name
 #: civs/hele.jsonFactions[0].Technologies[0].Name
@@ -215,7 +220,7 @@ msgid ""
 "eight men deep and up to eight hundred men wide. The men within overlapped "
 "their shields, presenting a formidable shield wall brimming with 8 foot "
 "spears."
-msgstr "La formation en phalange classique fut développée au tournant du VIIIe siècle av. JC. Elle se composait de 8 à 12 rangs et jusqu'à huit cents hommes de large. « Le bouclier s'appuyait sur le bouclier, l'homme sur l'homme » , présentant à l'ennemi un formidable mur hérissé de lances de 6 à 7 mètres de long."
+msgstr "La formation en phalange classique fut développée au tournant du VIIIe siècle av. J.-C. Elle se composait de 8 à 12 rangs et jusqu'à huit cents hommes de large. « Le bouclier s'appuyait sur le bouclier, l'homme sur l'homme » , présentant à l'ennemi un formidable mur hérissé de lances de 6 à 7 mètres de long."
 
 #: civs/athen.jsonFactions[0].Heroes[0].History
 #: civs/hele.jsonFactions[0].Heroes[0].History
@@ -230,7 +235,7 @@ msgstr "Le général qui persuada les Athéniens d'investir les revenus de leurs
 
 #: civs/athen.jsonFactions[0].Heroes[1].History
 msgid "Pericles was the foremost Athenian politician of the 5th Century B.C."
-msgstr "Périclès fut le plus grand politicien athénien du Ve siècle av. J.C."
+msgstr "Périclès fut le plus grand politicien athénien du Ve siècle av. J.-C."
 
 #: civs/athen.jsonFactions[0].Heroes[2].History
 #: civs/maur.jsonFactions[0].Technologies[0].History
@@ -262,7 +267,7 @@ msgstr "Theatron"
 msgid ""
 "The Hellenization civ bonus. Building a Theatron increases the territory "
 "effect of all buildings by 25%."
-msgstr "Bonus de la civilisation Hellénique. Construire un Theatron augmente l'étendue territoriale de chaque bâtiment de 25%."
+msgstr "Bonus de la civilisation hellénique. Construire un Theatron augmente l'étendue territoriale de chaque bâtiment de 25%."
 
 #: civs/athen.jsonStructures[0].History civs/hele.jsonStructures[0].History
 #: civs/mace.jsonStructures[0].History civs/spart.jsonStructures[0].History
@@ -280,7 +285,7 @@ msgstr "Gymnasion"
 #: civs/athen.jsonStructures[1].Special
 msgid ""
 "Train champion units and research technologies pertaining to champion units."
-msgstr "Former des champions et rechercher leurs technologies associées."
+msgstr "Entraîne les unités championnes et les recherches technologies associées."
 
 #: civs/athen.jsonStructures[1].History civs/hele.jsonStructures[1].History
 msgid ""
@@ -294,7 +299,7 @@ msgstr "Prytaneion"
 
 #: civs/athen.jsonStructures[2].Special
 msgid "Train heroes and research technology pertaining to heroes."
-msgstr "Former des héros et rechercher leurs technologies associées."
+msgstr "Entraîne les héros et les recherches technologies associées."
 
 #: civs/athen.jsonStructures[2].History civs/hele.jsonStructures[2].History
 msgid ""
@@ -329,13 +334,13 @@ msgstr "Ardiosmanae"
 #: civs/brit.jsonCivBonuses[0].History civs/celt.jsonCivBonuses[0].History
 #: civs/gaul.jsonCivBonuses[0].History
 msgid "Represents Celtic farming methods. "
-msgstr "Représente les méthodes de culture celtes."
+msgstr "Représente les méthodes de l'agriculture celte."
 
 #: civs/brit.jsonCivBonuses[1].Description
 #: civs/celt.jsonCivBonuses[1].Description
 #: civs/gaul.jsonCivBonuses[1].Description
 msgid "Druids increase attack rates of soldiers near them slightly."
-msgstr "Les druides augmentent légèrement le taux d'attaque des soldats à proximité."
+msgstr "Les druides augmentent légèrement la vitesse d'attaque des soldats à proximité."
 
 #: civs/brit.jsonCivBonuses[1].Name civs/celt.jsonCivBonuses[1].Name
 #: civs/gaul.jsonCivBonuses[1].Name
@@ -415,7 +420,7 @@ msgstr "Vosenius"
 #: civs/brit.jsonFactions[0].Technologies[0].Description
 #: civs/celt.jsonFactions[0].Technologies[0].Description
 msgid "Increased attack and movement rate for melee soldiers."
-msgstr "Augmente le taux d'attaque et de mouvement des soldats de mêlée."
+msgstr "Augmente la vitesse d'attaque et de déplacement des soldats de mêlée."
 
 #: civs/brit.jsonFactions[0].Technologies[0].Name
 #: civs/celt.jsonFactions[0].Technologies[0].Name
@@ -433,7 +438,7 @@ msgstr "Les Bretons commencèrent la pratique des marques permanentes sur leur c
 #: civs/brit.jsonFactions[0].Technologies[1].Description
 #: civs/celt.jsonFactions[0].Technologies[1].Description
 msgid "Increases the height bonus of units garrisoned in a tower."
-msgstr "Augmente le bonus de hauteur des unités en garnison dans les tours."
+msgstr "Augmente le nombre d'unités en garnison dans les tours."
 
 #: civs/brit.jsonFactions[0].Technologies[1].Name
 #: civs/celt.jsonFactions[0].Technologies[1].Name
@@ -469,42 +474,39 @@ msgid ""
 msgstr "Caractacus, la forme romaine (Caratacos en français), est un simple changement de son vrai nom Karatakos, qui fut imprimé sur ses nombreuses pièces. Sous ce nom, il est connu comme un farouche défenseur de la Bretagne contre les romains après leur invasion en 43 après J-C. Fils de Cunobelin, roi de la confédération tribale de Catuvellauni, Caratacos combattu pendant neuf ans contre les romains avec peu de succès, avant de fuir finalement vers les tribus du Pays de Galles, où il fut décisivement défait. Enfin, il entra dans le Nord-Bretagne où il fut remis aux Romains. Transporté à Rome, Caratacos fut autorisé à vivre par l'empereur Claudius et mourut en Italie. Selon la tradition, il se serait converti au christianisme après son épouse (mais en définitif, on n 'en sait rien). Plus notable est ce qui lui a permis de vivre une fois capturé, la politique de Rome étant généralement d'avoir de tels hommes tués en démonstrations publiques. Cependant, Caratacos fut portée devant l'empereur et le Sénat à sa demande pour s'expliquer, et ce qu'il dit n'est pas connue avec certitude bien que Tacite lui applique un discours célèbre …"
 
 #: civs/brit.jsonFactions[0].Heroes[1].History
-#: civs/celt.jsonFactions[0].Heroes[1].History
 msgid ""
-"Kunobelinos, perhaps better known by the latinized form of Cunobelin, was a "
-"powerful ruler centered in the territory around modern day Colchester. "
-"Ruling the Catuvellauni from Kamulodunon(better known as Camulodunum), he "
-"was a warrior king who conquered a neighboring tribe, the Trinovantes, and "
-"was referred to by the Romans as the King of the Britons. The Trinovantes, "
-"while having been Roman allies, were not able to call for Roman aide, as "
-"they were conquered shortly after the Roman's own disaster in Germania. "
-"Kunobelinos died of disease after subjugating the great majority of the "
-"southern half of Britain (his coins were being minted as far as the borders "
-"of what would become Wales). When he died, his son Togdumnos replaced him, "
-"who died in battle with the Romans, and was subsequently replaced by his "
-"brother, Karatakos. It is an irony that it was his third son that initially "
-"invited this Roman reprisal. Kunobelinos seems to have been indifferent to "
-"the Romans. He traded with them freely, but had few qualms subjugating known"
-" Roman allies, and even sent Adminius as a fosterling to be educated in "
-"Roman Gaul. This accounted for Adminius's friendships among the Romans, and "
-"he was given lordship over the Cantaci, who inhabited Kent, by his father. "
-"This area was the prime area of Roman influence and trade in Britain, and he"
-" shrewdly observed his youngest son's friendship with powerful Roman and "
-"Gallo-Roman politicians and traders would be of use administrating the "
-"region. His other sons though had no love for the Romans, and when "
-"Kunobelinos died, Togdumnos, now king, arrested, executed, or expelled "
-"numerous Roman sympathizers, including his own brother Adminius, and the "
-"deposed Atrebates king, Verica, who appealed to their connections in the "
-"Roman Empire for aide in recovering their lands. Kunobelinos in his own time"
-" though was possibly one of the greatest of all British kings. He conquered "
-"huge portions of land from originally ruling over only four minor tribes in "
-"a confederation, the Catuvellauni, and achieved recognition as king of "
-"Britain. This recognition was so great that tribes in Cambria even came to "
-"assist his sons against the Romans and their British allies, and Kunobelinos"
-" was held up by the post-Roman Britons as one of their great heroes; a "
-"conqueror and uniter of petty kingdoms, something the post-Roman Britons or "
-"Romano-British sorely needed."
-msgstr "Kunobelinos, ou Cunobelinos, était un souverain puissant des territoires autour de l'actuelle Colchester. Régnant sur les Catuvellauni de Kamulodunon (plus connu sous le nom de Camulodunum), il était un roi guerrier qui conquit une tribu voisine, les Trinovantes, et était appelé par les Romains Roi des Bretons. Les Trinovantes, même s'ils étaient alliés des Romains, ne purent appeler Rome à l'aide car ils furent envahis juste après la déroute romaine en Germanie. Kunobelinos mourut de maladie après avoir assujetti la grande majorité du sud de la Bretagne (ses pièces de monnaie ont été frappées jusqu'aux frontières de ce qui deviendrait le Pays de Galles). Quand il mourut, son fils Togdumnos lui succéda mais mourut lors d'une bataille contre les Romains, et fut à son tour remplacé par son frère, Caratacos. Ironiquement, c'est son troisième fils qui était à l'origine des représailles romaines. Kunobelinos semble avoir été indifférent aux Romains. Il a commercé avec eux librement, mais il n'avait pas de scrupules à asservir les alliés connus de Rome, et envoya même Adminius étudier en Gaule romaine. Cela explique les liens d'amitié d'Adminius avec les Romains, qui lui donnèrent autorité sur les Cantaci, qui habitaient le Kent du temps de son père. Cette région était la principale zone d'influence et de commerce des Romains en Bretagne, et il a compris que l'amitié de son plus jeune fils avec les puissants politiciens et commerçants romains et gallo-romains serait utile pour administrer cette région. Ses autres fils n'avaient cependant pas de sympathie pour les Romains, et quand Kunobelinos mourut, Togdumnos devenu roi fit arrêter, exécuter ou expulser nombre de sympathisants des Romains, y compris son propre frère Adminius, ainsi que le roi déchu des Atrébates, Verica, qui fit appel à ses connaissances dans l'empire Romain afin de récupérer ses terres. Kunobelinos en son temps fut probablement un des plus grands rois de Bretagne. Il conquit de nombreuses terres, gouverna au début seulement la confédération de quatre tribus mineures, les Catuvellauni, puis finit par se faire reconnaître roi de Bretagne. Cette reconnaissance fut si étendue que même les tribus de Cambrie vinrent aider ses fils contre les Romains et leurs alliés bretons. Kunobelinos a été retenu par les Bretons post-romains comme l'un de leurs plus grands héros ; un conquérant et unificateur de petits royaumes, ce qui fit cruellement défaut aux bretons post-romains ou aux romano-bretons. "
+"Kunobelinos (perhaps better known by the latinized form of Cunobelin) was a "
+"powerful ruler of the Catuvellauni. He was referred to by Romans as the King"
+" of the Britons. His domains extended around the city of Kamulodunon (known "
+"as Camulodunum), modern day Colchester. The Roman defeat in the battle of "
+"Teutoburg Forest (Germania) allowed Kunobelinos to conquer a neighboring "
+"tribe, the Trinovantes, who were Roman allies and couldn't receive Roman "
+"aide. Kunobelinos seems to have been indifferent to the Romans. He traded "
+"with them freely, but had few qualms subjugating known Roman allies, and "
+"even sent his youngest son Adminius as a fosterling to be educated in Roman "
+"Gaul. This accounted for Adminius's friendships among the Romans. Adminius "
+"was given lordship over the Cantaci, who inhabited Kent, by his father. This"
+" area was the prime area of Roman influence and trade in Britain, and "
+"Kunobelinos shrewdly observed his youngest son's friendship with powerful "
+"Roman and Gallo-Roman politicians and traders would be of use administrating"
+" the region. His other sons though had no love for the Romans. When "
+"Kunobelinos died of disease, he was replaced by his son Togdumnos, who "
+"arrested, executed, or expelled numerous Roman sympathizers. These included "
+"his own brother Adminius, and the deposed Atrebates king, Verica, who "
+"appealed to their connections in the Roman Empire for aide in recovering "
+"their lands. Togdumnos died in battle with the Romans, and was subsequently "
+"replaced by his brother, Karatakos. It is an irony that it was his third son"
+" that initially invited this Roman reprisal. Kunobelinos in his own time "
+"though was possibly one of the greatest of all British kings. He conquered "
+"the great majority of the southern half of Britain (his coins were being "
+"minted as far as the borders of what would become Wales). He started ruling "
+"over only four minor tribes in a confederation, the Catuvellauni, and ended "
+"up achieving recognition as king of Britain. This recognition was so great "
+"that tribes in Cambria even came to assist his sons against the Romans and "
+"their British allies, and Kunobelinos was held up by the post-Roman Britons "
+"as one of their great heroes; a conqueror and uniter of petty kingdoms, "
+"something the post-Roman Britons or Romano-British sorely needed."
+msgstr "Kunobelinos (nom peut-être plus connu sous sa forme latinisée Cunobelin) était un puissant souverain de la Catuvellauni. Il était considéré par les Romains comme le roi des Bretons. Ses domaines s'étendaient autour de la ville de Kamulodunon (connu sous le nom de Camulodunum), aujourd'hui appelé Colchester. La défaite romaine lors de la bataille de la forêt de Teutoburg (en Germanie) permit à Kunobelinos de conquérir une tribu voisine, les Trinovantes, qui étaient alliés avec les Romains; ne pouvant recevoir d'aide romaine. Kunobelinos semblait avoir été indifférent aux Romains. Il échangeait librement avec eux, mais n'avait que peu de scrupules à soumettre les alliés connus des romains, et il a même fait envoyé son fils cadet Adminius comme enfant adoptif pour être éduqué en Gaule romaine. Ce qui permit à Adminius de créer des relations d'amitiés parmis les Romains. Adminius fût donné par son à la seigneurie de la Cantaci, habitant de Kent. Cette région a été le domaine privilégié de l'influence et du commerce romain en Grande-Bretagne, et Kunobelinos astucieusement observé l'amitié de son plus jeune fils avec de puissants Romains, politiciens gallo-romains et commerçants pouvant être utile à l'administration de la région. Ses autres fils n'avaient aucun amour pour les Romains. Lorsque Kunobelinos mourût de la maladie, il fût remplacé par son fils Togdumnos, qui fût arrêté, exécuté ou expulsé par de nombreux sympathisants romains. Incluant notamment son propre frère Adminius et le roi déchu Atrebates, Verica, qui ont fait appel à leurs relations dans l'Empire romain afin de les aider à la récupération de leurs terres. Togdumnos mourût durant la bataille contre les Romains, et fût remplacé ensuite par son frère, Karatakos. Il est ironique de constater que ce fût son troisième fils qui était le principal responsable des représailles romaines. Kunobelinos en son temps était probablement l'un des plus grands de tous les rois britanniques. Il a conquis la grande majorité de la moitié sud de la Grande-Bretagne (ses pièces ont été frappées aussi loin que les frontières de ce qui allait devenir le Pays de Galles). Il a commencé à régner sur seulement quatre tribus mineures dans une confédération, la Catuvellauni, et fini par obtenir la reconnaissance en tant que roi de la Grande-Bretagne. Cette reconnaissance était si grande que les tribus de Cambria sont même venus aider ses fils contre les Romains et leurs alliés britanniques, et Kunobelinos a été défini par les post-romains Britanniques comme l'un de leurs plus grands héros; un conquérant et unificateur de petits royaumes, quelque chose que les post-romains Britanniques ou romano-britannique ont cruellement besoin."
 
 #: civs/brit.jsonFactions[0].Heroes[2].History
 #: civs/celt.jsonFactions[0].Heroes[2].History
@@ -560,7 +562,7 @@ msgstr "Chenil"
 
 #: civs/brit.jsonStructures[0].History
 msgid "The Britons were known for breeding war dogs."
-msgstr "Les bretons étaient connus pour l'élevage de chiens de guerre."
+msgstr "Les Bretons étaient connus pour l'élevage de chiens de guerre."
 
 #: civs/brit.jsonHistory
 msgid ""
@@ -568,7 +570,7 @@ msgid ""
 "longswordsmen and powerful melee soldiers, they staged fearesome revolts "
 "against Rome to protect their customs and interests. Also, they built "
 "thousands of unique structures such as hill forts, crannogs and brochs."
-msgstr "Les bretons étaient les tribus celtes des îles de Bretagne. Utilisant des chars, des épéistes à longue épée et des puissants soldats de mêlée, ils ont organisé des révoltes redoutables contre Rome pour protéger leurs coutumes et leurs intérêts. En outre, ils ont construit des milliers de structures uniques tels que des collines fortifiées, des crannogs et des brochs."
+msgstr "Les Bretons étaient les tribus celtes des îles de Bretagne. Utilisant des chars, des épéistes à longue épée et des puissants soldats de mêlée, ils ont organisé des révoltes redoutables contre Rome pour protéger leurs coutumes et leurs intérêts. En outre, ils ont construit des milliers de structures uniques tels que des collines fortifiées, des crannogs et des brochs."
 
 #: civs/cart.jsonName
 msgid "Carthaginians"
@@ -578,7 +580,7 @@ msgstr "Carthaginois"
 msgid ""
 "Carthaginian walls, gates, and towers have 3x health of a standard wall, but"
 " also 2x build time."
-msgstr "Les murs, les portes et les tours de Carthage ont 3x les points de santé d'un mur standard, mais aussi 2x le temps de construction."
+msgstr "Les murs, les portes et les tours carthaginois ont 3x plus de santé qu'un mur standard, mais aussi 2x de temps de construction."
 
 #: civs/cart.jsonCivBonuses[0].Name
 msgid "Triple Walls"
@@ -586,14 +588,14 @@ msgstr "Remparts triples"
 
 #: civs/cart.jsonCivBonuses[0].History
 msgid "Carthaginians built triple city walls."
-msgstr "Les carthaginois ont construit des remparts triples."
+msgstr "Les carthaginois construisent des remparts triples."
 
 #: civs/cart.jsonCivBonuses[1].Description
 msgid ""
 "The resource cost of training elephant-mounted (war elephant) or horse-"
 "mounted units (cavalry) is reduced by 5% per animal corralled (as "
 "appropriate)."
-msgstr "Le coût de la formation des unités montées (cavalerie) ou de dressage d'éléphants de guerre est réduit de 5% par animal parqué (s’il y a lieu)."
+msgstr "Le coût de formation des unités montées (cavalerie) ou des éléphants de guerre est réduit de 5% par animal parqué (s’il y a lieu)."
 
 #: civs/cart.jsonCivBonuses[1].Name civs/ptol.jsonCivBonuses[2].Name
 msgid "Roundup"
@@ -604,7 +606,7 @@ msgid ""
 "Not unlike the Iberian Peninsula, North Africa was known as horse country, "
 "capable of producing up to 100,000 new mounts each year. It was also the "
 "home of the North African Forest Elephant."
-msgstr "À l'instar de la péninsule ibérique, l'Afrique du Nord était connue comme le pays du cheval, capable de produire jusqu'à 100.000 nouvelles montures chaque année. Les Numides avaient la passion des chevaux et étaient réputés être des cavaliers sans frein, servant notamment dans l'armée carthaginoise. C'était aussi l'habitat de l'éléphant des forêts d'Afrique du Nord."
+msgstr "À l'instar de la péninsule ibérique, l'Afrique du Nord était connue comme le pays du cheval, capable de produire jusqu'à 100 000 nouvelles montures chaque année. Les Numides avaient la passion des chevaux et étaient réputés à être des cavaliers sans frein, servant notamment dans l'armée carthaginoise. C'était aussi l'habitat de l'éléphant des forêts d'Afrique du Nord."
 
 #: civs/cart.jsonTeamBonuses[0].Description
 msgid "+33% trade profit international routes."
@@ -618,7 +620,7 @@ msgstr "Maîtres marchands"
 msgid ""
 "The Phoenicians and Carthaginians were broadly known as the greatest trading"
 " civilization of the ancient and classical world."
-msgstr "Les phéniciens et les carthaginois étaient internationalement connus pour être les meilleures civilisations marchandes de l'époque antique et classique."
+msgstr "Les phéniciens et les carthaginois étaient connus pour être les meilleures civilisations marchandes de l'époque antique et classique."
 
 #: civs/cart.jsonAINames[0] civs/cart.jsonFactions[0].Heroes[0].Name
 msgid "Hannibal Barca"
@@ -701,7 +703,7 @@ msgstr "Dans le monde antique, personne ne savait mieux que les Carthaginois où
 
 #: civs/cart.jsonFactions[0].Technologies[1].Description
 msgid "Civic Centers, Temples, and Houses -25% build time."
-msgstr "Les centres-villes, les temples et les maisons ont -25% de temps de construction."
+msgstr "Les centres-villes, les temples et les maisons se construisent 25% plus vite."
 
 #: civs/cart.jsonFactions[0].Technologies[1].Name
 msgid "Colonization"
@@ -809,6 +811,43 @@ msgstr "Carthage, une cité-État de l'actuelle Tunisie, était une formidable f
 msgid "Celts"
 msgstr "Celtes"
 
+#: civs/celt.jsonFactions[0].Heroes[1].History
+msgid ""
+"Kunobelinos, perhaps better known by the latinized form of Cunobelin, was a "
+"powerful ruler centered in the territory around modern day Colchester. "
+"Ruling the Catuvellauni from Kamulodunon(better known as Camulodunum), he "
+"was a warrior king who conquered a neighboring tribe, the Trinovantes, and "
+"was referred to by the Romans as the King of the Britons. The Trinovantes, "
+"while having been Roman allies, were not able to call for Roman aide, as "
+"they were conquered shortly after the Roman's own disaster in Germania. "
+"Kunobelinos died of disease after subjugating the great majority of the "
+"southern half of Britain (his coins were being minted as far as the borders "
+"of what would become Wales). When he died, his son Togdumnos replaced him, "
+"who died in battle with the Romans, and was subsequently replaced by his "
+"brother, Karatakos. It is an irony that it was his third son that initially "
+"invited this Roman reprisal. Kunobelinos seems to have been indifferent to "
+"the Romans. He traded with them freely, but had few qualms subjugating known"
+" Roman allies, and even sent Adminius as a fosterling to be educated in "
+"Roman Gaul. This accounted for Adminius's friendships among the Romans, and "
+"he was given lordship over the Cantaci, who inhabited Kent, by his father. "
+"This area was the prime area of Roman influence and trade in Britain, and he"
+" shrewdly observed his youngest son's friendship with powerful Roman and "
+"Gallo-Roman politicians and traders would be of use administrating the "
+"region. His other sons though had no love for the Romans, and when "
+"Kunobelinos died, Togdumnos, now king, arrested, executed, or expelled "
+"numerous Roman sympathizers, including his own brother Adminius, and the "
+"deposed Atrebates king, Verica, who appealed to their connections in the "
+"Roman Empire for aide in recovering their lands. Kunobelinos in his own time"
+" though was possibly one of the greatest of all British kings. He conquered "
+"huge portions of land from originally ruling over only four minor tribes in "
+"a confederation, the Catuvellauni, and achieved recognition as king of "
+"Britain. This recognition was so great that tribes in Cambria even came to "
+"assist his sons against the Romans and their British allies, and Kunobelinos"
+" was held up by the post-Roman Britons as one of their great heroes; a "
+"conqueror and uniter of petty kingdoms, something the post-Roman Britons or "
+"Romano-British sorely needed."
+msgstr "Kunobelinos, ou Cunobelinos, était un souverain puissant des territoires autour de l'actuelle Colchester. Régnant sur les Catuvellauni de Kamulodunon (plus connu sous le nom de Camulodunum), il était un roi guerrier qui conquit une tribu voisine, les Trinovantes, et était appelé par les Romains Roi des Bretons. Les Trinovantes, même s'ils étaient alliés des Romains, ne purent appeler Rome à l'aide car ils furent envahis juste après la déroute romaine en Germanie. Kunobelinos mourut de maladie après avoir assujetti la grande majorité du sud de la Bretagne (ses pièces de monnaie ont été frappées jusqu'aux frontières de ce qui deviendrait le Pays de Galles). Quand il mourut, son fils Togdumnos lui succéda mais mourut lors d'une bataille contre les Romains, et fut à son tour remplacé par son frère, Caratacos. Ironiquement, c'est son troisième fils qui était à l'origine des représailles romaines. Kunobelinos semble avoir été indifférent aux Romains. Il a commercé avec eux librement, mais il n'avait pas de scrupules à asservir les alliés connus de Rome, et envoya même Adminius étudier en Gaule romaine. Cela explique les liens d'amitié d'Adminius avec les Romains, qui lui donnèrent autorité sur les Cantaci, qui habitaient le Kent du temps de son père. Cette région était la principale zone d'influence et de commerce des Romains en Bretagne, et il a compris que l'amitié de son plus jeune fils avec les puissants politiciens et commerçants romains et gallo-romains serait utile pour administrer cette région. Ses autres fils n'avaient cependant pas de sympathie pour les Romains, et quand Kunobelinos mourut, Togdumnos devenu roi fit arrêter, exécuter ou expulser nombre de sympathisants des Romains, y compris son propre frère Adminius, ainsi que le roi déchu des Atrébates, Verica, qui fit appel à ses connaissances dans l'empire Romain afin de récupérer ses terres. Kunobelinos en son temps fut probablement un des plus grands rois de Bretagne. Il conquit de nombreuses terres, gouverna au début seulement la confédération de quatre tribus mineures, les Catuvellauni, puis finit par se faire reconnaître roi de Bretagne. Cette reconnaissance fut si étendue que même les tribus de Cambrie vinrent aider ses fils contre les Romains et leurs alliés bretons. Kunobelinos a été retenu par les Bretons post-romains comme l'un de leurs plus grands héros ; un conquérant et unificateur de petits royaumes, ce qui fit cruellement défaut aux bretons post-romains ou aux romano-bretons. "
+
 #: civs/celt.jsonFactions[0].Description
 msgid "British Isles"
 msgstr "Les îles britanniques"
@@ -832,7 +871,7 @@ msgstr "Malheurs aux vaincus furent les mots prononcés par le chef Gaulois, Bre
 #: civs/celt.jsonFactions[1].Technologies[1].Description
 #: civs/gaul.jsonFactions[0].Technologies[1].Description
 msgid "Gallic druids gain a small melee attack."
-msgstr "Les druides gaullois acquièrent un peu d'attaque de mélée."
+msgstr "Les druides gaulois gagnent un peu d'attaque de mélée."
 
 #: civs/celt.jsonFactions[1].Technologies[1].Name
 #: civs/gaul.jsonFactions[0].Technologies[1].Name
@@ -974,13 +1013,13 @@ msgstr "Valétiacos"
 #: civs/gaul.jsonFactions[0].Technologies[0].Description
 msgid ""
 "A set amount of metal and food from every structure destroyed or captured."
-msgstr ""
+msgstr "Une quantité fixe de métal et de nourriture venant de chaque structure détruite ou capturée."
 
 #: civs/gaul.jsonFactions[0].Technologies[0].History
 msgid ""
 "Means Woe to the Defeated. It was the words that the Gallic Leader, Brennos,"
 " spoke at the Capitol at Rome after they took their plunder."
-msgstr ""
+msgstr "Malheurs aux vaincus furent les mots prononcés par le chef Gaulois, Brennos, s'adressant dans le capitole à Rome après qu'ils aient pris leurs butins."
 
 #: civs/gaul.jsonFactions[0].Description
 msgid "The Celts of mainland Europe."
@@ -1016,7 +1055,7 @@ msgstr "Les Grecs se voyaient comme l'ensemble du monde civilisé (écoumène), 
 
 #: civs/hele.jsonTeamBonuses[0].Description
 msgid "All units and allied units have increased LOS. ~ 10%"
-msgstr "Toutes les unités et unités alliées ont un champ de vision étendu d'environ 10%"
+msgstr "Toutes vos unités et unités alliées ont un champ de vision étendu d'environ 10%."
 
 #: civs/hele.jsonTeamBonuses[0].Name
 msgid "Oracle at Delphi"
@@ -1045,7 +1084,7 @@ msgstr "La phalange classique a été développée aux alentours du VIIIème si�
 
 #: civs/hele.jsonFactions[0].Technologies[1].Description
 msgid "Triremes are 20% cheaper and build 20% faster."
-msgstr "Trirèmes sont 20% moins cher et se construisent 20% plus vite."
+msgstr "Les trirèmes coûtent 20% moins cher et se construisent 20% plus vite."
 
 #: civs/hele.jsonFactions[0].Heroes[1].History
 msgid ""
@@ -1590,13 +1629,13 @@ msgstr "La Macédoine était un ancien royaume grec, centré dans la partie nord
 
 #: civs/maur.jsonName
 msgid "Mauryans"
-msgstr "Mauryas"
+msgstr "Maurya"
 
 #: civs/maur.jsonCivBonuses[0].Description
 msgid ""
 "Mauryans have a +10% population cap bonus (i.e., 330 pop cap instead of the "
 "usual 300)."
-msgstr "Les Maurya ont un bonus de limite de population de 10% (c'est à dire une capacité de 330 de pop au lieu de l'habituel 300)."
+msgstr "Les Maurya ont un bonus de limite de population de +10% (ex. : une capacité de 330 de pop au lieu de l'habituel 300)."
 
 #: civs/maur.jsonCivBonuses[0].Name
 msgid "Emperor of Emperors."
@@ -1610,7 +1649,7 @@ msgid ""
 "commanded a standing army of 600,000 infantry, 9000 elephants, 8000 "
 "chariots, and 30,000 cavalry, making it arguably the largest army of its "
 "time."
-msgstr "L'empire Maurya englobait des douzaines d'anciens royaumes indépendants sur une surface de 5 millions de km², et une population proche des 60 millions de personnes. Les souverains Maurya portaient le titre d'Empereur des Empereurs et commandaient une armée permanente de 600000 hommes d'infanterie, 9000 éléphants, 8000 chars et 3000 unités de cavalerie, ce qui en faisait sans doute la plus grande armée de cette époque. "
+msgstr "L'empire Maurya englobait des douzaines d'anciens royaumes indépendants sur une surface de 5 millions de km², et une population proche des 60 millions de personnes. Les souverains Maurya portaient le titre d'Empereur des Empereurs et commandaient une armée permanente de 600 000 hommes d'infanterie, 9 000 éléphants, 8 000 chars et 30 000 cavaliers, ce qui en faisait sans doute la plus grande armée de cette époque. "
 
 #: civs/maur.jsonCivBonuses[1].Description
 msgid "The Mauryans enjoy access to 4 champions."
@@ -1891,7 +1930,7 @@ msgstr "Les premiers souverains achéménides se sont employés à faire des Per
 msgid ""
 "Increases hitpoints of all structures, but build time increased "
 "appropriately."
-msgstr "Augmente les points de vie de toutes les structures, mais également le temps de construction nécessaire."
+msgstr "Augmente les points de santé de tous les bâtiments, mais également leur temps de construction."
 
 #: civs/pers.jsonFactions[0].Technologies[1].Name
 msgid "Persian Architecture"
@@ -2258,7 +2297,7 @@ msgstr "Les Romains utilisaient fréquemment la formation en 'tortue' pour se d�
 msgid ""
 "Any Roman citizen-soldier fighting within Roman territory gains a non-"
 "permanent +10% bonus in armor."
-msgstr "Tout les citoyens-soldats romains sur le territoire romain bénéficient d'un bonus non-permanent de +10% en armure."
+msgstr "Tous les citoyens-soldats romains combattant sur le territoire romain bénéficient d'un bonus non-permanent de +10% d'armure."
 
 #: civs/rome.jsonCivBonuses[1].Name
 msgid "Citizenship"
@@ -2462,7 +2501,7 @@ msgstr "Clérouquie"
 msgid ""
 "Choose between Traditional Army and Reform Army technologies that unlock "
 "different Champions."
-msgstr "Choisissez entre les technologies de l'Armée traditionnelle et l'Armée réformée qui débloquent différents Champions."
+msgstr "Choisissez entre les technologies de l'Armée traditionnelle et l'Armée réformée qui débloquent différents champions."
 
 #: civs/sele.jsonCivBonuses[1].History
 #: civs/sele.jsonFactions[0].Technologies[1].History
@@ -2474,11 +2513,11 @@ msgid ""
 " the cavalry arm. War with the Romans from the West and invasions from the "
 "Galatians also forced the Seleucids to reform their infantry regiments to be"
 " more flexible."
-msgstr "Séleucos et la guerre de succession prirent place aux 3e et 2e siècles av. J.C. Les contacts avec les jeunes peuples de l'Est comme les Parthes et les constantes révoltes des satrapies éloignées comme la Bactriane poussa les Séleucides à des réformes militaires et à un changement de tactique, en particulier avec la cavalerie. La guerre avec les Romains à l'ouest et les invasions des Galates obligèrent aussi les Séleucides à réformer leurs régiments d'infanterie vers une plus grande souplesse. "
+msgstr "Séleucos et la guerre de succession prirent place aux 3ème et 2ème siècle avant J.C. Les contacts avec les jeunes peuples de l'Est comme les Parthes et les constantes révoltes des satrapies éloignées comme la Bactriane poussa les Séleucides à des réformes militaires et à un changement de tactique, en particulier avec la cavalerie. La guerre avec les Romains à l'ouest et les invasions des Galates obligèrent aussi les Séleucides à réformer leurs régiments d'infanterie vers une plus grande souplesse. "
 
 #: civs/sele.jsonTeamBonuses[0].Description
 msgid "Allied Civic Centers are 20% cheaper."
-msgstr "Les centres-villes alliés sont 20 % moins chers."
+msgstr "Les centres-villes alliés coûtent 20% moins cher."
 
 #: civs/sele.jsonTeamBonuses[0].Name
 msgid "Syrian Tetrapolis"
@@ -2610,11 +2649,11 @@ msgstr "Philippe II Philoromaios"
 msgid ""
 "Traditional Army unlocks Silver Shields and Scythed Chariots, Reform Army "
 "unlocks Romanized Heavy Swordsmen and Cataphracts."
-msgstr "L'armée traditionnelle débloque les boucliers d'argent et les chars à faux, l'armée de réforme débloque les épéistes lourds romanisés et les cataphractaires."
+msgstr "L'armée traditionnelle débloque les boucliers d'argent et les chars à faux. L'armée de réforme débloque les épéistes lourds romanisés et les cataphractaires."
 
 #: civs/sele.jsonFactions[0].Technologies[1].Name
 msgid "Traditional Army vs. Reform Army"
-msgstr "Armée traditionnelle vs. Armée réformée"
+msgstr "Armée traditionnelle c. Armée réformée"
 
 #: civs/sele.jsonFactions[0].Technologies[2].Description
 msgid ""
@@ -2724,7 +2763,7 @@ msgid ""
 "manpower for the imperial Seleucid army. A side effect of this system was "
 "that it drained the Greek homeland of military-aged men, a contributing "
 "factor to Greece's eventual conquest by Rome."
-msgstr "Les rois Séleucides invitèrent Grecs, Macédoniens, Gaulois, Crétois, et Thraces à venir s'installer dans les vastes territoires de l'empire. Ils s'établirent dans des colonies militaires appelées clérouquies (klēroukhia). Sous ces termes, les colons recevaient une parcelle de terrain, ou kleros, et devaient servir en retour dans l'armée du grand roi si nécessaire. Ainsi apparut une classe moyenne-haute de colons militaires qui devaient leur gagne-pain et leurs fortunes aux rois Syriens et qui aidèrent à étendre la main-d’œuvre disponible pour l'armée impériale Séleucide. Un effet secondaire du système est qu'il vida le territoire Grec des hommes en âge de combattre, facteur contribuant à la future conquête de la Grèce par Rome. "
+msgstr "Les rois Séleucides invitèrent les Grecs, Macédoniens, Gaulois, Crétois et Thraces à venir s'installer dans les vastes territoires de l'empire. Ils s'établirent dans des colonies militaires appelées clérouquies (klēroukhia). Sous ces termes, les colons recevaient une parcelle de terrain, ou kleros, et devaient servir en retour dans l'armée du grand roi si nécessaire. Ainsi apparut une classe moyenne-haute de colons militaires qui devaient leur gagne-pain et leurs fortunes aux rois Syriens et qui aidèrent à étendre la main-d’œuvre disponible pour l'armée impériale Séleucide. Un effet secondaire du système est qu'il vida le territoire Grec des hommes en âge de combattre, facteur contribuant à la future conquête de la Grèce par Rome. "
 
 #: civs/sele.jsonHistory
 msgid ""
@@ -2751,7 +2790,7 @@ msgstr "Les Spartiates étaient les maîtres incontestés de la guerre de Phalan
 #: civs/spart.jsonCivBonuses[1].Description
 msgid ""
 "The Spartan rank upgrades at the Barracks cost no resources, except time."
-msgstr "Les promotions de grade des spartiates à la caserne ne coûtent pas de ressources, juste du temps."
+msgstr "Les promotions de grade des Spartiates dans les casernes ne coûtent pas de ressources, juste du temps."
 
 #: civs/spart.jsonCivBonuses[1].Name
 msgid "Laws of Lycurgus"
@@ -2762,7 +2801,7 @@ msgid ""
 "Under the Constitution written by the mythical law-giver Lycurgus, the "
 "institution of The Agoge was established, where Spartans were trained from "
 "the age of 6 to be superior warriors in defense of the Spartan state."
-msgstr "Sous la Constitution écrite par le mythique législateur Lycurgue, l'institution de l'Agôgè fut établie, qui obligeait les Spartiates à se former dès l'âge de 6 ans pour être des guerriers supérieurs dans la défense de l'État spartiate."
+msgstr "Sous la Constitution écrite par le mythique législateur Lycurgue, l'institution de l'agogé fut établie, qui obligeait les Spartiates à se former dès l'âge de 6 ans pour être des guerriers supérieurs dans la défense de l'État spartiate."
 
 #: civs/spart.jsonTeamBonuses[0].Description
 msgid "Allies can train Spartiates."
@@ -2825,7 +2864,7 @@ msgid ""
 "Spartan female citizens cannot be captured and will doggedly fight back "
 "against any attackers. They are also capable of constructing defense towers "
 "and palisades."
-msgstr "Les Citoyennes de Sparte ne peuvent pas être capturées et  se défendront avec acharnement contre tous les attaquants. Elles sont également capables de construire des tours de défense et de palissades."
+msgstr "Les citoyennes de Sparte ne peuvent pas être capturées et se défendront avec acharnement contre tous les attaquants. Elles sont également capables de construire des tours de défense et des palissades."
 
 #: civs/spart.jsonFactions[0].Technologies[0].Name
 msgid "Feminine Mystique"
@@ -2840,11 +2879,11 @@ msgid ""
 "lost battle against Pyrrhus of Epirus they overnight built an earthen "
 "rampart to protect the city while their men slept in preparation for the "
 "next day's siege."
-msgstr "Les femmes de Spartes étaient parmi celles qui avaient le plus de droit dans l'Antiquité. Elles pouvaient être propriétaires terriennes, avoir des esclaves et même travailler nues comme les hommes. On dit que seules les femmes spartes pouvaient donner naissance aux vrais hommes. Ces femmes dures à cuire ont sauvé plus d'une fois leurs cités du désastre, par exemple lorsqu'après une bataille perdue contre Pyrrhus d'Épire, elles ont construit pendant la nuit des remparts en terre pendant que leurs hommes dormaient afin de se préparer pour le siège du lendemain. "
+msgstr "Les femmes de Sparte étaient parmi celles qui avaient le plus de droit dans l'Antiquité. Elles pouvaient être propriétaires terriens, avoir des esclaves et même travailler nues comme les hommes spartiates. On disait que seules les femmes spartiates pouvaient donner naissance à de vrais hommes. Ces dures à cuire ont sauvé plus d'une fois leur cité du désastre, par exemple après une bataille perdue contre Pyrrhus d'Épire, elles ont construit pendant la nuit des remparts en terre pendant que leurs hommes dormaient afin de se préparer pour le siège du lendemain. "
 
 #: civs/spart.jsonFactions[0].Technologies[1].Description
 msgid "Units in phalanx formation move faster."
-msgstr "Les unités en formation de phalange se déplacent plus rapidement."
+msgstr "Les unités en formation phalange se déplacent plus rapidement."
 
 #: civs/spart.jsonFactions[0].Technologies[1].Name
 msgid "Tyrtean Paeans"
@@ -2855,11 +2894,11 @@ msgid ""
 "Paeans were battle hymns that were sung by the hoplites when they charged "
 "the enemy lines. One of the first known Paeans were composed by Tirteus, a "
 "warrior poet of Sparta, during the First Messenian War."
-msgstr "Les péans étaient les hymnes de bataille que les hoplites chantaient en chargeant les lignes ennemies. Un des premiers péans connus a été composé par Tirteus, un poète de guerrier de Sparte, pendant la première guerre Messénie."
+msgstr "Les péans étaient les hymnes de bataille que les hoplites chantaient en chargeant les lignes ennemies. Un des premiers péans connus a été composé par Tirteus, un guerrier poète de Sparte, pendant la première guerre Messénie."
 
 #: civs/spart.jsonFactions[0].Technologies[2].Description
 msgid "+25% health for spear infantry, but also +10% train time."
-msgstr "+25% de santé pour les lanciers, mais aussi +10% de temps de formation."
+msgstr "Les lanciers gagnent +25% de santé, mais prennent aussi +10% de temps de formation."
 
 #: civs/spart.jsonFactions[0].Technologies[2].Name
 msgid "The Agoge"
@@ -2869,7 +2908,7 @@ msgstr "L'agogé"
 msgid ""
 "Spartans were housed and trained from a young age to be superlative warriors"
 " and to endure any hardship a military life can give them."
-msgstr "Les Spartiates étaient abrités et formés à partir du plus jeune âge à être des guerriers hors normes et supporter n'importe quelle épreuve qu'une vie militaire peut leur apporter."
+msgstr "Les Spartiates sont abrités et formés dès leur plus jeune âge à être des guerriers hors normes et à supporter n'importe quelle épreuve qu'une vie militaire peut leur apporter."
 
 #: civs/spart.jsonFactions[0].Heroes[0].History
 msgid ""
@@ -2879,7 +2918,7 @@ msgid ""
 "unobstructed path. Finding the enemy at his rear, Leonidas sent home most of"
 " his troops, choosing to stay behind with 300 hand-picked hoplites and win "
 "time for the others to withdraw."
-msgstr "Le roi de Sparte, qui a combattu et est mort pendant la bataille des Thermopyles en 480 avant J.C. Il bloqua avec la succès la route de l'énorme armée Perse à travers ce passage étroit avec l'aide de ses 7000 hommes, jusqu'à ce que Xerxès eut connaissance d'un passage secret sans embûche. Contourné par son adversaire, Léonidas renvoya chez eux la plupart de ses hommes et choisit de rester avec 300 de ses meilleurs hoplites pour laisser  temps aux autres de se rentrer. "
+msgstr "Le roi de Sparte, qui a combattu et est mort pendant la bataille des Thermopyles en 480 avant J.C. Il bloqua avec succès la route de l'énorme armée Perse à travers ce passage étroit avec l'aide de ses 7 000 hommes, jusqu'à ce que Xerxès eut connaissance d'un passage secret sans embûche. Contourné par son adversaire, Léonidas renvoya chez eux la plupart de ses hommes et choisit de rester avec 300 de ses meilleurs hoplites pour faire gagner du temps aux autres de se retirer. "
 
 #: civs/spart.jsonFactions[0].Heroes[0].Name
 msgid "Leonidas I"
@@ -2890,7 +2929,7 @@ msgid ""
 "Because Brasidas has sponsored their citizenship in return for service, "
 "Helot Skirmishers fight longer and harder for Sparta while within range of "
 "him."
-msgstr "Parce que Brasidas leur a accordé la citoyenneté en retour, les tirailleurs hilotes se battent plus longtemps et plus vaillamment pour Sparte tant qu'ils sont à sa portée. "
+msgstr "Parce que Brasidas leur a accordé la citoyenneté en retour pour leur service, les tirailleurs hilotes se battent plus longtemps et plus vaillamment pour Sparte tant qu'ils sont près de lui. "
 
 #: civs/spart.jsonFactions[0].Heroes[2].History
 msgid ""
@@ -2903,7 +2942,7 @@ msgid ""
 " the Battle of Megalopolis, the Macedonians prevailed in a long and bloody "
 "battle. Much like Leonidas 150 years earlier, instead of surrendering, Agis "
 "made a heroic final stand in order to buy time for his troops to retreat."
-msgstr "Agis III était le 20ème roi de Sparte de la dynastie eurypontide. Agis concocta une alliance des états de la Grèce du sud pour combattre l'hégémonie Macédonienne pendant qu'Alexandre le grand se trouve en Asie pour ses conquêtes. Après avoir sécurisé la Crète comme étant tributaire de Sparte, Agis assiégea ensuite la cité de Megalopolis dans le Péloponnèse, qui était un allié des Macédoniens. Antipater, le régent de Macédoine, conduit une armée pour arrêter ce nouveau soulèvement. Dans la bataille de Megalopolis, les macédoniens s'attendaient à une longue et sanglante bataille. Comme Leonidas 150 ans plus tôt, au lieu de se rendre, Agis s'opposa héroïquement dans un dernier combat afin de laisser du temps à ses troupes pour qu'elles battent en retraite."
+msgstr "Agis III était le 20ème roi de Sparte de la dynastie des Eurypontides. Agis concocta une alliance des états de la Grèce du sud pour combattre l'hégémonie macédonienne lorsqu'Alexandre le Grand se trouvait en Asie pour ses conquêtes. Après avoir sécurisé la Crète comme un tributaire de Sparte, Agis assiégea ensuite la cité de Megalopolis dans le Péloponnèse, qui était un allié des Macédoniens. Antipater, le régent de Macédoine, y conduisit une armée pour arrêter ce nouveau soulèvement. Lors de la bataille de Megalopolis, les Macédoniens s'attendaient à une longue et sanglante bataille. Comme Léonidas 150 ans plus tôt, au lieu de se rendre, Agis s'opposa héroïquement dans un dernier combat afin de laisser du temps à ses troupes pour qu'elles battent en retraite."
 
 #: civs/spart.jsonFactions[0].Heroes[2].Name
 msgid "Agis III"
@@ -2915,7 +2954,7 @@ msgstr "Syssition"
 
 #: civs/spart.jsonStructures[1].Special
 msgid "Train heroes and Spartiates and research technologies related to them."
-msgstr "Former des Héros et des spartiates. Rechercher les technologies associées."
+msgstr "Former des héros et des Spartiates. Rechercher les technologies associées."
 
 #: civs/spart.jsonStructures[1].History
 msgid ""

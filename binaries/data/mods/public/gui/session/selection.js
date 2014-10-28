@@ -235,10 +235,8 @@ EntitySelection.prototype.getTemplateNames = function()
  */
 EntitySelection.prototype.update = function()
 {
-	this.checkRenamedEntities();
-
-	var miraged = {};
 	var changed = false;
+	this.checkRenamedEntities();
 	for each (var ent in this.selected)
 	{
 		var entState = GetEntityState(ent);
@@ -249,13 +247,6 @@ EntitySelection.prototype.update = function()
 			delete this.selected[ent];
 			this.groups.removeEnt(ent);
 			changed = true;
-			continue;
-		}
-
-		// Manually replace newly miraged entities by their mirages
-		if (entState.fogging && entState.fogging.mirage)
-		{
-			miraged[ent] = entState.fogging.mirage;
 			continue;
 		}
 
@@ -273,9 +264,6 @@ EntitySelection.prototype.update = function()
 			continue;
 		}
 	}
-
-	this.rebuildSelection(miraged);
-
 	if (changed)
 		this.onChange();
 };
@@ -331,7 +319,7 @@ EntitySelection.prototype.addList = function(ents, quiet)
 	{
 		// Only add entities we own to our selection
 		var entState = GetEntityState(ent);
-		if (!this.selected[ent] && (selection.length + i) <= MAX_SELECTION_SIZE && (allowUnownedSelect || (entState && entState.player == playerID)))
+		if (!this.selected[ent] && (selection.length + i) <= MAX_SELECTION_SIZE && entState && (allowUnownedSelect || entState.player == playerID))
 		{
 			added.push(ent);
 			this.selected[ent] = ent;

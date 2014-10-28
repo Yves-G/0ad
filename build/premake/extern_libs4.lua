@@ -235,7 +235,8 @@ extern_lib_defs = {
 				-- Suppress all the Boost warnings on OS X by including it as a system directory
 				buildoptions { "-isystem../" .. libraries_dir .. "boost/include" }
 			end
-			if os.getversion().description == "OpenBSD" then
+			-- TODO: This actually applies to most libraries we use on BSDs, make this a global setting.
+			if os.is("bsd") then
 				includedirs { "/usr/local/include" }
 			end
 		end,
@@ -263,10 +264,7 @@ extern_lib_defs = {
 	},
 	cxxtest = {
 		compile_settings = function()
-			includedirs { libraries_source_dir .. "cxxtest-4.3" }
-		end,
-		link_settings = function()
-			add_source_lib_paths("cxxtest-4.3")
+			includedirs { libraries_source_dir .. "cxxtest-4.4" }
 		end,
 	},
 	enet = {
@@ -347,6 +345,8 @@ extern_lib_defs = {
 			elseif os.is("macosx") then
 				add_default_include_paths("iconv")
 				defines { "LIBICONV_STATIC" }
+			elseif os.getversion().description == "FreeBSD" then
+				defines { "HAVE_ICONV_CONST" }
 			end
 		end,
 		link_settings = function()
@@ -355,10 +355,18 @@ extern_lib_defs = {
 			end
 			add_default_links({
 				win_names  = { "libiconv" },
-				-- TODO: glibc provides symbols for this, so we should only include that (and depend on libiconv) on non-glibc unix
 				osx_names = { "iconv" },
 				dbg_suffix = "",
 			})
+			-- glibc (used on Linux and GNU/kFreeBSD) has iconv
+			-- FreeBSD 10+ has iconv as a part of libc
+			if os.is("bsd")
+			   and not (os.getversion().description == "FreeBSD" and os.getversion().majorversion >= 10
+			            or os.getversion().description == "GNU/kFreeBSD") then
+				add_default_links({
+					bsd_names = { "iconv" },
+				})
+			end
 		end,
 	},
 	icu = {
@@ -488,13 +496,13 @@ extern_lib_defs = {
 	},
 	miniupnpc = {
 		compile_settings = function()
-			if not _OPTIONS["with-system-miniupnpc"] then
-				add_source_include_paths("miniupnpc")
+			if os.is("windows") or os.is("macosx") then
+				add_default_include_paths("miniupnpc")
 			end
 		end,
 		link_settings = function()
-			if not _OPTIONS["with-system-miniupnpc"] then
-				add_source_lib_paths("miniupnpc")
+			if os.is("windows") or os.is("macosx") then
+				add_default_lib_paths("miniupnpc")
 			end
 			add_default_links({
 				win_names  = { "miniupnpc" },
@@ -569,26 +577,47 @@ extern_lib_defs = {
 	sdl = {
 		compile_settings = function()
 			if os.is("windows") then
-				includedirs { libraries_dir .. "sdl/include/SDL" }
+				if _OPTIONS["sdl2"] then
+					includedirs { libraries_dir .. "sdl2/include/SDL" }
+					defines { "CONFIG2_WSDL=0" }
+				else
+					includedirs { libraries_dir .. "sdl/include/SDL" }
+				end
 			elseif not _OPTIONS["android"] then
-				-- Support SDL_CONFIG for overriding for the default PATH-based sdl-config
-				sdl_config_path = os.getenv("SDL_CONFIG")
-				if not sdl_config_path then
-					sdl_config_path = "sdl-config"
+				-- Support SDL*_CONFIG for overriding the default PATH-based sdl*-config
+				if _OPTIONS["sdl2"] then
+					sdl_config_path = os.getenv("SDL2_CONFIG")
+					if not sdl_config_path then
+						sdl_config_path = "sdl2-config"
+					end
+				else
+					sdl_config_path = os.getenv("SDL_CONFIG")
+					if not sdl_config_path then
+						sdl_config_path = "sdl-config"
+					end
 				end
 
-				-- "pkg-config sdl --libs" appears to include both static and dynamic libs
-				-- when on MacPorts, which is bad, so use sdl-config instead
 				pkgconfig_cflags(nil, sdl_config_path.." --cflags")
 			end
 		end,
 		link_settings = function()
 			if os.is("windows") then
-				add_default_lib_paths("sdl")
+				if _OPTIONS["sdl2"] then
+					add_default_lib_paths("sdl2")
+				else
+					add_default_lib_paths("sdl")
+				end
 			elseif not _OPTIONS["android"] then
-				sdl_config_path = os.getenv("SDL_CONFIG")
-				if not sdl_config_path then
-					sdl_config_path = "sdl-config"
+				if _OPTIONS["sdl2"] then
+					sdl_config_path = os.getenv("SDL2_CONFIG")
+					if not sdl_config_path then
+						sdl_config_path = "sdl2-config"
+					end
+				else
+					sdl_config_path = os.getenv("SDL_CONFIG")
+					if not sdl_config_path then
+						sdl_config_path = "sdl-config"
+					end
 				end
 				pkgconfig_libs(nil, sdl_config_path.." --libs")
 			end
@@ -645,9 +674,6 @@ extern_lib_defs = {
 	valgrind = {
 		compile_settings = function()
 			add_source_include_paths("valgrind")
-		end,
-		link_settings = function()
-			add_source_lib_paths("valgrind")
 		end,
 	},
 	vorbis = {
