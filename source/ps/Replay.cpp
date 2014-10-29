@@ -80,7 +80,7 @@ void CReplayLogger::StartGame(JS::MutableHandleValue attribs)
 	*m_Stream << "start " << m_ScriptInterface.StringifyJSON(attribs, false) << "\n";
 }
 
-void CReplayLogger::Turn(u32 n, u32 turnLength, const std::vector<SimulationCommand>& commands)
+void CReplayLogger::Turn(u32 n, u32 turnLength, std::vector<SimulationCommand>& commands)
 {
 	JSContext* cx = m_ScriptInterface.GetContext();
 	JSAutoRequest rq(cx);
@@ -88,7 +88,7 @@ void CReplayLogger::Turn(u32 n, u32 turnLength, const std::vector<SimulationComm
 	*m_Stream << "turn " << n << " " << turnLength << "\n";
 	for (size_t i = 0; i < commands.size(); ++i)
 	{
-		*m_Stream << "cmd " << commands[i].player << " " << m_ScriptInterface.StringifyJSON(&commands[i].GetData(), false) << "\n";
+		*m_Stream << "cmd " << commands[i].player << " " << m_ScriptInterface.StringifyJSON(&commands[i].data, false) << "\n";
 	}
 	*m_Stream << "end\n";
 	m_Stream->flush();
@@ -190,10 +190,7 @@ void CReplayPlayer::Replay(bool serializationtest)
 			JS::RootedValue data(cx);
 			game.GetSimulation2()->GetScriptInterface().ParseJSON(line, &data);
 
-			SimulationCommand cmd;
-			cmd.player = player;
-			cmd.SetData(cx, data);
-			commands.push_back(cmd);
+			commands.emplace_back(player, cx, data);
 		}
 		else if (type == "hash" || type == "hash-quick")
 		{

@@ -58,7 +58,7 @@ public:
 		for (size_t i = 0; i < m_LocalQueue.size(); ++i)
 		{
 			serialize.NumberI32_Unbounded("player", m_LocalQueue[i].player);
-			serialize.ScriptVal("data", &m_LocalQueue[i].GetData());
+			serialize.ScriptVal("data", &m_LocalQueue[i].data);
 		}
 	}
 
@@ -75,21 +75,14 @@ public:
 			JS::RootedValue data(cx);
 			deserialize.NumberI32_Unbounded("player", player);
 			deserialize.ScriptVal("data", &data);
-			SimulationCommand c;
-			c.player = player;
-			c.SetData(cx, data);
-			m_LocalQueue.push_back(c);
+			m_LocalQueue.emplace_back(player, cx, data);
 		}
 	}
 
 	virtual void PushLocalCommand(player_id_t player, JS::HandleValue cmd)
 	{
 		JSContext* cx = GetSimContext().GetScriptInterface().GetContext();
-
-		SimulationCommand c;
-		c.player = player;
-		c.SetData(cx, cmd);
-		m_LocalQueue.push_back(c);
+		m_LocalQueue.emplace_back(player, cx, cmd);
 	}
 
 	virtual void PostNetworkCommand(CScriptVal cmd1)
@@ -120,14 +113,14 @@ public:
 
 		for (size_t i = 0; i < localCommands.size(); ++i)
 		{
-			bool ok = scriptInterface.CallFunctionVoid(global, "ProcessCommand", localCommands[i].player, localCommands[i].GetData());
+			bool ok = scriptInterface.CallFunctionVoid(global, "ProcessCommand", localCommands[i].player, localCommands[i].data);
 			if (!ok)
 				LOGERROR(L"Failed to call ProcessCommand() global script function");
 		}
 
 		for (size_t i = 0; i < commands.size(); ++i)
 		{
-			bool ok = scriptInterface.CallFunctionVoid(global, "ProcessCommand", commands[i].player, commands[i].GetData());
+			bool ok = scriptInterface.CallFunctionVoid(global, "ProcessCommand", commands[i].player, commands[i].data);
 			if (!ok)
 				LOGERROR(L"Failed to call ProcessCommand() global script function");
 		}

@@ -42,7 +42,7 @@ public:
 	/**
 	 * Run the given turn with the given collection of player commands.
 	 */
-	virtual void Turn(u32 n, u32 turnLength, const std::vector<SimulationCommand>& commands) = 0;
+	virtual void Turn(u32 n, u32 turnLength, std::vector<SimulationCommand>& commands) = 0;
 
 	/**
 	 * Optional hash of simulation state (for sync checking).
@@ -72,7 +72,7 @@ public:
 	~CReplayLogger();
 
 	virtual void StartGame(JS::MutableHandleValue attribs);
-	virtual void Turn(u32 n, u32 turnLength, const std::vector<SimulationCommand>& commands);
+	virtual void Turn(u32 n, u32 turnLength, std::vector<SimulationCommand>& commands);
 	virtual void Hash(const std::string& hash, bool quick);
 
 private:

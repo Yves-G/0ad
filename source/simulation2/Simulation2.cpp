@@ -157,12 +157,12 @@ public:
 		
 		std::vector<SimulationCommand> newCommands;
 		newCommands.reserve(commands.size());
-		for (size_t i = 0; i < newCommands.size(); ++i)
+		for (size_t i = 0; i < commands.size(); ++i)
 		{
 			JSContext* cxNew = newScript.GetContext();
 			JSAutoRequest rqNew(cxNew);
-			JS::RootedValue tmpCommand(cxNew, newScript.CloneValueFromOtherContext(oldScript, commands[i].GetData()));
-			newCommands[i].SetData(cxNew, tmpCommand);
+			JS::RootedValue tmpCommand(cxNew, newScript.CloneValueFromOtherContext(oldScript, commands[i].data));
+			newCommands.emplace_back(commands[i].player, cxNew, tmpCommand);
 		}
 		return newCommands;
 	}
@@ -345,7 +345,6 @@ void CSimulation2Impl::Update(int turnLength, const std::vector<SimulationComman
 			ENSURE(m_ComponentManager.ComputeStateHash(primaryStateBefore.hash, false));
 	}
 
-
 	UpdateComponents(m_SimContext, turnLengthFixed, commands);
 
 
@@ -431,7 +430,6 @@ void CSimulation2Impl::Update(int turnLength, const std::vector<SimulationComman
 
 		UpdateComponents(secondaryContext, turnLengthFixed,
 			CloneCommandsFromOtherContext(m_ComponentManager.GetScriptInterface(), secondaryComponentManager.GetScriptInterface(), commands));
-
 		SerializationTestState secondaryStateAfter;
 		ENSURE(secondaryComponentManager.SerializeState(secondaryStateAfter.state));
 		if (serializationTestHash)

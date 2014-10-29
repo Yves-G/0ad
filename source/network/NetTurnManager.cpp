@@ -159,7 +159,7 @@ bool CNetTurnManager::Update(float simFrameLength, size_t maxTurns)
 		std::vector<SimulationCommand> commands;
 		for (std::map<u32, std::vector<SimulationCommand> >::iterator it = m_QueuedCommands[0].begin(); it != m_QueuedCommands[0].end(); ++it)
 		{
-			commands.insert(commands.end(), it->second.begin(), it->second.end());
+			commands.insert(commands.end(), std::make_move_iterator(it->second.begin()), std::make_move_iterator(it->second.end()));
 		}
 		m_QueuedCommands.pop_front();
 		m_QueuedCommands.resize(m_QueuedCommands.size() + 1);
@@ -203,7 +203,7 @@ bool CNetTurnManager::UpdateFastForward()
 		std::vector<SimulationCommand> commands;
 		for (std::map<u32, std::vector<SimulationCommand> >::iterator it = m_QueuedCommands[0].begin(); it != m_QueuedCommands[0].end(); ++it)
 		{
-			commands.insert(commands.end(), it->second.begin(), it->second.end());
+			commands.insert(commands.end(), std::make_move_iterator(it->second.begin()), std::make_move_iterator(it->second.end()));
 		}
 		m_QueuedCommands.pop_front();
 		m_QueuedCommands.resize(m_QueuedCommands.size() + 1);
@@ -265,11 +265,8 @@ void CNetTurnManager::AddCommand(int client, int player, JS::HandleValue data, u
 		debug_warn(L"Received command for invalid turn");
 		return;
 	}
-
-	SimulationCommand cmd;
-	cmd.player = player;
-	cmd.SetData(m_Simulation2.GetScriptInterface().GetContext(), data);
-	m_QueuedCommands[turn - (m_CurrentTurn+1)][client].push_back(cmd);
+	
+	m_QueuedCommands[turn - (m_CurrentTurn+1)][client].emplace_back(player, m_Simulation2.GetScriptInterface().GetContext(), data);
 }
 
 void CNetTurnManager::FinishedAllCommands(u32 turn, u32 turnLength)
