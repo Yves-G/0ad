@@ -1,14 +1,19 @@
 Important notice:
 -----------------
 This version of SpiderMonkey comes from
-https://ftp.mozilla.org/pub/mozilla.org/js/mozjs-24.2.0.tar.bz2
+http://people.mozilla.org/~sstangl/mozjs-31.2.0.rc0.tar.bz2
 
 The game must be compiled with precisely this version since SpiderMonkey 
 does not guarantee API stability and may have behavioural changes that 
 cause subtle bugs or network out-of-sync errors.
 A standard system-provided version of the library may only be used if it's
 exactly the same version or if it's another minor release that does not 
-change the behaviour of the scripts executed by SpiderMonkey.
+change the behaviour of the scripts executed by SpiderMonkey. Also it's
+crucial that "--enable-gcgenerational" was used for building the system 
+provided libraries and that exact stack rooting was not disabled.
+Using different settings for compiling the SpiderMonkey and 0 A.D.
+causes incompatibilities on the ABI (binary) level and can lead to
+crashes at runtime!
 
 
 Building on Linux:

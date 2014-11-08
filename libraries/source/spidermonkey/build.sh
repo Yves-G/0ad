@@ -21,7 +21,10 @@ MAKE=${MAKE:="make"}
 
 MAKE_OPTS="${JOBS}"
 
-CONF_OPTS="--enable-shared-js --disable-tests --enable-gcgenerational" # --enable-trace-logging"
+CONF_OPTS="--enable-shared-js --enable-gcgenerational --disable-tests --without-intl-api" # --enable-trace-logging"
+
+# Modify TRACE_LOG_DIR to define where the tracelogger should store its output (if enabled with --enable-trace-logging)
+TLCXXFLAGS='-DTRACE_LOG_DIR="\"/tmp/traces/\""'
 
 # We bundle prebuilt binaries for Windows and the .libs for nspr aren't included.
 # If you want to build on Windows, check README.txt and edit the absolute paths 
@@ -55,37 +58,18 @@ CONF_OPTS="${CONF_OPTS} \
 echo "SpiderMonkey build options: ${CONF_OPTS}"
 echo ${CONF_OPTS}
 
-# Check if we are already using the unified repository structure for Mozilla's multiple repositories.
-# Delete the whole SpiderMonkey checkout in this case and make a fresh checkout.
-if [ ! -f ".mozjshgstructure2" ]; then
-	# delete mozjs31 folder
-	rm -rf mozjs31
-fi
-
-# Download the current development version from the mozilla-central repository
-if [ ! -d "mozjs31" ]; then
-  # create a flag to indicate that we are already using the new structure with Mozilla's multiple repositories in a unified Mercurial repository
-  touch .mozjshgstructure2
-  
-  hg init mozjs31
-  cp hgrc mozjs31/.hg/
-  cd mozjs31
-  cd ..
-fi
-
-cd mozjs31
-hg pull release
-hg pull beta
-hg pull aurora
-hg pull central
-# I've tested with this version, but you can try a more recent one if you like.
-# Identify the current head of a repository with e.g. "hg identify -r default central" (using release, beta, aurora or central respectively).
-hg update cd52a7f89548
-cd ..
-
+# Delete the existing directory to avoid conflicts and extract the tarball
+rm -rf mozjs31
+tar xjf mozjs-31.2.0.rc0.tar.bz2
+mv mozjs-31.2.0 mozjs31
 
 # Apply patches if needed
-#patch -p0 < name_of_thepatch.diff
+cd mozjs31
+# Tracelogger patches (the Tracelogger is a tool for developers and these
+# patches are only needed if the tracelogger is used):
+patch -p1 -i ../FixTraceLoggerBuild.diff
+patch -p1 -i ../FixTraceLoggerFlushing.diff
+cd ..
 
 # Clean up header files that may be left over by earlier versions of SpiderMonkey
 rm -rf include-unix-*
@@ -106,14 +90,14 @@ autoconf2.13
 perl -i.bak -pe 's/(LIBRARY_NAME\s+=).*/$1 '\''mozjs31-ps-debug'\''/' moz.build
 mkdir -p build-debug
 cd build-debug
-../configure ${CONF_OPTS} --with-nspr-libs="$NSPR_LIBS" --with-nspr-cflags="$NSPR_INCLUDES" --enable-debug --disable-optimize --enable-js-diagnostics --enable-gczeal # --enable-root-analysis
+CXXFLAGS="${TLCXXFLAGS}" ../configure ${CONF_OPTS} --with-nspr-libs="$NSPR_LIBS" --with-nspr-cflags="$NSPR_INCLUDES" --enable-debug --disable-optimize --enable-js-diagnostics --enable-gczeal # --enable-root-analysis
 ${MAKE} ${MAKE_OPTS}
 cd ..
 
 perl -i.bak -pe 's/(LIBRARY_NAME\s+=).*/$1 '\''mozjs31-ps-release'\''/' moz.build
 mkdir -p build-release
 cd build-release
-../configure ${CONF_OPTS} --with-nspr-libs="$NSPR_LIBS" --with-nspr-cflags="$NSPR_INCLUDES" --enable-optimize  # --enable-gczeal --enable-debug-symbols
+CXXFLAGS="${TLCXXFLAGS}" ../configure ${CONF_OPTS} --with-nspr-libs="$NSPR_LIBS" --with-nspr-cflags="$NSPR_INCLUDES" --enable-optimize  # --enable-gczeal --enable-debug-symbols
 ${MAKE} ${MAKE_OPTS}
 cd ..
 
@@ -152,13 +136,6 @@ mkdir -p ${INCLUDE_DIR_DEBUG}
 mkdir -p ${INCLUDE_DIR_RELEASE}
 cp -R -L mozjs31/js/src/build-release/dist/include/* ${INCLUDE_DIR_RELEASE}/
 cp -R -L mozjs31/js/src/build-debug/dist/include/* ${INCLUDE_DIR_DEBUG}/
-
-# Fix an annoying compiler warning message that can't be disabled on many Linux systems due to a GCC bug (http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53431)
-if [ "${OS}" != "Windows_NT" ]
-then
-perl -i -pe 's/(^#elif _MSC_VER >= 1600).*/#elif defined(_MSC_VER) && _MSC_VER >= 1600/' ${INCLUDE_DIR_DEBUG}/mozilla/NullPtr.h
-perl -i -pe 's/(^#elif _MSC_VER >= 1600).*/#elif defined(_MSC_VER) && _MSC_VER >= 1600/' ${INCLUDE_DIR_RELEASE}/mozilla/NullPtr.h
-fi
 
 mkdir -p lib/
 cp -L mozjs31/js/src/build-debug/dist/lib/${LIB_PREFIX}mozjs31-ps-debug${LIB_SRC_SUFFIX} lib/${LIB_PREFIX}mozjs31-ps-debug${LIB_DST_SUFFIX}

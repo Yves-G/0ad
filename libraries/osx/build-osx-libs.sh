@@ -45,7 +45,7 @@ ENET_VERSION="enet-1.3.12"
 MINIUPNPC_VERSION="miniupnpc-1.9"
 # --------------------------------------------------------------
 # Bundled with the game:
-# * SpiderMonkey 24
+# * SpiderMonkey 31
 # * NVTT
 # * FCollada
 # --------------------------------------------------------------
@@ -658,9 +658,9 @@ popd > /dev/null
 # --------------------------------------------------------------------
 echo -e "Building Spidermonkey..."
 
-LIB_VERSION="mozjs-24.2.0"
+LIB_VERSION="mozjs-31.2.0.rc0"
 LIB_ARCHIVE="$LIB_VERSION.tar.bz2"
-LIB_DIRECTORY="mozjs24"
+LIB_DIRECTORY="mozjs31"
 
 pushd ../source/spidermonkey/ > /dev/null
 
@@ -679,8 +679,8 @@ then
   pushd $LIB_DIRECTORY/js/src
 
   # We want separate debug/release versions of the library, so change their install name in the Makefile
-  perl -i.bak -pe 's/(^STATIC_LIBRARY_NAME\s+=).*/$1mozjs24-ps-debug/' Makefile.in
-  perl -i.bak -pe 's/js_static/mozjs24-ps-debug/g' shell/Makefile.in
+  perl -i.bak -pe 's/(^STATIC_LIBRARY_NAME\s+=).*/$1mozjs31-ps-debug/' Makefile.in
+  perl -i.bak -pe 's/js_static/mozjs31-ps-debug/g' shell/Makefile.in
 
   CONF_OPTS="--target=$ARCH-apple-darwin --prefix=${INSTALL_DIR} --with-system-nspr --with-nspr-prefix=${NSPR_DIR} --with-system-zlib=${ZLIB_DIR} --enable-gcgenerational --disable-tests --disable-shared-js" # --enable-trace-logging"
   # Uncomment this line for 32-bit 10.5 cross compile:
@@ -706,8 +706,8 @@ then
   mv Makefile.in.bak Makefile.in
   mv shell/Makefile.in.bak shell/Makefile.in
 
-  perl -i.bak -pe 's/(^STATIC_LIBRARY_NAME\s+=).*/$1mozjs24-ps-release/' Makefile.in
-  perl -i.bak -pe 's/js_static/mozjs24-ps-release/g' shell/Makefile.in
+  perl -i.bak -pe 's/(^STATIC_LIBRARY_NAME\s+=).*/$1mozjs31-ps-release/' Makefile.in
+  perl -i.bak -pe 's/js_static/mozjs31-ps-release/g' shell/Makefile.in
   mkdir -p build-release
   pushd build-release
   (CC="clang" CXX="clang++" AR=ar CROSS_COMPILE=1 ../configure $CONF_OPTS --enable-optimize && make ${JOBS}) || die "Spidermonkey build failed"
