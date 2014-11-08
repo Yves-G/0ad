@@ -238,7 +238,7 @@ public:
 				
 				// A hack to make sure we never exceed the runtime size because we can't collect the memory
 				// fast enough.
-				if(gcBytes > m_RuntimeSize / 2)
+				if(gcBytes > m_RuntimeSize * 0.5)
 				{
 					if (JS::IsIncrementalGCInProgress(m_rt))
 					{
@@ -250,10 +250,20 @@ public:
 					}
 					else
 					{
+						if (gcBytes > m_RuntimeSize * 0.75)
+						{
+							ShrinkingGC();
 #if GC_DEBUG_PRINT
-						printf("Running full GC because gcBytes > m_RuntimeSize / 2. \n");
+							printf("Running shrinking GC because gcBytes > m_RuntimeSize * 0.75. \n");
 #endif
-						JS_GC(m_rt);
+						}
+						else
+						{
+#if GC_DEBUG_PRINT
+							printf("Running full GC because gcBytes > m_RuntimeSize / 2. \n");
+#endif
+							JS_GC(m_rt);
+						}
 					}
 				}
 				else
@@ -270,6 +280,14 @@ public:
 				m_LastGCBytes = gcBytes;
 			}
 		}
+	}
+	
+	void ShrinkingGC()
+	{
+		JS_SetGCParameter(m_rt, JSGC_MODE, JSGC_MODE_COMPARTMENT);
+		JS::PrepareForFullGC(m_rt);
+		JS::ShrinkingGC(m_rt, JS::gcreason::REFRESH_FRAME);
+		JS_SetGCParameter(m_rt, JSGC_MODE, JSGC_MODE_INCREMENTAL);
 	}
 	
 	void RegisterContext(JSContext* cx)
@@ -743,7 +761,14 @@ ScriptInterface_impl::ScriptInterface_impl(const char* nativeScopeName, const sh
 	ok = JS_InitStandardClasses(m_cx, globalRootedVal);
 	ENSURE(ok);
 	m_glob = globalRootedVal.get();
-
+	
+	// Use the testing functions to globally enable gcPreserveCode. This brings quite a 
+	// big performance improvement. In future SpiderMonkey versions, we should probably 
+	// use the functions implemented here: https://bugzilla.mozilla.org/show_bug.cgi?id=1068697
+	JS::RootedObject testingFunctionsObj(m_cx, js::GetTestingFunctions(m_cx));
+	ENSURE(testingFunctionsObj);
+	JS::RootedValue ret(m_cx);
+	JS_CallFunctionName(m_cx, testingFunctionsObj, "gcPreserveCode", JS::HandleValueArray::empty(), &ret);
 
 	JS_DefineProperty(m_cx, m_glob, "global", globalRootedVal, JSPROP_ENUMERATE | JSPROP_READONLY
 			| JSPROP_PERMANENT);
@@ -1510,6 +1535,11 @@ void ScriptInterface::ForceGC()
 {
 	PROFILE2("JS_GC");
 	JS_GC(this->GetJSRuntime());
+}
+
+void ScriptInterface::ShrinkingGC()
+{
+	m->m_runtime->ShrinkingGC();
 }
 
 JS::Value ScriptInterface::CloneValueFromOtherContext(ScriptInterface& otherContext, JS::HandleValue val)

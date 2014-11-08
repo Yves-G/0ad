@@ -363,6 +363,8 @@ public:
 	 */
 	void MaybeIncrementalRuntimeGC(double delay);
 	
+	void ShrinkingGC();
+	
 	/**
 	 * Triggers a full non-incremental garbage collection immediately. That should only be required in special cases and normally
 	 * you should try to use MaybeIncrementalRuntimeGC instead.
