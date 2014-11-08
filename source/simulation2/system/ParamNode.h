@@ -22,7 +22,7 @@
 #include "maths/Fixed.h"
 #include "ps/CStrIntern.h"
 #include "ps/Errors.h"
-#include "scriptinterface/ScriptVal.h"
+#include "scriptinterface/ScriptTypes.h"
 
 #include <map>
 #include <set>
@@ -220,7 +220,7 @@ public:
 	 * The cache will be reset if *this* node is modified (e.g. by LoadXML),
 	 * but *not* if any child nodes are modified (so don't do that).
 	 */
-	jsval ToJSVal(JSContext* cx, bool cacheValue) const;
+	void ToJSVal(JSContext* cx, bool cacheValue, JS::MutableHandleValue ret) const;
 
 	/**
 	 * Returns the names/nodes of the children of this node, ordered by name
@@ -247,7 +247,7 @@ private:
 
 	void ResetScriptVal();
 
-	jsval ConstructJSVal(JSContext* cx) const;
+	void ConstructJSVal(JSContext* cx, JS::MutableHandleValue ret) const;
 
 	std::wstring m_Value;
 	ChildrenMap m_Childs;
@@ -256,7 +256,7 @@ private:
 	/**
 	 * Caches the ToJSVal script representation of this node.
 	 */
-	mutable CScriptValRooted m_ScriptVal;
+	mutable std::shared_ptr<JS::PersistentRootedValue> m_ScriptVal;
 };
 
 #endif // INCLUDED_PARAMNODE
