@@ -75,6 +75,8 @@ CNetClient::CNetClient(CGame* game) :
 	m_Game->SetTurnManager(NULL); // delete the old local turn manager so we don't accidentally use it
 
 	void* context = this;
+	
+	JS_AddExtraGCRootsTracer(GetScriptInterface().GetJSRuntime(), CNetClient::Trace, this);
 
 	// Set up transitions for session
 	AddTransition(NCS_UNCONNECTED, (uint)NMT_CONNECT_COMPLETE, NCS_CONNECT, (void*)&OnConnect, context);
@@ -121,6 +123,14 @@ CNetClient::CNetClient(CGame* game) :
 CNetClient::~CNetClient()
 {
 	DestroyConnection();
+	JS_RemoveExtraGCRootsTracer(GetScriptInterface().GetJSRuntime(), CNetClient::Trace, this);
+}
+
+void CNetClient::TraceMember(JSTracer *trc)
+{
+	std::deque<JS::Heap<JS::Value> >::iterator itr;
+	for (itr=m_GuiMessageQueue.begin(); itr != m_GuiMessageQueue.end(); ++itr)
+		JS_CallHeapValueTracer(trc, &*itr, "m_GuiMessageQueue");
 }
 
 void CNetClient::SetUserName(const CStrW& username)
@@ -167,21 +177,23 @@ void CNetClient::Flush()
 		m_Session->Flush();
 }
 
-CScriptValRooted CNetClient::GuiPoll()
+void CNetClient::GuiPoll(JS::MutableHandleValue ret)
 {
 	if (m_GuiMessageQueue.empty())
-		return CScriptValRooted();
+	{
+		ret.setUndefined();
+		return;
+	}
 
-	CScriptValRooted r = m_GuiMessageQueue.front();
+	ret.set(m_GuiMessageQueue.front());
 	m_GuiMessageQueue.pop_front();
-	return r;
 }
 
-void CNetClient::PushGuiMessage(const CScriptValRooted& message)
-{
-	ENSURE(!message.undefined());
+void CNetClient::PushGuiMessage(const JS::HandleValue message)
+{	
+	ENSURE(!message.isUndefined());
 
-	m_GuiMessageQueue.push_back(message);
+	m_GuiMessageQueue.push_back(JS::Heap<JS::Value>(message));
 }
 
 std::wstring CNetClient::TestReadGuiMessages()
@@ -190,9 +202,10 @@ std::wstring CNetClient::TestReadGuiMessages()
 	JSAutoRequest rq(cx);
 	
 	std::wstring r;
+	JS::RootedValue msg(cx);
 	while (true)
 	{
-		JS::RootedValue msg(cx, GuiPoll().get());
+		GuiPoll(&msg);
 		if (msg.isUndefined())
 			break;
 		r += GetScriptInterface().ToString(&msg) + L"\n";
@@ -226,7 +239,7 @@ void CNetClient::PostPlayerAssignmentsToScript()
 		GetScriptInterface().SetProperty(hosts, it->first.c_str(), host, false);
 	}
 
-	PushGuiMessage(CScriptValRooted(cx, msg));
+	PushGuiMessage(msg);
 }
 
 bool CNetClient::SendMessage(const CNetMessage* message)
@@ -250,7 +263,7 @@ void CNetClient::HandleDisconnect(u32 reason)
 	JS::RootedValue msg(cx);
 	GetScriptInterface().Eval("({'type':'netstatus','status':'disconnected'})", &msg);
 	GetScriptInterface().SetProperty(msg, "reason", (int)reason, false);
-	PushGuiMessage(CScriptValRooted(cx, msg));
+	PushGuiMessage(msg);
 
 	SAFE_DELETE(m_Session);
 
@@ -344,14 +357,14 @@ void CNetClient::LoadFinished()
 
 		JS::RootedValue msg(cx);
 		GetScriptInterface().Eval("({'type':'netstatus','status':'join_syncing'})", &msg);
-		PushGuiMessage(CScriptValRooted(cx, msg));
+		PushGuiMessage(msg);
 	}
 	else
 	{
 		// Connecting at the start of a game, so we'll wait for other players to finish loading
 		JS::RootedValue msg(cx);
 		GetScriptInterface().Eval("({'type':'netstatus','status':'waiting_for_players'})", &msg);
-		PushGuiMessage(CScriptValRooted(cx, msg));
+		PushGuiMessage(msg);
 	}
 
 	CLoadedGameMessage loaded;
@@ -370,7 +383,7 @@ bool CNetClient::OnConnect(void* context, CFsmEvent* event)
 
 	JS::RootedValue msg(cx);
 	client->GetScriptInterface().Eval("({'type':'netstatus','status':'connected'})", &msg);
-	client->PushGuiMessage(CScriptValRooted(cx, msg));
+	client->PushGuiMessage(msg);
 
 	return true;
 }
@@ -425,7 +438,7 @@ bool CNetClient::OnAuthenticate(void* context, CFsmEvent* event)
 	JS::RootedValue msg(cx);
 	client->GetScriptInterface().Eval("({'type':'netstatus','status':'authenticated'})", &msg);
 	client->GetScriptInterface().SetProperty(msg, "rejoining", isRejoining);
-	client->PushGuiMessage(CScriptValRooted(cx, msg));
+	client->PushGuiMessage(msg);
 
 	return true;
 }
@@ -444,7 +457,7 @@ bool CNetClient::OnChat(void* context, CFsmEvent* event)
 	client->GetScriptInterface().Eval("({'type':'chat'})", &msg);
 	client->GetScriptInterface().SetProperty(msg, "guid", std::string(message->m_GUID), false);
 	client->GetScriptInterface().SetProperty(msg, "text", std::wstring(message->m_Message), false);
-	client->PushGuiMessage(CScriptValRooted(cx, msg));
+	client->PushGuiMessage(msg);
 
 	return true;
 }
@@ -463,7 +476,7 @@ bool CNetClient::OnReady(void* context, CFsmEvent* event)
 	client->GetScriptInterface().Eval("({'type':'ready'})", &msg);
 	client->GetScriptInterface().SetProperty(msg, "guid", std::string(message->m_GUID), false);
 	client->GetScriptInterface().SetProperty(msg, "status", int (message->m_Status), false);
-	client->PushGuiMessage(CScriptValRooted(cx, msg));
+	client->PushGuiMessage(msg);
 
 	return true;
 }
@@ -483,7 +496,7 @@ bool CNetClient::OnGameSetup(void* context, CFsmEvent* event)
 	JS::RootedValue msg(cx);
 	client->GetScriptInterface().Eval("({'type':'gamesetup'})", &msg);
 	client->GetScriptInterface().SetProperty(msg, "data", message->m_Data, false);
-	client->PushGuiMessage(CScriptValRooted(cx, msg));
+	client->PushGuiMessage(msg);
 
 	return true;
 }
@@ -536,7 +549,7 @@ bool CNetClient::OnGameStart(void* context, CFsmEvent* event)
 
 	JS::RootedValue msg(cx);
 	client->GetScriptInterface().Eval("({'type':'start'})", &msg);
-	client->PushGuiMessage(CScriptValRooted(cx, msg));
+	client->PushGuiMessage(msg);
 
 	return true;
 }
@@ -585,7 +598,7 @@ bool CNetClient::OnLoadedGame(void* context, CFsmEvent* event)
 
 	JS::RootedValue msg(cx);
 	client->GetScriptInterface().Eval("({'type':'netstatus','status':'active'})", &msg);
-	client->PushGuiMessage(CScriptValRooted(cx, msg));
+	client->PushGuiMessage(msg);
 
 	return true;
 }
