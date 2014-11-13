@@ -82,13 +82,14 @@ Status SavedGames::Save(const std::wstring& name, const std::wstring& descriptio
 		WARN_RETURN(ERR::FAIL);
 
 	JS::RootedValue metadata(cx);
+	JS::RootedValue initAttributes(cx, simulation.GetInitAttributes());
 	simulation.GetScriptInterface().Eval("({})", &metadata);
 	simulation.GetScriptInterface().SetProperty(metadata, "version_major", SAVED_GAME_VERSION_MAJOR);
 	simulation.GetScriptInterface().SetProperty(metadata, "version_minor", SAVED_GAME_VERSION_MINOR);
 	simulation.GetScriptInterface().SetProperty(metadata, "mods", g_modsLoaded);
 	simulation.GetScriptInterface().SetProperty(metadata, "time", (double)now);
 	simulation.GetScriptInterface().SetProperty(metadata, "player", playerID);
-	simulation.GetScriptInterface().SetProperty(metadata, "initAttributes", simulation.GetInitAttributes());
+	simulation.GetScriptInterface().SetProperty(metadata, "initAttributes", initAttributes);
 
 	JS::RootedValue guiMetadata(cx);
 	simulation.GetScriptInterface().ReadStructuredClone(guiMetadataClone, &guiMetadata);

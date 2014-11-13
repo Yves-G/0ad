@@ -64,7 +64,7 @@ CMapReader::CMapReader()
 }
 
 // LoadMap: try to load the map from given file; reinitialise the scene to new data if successful
-void CMapReader::LoadMap(const VfsPath& pathname,  const CScriptValRooted& settings, CTerrain *pTerrain_,
+void CMapReader::LoadMap(const VfsPath& pathname, JSRuntime* rt,  JS::HandleValue settings, CTerrain *pTerrain_,
 						 WaterManager* pWaterMan_, SkyManager* pSkyMan_,
 						 CLightEnv *pLightEnv_, CGameView *pGameView_, CCinemaManager* pCinema_, CTriggerManager* pTrigMan_, CPostprocManager* pPostproc_,
 						 CSimulation2 *pSimulation2_, const CSimContext* pSimContext_, int playerID_, bool skipEntities)
@@ -83,7 +83,8 @@ void CMapReader::LoadMap(const VfsPath& pathname,  const CScriptValRooted& setti
 	m_PlayerID = playerID_;
 	m_SkipEntities = skipEntities;
 	m_StartingCameraTarget = INVALID_ENTITY;
-	m_ScriptSettings = settings;
+	m_MapData.reset(new JS::PersistentRootedValue(rt));
+	m_ScriptSettings.reset(new JS::PersistentRootedValue(rt, settings));
 
 	filename_xml = pathname.ChangeExtension(L".xml");
 
@@ -118,7 +119,7 @@ void CMapReader::LoadMap(const VfsPath& pathname,  const CScriptValRooted& setti
 		pPostproc->SetPostEffect(L"default");
 
 	// load map or script settings script
-	if (settings.undefined())
+	if (settings.isUndefined())
 		RegMemFun(this, &CMapReader::LoadScriptSettings, L"CMapReader::LoadScriptSettings", 50);
 	else
 		RegMemFun(this, &CMapReader::LoadRMSettings, L"CMapReader::LoadRMSettings", 50);
@@ -149,14 +150,17 @@ void CMapReader::LoadMap(const VfsPath& pathname,  const CScriptValRooted& setti
 }
 
 // LoadRandomMap: try to load the map data; reinitialise the scene to new data if successful
-void CMapReader::LoadRandomMap(const CStrW& scriptFile, const CScriptValRooted& settings, CTerrain *pTerrain_,
+void CMapReader::LoadRandomMap(const CStrW& scriptFile, JSRuntime* rt, JS::HandleValue settings, CTerrain *pTerrain_,
 						 WaterManager* pWaterMan_, SkyManager* pSkyMan_,
 						 CLightEnv *pLightEnv_, CGameView *pGameView_, CCinemaManager* pCinema_, CTriggerManager* pTrigMan_, CPostprocManager* pPostproc_,
 						 CSimulation2 *pSimulation2_, int playerID_)
 {
 	// latch parameters (held until DelayedLoadFinished)
 	m_ScriptFile = scriptFile;
-	m_ScriptSettings = settings;
+	pSimulation2 = pSimulation2_;
+	pSimContext = pSimulation2 ? &pSimulation2->GetSimContext() : NULL;
+	m_MapData.reset(new JS::PersistentRootedValue(rt));
+	m_ScriptSettings.reset(new JS::PersistentRootedValue(rt, settings));
 	pTerrain = pTerrain_;
 	pLightEnv = pLightEnv_;
 	pGameView = pGameView_;
@@ -165,8 +169,6 @@ void CMapReader::LoadRandomMap(const CStrW& scriptFile, const CScriptValRooted& 
 	pCinema = pCinema_;
 	pTrigMan = pTrigMan_;
 	pPostproc = pPostproc_;
-	pSimulation2 = pSimulation2_;
-	pSimContext = pSimulation2 ? &pSimulation2->GetSimContext() : NULL;
 	m_PlayerID = playerID_;
 	m_SkipEntities = false;
 	m_StartingCameraTarget = INVALID_ENTITY;
@@ -1253,7 +1255,7 @@ int CMapReader::LoadRMSettings()
 {
 	// copy random map settings over to sim
 	ENSURE(pSimulation2);
-	pSimulation2->SetMapSettings(m_ScriptSettings);
+	pSimulation2->SetMapSettings(*m_ScriptSettings);
 
 	return 0;
 }
@@ -1273,10 +1275,8 @@ int CMapReader::GenerateMap()
 		if (m_ScriptFile.length())
 			scriptPath = L"maps/random/"+m_ScriptFile;
 
-		// TODO: Check if this temporary root can be removed after SpiderMonkey 31 upgrade 
-		JS::RootedValue tmpScriptSettings(cx, m_ScriptSettings.get());
 		// Stringify settings to pass across threads
-		std::string scriptSettings = pSimulation2->GetScriptInterface().StringifyJSON(&tmpScriptSettings);
+		std::string scriptSettings = pSimulation2->GetScriptInterface().StringifyJSON(&*m_ScriptSettings);
 		
 		// Try to generate map
 		m_MapGen->GenerateMap(scriptPath, scriptSettings);
@@ -1305,7 +1305,7 @@ int CMapReader::GenerateMap()
 		}
 		else
 		{
-			m_MapData = CScriptValRooted(cx, data);
+			m_MapData->set(data);
 		}
 	}
 	else
@@ -1335,18 +1335,17 @@ int CMapReader::ParseTerrain()
 		{	LOGERROR(L"CMapReader::ParseTerrain() failed to get '%hs' property", #prop);\
 			throw PSERROR_Game_World_MapLoadFailed("Error parsing terrain data.\nCheck application log for details"); }
 
-	JS::RootedValue tmpMapData(cx, m_MapData.get()); // TODO: Check if this temporary root can be removed after SpiderMonkey 31 upgrade 
 	u32 size;
-	GET_TERRAIN_PROPERTY(tmpMapData, size, size)
+	GET_TERRAIN_PROPERTY(*m_MapData, size, size)
 
 	m_PatchesPerSide = size / PATCH_SIZE;
 
 	// flat heightmap of u16 data
-	GET_TERRAIN_PROPERTY(tmpMapData, height, m_Heightmap)
+	GET_TERRAIN_PROPERTY(*m_MapData, height, m_Heightmap)
 
 	// load textures
 	std::vector<std::string> textureNames;
-	GET_TERRAIN_PROPERTY(tmpMapData, textureNames, textureNames)
+	GET_TERRAIN_PROPERTY(*m_MapData, textureNames, textureNames)
 	num_terrain_tex = textureNames.size();
 
 	while (cur_terrain_tex < num_terrain_tex)
@@ -1362,7 +1361,7 @@ int CMapReader::ParseTerrain()
 	m_Tiles.resize(SQR(size));
 
 	JS::RootedValue tileData(cx);
-	GET_TERRAIN_PROPERTY(tmpMapData, tileData, &tileData)
+	GET_TERRAIN_PROPERTY(*m_MapData, tileData, &tileData)
 
 	// parse tile data object into flat arrays
 	std::vector<u16> tileIndex;
@@ -1404,13 +1403,11 @@ int CMapReader::ParseEntities()
 	TIMER(L"ParseEntities");
 	JSContext* cx = pSimulation2->GetScriptInterface().GetContext();
 	JSAutoRequest rq(cx);
-	
-	JS::RootedValue tmpMapData(cx, m_MapData.get()); // TODO: Check if this temporary root can be removed after SpiderMonkey 31 upgrade 
 
 	// parse entities from map data
 	std::vector<Entity> entities;
 
-	if (!pSimulation2->GetScriptInterface().GetProperty(tmpMapData, "entities", entities))
+	if (!pSimulation2->GetScriptInterface().GetProperty(*m_MapData, "entities", entities))
 		LOGWARNING(L"CMapReader::ParseEntities() failed to get 'entities' property");
 
 	CSimulation2& sim = *pSimulation2;
@@ -1471,15 +1468,13 @@ int CMapReader::ParseEnvironment()
 	// parse environment settings from map data
 	JSContext* cx = pSimulation2->GetScriptInterface().GetContext();
 	JSAutoRequest rq(cx);
-	
-	JS::RootedValue tmpMapData(cx, m_MapData.get()); // TODO: Check if this temporary root can be removed after SpiderMonkey 31 upgrade 
 
 #define GET_ENVIRONMENT_PROPERTY(val, prop, out)\
 	if (!pSimulation2->GetScriptInterface().GetProperty(val, #prop, out))\
 		LOGWARNING(L"CMapReader::ParseEnvironment() failed to get '%hs' property", #prop);
 
 	JS::RootedValue envObj(cx);
-	GET_ENVIRONMENT_PROPERTY(tmpMapData, Environment, &envObj)
+	GET_ENVIRONMENT_PROPERTY(*m_MapData, Environment, &envObj)
 
 	if (envObj.isUndefined())
 	{
@@ -1582,10 +1577,9 @@ int CMapReader::ParseCamera()
 #define GET_CAMERA_PROPERTY(val, prop, out)\
 	if (!pSimulation2->GetScriptInterface().GetProperty(val, #prop, out))\
 		LOGWARNING(L"CMapReader::ParseCamera() failed to get '%hs' property", #prop);
-
-	JS::RootedValue tmpMapData(cx, m_MapData.get()); // TODO: Check if this temporary root can be removed after SpiderMonkey 31 upgrade 
+ 
 	JS::RootedValue cameraObj(cx);
-	GET_CAMERA_PROPERTY(tmpMapData, Camera, &cameraObj)
+	GET_CAMERA_PROPERTY(*m_MapData, Camera, &cameraObj)
 
 	if (!cameraObj.isUndefined())
 	{	// If camera property exists, read values

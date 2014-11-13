@@ -95,12 +95,12 @@ public:
 	 * Set the attributes identifying the scenario/RMS used to initialise this
 	 * simulation.
 	 */
-	void SetInitAttributes(const CScriptValRooted& settings);
+	void SetInitAttributes(JS::HandleValue settings);
 
 	/**
 	 * Get the data passed to SetInitAttributes.
 	 */
-	CScriptValRooted GetInitAttributes();
+	JS::Value GetInitAttributes();
 
 	/**
 	 * Set the initial map settings (as a UTF-8-encoded JSON string),
@@ -112,7 +112,7 @@ public:
 	 * Set the initial map settings, which will be used
 	 * to set up the simulation state.
 	 */
-	void SetMapSettings(const CScriptValRooted& settings);
+	void SetMapSettings(JS::HandleValue settings);
 
 	/**
 	 * Get the current map settings as a UTF-8 JSON string.

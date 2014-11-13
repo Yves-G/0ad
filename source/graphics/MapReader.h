@@ -52,12 +52,16 @@ public:
 	CMapReader();
 	~CMapReader();
 
+	// TODO: It's hack that we have to pass the JSRuntime as argument here.  It's because JS::PersistentRooted<T> 
+	// needs a context or a runtime when initialized with a JS::Handle<T>. 
+	// Hopefully the JSAPI gets improved here in the future.
+	// 
 	// LoadMap: try to load the map from given file; reinitialise the scene to new data if successful
-	void LoadMap(const VfsPath& pathname, const CScriptValRooted& settings, CTerrain*, WaterManager*, SkyManager*, CLightEnv*, CGameView*,
+	void LoadMap(const VfsPath& pathname, JSRuntime* rt, JS::HandleValue settings, CTerrain*, WaterManager*, SkyManager*, CLightEnv*, CGameView*,
 		CCinemaManager*, CTriggerManager*, CPostprocManager* pPostproc, CSimulation2*, const CSimContext*, 
 	        int playerID, bool skipEntities);
 
-	void LoadRandomMap(const CStrW& scriptFile, const CScriptValRooted& settings, CTerrain*, WaterManager*, SkyManager*, CLightEnv*, CGameView*, CCinemaManager*, CTriggerManager*, CPostprocManager* pPostproc_, CSimulation2*, int playerID);
+	void LoadRandomMap(const CStrW& scriptFile, JSRuntime* rt, JS::HandleValue settings, CTerrain*, WaterManager*, SkyManager*, CLightEnv*, CGameView*, CCinemaManager*, CTriggerManager*, CPostprocManager* pPostproc_, CSimulation2*, int playerID);
 
 private:
 	// Load script settings for use by scripts
@@ -124,8 +128,8 @@ private:
 
 	// random map data
 	CStrW m_ScriptFile;
-	CScriptValRooted m_ScriptSettings;
-	CScriptValRooted m_MapData;
+	std::unique_ptr<JS::PersistentRootedValue> m_ScriptSettings;
+	std::unique_ptr<JS::PersistentRootedValue> m_MapData;
 
 	CMapGenerator* m_MapGen;
 
