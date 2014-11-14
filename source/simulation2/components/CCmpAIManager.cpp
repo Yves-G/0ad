@@ -928,7 +928,8 @@ public:
 		ENSURE(cmpTechTemplateManager);
 		
 		// Get the game state from AIInterface
-		JS::RootedValue techTemplates(cx, cmpTechTemplateManager->GetAllTechs().get());
+		JS::RootedValue techTemplates(cx);
+		cmpTechTemplateManager->GetAllTechs(&techTemplates);
 		
 		m_Worker.RegisterTechTemplates(scriptInterface.WriteStructuredClone(techTemplates));
 		m_Worker.TryLoadSharedComponent(true);

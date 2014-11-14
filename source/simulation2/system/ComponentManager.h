@@ -47,7 +47,7 @@ public:
 
 private:
 	// Component allocation types
-	typedef IComponent* (*AllocFunc)(ScriptInterface& scriptInterface, jsval ctor);
+	typedef IComponent* (*AllocFunc)(ScriptInterface& scriptInterface, JS::HandleValue ctor);
 	typedef void (*DeallocFunc)(IComponent*);
 
 	// ComponentTypes come in three types:
