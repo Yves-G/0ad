@@ -83,8 +83,7 @@ void CMapReader::LoadMap(const VfsPath& pathname, JSRuntime* rt,  JS::HandleValu
 	m_PlayerID = playerID_;
 	m_SkipEntities = skipEntities;
 	m_StartingCameraTarget = INVALID_ENTITY;
-	m_MapData.reset(new JS::PersistentRootedValue(rt));
-	m_ScriptSettings.reset(new JS::PersistentRootedValue(rt, settings));
+	m_ScriptSettings.set(rt, settings);
 
 	filename_xml = pathname.ChangeExtension(L".xml");
 
@@ -159,8 +158,7 @@ void CMapReader::LoadRandomMap(const CStrW& scriptFile, JSRuntime* rt, JS::Handl
 	m_ScriptFile = scriptFile;
 	pSimulation2 = pSimulation2_;
 	pSimContext = pSimulation2 ? &pSimulation2->GetSimContext() : NULL;
-	m_MapData.reset(new JS::PersistentRootedValue(rt));
-	m_ScriptSettings.reset(new JS::PersistentRootedValue(rt, settings));
+	m_ScriptSettings.set(rt, settings);
 	pTerrain = pTerrain_;
 	pLightEnv = pLightEnv_;
 	pGameView = pGameView_;
@@ -1255,7 +1253,7 @@ int CMapReader::LoadRMSettings()
 {
 	// copy random map settings over to sim
 	ENSURE(pSimulation2);
-	pSimulation2->SetMapSettings(*m_ScriptSettings);
+	pSimulation2->SetMapSettings(m_ScriptSettings.get());
 
 	return 0;
 }
@@ -1276,7 +1274,7 @@ int CMapReader::GenerateMap()
 			scriptPath = L"maps/random/"+m_ScriptFile;
 
 		// Stringify settings to pass across threads
-		std::string scriptSettings = pSimulation2->GetScriptInterface().StringifyJSON(&*m_ScriptSettings);
+		std::string scriptSettings = pSimulation2->GetScriptInterface().StringifyJSON(&m_ScriptSettings.get());
 		
 		// Try to generate map
 		m_MapGen->GenerateMap(scriptPath, scriptSettings);
@@ -1305,7 +1303,7 @@ int CMapReader::GenerateMap()
 		}
 		else
 		{
-			m_MapData->set(data);
+			m_MapData.set(cx, data);
 		}
 	}
 	else
@@ -1336,16 +1334,16 @@ int CMapReader::ParseTerrain()
 			throw PSERROR_Game_World_MapLoadFailed("Error parsing terrain data.\nCheck application log for details"); }
 
 	u32 size;
-	GET_TERRAIN_PROPERTY(*m_MapData, size, size)
+	GET_TERRAIN_PROPERTY(m_MapData.get(), size, size)
 
 	m_PatchesPerSide = size / PATCH_SIZE;
 
 	// flat heightmap of u16 data
-	GET_TERRAIN_PROPERTY(*m_MapData, height, m_Heightmap)
+	GET_TERRAIN_PROPERTY(m_MapData.get(), height, m_Heightmap)
 
 	// load textures
 	std::vector<std::string> textureNames;
-	GET_TERRAIN_PROPERTY(*m_MapData, textureNames, textureNames)
+	GET_TERRAIN_PROPERTY(m_MapData.get(), textureNames, textureNames)
 	num_terrain_tex = textureNames.size();
 
 	while (cur_terrain_tex < num_terrain_tex)
@@ -1361,7 +1359,7 @@ int CMapReader::ParseTerrain()
 	m_Tiles.resize(SQR(size));
 
 	JS::RootedValue tileData(cx);
-	GET_TERRAIN_PROPERTY(*m_MapData, tileData, &tileData)
+	GET_TERRAIN_PROPERTY(m_MapData.get(), tileData, &tileData)
 
 	// parse tile data object into flat arrays
 	std::vector<u16> tileIndex;
@@ -1407,7 +1405,7 @@ int CMapReader::ParseEntities()
 	// parse entities from map data
 	std::vector<Entity> entities;
 
-	if (!pSimulation2->GetScriptInterface().GetProperty(*m_MapData, "entities", entities))
+	if (!pSimulation2->GetScriptInterface().GetProperty(m_MapData.get(), "entities", entities))
 		LOGWARNING(L"CMapReader::ParseEntities() failed to get 'entities' property");
 
 	CSimulation2& sim = *pSimulation2;
@@ -1474,7 +1472,7 @@ int CMapReader::ParseEnvironment()
 		LOGWARNING(L"CMapReader::ParseEnvironment() failed to get '%hs' property", #prop);
 
 	JS::RootedValue envObj(cx);
-	GET_ENVIRONMENT_PROPERTY(*m_MapData, Environment, &envObj)
+	GET_ENVIRONMENT_PROPERTY(m_MapData.get(), Environment, &envObj)
 
 	if (envObj.isUndefined())
 	{
@@ -1579,7 +1577,7 @@ int CMapReader::ParseCamera()
 		LOGWARNING(L"CMapReader::ParseCamera() failed to get '%hs' property", #prop);
  
 	JS::RootedValue cameraObj(cx);
-	GET_CAMERA_PROPERTY(*m_MapData, Camera, &cameraObj)
+	GET_CAMERA_PROPERTY(m_MapData.get(), Camera, &cameraObj)
 
 	if (!cameraObj.isUndefined())
 	{	// If camera property exists, read values

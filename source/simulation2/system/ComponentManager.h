@@ -70,7 +70,7 @@ private:
 		DeallocFunc dealloc;
 		std::string name;
 		std::string schema; // RelaxNG fragment
-		CScriptValRooted ctor; // only valid if type == CT_Script
+		DefPersistentRootedValue ctor; // only valid if type == CT_Script
 	};
 	
 	struct FindJSONFilesCallbackData

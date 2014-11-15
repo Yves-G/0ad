@@ -242,16 +242,15 @@ void CComponentManager::Script_RegisterComponentType_Common(ScriptInterface::CxP
 	}
 
 	// Construct a new ComponentType, using the wrapper's alloc functions
-	ComponentType ct = {
+	componentManager->m_ComponentTypesById[cid] = ComponentType {
 		CT_Script,
 		iid,
 		ctWrapper.alloc,
 		ctWrapper.dealloc,
 		cname,
 		schema,
-		CScriptValRooted(cx, ctor)
+		DefPersistentRootedValue(cx, ctor) 
 	};
-	componentManager->m_ComponentTypesById[cid] = ct;
 
 	componentManager->m_CurrentComponent = cid; // needed by Subscribe
 
@@ -539,16 +538,16 @@ void CComponentManager::ResetState()
 void CComponentManager::RegisterComponentType(InterfaceId iid, ComponentTypeId cid, AllocFunc alloc, DeallocFunc dealloc,
 		const char* name, const std::string& schema)
 {
-	ComponentType c = { CT_Native, iid, alloc, dealloc, name, schema, CScriptValRooted() };
-	m_ComponentTypesById.insert(std::make_pair(cid, c));
+	ComponentType c = { CT_Native, iid, alloc, dealloc, name, schema, DefPersistentRootedValue() };
+	m_ComponentTypesById.insert(std::make_pair(cid, std::move(c)));
 	m_ComponentTypeIdsByName[name] = cid;
 }
 
 void CComponentManager::RegisterComponentTypeScriptWrapper(InterfaceId iid, ComponentTypeId cid, AllocFunc alloc,
 		DeallocFunc dealloc, const char* name, const std::string& schema)
 {
-	ComponentType c = { CT_ScriptWrapper, iid, alloc, dealloc, name, schema, CScriptValRooted() };
-	m_ComponentTypesById.insert(std::make_pair(cid, c));
+	ComponentType c = { CT_ScriptWrapper, iid, alloc, dealloc, name, schema, DefPersistentRootedValue() };
+	m_ComponentTypesById.insert(std::make_pair(cid, std::move(c)));
 	m_ComponentTypeIdsByName[name] = cid;
 	// TODO: merge with RegisterComponentType
 }
@@ -746,11 +745,9 @@ IComponent* CComponentManager::ConstructComponent(CEntityHandle ent, ComponentTy
 
 	// If this is a scripted component, construct the appropriate JS object first
 	JS::RootedValue obj(cx);
-	// TODO: Check if this temporary root can be removed after SpiderMonkey 31 upgrade 
-	JS::RootedValue tmpCtor(cx, ct.ctor.get());
 	if (ct.type == CT_Script)
 	{
-		m_ScriptInterface.CallConstructor(tmpCtor, JS::HandleValueArray::empty(), &obj);
+		m_ScriptInterface.CallConstructor(ct.ctor.get(), JS::HandleValueArray::empty(), &obj);
 		if (obj.isNull())
 		{
 			LOGERROR(L"Script component constructor failed");
