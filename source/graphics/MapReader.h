@@ -177,7 +177,7 @@ public:
 	 * }
 	 * @endcode
 	 */
-	CScriptValRooted GetMapSettings(ScriptInterface& scriptInterface);
+	void GetMapSettings(ScriptInterface& scriptInterface, JS::MutableHandleValue);
 
 private:
 	CStr m_ScriptSettings;

@@ -739,9 +739,9 @@ std::string CSimulation2::GetMapSettingsString()
 	return m->m_ComponentManager.GetScriptInterface().StringifyJSON(&m->m_MapSettings);
 }
 
-CScriptVal CSimulation2::GetMapSettings()
+void CSimulation2::GetMapSettings(JS::MutableHandleValue ret)
 {
-	return m->m_MapSettings.get();
+	ret.set(m->m_MapSettings);
 }
 
 void CSimulation2::LoadPlayerSettings(bool newPlayers)

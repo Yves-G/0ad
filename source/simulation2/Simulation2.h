@@ -122,7 +122,7 @@ public:
 	/**
 	 * Get the current map settings.
 	 */
-	CScriptVal GetMapSettings();
+	void GetMapSettings(JS::MutableHandleValue ret);
 
 	/**
 	 * RegMemFun incremental loader function.

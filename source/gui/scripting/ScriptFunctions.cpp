@@ -470,17 +470,22 @@ bool IsAtlasRunning(ScriptInterface::CxPrivate* UNUSED(pCxPrivate))
 	return (g_AtlasGameLoop && g_AtlasGameLoop->running);
 }
 
-CScriptVal LoadMapSettings(ScriptInterface::CxPrivate* pCxPrivate, VfsPath pathname)
+JS::Value LoadMapSettings(ScriptInterface::CxPrivate* pCxPrivate, VfsPath pathname)
 {
+	JSContext* cx = pCxPrivate->pScriptInterface->GetContext();
+	JSAutoRequest rq(cx);
+	
 	CMapSummaryReader reader;
 
 	if (reader.LoadMap(pathname) != PSRETURN_OK)
-		return CScriptVal();
-
-	return reader.GetMapSettings(*(pCxPrivate->pScriptInterface)).get();
+		return JS::UndefinedValue();
+	
+	JS::RootedValue settings(cx);
+	reader.GetMapSettings(*(pCxPrivate->pScriptInterface), &settings);
+	return settings;
 }
 
-CScriptVal GetMapSettings(ScriptInterface::CxPrivate* pCxPrivate)
+JS::Value GetMapSettings(ScriptInterface::CxPrivate* pCxPrivate)
 {
 	if (!g_Game)
 		return JS::UndefinedValue();
@@ -488,7 +493,8 @@ CScriptVal GetMapSettings(ScriptInterface::CxPrivate* pCxPrivate)
 	JSContext* cx = g_Game->GetSimulation2()->GetScriptInterface().GetContext();
 	JSAutoRequest rq(cx);
 	
-	JS::RootedValue mapSettings(cx, g_Game->GetSimulation2()->GetMapSettings().get());
+	JS::RootedValue mapSettings(cx);
+	g_Game->GetSimulation2()->GetMapSettings(&mapSettings);
 	return pCxPrivate->pScriptInterface->CloneValueFromOtherContext(
 		g_Game->GetSimulation2()->GetScriptInterface(),
 		mapSettings);
@@ -970,8 +976,8 @@ void GuiScriptingInit(ScriptInterface& scriptInterface)
 	scriptInterface.RegisterFunction<void, &RestartInAtlas>("RestartInAtlas");
 	scriptInterface.RegisterFunction<bool, &AtlasIsAvailable>("AtlasIsAvailable");
 	scriptInterface.RegisterFunction<bool, &IsAtlasRunning>("IsAtlasRunning");
-	scriptInterface.RegisterFunction<CScriptVal, VfsPath, &LoadMapSettings>("LoadMapSettings");
-	scriptInterface.RegisterFunction<CScriptVal, &GetMapSettings>("GetMapSettings");
+	scriptInterface.RegisterFunction<JS::Value, VfsPath, &LoadMapSettings>("LoadMapSettings");
+	scriptInterface.RegisterFunction<JS::Value, &GetMapSettings>("GetMapSettings");
 	scriptInterface.RegisterFunction<float, &CameraGetX>("CameraGetX");
 	scriptInterface.RegisterFunction<float, &CameraGetZ>("CameraGetZ");
 	scriptInterface.RegisterFunction<void, entity_id_t, &CameraFollow>("CameraFollow");

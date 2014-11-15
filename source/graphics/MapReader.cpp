@@ -384,20 +384,18 @@ PSRETURN CMapSummaryReader::LoadMap(const VfsPath& pathname)
 	return PSRETURN_OK;
 }
 
-CScriptValRooted CMapSummaryReader::GetMapSettings(ScriptInterface& scriptInterface)
+void CMapSummaryReader::GetMapSettings(ScriptInterface& scriptInterface, JS::MutableHandleValue ret)
 {
 	JSContext* cx = scriptInterface.GetContext();
 	JSAutoRequest rq(cx);
 	
-	JS::RootedValue data(cx);
-	scriptInterface.Eval("({})", &data);
+	scriptInterface.Eval("({})", ret);
 	if (!m_ScriptSettings.empty())
 	{
 		JS::RootedValue scriptSettingsVal(cx);
 		scriptInterface.ParseJSON(m_ScriptSettings, &scriptSettingsVal);
-		scriptInterface.SetProperty(data, "settings", scriptSettingsVal, false);
+		scriptInterface.SetProperty(ret, "settings", scriptSettingsVal, false);
 	}
-	return CScriptValRooted(cx, data);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
