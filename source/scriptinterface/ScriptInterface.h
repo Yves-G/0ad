@@ -45,8 +45,6 @@ ERROR_SUBGROUP(Scripting, DefineType);
 ERROR_TYPE(Scripting_DefineType, AlreadyExists);
 ERROR_TYPE(Scripting_DefineType, CreationFailed);
 
-class AutoGCRooter;
-
 // Set the maximum number of function arguments that can be handled
 // (This should be as small as possible (for compiler efficiency),
 // but as large as necessary for all wrapped functions)
@@ -332,8 +330,6 @@ public:
 	 * Details here: http://www.wildfiregames.com/forum/index.php?showtopic=17289&p=285921
 	 */
 	template<typename T> static void ToJSVal(JSContext* cx, JS::MutableHandleValue ret, T const& val);
-
-	AutoGCRooter* ReplaceAutoGCRooter(AutoGCRooter* rooter);
 
 	/**
 	 * Dump some memory heap debugging information to stderr.

@@ -19,7 +19,6 @@
 
 #include "ScriptRuntime.h"
 
-#include "AutoRooters.h"
 #include "ps/GameSetup/Config.h"
 #include "ps/Profile.h"
 
@@ -107,8 +106,7 @@ void ScriptRuntime::AddDeferredFinalizationObject(const std::shared_ptr<void>& o
 
 bool ScriptRuntime::m_Initialized = false;
 
-ScriptRuntime::ScriptRuntime(shared_ptr<ScriptRuntime> parentRuntime, int runtimeSize, int heapGrowthBytesGCTrigger): 
-	m_rooter(NULL),
+ScriptRuntime::ScriptRuntime(shared_ptr<ScriptRuntime> parentRuntime, int runtimeSize, int heapGrowthBytesGCTrigger):
 	m_LastGCBytes(0),
 	m_LastGCCheck(0.0f),
 	m_HeapGrowthBytesGCTrigger(heapGrowthBytesGCTrigger),
@@ -149,15 +147,12 @@ ScriptRuntime::ScriptRuntime(shared_ptr<ScriptRuntime> parentRuntime, int runtim
 	// We disable it to make it more clear if full GCs happen triggered by this JSAPI internal mechanism.
 	JS_SetGCParameter(m_rt, JSGC_DYNAMIC_HEAP_GROWTH, false);
 	
-	JS_AddExtraGCRootsTracer(m_rt, jshook_trace, this);
-	
 	m_dummyContext = JS_NewContext(m_rt, STACK_CHUNK_SIZE);
 	ENSURE(m_dummyContext);
 }
 
 ScriptRuntime::~ScriptRuntime()
 {
-	JS_RemoveExtraGCRootsTracer(m_rt, jshook_trace, this);
 	JS_DestroyContext(m_dummyContext);
 	JS_SetGCCallback(m_rt, nullptr, nullptr);
 	JS_DestroyRuntime(m_rt);
@@ -330,14 +325,6 @@ void* ScriptRuntime::jshook_function(JSContext* cx, JSAbstractFramePtr fp, bool 
 	g_Profiler.StartScript(ss.str().c_str());
 
 	return closure;
-}
-
-void ScriptRuntime::jshook_trace(JSTracer* trc, void* data)
-{
-	ScriptRuntime* m = static_cast<ScriptRuntime*>(data);
-
-	if (m->m_rooter)
-		m->m_rooter->Trace(trc);
 }
 
 void ScriptRuntime::PrepareContextsForIncrementalGC()

@@ -28,8 +28,6 @@
 
 #define STACK_CHUNK_SIZE 8192
 
-class AutoGCRooter;
-
 /**
  * Abstraction around a SpiderMonkey JSRuntime.
  * Each ScriptRuntime can be used to initialize several ScriptInterface
@@ -73,7 +71,6 @@ public:
 	void AddDeferredFinalizationObject(const std::shared_ptr<void>& obj);
 	
 	JSRuntime* m_rt;
-	AutoGCRooter* m_rooter;
 
 private:
 	
@@ -101,8 +98,6 @@ private:
 	static void* jshook_function(JSContext* cx, JSAbstractFramePtr fp, 
 		bool UNUSED(isConstructing), bool before, 
 		bool* UNUSED(ok), void* closure);
-		
-	static void jshook_trace(JSTracer* trc, void* data);
 
 	// To profile scripts usefully, we use a call hook that's called on every enter/exit,
 	// and need to find the function name. But most functions are anonymous so we make do

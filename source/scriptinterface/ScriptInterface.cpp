@@ -21,7 +21,6 @@
 #include "ScriptRuntime.h"
 // #include "DebuggingServer.h" // JS debugger temporarily disabled during the SpiderMonkey upgrade (check trac ticket #2348 for details)
 #include "ScriptStats.h"
-#include "AutoRooters.h"
 
 #include "lib/debug.h"
 #include "lib/utf8.h"
@@ -551,13 +550,6 @@ JSRuntime* ScriptInterface::GetJSRuntime() const
 shared_ptr<ScriptRuntime> ScriptInterface::GetRuntime() const
 {
 	return m->m_runtime;
-}
-
-AutoGCRooter* ScriptInterface::ReplaceAutoGCRooter(AutoGCRooter* rooter)
-{
-	AutoGCRooter* ret = m->m_runtime->m_rooter;
-	m->m_runtime->m_rooter = rooter;
-	return ret;
 }
 
 void ScriptInterface::CallConstructor(JS::HandleValue ctor, JS::HandleValueArray argv, JS::MutableHandleValue out)
