@@ -676,7 +676,7 @@ function loadMapData(name)
 				// To be defined later.
 				g_MapData[name] = { settings: { "Name": "", "Description": "" } };
 			else
-				g_MapData[name] = parseJSONData(name+".json");
+				g_MapData[name] = Engine.ReadJSONFile(name+".json");
 			break;
 
 		default:
@@ -806,6 +806,7 @@ function selectMapType(type)
 		// TODO: This should be remembered from the last session
 		g_GameAttributes.mapPath = "maps/scenarios/";
 		g_GameAttributes.map = g_GameAttributes.mapPath + (g_IsNetworked ? DEFAULT_NETWORKED_MAP : DEFAULT_OFFLINE_MAP);
+		g_GameAttributes.settings.AISeed = Math.floor(Math.random() * 65536);
 		break;
 
 	case "skirmish":
@@ -813,6 +814,7 @@ function selectMapType(type)
 		g_GameAttributes.settings = {
 			PlayerData: g_DefaultPlayerData.slice(0, 4),
 			Seed: Math.floor(Math.random() * 65536),
+			AISeed: Math.floor(Math.random() * 65536),
 			CheatsEnabled: g_GameAttributes.settings.CheatsEnabled
 		};
 		break;
@@ -822,6 +824,7 @@ function selectMapType(type)
 		g_GameAttributes.settings = {
 			PlayerData: g_DefaultPlayerData.slice(0, 4),
 			Seed: Math.floor(Math.random() * 65536),
+			AISeed: Math.floor(Math.random() * 65536),
 			CheatsEnabled: g_GameAttributes.settings.CheatsEnabled
 		};
 		break;
@@ -1290,7 +1293,7 @@ function onGameAttributesChange()
 		var pDefs = g_DefaultPlayerData ? g_DefaultPlayerData[i] : {};
 
 		// Common to all game types
-		var color = iColorToString(getSetting(pData, pDefs, "Colour"));
+		var color = rgbToGuiColor(getSetting(pData, pDefs, "Colour"));
 		pColor.sprite = "colour:" + color + " 100";
 		pName.caption = translate(getSetting(pData, pDefs, "Name"));
 
@@ -1599,7 +1602,7 @@ function addChatMessage(msg)
 		var pData = mapSettings.PlayerData ? mapSettings.PlayerData[player] : {};
 		var pDefs = g_DefaultPlayerData ? g_DefaultPlayerData[player] : {};
 
-		color = iColorToString(getSetting(pData, pDefs, "Colour"));
+		color = rgbToGuiColor(getSetting(pData, pDefs, "Colour"));
 	}
 
 	var formatted;

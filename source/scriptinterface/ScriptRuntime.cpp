@@ -225,7 +225,7 @@ void ScriptRuntime::MaybeIncrementalGC(double delay)
 			
 			// A hack to make sure we never exceed the runtime size because we can't collect the memory
 			// fast enough.
-			if(gcBytes > m_RuntimeSize * 0.5)
+			if(gcBytes > m_RuntimeSize / 2)
 			{
 				if (JS::IsIncrementalGCInProgress(m_rt))
 				{

@@ -37,7 +37,7 @@ m.NavalManager = function(Config)
 };
 
 // More initialisation for stuff that needs the gameState
-m.NavalManager.prototype.init = function(gameState, queues)
+m.NavalManager.prototype.init = function(gameState)
 {
 	// finished docks
 	this.docks = gameState.getOwnStructures().filter(API3.Filters.and(API3.Filters.byClassesOr(["Dock", "Shipyard"]),
@@ -348,6 +348,7 @@ m.NavalManager.prototype.requireTransport = function(gameState, entity, startInd
 			API3.warn(">>>> transport plan aborted <<<<");
 		return false;
 	}
+	plan.init(gameState);
 	this.transportPlans.push(plan);
 	return true;
 };
@@ -364,6 +365,7 @@ m.NavalManager.prototype.splitTransport = function(gameState, plan)
 			API3.warn(">>>> split of transport plan aborted <<<<");
 		return false;
 	}
+	newplan.init();
 
 	var nbUnits = 0;
 	plan.units.forEach(function (ent) {
@@ -668,6 +670,41 @@ m.NavalManager.prototype.update = function(gameState, queues, events)
 
 	Engine.ProfileStop();
 };
+
+m.NavalManager.prototype.Serialize = function()
+{
+	let properties = {
+		"wantedTransportShips": this.wantedTransportShips,
+		"wantedWarShips": this.wantedWarShips,
+		"wantedFishShips": this.wantedFishShips,
+		"neededTransportShips": this.neededTransportShips,
+		"neededWarShips": this.neededWarShips,
+		"landingZones": this.landingZones
+	};
+
+	let transports = {};
+	for (let plan in this.transportPlans)
+		transports[plan] = this.transportPlans[plan].Serialize();
+
+	return { "properties": properties, "transports": transports };
+};
+
+m.NavalManager.prototype.Deserialize = function(gameState, data)
+{
+	for (let key in data.properties)
+		this[key] = data.properties[key];
+
+	this.transportPlans = [];
+	for (let i in data.transports)
+	{
+		let dataPlan = data.transports[i];
+		let plan = new m.TransportPlan(gameState, [], dataPlan.startIndex, dataPlan.endIndex, dataPlan.endPos);
+		plan.Deserialize(dataPlan);
+		plan.init(gameState);
+		this.transportPlans.push(plan);
+	}
+};
+
 
 return m;
 }(PETRA);

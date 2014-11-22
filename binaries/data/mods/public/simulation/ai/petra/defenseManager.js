@@ -6,12 +6,8 @@ m.DefenseManager = function(Config)
 	this.armies = [];	// array of "army" Objects
 	this.Config = Config;
 	this.targetList = [];
-}
-
-m.DefenseManager.prototype.init = function(gameState)
-{
 	this.armyMergeSize = this.Config.Defense.armyMergeSize;
-};
+}
 
 m.DefenseManager.prototype.update = function(gameState, events)
 {
@@ -36,7 +32,7 @@ m.DefenseManager.prototype.makeIntoArmy = function(gameState, entityID)
 			return;	// over
 
 	// Create a new army for it.
-	var army = new m.DefenseArmy(gameState, this, [], [entityID]);
+	var army = new m.DefenseArmy(gameState, [], [entityID]);
 	this.armies.push(army);
 };
 
@@ -415,6 +411,34 @@ m.DefenseManager.prototype.garrisonUnitForHealing = function(gameState, unit)
 	});
 	if (nearest)
 		garrisonManager.garrison(gameState, unit, nearest, "protection");
+};
+
+m.DefenseManager.prototype.Serialize = function()
+{
+	let properties = {
+		"targetList" : this.targetList,
+		"armyMergeSize": this.armyMergeSize
+	};
+
+	let armies = [];
+	for (var army of this.armies)
+		armies.push(army.Serialize());
+
+	return { "properties": properties, "armies": armies };
+};
+
+m.DefenseManager.prototype.Deserialize = function(gameState, data)
+{
+	for (let key in data.properties)
+		this[key] = data.properties[key];
+
+	this.armies = [];
+	for (let dataArmy of data.armies)
+	{
+		let army = new m.DefenseArmy(gameState, [], []);
+		army.Deserialize(dataArmy);
+		this.armies.push(army);
+	}
 };
 
 return m;

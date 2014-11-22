@@ -11,9 +11,15 @@ m.PetraBot = function PetraBot(settings)
 {
 	API3.BaseAI.call(this, settings);
 
-	this.turn = 0;
 	this.playedTurn = 0;
 	this.elapsedTime = 0;
+
+	this.uniqueIDs = {
+		"armies": 0,
+		"bases": 1,	// base manager ID starts at one because "0" means "no base" on the map
+		"plans": 0,	// training/building/research plans
+		"transports": 1	// transport plans start at 1 because 0 might be used as none
+	};
 
 	this.Config = new m.Config(settings.difficulty);
 
@@ -24,33 +30,68 @@ m.PetraBot.prototype = new API3.BaseAI();
 
 m.PetraBot.prototype.CustomInit = function(gameState, sharedScript)
 {
-	this.Config.setConfig(gameState);
+	if (this.isDeserialized)
+	{
+		this.turn = this.data.turn;
+		this.playedTurn = this.data.playedTurn;
+		this.elapsedTime = this.data.elapsedTime;
+		this.myIndex = this.data.myIndex;
+		this.savedEvents = this.data.savedEvents;
+		for (let key in this.savedEvents)
+		{
+			for (let i in this.savedEvents[key])
+			{
+				if (!this.savedEvents[key][i].entityObj)
+					continue;
+				let evt = this.savedEvents[key][i];
+				let evtmod = {};
+				for (let keyevt in evt)
+				{
+					evtmod[keyevt] = evt[keyevt];
+					evtmod.entityObj = new API3.Entity(gameState.sharedScript, evt.entityObj);
+					this.savedEvents[key][i] = evtmod;
+				}
+			}
+		}
 
-	this.priorities = this.Config.priorities;
-	// this.queues can only be modified by the queue manager or things will go awry.
-	this.queues = {};
-	for (var i in this.priorities)
-		this.queues[i] = new m.Queue();
+		this.Config.Deserialize(this.data.config);
 
-	this.queueManager = new m.QueueManager(this.Config, this.queues);
+		this.queueManager = new m.QueueManager(this.Config, {});
+		this.queueManager.Deserialize(gameState, this.data.queueManager);
+		this.queues = this.queueManager.queues;
 
-	this.HQ = new m.HQ(this.Config);
-	gameState.Config = this.Config;
+		this.HQ = new m.HQ(this.Config);
+		this.HQ.init(gameState, this.queues, true);
+		this.HQ.Deserialize(gameState, this.data.HQ);
 
-	m.playerGlobals[PlayerID] = {};
-	m.playerGlobals[PlayerID].uniqueIDBOPlans = 0;	// training/building/research plans
-	m.playerGlobals[PlayerID].uniqueIDBases = 1;	// base manager ID. Starts at one because "0" means "no base" on the map
-	m.playerGlobals[PlayerID].uniqueIDTPlans = 1;	// transport plans. starts at 1 because 0 might be used as none.	
-	m.playerGlobals[PlayerID].uniqueIDArmy = 0;
+		this.uniqueIDs = this.data.uniqueIDs;
+		this.isDeserialized = false;
+		this.data = undefined;
 
-	var filter = API3.Filters.byClass("CivCentre");
-	var myKeyEntities = gameState.getOwnEntities().filter(filter);
-	if (myKeyEntities.length == 0)
-		myKeyEntities = gameState.getOwnEntities();
+		this.HQ.start(gameState, true);
+	}
+	else
+	{
+		this.Config.setConfig(gameState);
 
-	this.myIndex = this.accessibility.getAccessValue(myKeyEntities.toEntityArray()[0].position());
+		// this.queues can only be modified by the queue manager or things will go awry.
+		this.queues = {};
+		for (var i in this.Config.priorities)
+			this.queues[i] = new m.Queue();
+
+		this.queueManager = new m.QueueManager(this.Config, this.queues);
+
+		this.HQ = new m.HQ(this.Config);
+
+		var myKeyEntities = gameState.getOwnEntities().filter(API3.Filters.byClass("CivCentre"));
+		if (myKeyEntities.length == 0)
+			myKeyEntities = gameState.getOwnEntities();
+		this.myIndex = this.accessibility.getAccessValue(myKeyEntities.toEntityArray()[0].position());
 	
-	this.HQ.init(gameState, this.queues);
+		this.HQ.init(gameState, this.queues);
+
+		this.HQ.start(gameState);
+	}
 };
 
 m.PetraBot.prototype.OnUpdate = function(sharedScript)
@@ -60,6 +101,8 @@ m.PetraBot.prototype.OnUpdate = function(sharedScript)
 
 	for (var i in this.events)
 	{
+		if (i == "AIMetadata" || i == "RangeUpdate")   // not used inside petra
+			continue;
 		if(this.savedEvents[i] !== undefined)
 			this.savedEvents[i] = this.savedEvents[i].concat(this.events[i]);
 		else
@@ -84,12 +127,6 @@ m.PetraBot.prototype.OnUpdate = function(sharedScript)
 
 		this.queueManager.update(this.gameState);
 		
-		// Generate some entropy in the random numbers (against humans) until the engine gets random initialised numbers
-		// TODO: remove this when the engine gives a random seed
-		var n = this.savedEvents["Create"].length % 29;
-		for (var i = 0; i < n; i++)
-			Math.random();
-		
 		for (var i in this.savedEvents)
 			this.savedEvents[i] = [];
 
@@ -99,15 +136,43 @@ m.PetraBot.prototype.OnUpdate = function(sharedScript)
 	this.turn++;
 };
 
-/*m.PetraBot.prototype.Deserialize = function(data, sharedScript)
+m.PetraBot.prototype.Serialize = function()
 {
+	let savedEvents = {};
+	for (let key in this.savedEvents)
+	{
+		savedEvents[key] = this.savedEvents[key].slice();
+		for (let i in savedEvents[key])
+		{
+			if (!savedEvents[key][i].entityObj)
+				continue;
+			let evt = savedEvents[key][i];
+			let evtmod = {};
+			for (let keyevt in evt)
+				evtmod[keyevt] = evt[keyevt];
+			evtmod.entityObj = evt.entityObj._entity;
+			savedEvents[key][i] = evtmod;
+		}
+	}
+
+	return {
+		"uniqueIDs": this.uniqueIDs,
+		"turn": this.turn,
+		"playedTurn": this.playedTurn,
+		"elapsedTime": this.elapsedTime,
+		"myIndex": this.myIndex,
+		"savedEvents": savedEvents,
+		"config": this.Config.Serialize(),
+		"queueManager": this.queueManager.Serialize(),
+		"HQ": this.HQ.Serialize()
+	};
 };
 
-// Override the default serializer
-PetraBot.prototype.Serialize = function()
+m.PetraBot.prototype.Deserialize = function(data, sharedScript)
 {
-	return {};
-};*/
+	this.isDeserialized = true;
+	this.data = data;
+};
 
 return m;
 }());
