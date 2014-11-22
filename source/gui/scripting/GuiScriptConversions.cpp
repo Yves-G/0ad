@@ -23,7 +23,7 @@
 #include "lib/external_libraries/libsdl.h"
 #include "ps/Hotkey.h"
 
-#define SET(obj, name, value) STMT(JS::RootedValue v_(cx); ToJSVal(cx, &v_, (value)); JS_SetProperty(cx, obj, (name), v_))
+#define SET(obj, name, value) STMT(JS::RootedValue v_(cx); AssignOrToJSVal(cx, &v_, (value)); JS_SetProperty(cx, obj, (name), v_))
 	// ignore JS_SetProperty return value, because errors should be impossible
 	// and we can't do anything useful in the case of errors anyway
 
@@ -98,7 +98,7 @@ template<> void ScriptInterface::ToJSVal<SDL_Event_>(JSContext* cx, JS::MutableH
 		else
 #endif
 		{
-			SET(keysym, "unicode", CScriptVal(JSVAL_VOID));
+			SET(keysym, "unicode", JS::UndefinedValue());
 		}
 		// TODO: scripts have no idea what all the key/mod enum values are;
 		// we should probably expose them as constants if we expect scripts to use them

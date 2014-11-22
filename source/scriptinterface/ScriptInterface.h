@@ -387,7 +387,7 @@ public:
 	 * because "conversions" from JS::HandleValue to JS::MutableHandleValue are unusual and should not happen "by accident".
 	 */
 	template <typename T>
-	void AssignOrToJSVal(JS::MutableHandleValue handle, const T& a);
+	static void AssignOrToJSVal(JSContext* cx, JS::MutableHandleValue handle, const T& a);
 
 private:
 	
@@ -439,31 +439,31 @@ public:
 #include "NativeWrapperDefns.h"
 
 template<typename T>
-inline void ScriptInterface::AssignOrToJSVal(JS::MutableHandleValue handle, const T& a)
+inline void ScriptInterface::AssignOrToJSVal(JSContext* cx, JS::MutableHandleValue handle, const T& a)
 {
-	ToJSVal(GetContext(), handle, a);
+	ToJSVal(cx, handle, a);
 }
 
 template<>
-inline void ScriptInterface::AssignOrToJSVal<JS::PersistentRootedValue>(JS::MutableHandleValue handle, const JS::PersistentRootedValue& a)
+inline void ScriptInterface::AssignOrToJSVal<JS::PersistentRootedValue>(JSContext* UNUSED(cx), JS::MutableHandleValue handle, const JS::PersistentRootedValue& a)
 {
 	handle.set(a);
 }
 
 template<>
-inline void ScriptInterface::AssignOrToJSVal<JS::RootedValue>(JS::MutableHandleValue handle, const JS::RootedValue& a)
+inline void ScriptInterface::AssignOrToJSVal<JS::RootedValue>(JSContext* UNUSED(cx), JS::MutableHandleValue handle, const JS::RootedValue& a)
 {
 	handle.set(a);
 }
 
 template <>
-inline void ScriptInterface::AssignOrToJSVal<JS::HandleValue>(JS::MutableHandleValue handle, const JS::HandleValue& a)
+inline void ScriptInterface::AssignOrToJSVal<JS::HandleValue>(JSContext* UNUSED(cx), JS::MutableHandleValue handle, const JS::HandleValue& a)
 {
 	handle.set(a);
 }
 
 template <>
-inline void ScriptInterface::AssignOrToJSVal<JS::Value>(JS::MutableHandleValue handle, const JS::Value& a)
+inline void ScriptInterface::AssignOrToJSVal<JS::Value>(JSContext* UNUSED(cx), JS::MutableHandleValue handle, const JS::Value& a)
 {
 	handle.set(a);
 }
@@ -476,7 +476,7 @@ bool ScriptInterface::CallFunctionVoid(JS::HandleValue val, const char* name, co
 	JS::RootedValue jsRet(cx);
 	JS::AutoValueVector argv(cx);
 	argv.resize(1);
-	AssignOrToJSVal(argv.handleAt(0), a0);
+	AssignOrToJSVal(cx, argv.handleAt(0), a0);
 	return CallFunction_(val, name, argv, &jsRet);
 }
 
@@ -488,8 +488,8 @@ bool ScriptInterface::CallFunctionVoid(JS::HandleValue val, const char* name, co
 	JS::RootedValue jsRet(cx);
 	JS::AutoValueVector argv(cx);
 	argv.resize(2);
-	AssignOrToJSVal(argv.handleAt(0), a0);
-	AssignOrToJSVal(argv.handleAt(1), a1);
+	AssignOrToJSVal(cx, argv.handleAt(0), a0);
+	AssignOrToJSVal(cx, argv.handleAt(1), a1);
 	return CallFunction_(val, name, argv, &jsRet);
 }
 
@@ -501,9 +501,9 @@ bool ScriptInterface::CallFunctionVoid(JS::HandleValue val, const char* name, co
 	JS::RootedValue jsRet(cx);
 	JS::AutoValueVector argv(cx);
 	argv.resize(3);
-	AssignOrToJSVal(argv.handleAt(0), a0);
-	AssignOrToJSVal(argv.handleAt(1), a1);
-	AssignOrToJSVal(argv.handleAt(2), a2);
+	AssignOrToJSVal(cx, argv.handleAt(0), a0);
+	AssignOrToJSVal(cx, argv.handleAt(1), a1);
+	AssignOrToJSVal(cx, argv.handleAt(2), a2);
 	return CallFunction_(val, name, argv, &jsRet);
 }
 
@@ -521,7 +521,7 @@ bool ScriptInterface::SetProperty(JS::HandleValue obj, const char* name, const T
 {
 	JSAutoRequest rq(GetContext());
 	JS::RootedValue val(GetContext());
-	AssignOrToJSVal(&val, value);
+	AssignOrToJSVal(GetContext(), &val, value);
 	return SetProperty_(obj, name, val, readonly, enumerate);
 }
 
@@ -530,7 +530,7 @@ bool ScriptInterface::SetProperty(JS::HandleValue obj, const wchar_t* name, cons
 {
 	JSAutoRequest rq(GetContext());
 	JS::RootedValue val(GetContext());
-	AssignOrToJSVal(&val, value);
+	AssignOrToJSVal(GetContext(), &val, value);
 	return SetProperty_(obj, name, val, readonly, enumerate);
 }
 
@@ -539,7 +539,7 @@ bool ScriptInterface::SetPropertyInt(JS::HandleValue obj, int name, const T& val
 {
 	JSAutoRequest rq(GetContext());
 	JS::RootedValue val(GetContext());
-	AssignOrToJSVal(&val, value);
+	AssignOrToJSVal(GetContext(), &val, value);
 	return SetPropertyInt_(obj, name, val, readonly, enumerate);
 }
 
