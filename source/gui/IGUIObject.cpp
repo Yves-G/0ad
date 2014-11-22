@@ -463,7 +463,7 @@ void IGUIObject::SetScriptHandler(const CStr& Action, JS::HandleObject Function)
 {
 	// A GUI is needed to get the JSRuntime which is needed for rooting m_ScriptHandlers
 	ENSURE(m_pGUI && "A GUI must be associated with the GUIObject before adding ScriptHandlers!");
-	m_ScriptHandlers.emplace(Action, JS::Heap<JSObject*>(Function));
+	m_ScriptHandlers[Action] = JS::Heap<JSObject*>(Function);
 }
 
 InReaction IGUIObject::SendEvent(EGUIMessageType type, const CStr& EventName)
