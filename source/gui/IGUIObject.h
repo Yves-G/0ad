@@ -365,7 +365,7 @@ protected:
 	 */
 	virtual float GetBufferedZ() const;
 
-	void SetGUI(CGUI * const &pGUI) { m_pGUI = pGUI; }
+	void SetGUI(CGUI * const &pGUI);
 
 	/**
 	 * Set parent of this object
@@ -501,6 +501,13 @@ private:
 	 * @return the error result
 	 */
 	PSRETURN LogInvalidSettings(const CStr8& Setting) const;
+	
+	static void Trace(JSTracer *trc, void *data)
+	{
+		reinterpret_cast<IGUIObject*>(data)->TraceMember(trc);
+	}
+	
+	void TraceMember(JSTracer *trc);
 
 	// Variables
 
@@ -551,10 +558,11 @@ private:
 	CGUI									*m_pGUI;
 
 	// Internal storage for registered script handlers.
-	std::map<CStr, CScriptValRooted> m_ScriptHandlers;
+	std::map<CStr, JS::Heap<JSObject*> > m_ScriptHandlers;
 	
 	// Cached JSObject representing this GUI object
-	CScriptValRooted						m_JSObject;
+	DefPersistentRooted<JSObject*>			 m_JSObject;
+	shared_ptr<ScriptRuntime> m_ScriptRuntime;
 };
 
 

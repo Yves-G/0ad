@@ -30,46 +30,52 @@
  * Use it in these cases, but prefer to use JS::PersistentRootedValue directly
  * if initializing it with a runtime/context in the constructor isn't a problem.
  */
-class DefPersistentRootedValue
+ template <typename T>
+class DefPersistentRooted
 {
 public:
-	DefPersistentRootedValue()
-	{	
-	}
-	
-	DefPersistentRootedValue(JSRuntime* rt)
+	DefPersistentRooted()
 	{
-		m_Val.reset(new JS::PersistentRootedValue(rt));
 	}
 	
-	DefPersistentRootedValue(JSRuntime* rt, JS::HandleValue val)
+	DefPersistentRooted(JSRuntime* rt)
 	{
-		m_Val.reset(new JS::PersistentRootedValue(rt, val));
+		m_Val.reset(new JS::PersistentRooted<T>(rt));
 	}
 	
-	DefPersistentRootedValue(JSContext* cx, JS::HandleValue val)
+	DefPersistentRooted(JSRuntime* rt, JS::HandleValue val)
 	{
-		m_Val.reset(new JS::PersistentRootedValue(cx, val));
+		m_Val.reset(new JS::PersistentRooted<T>(rt, val));
 	}
 	
-	inline JS::PersistentRootedValue& get() const
+	DefPersistentRooted(JSContext* cx, JS::Handle<T> val)
+	{
+		m_Val.reset(new JS::PersistentRooted<T>(cx, val));
+	}
+	
+	inline bool uninitialized()
+	{
+		return m_Val == nullptr;
+	}
+	
+	inline JS::PersistentRooted<T>& get() const
 	{
 		ENSURE(m_Val);
 		return *m_Val;
 	}
 	
-	inline void set(JSRuntime* rt, JS::Value val)
+	inline void set(JSRuntime* rt, T val)
 	{
-		m_Val.reset(new JS::PersistentRootedValue(rt, val));
+		m_Val.reset(new JS::PersistentRooted<T>(rt, val));
 	}
 	
-	inline void set(JSContext* cx, JS::Value val)
+	inline void set(JSContext* cx, T val)
 	{
-		m_Val.reset(new JS::PersistentRootedValue(cx, val));
+		m_Val.reset(new JS::PersistentRooted<T>(cx, val));
 	}
 	
 private:	
-	std::unique_ptr<JS::PersistentRootedValue> m_Val;
+	std::unique_ptr<JS::PersistentRooted<T> > m_Val;
 };
 
 /**

@@ -124,8 +124,8 @@ private:
 
 	// random map data
 	CStrW m_ScriptFile;
-	DefPersistentRootedValue m_ScriptSettings;
-	DefPersistentRootedValue m_MapData;
+	DefPersistentRooted<JS::Value> m_ScriptSettings;
+	DefPersistentRooted<JS::Value> m_MapData;
 
 	CMapGenerator* m_MapGen;
 
