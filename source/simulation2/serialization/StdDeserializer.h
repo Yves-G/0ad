@@ -38,7 +38,7 @@ public:
 	virtual std::istream& GetStream();
 	virtual void RequireBytesInStream(size_t numBytes);
 
-	virtual void SetSerializablePrototypes(std::map<std::wstring, JSObject*>& prototypes);
+	virtual void SetSerializablePrototypes(std::map<std::wstring, JS::Heap<JSObject*> >& prototypes);
 	
 	static void Trace(JSTracer *trc, void *data);
     
@@ -51,10 +51,10 @@ private:
 	jsval ReadScriptVal(const char* name, JS::HandleObject appendParent);
 	void ReadStringUTF16(const char* name, utf16string& str);
 
-	virtual void AddScriptBackref(JSObject* obj);
-	virtual JSObject* GetScriptBackref(u32 tag);
+	virtual void AddScriptBackref(JS::HandleObject obj);
+	virtual void GetScriptBackref(u32 tag, JS::MutableHandleObject ret);
 	virtual u32 ReserveScriptBackref();
-	virtual void SetReservedScriptBackref(u32 tag, JSObject* obj);
+	virtual void SetReservedScriptBackref(u32 tag, JS::HandleObject obj);
 	void FreeScriptBackrefs();
 	std::vector<JS::Heap<JSObject*> > m_ScriptBackrefs;
 
@@ -62,10 +62,10 @@ private:
 
 	std::istream& m_Stream;
 
-	std::map<std::wstring, JSObject*> m_SerializablePrototypes;
+	std::map<std::wstring, JS::Heap<JSObject*> > m_SerializablePrototypes;
 
 	bool IsSerializablePrototype(const std::wstring& name);
-	JSObject* GetSerializablePrototype(const std::wstring& name);
+	void GetSerializablePrototype(const std::wstring& name, JS::MutableHandleObject ret);
 };
 
 #endif // INCLUDED_STDDESERIALIZER

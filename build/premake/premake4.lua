@@ -709,6 +709,7 @@ function setup_all_libs ()
 
 	source_dirs = {
 		"scriptinterface",
+		"scriptinterface/third_party"
 	}
 	extern_libs = {
 		"boost",

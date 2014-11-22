@@ -222,7 +222,8 @@ public:
 		m_TurnNum(0),
 		m_CommandsComputed(true),
 		m_HasLoadedEntityTemplates(false),
-		m_HasSharedComponent(false)
+		m_HasSharedComponent(false),
+		m_SerializablePrototypes(new ObjectIdCache<std::wstring>(g_ScriptRuntime))
 	{
 
 		// TODO: ought to seed the RNG (in a network-synchronised way) before we use it
@@ -230,6 +231,9 @@ public:
 		m_ScriptInterface->LoadGlobalScripts();
 
 		m_ScriptInterface->SetCallbackData(static_cast<void*> (this));
+		
+		m_SerializablePrototypes->init();
+		JS_AddExtraGCRootsTracer(m_ScriptInterface->GetJSRuntime(), Trace, this);
 
 		m_ScriptInterface->RegisterFunction<void, int, CScriptValRooted, CAIWorker::PostCommand>("PostCommand");
 		m_ScriptInterface->RegisterFunction<void, std::wstring, CAIWorker::IncludeModule>("IncludeModule");
@@ -248,6 +252,7 @@ public:
 		m_GameState.reset();
 		m_PassabilityMapVal = CScriptValRooted();
 		m_TerritoryMapVal = CScriptValRooted();
+		JS_RemoveExtraGCRootsTracer(m_ScriptInterface->GetJSRuntime(), Trace, this);
 	}
 	
 	bool LoadScripts(const std::wstring& moduleName)
@@ -737,18 +742,32 @@ public:
 		return m_Players.size();
 	}
 
-	void RegisterSerializablePrototype(std::wstring name, CScriptVal proto)
+	void RegisterSerializablePrototype(std::wstring name, JS::HandleValue proto)
 	{
 		// Require unique prototype and name (for reverse lookup)
 		// TODO: this is yucky - see comment in Deserialize()
-		JSObject* obj = JSVAL_TO_OBJECT(proto.get());
-		std::pair<std::map<JSObject*, std::wstring>::iterator, bool> ret1 = m_SerializablePrototypes.insert(std::make_pair(obj, name));
-		std::pair<std::map<std::wstring, JSObject*>::iterator, bool> ret2 = m_DeserializablePrototypes.insert(std::make_pair(name, obj));
-		if (!ret1.second || !ret2.second)
-			LOGERROR(L"RegisterSerializablePrototype called with same prototype multiple times: p=%p n='%ls'", obj, name.c_str());
+		ENSURE(proto.isObject() && "A serializable prototype has to be an object!");
+		JS::RootedObject obj(m_ScriptInterface->GetContext(), &proto.toObject());
+		bool ret1 = m_SerializablePrototypes->has(obj);
+		m_SerializablePrototypes->add(m_ScriptInterface->GetContext(), obj, name);
+		std::pair<std::map<std::wstring, JS::Heap<JSObject*> >::iterator, bool> ret2 = m_DeserializablePrototypes.emplace(name, JS::Heap<JSObject*>(obj));
+		if (!ret1 || !ret2.second)
+			LOGERROR(L"RegisterSerializablePrototype called with same prototype multiple times: p=%p n='%ls'", obj.get(), name.c_str());
 	}
 
 private:
+	static void Trace(JSTracer *trc, void *data)
+	{
+		reinterpret_cast<CAIWorker*>(data)->TraceMember(trc);
+	}
+	
+	void TraceMember(JSTracer *trc)
+	{
+		std::map<std::wstring, JS::Heap<JSObject*> >::iterator itr;
+		for (itr = m_DeserializablePrototypes.begin(); itr != m_DeserializablePrototypes.end(); ++itr)
+			JS_CallHeapObjectTracer(trc, &itr->second, "m_DeserializablePrototypes");
+	}
+	
 	void LoadMetadata(const VfsPath& path, JS::MutableHandleValue out)
 	{
 		if (m_PlayerMetadata.find(path) == m_PlayerMetadata.end())
@@ -826,8 +845,8 @@ private:
 
 	bool m_CommandsComputed;
 
-	std::map<JSObject*, std::wstring> m_SerializablePrototypes;
-	std::map<std::wstring, JSObject*> m_DeserializablePrototypes;
+	shared_ptr<ObjectIdCache<std::wstring> > m_SerializablePrototypes;
+	std::map<std::wstring, JS::Heap<JSObject*> > m_DeserializablePrototypes;
 };
 
 

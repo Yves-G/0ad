@@ -89,6 +89,22 @@ void GCSliceCallbackHook(JSRuntime* UNUSED(rt), JS::GCProgress progress, const J
 	#endif
 }
 
+void ScriptRuntime::GCCallback(JSRuntime* UNUSED(rt), JSGCStatus status, void *data)
+{
+	if (status == JSGC_END)
+		reinterpret_cast<ScriptRuntime*>(data)->GCCallbackMember();
+}
+
+void ScriptRuntime::GCCallbackMember()
+{
+	m_FinalizationListObjectIdCache.clear();
+}
+
+void ScriptRuntime::AddDeferredFinalizationObject(const std::shared_ptr<void>& obj)
+{
+	m_FinalizationListObjectIdCache.push_back(obj);
+}
+
 bool ScriptRuntime::m_Initialized = false;
 
 ScriptRuntime::ScriptRuntime(shared_ptr<ScriptRuntime> parentRuntime, int runtimeSize, int heapGrowthBytesGCTrigger): 
@@ -123,6 +139,7 @@ ScriptRuntime::ScriptRuntime(shared_ptr<ScriptRuntime> parentRuntime, int runtim
 	}
 	
 	JS::SetGCSliceCallback(m_rt, GCSliceCallbackHook);
+	JS_SetGCCallback(m_rt, ScriptRuntime::GCCallback, this);
 	
 	JS_SetGCParameter(m_rt, JSGC_MAX_MALLOC_BYTES, m_RuntimeSize);
 	JS_SetGCParameter(m_rt, JSGC_MAX_BYTES, m_RuntimeSize);
@@ -142,7 +159,9 @@ ScriptRuntime::~ScriptRuntime()
 {
 	JS_RemoveExtraGCRootsTracer(m_rt, jshook_trace, this);
 	JS_DestroyContext(m_dummyContext);
+	JS_SetGCCallback(m_rt, nullptr, nullptr);
 	JS_DestroyRuntime(m_rt);
+	ENSURE(m_FinalizationListObjectIdCache.empty() && "Leak: Removing callback while some objects still aren't finalized!");
 }
 
 void ScriptRuntime::RegisterContext(JSContext* cx)

@@ -62,23 +62,37 @@ public:
 	void RegisterContext(JSContext* cx);
 	void UnRegisterContext(JSContext* cx);
 	
+	/**
+	 * Registers an object to be freed/finalized by the ScriptRuntime. Freeing is
+	 * guaranteed to happen after next minor GC has completed, but might also
+	 * happen a bit later). This is only needed in very special situations
+	 * and you should only use it if you know exactly why you need it!
+	 * Specify a Deleter for the shared_ptr to free the void pointer correctly
+	 * (by casting to the right type before calling delete for example).
+	 */
+	void AddDeferredFinalizationObject(const std::shared_ptr<void>& obj);
+	
 	JSRuntime* m_rt;
 	AutoGCRooter* m_rooter;
 
 private:
 	
 	void PrepareContextsForIncrementalGC();
+	void GCCallbackMember();
 	
 	// Workaround for: https://bugzilla.mozilla.org/show_bug.cgi?id=890243
 	JSContext* m_dummyContext;
 	
 	std::list<JSContext*> m_Contexts;
+	std::vector<std::shared_ptr<void> > m_FinalizationListObjectIdCache;
 	static bool m_Initialized;
 	
 	int m_RuntimeSize;
 	int m_HeapGrowthBytesGCTrigger;
 	int m_LastGCBytes;
 	double m_LastGCCheck;
+	
+	static void GCCallback(JSRuntime *rt, JSGCStatus status, void *data);
 
 	static void* jshook_script(JSContext* UNUSED(cx), JSAbstractFramePtr UNUSED(fp), 
 		bool UNUSED(isConstructing), bool before, 

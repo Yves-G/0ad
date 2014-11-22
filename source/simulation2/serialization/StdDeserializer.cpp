@@ -46,8 +46,12 @@ void CStdDeserializer::Trace(JSTracer *trc, void *data)
 
 void CStdDeserializer::TraceMember(JSTracer *trc)
 {
-	for(size_t i=0; i<m_ScriptBackrefs.size(); i++)
+	for (size_t i=0; i<m_ScriptBackrefs.size(); i++)
 		JS_CallHeapObjectTracer(trc, &m_ScriptBackrefs[i], "StdDeserializer::m_ScriptBackrefs");
+
+	std::map<std::wstring, JS::Heap<JSObject*> >::iterator itr;
+	for (itr=m_SerializablePrototypes.begin(); itr!=m_SerializablePrototypes.end(); ++itr)
+		JS_CallHeapObjectTracer(trc, &itr->second, "StdDeserializer::m_SerializablePrototypes");
 }
 
 void CStdDeserializer::Get(const char* name, u8* data, size_t len)
@@ -92,16 +96,16 @@ void CStdDeserializer::RequireBytesInStream(size_t numBytes)
 		throw PSERROR_Deserialize_OutOfBounds("RequireBytesInStream");
 }
 
-void CStdDeserializer::AddScriptBackref(JSObject* obj)
+void CStdDeserializer::AddScriptBackref(JS::HandleObject obj)
 {
 	m_ScriptBackrefs.push_back(JS::Heap<JSObject*>(obj));
 }
 
-JSObject* CStdDeserializer::GetScriptBackref(u32 tag)
+void CStdDeserializer::GetScriptBackref(u32 tag, JS::MutableHandleObject ret)
 {
 	tag--; // TODO: remove when the serializer is also adjusted (uses tag numbering starting with 1 currently)
 	ENSURE(m_ScriptBackrefs.size() > tag);
-	return m_ScriptBackrefs[tag];
+	ret.set(m_ScriptBackrefs[tag]);
 }
 
 u32 CStdDeserializer::ReserveScriptBackref()
@@ -110,7 +114,7 @@ u32 CStdDeserializer::ReserveScriptBackref()
 	return m_ScriptBackrefs.size();
 }
 
-void CStdDeserializer::SetReservedScriptBackref(u32 tag, JSObject* obj)
+void CStdDeserializer::SetReservedScriptBackref(u32 tag, JS::HandleObject obj)
 {
 	tag--; // TODO: remove when the serializer is also adjusted (uses tag numbering starting with 1 currently)
 	ENSURE(m_ScriptBackrefs[tag].get() == nullptr);
@@ -164,7 +168,8 @@ jsval CStdDeserializer::ReadScriptVal(const char* UNUSED(name), JS::HandleObject
 			String("proto name", prototypeName, 0, 256);
 
 			// Get constructor object
-			JS::RootedObject proto(cx, GetSerializablePrototype(prototypeName));
+			JS::RootedObject proto(cx);
+			GetSerializablePrototype(prototypeName, &proto);
 			if (!proto)
 				throw PSERROR_Deserialize_ScriptError("Failed to find serializable prototype for object");
 
@@ -255,7 +260,8 @@ jsval CStdDeserializer::ReadScriptVal(const char* UNUSED(name), JS::HandleObject
 	{
 		u32 tag;
 		NumberU32_Unbounded("tag", tag);
-		JSObject* obj = GetScriptBackref(tag);
+		JS::RootedObject obj(cx);
+		GetScriptBackref(tag, &obj);
 		if (!obj)
 			throw PSERROR_Deserialize_ScriptError("Invalid backref tag");
 		return JS::ObjectValue(*obj);
@@ -271,7 +277,7 @@ jsval CStdDeserializer::ReadScriptVal(const char* UNUSED(name), JS::HandleObject
 		if (!JS_GetClassObject(cx, JSProto_Number, &ctorobj))
 			throw PSERROR_Deserialize_ScriptError("JS_GetClassObject failed");
 
-		JSObject* obj = JS_New(cx, ctorobj, val);
+		JS::RootedObject obj(cx, JS_New(cx, ctorobj, val));
 		if (!obj)
 			throw PSERROR_Deserialize_ScriptError("JS_New failed");
 		AddScriptBackref(obj);
@@ -333,7 +339,7 @@ jsval CStdDeserializer::ReadScriptVal(const char* UNUSED(name), JS::HandleObject
 		if (!JS_IsArrayBufferObject(bufferObj))
 			throw PSERROR_Deserialize_ScriptError("js_IsArrayBuffer failed");
 
-		JSObject* arrayObj;
+		JS::RootedObject arrayObj(cx);
 		switch(arrayType)
 		{
 		case SCRIPT_TYPED_ARRAY_INT8:
@@ -384,7 +390,7 @@ jsval CStdDeserializer::ReadScriptVal(const char* UNUSED(name), JS::HandleObject
 		void* contents = NULL;
 		contents = JS_AllocateArrayBufferContents(cx, length);
 		RawBytes("buffer data", (u8*)contents, length);
-		JSObject* bufferObj = JS_NewArrayBufferWithContents(cx, length, contents);
+		JS::RootedObject bufferObj(cx, JS_NewArrayBufferWithContents(cx, length, contents));
 		AddScriptBackref(bufferObj);
 
 		return JS::ObjectValue(*bufferObj);
@@ -402,7 +408,8 @@ jsval CStdDeserializer::ReadScriptVal(const char* UNUSED(name), JS::HandleObject
 			JS::RootedValue value(cx, ReadScriptVal("map value", JS::NullPtr()));
 			m_ScriptInterface.CallFunctionVoid(mapVal, "set", key, value);
 		}
-		AddScriptBackref(&mapVal.toObject());
+		JS::RootedObject mapObj(cx, &mapVal.toObject());
+		AddScriptBackref(mapObj);
 		return mapVal;
 	}
 	default:
@@ -450,7 +457,7 @@ void CStdDeserializer::ScriptObjectAppend(const char* name, JS::HandleValue objV
 	ReadScriptVal(name, obj);
 }
 
-void CStdDeserializer::SetSerializablePrototypes(std::map<std::wstring, JSObject*>& prototypes)
+void CStdDeserializer::SetSerializablePrototypes(std::map<std::wstring, JS::Heap<JSObject*> >& prototypes)
 {
 	m_SerializablePrototypes = prototypes;
 }
@@ -460,11 +467,11 @@ bool CStdDeserializer::IsSerializablePrototype(const std::wstring& name)
 	return m_SerializablePrototypes.find(name) != m_SerializablePrototypes.end();
 }
 
-JSObject* CStdDeserializer::GetSerializablePrototype(const std::wstring& name)
+void CStdDeserializer::GetSerializablePrototype(const std::wstring& name, JS::MutableHandleObject ret)
 {
-	std::map<std::wstring, JSObject*>::iterator it = m_SerializablePrototypes.find(name);
+	std::map<std::wstring, JS::Heap<JSObject*> >::iterator it = m_SerializablePrototypes.find(name);
 	if (it != m_SerializablePrototypes.end())
-		return it->second;
+		ret.set(it->second);
 	else
-		return NULL;
+		ret.set(NULL);
 }

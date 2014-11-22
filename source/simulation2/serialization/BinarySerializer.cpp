@@ -55,9 +55,11 @@ static u8 GetArrayType(JSArrayBufferViewType arrayType)
 }
 
 CBinarySerializerScriptImpl::CBinarySerializerScriptImpl(ScriptInterface& scriptInterface, ISerializer& serializer) :
-	m_ScriptInterface(scriptInterface), m_Serializer(serializer), m_Rooter(m_ScriptInterface),
-	m_ScriptBackrefsArena(1 * MiB), m_ScriptBackrefs(backrefs_t::key_compare(), ScriptBackrefsAlloc(m_ScriptBackrefsArena)), m_ScriptBackrefsNext(1)
+	m_ScriptInterface(scriptInterface), m_Serializer(serializer), m_ScriptBackrefs(scriptInterface.GetRuntime()), 
+	m_SerializablePrototypes(new ObjectIdCache<std::wstring>(scriptInterface.GetRuntime())), m_ScriptBackrefsNext(1)
 {
+	m_ScriptBackrefs.init();
+	m_SerializablePrototypes->init();
 }
 
 void CBinarySerializerScriptImpl::HandleScriptVal(JS::HandleValue val)
@@ -152,7 +154,7 @@ void CBinarySerializerScriptImpl::HandleScriptVal(JS::HandleValue val)
 				if (!proto)
 					throw PSERROR_Serialize_ScriptError("JS_GetPrototype failed");
 
-				if (m_SerializablePrototypes.empty() || !IsSerializablePrototype(proto))
+				if (m_SerializablePrototypes->empty() || !IsSerializablePrototype(proto))
 				{
 					// Standard Object prototype
 					m_Serializer.NumberU8_Unbounded("type", SCRIPT_TYPE_OBJECT);
@@ -165,7 +167,7 @@ void CBinarySerializerScriptImpl::HandleScriptVal(JS::HandleValue val)
 					// User-defined custom prototype
 					m_Serializer.NumberU8_Unbounded("type", SCRIPT_TYPE_OBJECT_PROTOTYPE);
 
-					const std::wstring& prototypeName = GetPrototypeName(proto);
+					const std::wstring prototypeName = GetPrototypeName(proto);
 					m_Serializer.String("proto name", prototypeName, 0, 256);
 
 					// Does it have custom Serialize function?
@@ -388,7 +390,7 @@ void CBinarySerializerScriptImpl::ScriptString(const char* name, JSString* strin
 	m_Serializer.RawBytes(name, (const u8*)chars, length*2);
 }
 
-u32 CBinarySerializerScriptImpl::GetScriptBackrefTag(JSObject* obj)
+u32 CBinarySerializerScriptImpl::GetScriptBackrefTag(JS::HandleObject obj)
 {
 	// To support non-tree structures (e.g. "var x = []; var y = [x, x];"), we need a way
 	// to indicate multiple references to one object(/array). So every time we serialize a
@@ -397,34 +399,33 @@ u32 CBinarySerializerScriptImpl::GetScriptBackrefTag(JSObject* obj)
 	//
 	// The tags are stored in a map. Maybe it'd be more efficient to store it inline in the object
 	// somehow? but this works okay for now
-
-	std::pair<backrefs_t::iterator, bool> it = m_ScriptBackrefs.insert(std::make_pair(obj, m_ScriptBackrefsNext));
-
+	
 	// If it was already there, return the tag
-	if (!it.second)
-		return it.first->second;
+	u32 tag;
+	if (m_ScriptBackrefs.find(obj, tag))
+		return tag;
 
-	// If it was newly inserted, we need to make sure it gets rooted
-	// for the duration that it's in m_ScriptBackrefs
-	m_Rooter.Push(it.first->first);
+	m_ScriptBackrefs.add(m_ScriptInterface.GetContext(), obj, m_ScriptBackrefsNext);
+
 	m_ScriptBackrefsNext++;
 	// Return a non-tag number so callers know they need to serialize the object
 	return 0;
 }
 
-bool CBinarySerializerScriptImpl::IsSerializablePrototype(JSObject* prototype)
+bool CBinarySerializerScriptImpl::IsSerializablePrototype(JS::HandleObject prototype)
 {
-	return m_SerializablePrototypes.find(prototype) != m_SerializablePrototypes.end();
+	return m_SerializablePrototypes->has(prototype);
 }
 
-std::wstring CBinarySerializerScriptImpl::GetPrototypeName(JSObject* prototype)
+std::wstring CBinarySerializerScriptImpl::GetPrototypeName(JS::HandleObject prototype)
 {
-	std::map<JSObject*, std::wstring>::iterator it = m_SerializablePrototypes.find(prototype);
-	ENSURE(it != m_SerializablePrototypes.end());
-	return it->second;
+	std::wstring ret;
+	bool found = m_SerializablePrototypes->find(prototype, ret);
+	ENSURE(found);
+	return ret;
 }
 
-void CBinarySerializerScriptImpl::SetSerializablePrototypes(std::map<JSObject*, std::wstring>& prototypes)
+void CBinarySerializerScriptImpl::SetSerializablePrototypes(shared_ptr<ObjectIdCache<std::wstring> > prototypes)
 {
 	m_SerializablePrototypes = prototypes;
 }
