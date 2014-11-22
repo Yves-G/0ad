@@ -27,9 +27,10 @@
 
 #include "lib/external_libraries/enet.h"
 #include "ps/CLogger.h"
-#include "scriptinterface/ScriptInterface.h"
-#include "simulation2/Simulation2.h"
 #include "ps/ConfigDB.h"
+#include "scriptinterface/ScriptInterface.h"
+#include "scriptinterface/ScriptRuntime.h"
+#include "simulation2/Simulation2.h"
 
 #if CONFIG2_MINIUPNPC
 #include <miniupnpc/miniwget.h>
@@ -221,7 +222,7 @@ void* CNetServerWorker::SetupUPnP(void*)
 
 	// Cached root descriptor URL.
 	std::string rootDescURL;
-	CFG_GET_VAL("network.upnprootdescurl", String, rootDescURL);
+	CFG_GET_VAL("network.upnprootdescurl", rootDescURL);
 	if (!rootDescURL.empty())
 		LOGMESSAGE(L"Net server: attempting to use cached root descriptor URL: %hs", rootDescURL.c_str());
 
@@ -391,7 +392,7 @@ bool CNetServerWorker::RunStep()
 	// (Do as little work as possible while the mutex is held open,
 	// to avoid performance problems and deadlocks.)
 	
-	m_ScriptInterface->MaybeIncrementalRuntimeGC(0.5f);
+	m_ScriptInterface->GetRuntime()->MaybeIncrementalGC(0.5f);
 	
 	JSContext* cx = m_ScriptInterface->GetContext();
 	JSAutoRequest rq(cx);

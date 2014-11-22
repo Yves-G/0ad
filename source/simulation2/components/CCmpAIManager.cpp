@@ -225,7 +225,6 @@ public:
 		m_HasSharedComponent(false)
 	{
 
-		// TODO: ought to seed the RNG (in a network-synchronised way) before we use it
 		m_ScriptInterface->ReplaceNondeterministicRNG(m_RNG);
 		m_ScriptInterface->LoadGlobalScripts();
 
@@ -361,6 +360,11 @@ public:
 		tex_write(&t, filename);
 	}
 
+	void SetRNGSeed(uint32_t seed)
+	{
+		m_RNG.seed(seed);
+	}
+
 	bool TryLoadSharedComponent(bool hasTechs)
 	{
 		JSContext* cx = m_ScriptInterface->GetContext();
@@ -379,7 +383,7 @@ public:
 			return false;
 
 		// mainly here for the error messages
-		OsPath path = L"simulation/ai/common-api-v2/";
+		OsPath path = L"simulation/ai/common-api/";
 		
 		// Constructor name is SharedScript, it's in the module API3
 		// TODO: Hardcoding this is bad, we need a smarter way. 
@@ -563,9 +567,10 @@ public:
 		JS::RootedValue tmpEntityTemplates(cx); // TODO: Check if this temporary root can be removed after SpiderMonkey 31 upgrade 
 		m_ScriptInterface->Eval("({})", &tmpEntityTemplates);
 
+		JS::RootedValue val(cx);
 		for (size_t i = 0; i < templates.size(); ++i)
 		{
-			JS::RootedValue val(cx, templates[i].second->ToJSVal(cx, false));
+			templates[i].second->ToJSVal(cx, false, &val);
 			m_ScriptInterface->SetProperty(tmpEntityTemplates, templates[i].first.c_str(), val, true);
 		}
 
@@ -916,6 +921,11 @@ public:
 			cmpRangeManager->SetLosRevealAll(player, true);
 	}
 	
+	virtual void SetRNGSeed(uint32_t seed)
+	{
+		m_Worker.SetRNGSeed(seed);
+	}
+
 	virtual void TryLoadSharedComponent()
 	{
 		ScriptInterface& scriptInterface = GetSimContext().GetScriptInterface();
@@ -987,7 +997,7 @@ public:
 		// Get the game state from AIInterface
 		JS::RootedValue state(cx);
 		if (m_JustDeserialized)
-			state.set(cmpAIInterface->GetFullRepresentation(true).get());
+			state.set(cmpAIInterface->GetFullRepresentation(false).get());
 		else
 			state.set(cmpAIInterface->GetRepresentation().get());
 

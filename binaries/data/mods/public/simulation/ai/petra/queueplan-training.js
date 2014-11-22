@@ -65,10 +65,11 @@ m.TrainingPlan.prototype.start = function(gameState)
 		var wantedIndex = undefined;
 		if (this.metadata && this.metadata.index)
 			wantedIndex = this.metadata.index;
+		var workerUnit = (this.metadata && this.metadata.role && this.metadata.role == "worker");
 		var supportUnit = this.template.hasClass("Support");
 		trainers.sort(function(a, b) {
-			var aa = a.trainingQueueTime();
-			var bb = b.trainingQueueTime();
+			let aa = a.trainingQueueTime();
+			let bb = b.trainingQueueTime();
 			if (a.hasClass("Civic") && !supportUnit)
 				aa += 10;
 			if (b.hasClass("Civic") && !supportUnit)
@@ -80,22 +81,32 @@ m.TrainingPlan.prototype.start = function(gameState)
 				if (gameState.ai.HQ.isDangerousLocation(b.position()))
 					bb += 50;
 			}
+			let aBase = a.getMetadata(PlayerID, "base");
+			let bBase = b.getMetadata(PlayerID, "base");
 			if (wantedIndex)
 			{
-				var aBase = a.getMetadata(PlayerID, "base");
-				if (!aBase || gameState.ai.HQ.baseManagers[aBase].accessIndex !== wantedIndex)
+				if (!aBase || gameState.ai.HQ.baseManagers[aBase].accessIndex != wantedIndex)
 					aa += 30;
-				var bBase = b.getMetadata(PlayerID, "base");
-				if (!bBase || gameState.ai.HQ.baseManagers[bBase].accessIndex !== wantedIndex)
+				if (!bBase || gameState.ai.HQ.baseManagers[bBase].accessIndex != wantedIndex)
 					bb += 30;
+			}
+			// then, if worker, small preference for bases with less workers
+			if (workerUnit && aBase && bBase && aBase != bBase)
+			{
+				let apop = gameState.ai.HQ.baseManagers[aBase].workers.length;
+				let bpop = gameState.ai.HQ.baseManagers[bBase].workers.length;
+				if (apop > bpop)
+					aa++;
+				else if (bpop > apop)
+					bb++;
 			}
 			return (aa - bb);
 		});
-		if (this.metadata && this.metadata.base !== undefined && this.metadata.base === 0)
+		if (this.metadata && this.metadata.base !== undefined && this.metadata.base == 0)
 			this.metadata.base = trainers[0].getMetadata(PlayerID, "base");
 		trainers[0].train(this.type, this.number, this.metadata, this.promotedTypes(gameState));
 	}
-	else if (gameState.Config.debug > 1)
+	else if (gameState.ai.Config.debug > 1)
 		warn(" no trainers for this queue " + this.type);
 	this.onStart(gameState);
 };
@@ -120,12 +131,36 @@ m.TrainingPlan.prototype.promotedTypes = function(gameState)
 		promotion = gameState.getTemplate(promotion).promotion();
 		if (previous === promotion)
 		{
-			if (gameState.Config.debug > 0)
+			if (gameState.ai.Config.debug > 0)
 				API3.warn(" unit " + promotion + " is its own promoted unit");
 			promotion = undefined;
 		}
 	}
 	return types;
+};
+
+m.TrainingPlan.prototype.Serialize = function()
+{
+	return {
+		"type": this.type,
+		"metadata": this.metadata,
+		"ID": this.ID,
+		"category": this.category,
+		"cost": this.cost.Serialize(),
+		"number": this.number,
+		"maxMerge": this.maxMerge,
+		"lastIsGo": this.lastIsGo
+	};
+};
+
+m.TrainingPlan.prototype.Deserialize = function(gameState, data)
+{
+	for (let key in data)
+		this[key] = data[key];
+
+	let cost = new API3.Resources();
+	cost.Deserialize(data.cost);
+	this.cost = cost;
 };
 
 return m;

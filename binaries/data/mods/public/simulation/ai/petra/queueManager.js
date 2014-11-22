@@ -423,6 +423,9 @@ m.QueueManager.prototype.update = function(gameState)
 		this.priorities[i] = 1;  // TODO: make the Queue Manager not die when priorities are zero.
 	}
 
+	// Pause or unpause queues depending on the situation
+	this.checkPausedQueues(gameState);
+
 	// Let's assign resources to plans that need them
 	this.distributeResources(gameState);
 
@@ -433,6 +436,85 @@ m.QueueManager.prototype.update = function(gameState)
 		this.printQueues(gameState);
 	
 	Engine.ProfileStop();
+};
+
+// Recovery system: if short of workers after an attack, pause (and reset) some queues to favor worker training
+m.QueueManager.prototype.checkPausedQueues = function(gameState)
+{
+	let numWorkers = 0;
+	gameState.getOwnUnits().forEach (function (ent) {
+		if (ent.getMetadata(PlayerID, "role") == "worker")
+			numWorkers++;
+	});
+	gameState.getOwnTrainingFacilities().forEach(function(ent) {
+		ent.trainingQueue().forEach(function(item) {
+			if (item.metadata && item.metadata.role && item.metadata.role == "worker")
+				numWorkers += item.count;
+		});
+	});
+
+	if (numWorkers < 8)
+	{
+		for (let q in this.queues)
+		{
+			let queue = this.queues[q];
+			if (!queue.paused
+				&& q != "citizenSoldier" && q != "villager"
+				&& (q != "civilCentre" || gameState.getOwnStructures().filter(API3.Filters.byClass("CivCentre")) > 0))
+			{
+				queue.paused = true;
+				this.accounts[q].reset();
+			}
+			else if (queue.paused)
+				queue.paused = false;
+		}
+	}
+	else if (numWorkers < 16)
+	{
+		for (let q in this.queues)
+		{
+			let queue = this.queues[q];
+			if (!queue.paused
+				&& (q == "economicBuilding" || q == "militaryBuilding" || q == "defenseBuilding"
+				|| (q == "civilCentre" && gameState.getOwnStructures().filter(API3.Filters.byClass("CivCentre")) > 0)
+				|| q == "majorTech" || q == "minorTech" || q.indexOf("plan_") != -1))
+			{
+				queue.paused = true;
+				this.accounts[q].reset();
+			}
+			else if (queue.paused)
+				queue.paused = false;
+		}
+	}
+	else if (numWorkers < 24)
+	{
+		for (let q in this.queues)
+		{
+			let queue = this.queues[q];
+			if (!queue.paused
+				&& (q == "defenseBuilding"
+				|| (q == "civilCentre" && gameState.getOwnStructures().filter(API3.Filters.byClass("CivCentre")) > 0)
+				|| q == "majorTech" || q.indexOf("_siege") != -1 || q.indexOf("_champ") != -1))
+			{
+				queue.paused = true;
+				this.accounts[q].reset();
+			}
+			else if (queue.paused)
+				queue.paused = false;
+
+			// And reduce the batch sizes of attack queues
+			if (q.indexOf("plan_") != -1 && queue.queue[0])
+			{
+				queue.queue[0].number = 1;
+				if (queue.queue[1])
+					queue.queue[1].number = 1;
+			}
+		}
+	}
+	else
+		for (let q in this.queues)
+			if (this.queues[q].paused)
+				this.queues[q].paused = false;
 };
 
 m.QueueManager.prototype.pauseQueue = function(queue, scrapAccounts)
@@ -520,6 +602,45 @@ m.QueueManager.prototype.changePriority = function(queueName, newPriority)
 	for (var p in this.queues)
 		this.queueArrays.push([p,this.queues[p]]);
 	this.queueArrays.sort(function (a,b) { return (self.priorities[b[0]] - self.priorities[a[0]]) });
+};
+
+m.QueueManager.prototype.Serialize = function()
+{
+	var accounts = {};
+	var queues = {};
+	for (let p in this.queues)
+	{
+		queues[p] = this.queues[p].Serialize();
+		accounts[p] = this.accounts[p].Serialize();
+		if (this.Config.debug == -100)
+			API3.warn("queueManager serialization: queue " + p + " >>> " + uneval(queues[p])
+				+ " with accounts " + uneval(accounts[p]));
+	}
+
+	return {
+		"priorities": this.priorities,
+		"queues": queues,
+		"accounts": accounts
+	};
+}
+
+m.QueueManager.prototype.Deserialize = function(gameState, data)
+{
+	this.priorities = data.priorities;
+	this.queues = {};
+	this.accounts = {};
+
+	// the sorting is updated on priority change.
+	this.queueArrays = [];
+	for (let p in data.queues)
+	{
+		this.queues[p] = new m.Queue();
+		this.queues[p].Deserialize(gameState, data.queues[p]);
+		this.accounts[p] = new API3.Resources();
+		this.accounts[p].Deserialize(data.accounts[p]);
+		this.queueArrays.push([p, this.queues[p]]);
+	}
+	this.queueArrays.sort(function (a,b) { return (data.priorities[b[0]] - data.priorities[a[0]]) });
 };
 
 return m;

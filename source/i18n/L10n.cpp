@@ -25,16 +25,22 @@
 
 #include <iostream>
 #include <string>
+#include <boost/algorithm/string.hpp>
 #include <boost/concept_check.hpp>
 
+#include "gui/GUIManager.h"
 #include "lib/file/file_system.h"
 #include "lib/utf8.h"
-
 #include "ps/CLogger.h"
 #include "ps/ConfigDB.h"
 #include "ps/Filesystem.h"
 #include "ps/GameSetup/GameSetup.h"
 
+
+static Status ReloadChangedFileCB(void* param, const VfsPath& path)
+{
+	return static_cast<L10n*>(param)->ReloadChangedFile(path);
+}
 
 L10n::L10n()
 	: currentLocaleIsOriginalGameLocale(false), useLongStrings(false), dictionary(new tinygettext::Dictionary())
@@ -42,7 +48,7 @@ L10n::L10n()
 	// Determine whether or not to print tinygettext messages to the standard
 	// error output, which it tinygettext’s default behavior, but not ours.
 	bool tinygettext_debug = false;
-	CFG_GET_VAL("tinygettext.debug", Bool, tinygettext_debug);
+	CFG_GET_VAL("tinygettext.debug", tinygettext_debug);
 	if (!tinygettext_debug)
 	{
 		tinygettext::Log::log_info_callback = 0;
@@ -52,10 +58,15 @@ L10n::L10n()
 
 	LoadListOfAvailableLocales();
 	ReevaluateCurrentLocaleAndReload();
+
+	// Handle hotloading
+	RegisterFileReloadFunc(ReloadChangedFileCB, this);
 }
 
 L10n::~L10n()
 {
+	UnregisterFileReloadFunc(ReloadChangedFileCB, this);
+
 	for (std::vector<Locale*>::iterator iterator = availableLocales.begin(); iterator != availableLocales.end(); ++iterator)
 		delete *iterator;
 	delete dictionary;
@@ -208,7 +219,7 @@ void L10n::GetDictionaryLocale(std::string configLocaleString, Locale& outLocale
 void L10n::ReevaluateCurrentLocaleAndReload()
 {
 	std::string locale;
-	CFG_GET_VAL("locale", String, locale);
+	CFG_GET_VAL("locale", locale);
 
 	if (locale == "long")
 	{
@@ -435,6 +446,46 @@ VfsPath L10n::LocalizePath(VfsPath sourcePath)
 		path = localizedPath;
 
 	return path;
+}
+
+Status L10n::ReloadChangedFile(const VfsPath& path)
+{
+	if (!boost::algorithm::starts_with(path.string(), L"l10n/"))
+		return INFO::OK;
+
+	if (path.Extension() != L".po")
+		return INFO::OK;
+
+	// If the file was deleted, ignore it
+	if (!VfsFileExists(path))
+		return INFO::OK;
+
+	std::wstring dictName = GetFallbackToAvailableDictLocale(currentLocale);
+	if (useLongStrings)
+		dictName = L"long";
+	if (dictName.empty())
+		return INFO::OK;
+
+	// Only the currently used language is loaded, so ignore all others
+	if (path.string().rfind(dictName) == std::string::npos)
+		return INFO::OK;
+
+	LOGMESSAGE(L"Hotloading translations from '%ls'", path.string().c_str());
+
+	CVFSFile file;
+	if (file.Load(g_VFS, path) != PSRETURN_OK)
+	{
+		LOGERROR(L"Failed to read translations from '%ls'", path.string().c_str());
+		return ERR::FAIL;
+	}
+
+	std::string content = file.DecodeUTF8();
+	ReadPoIntoDictionary(content, dictionary);
+
+	if (g_GUI)
+		g_GUI->ReloadAllPages();
+
+	return INFO::OK;
 }
 
 void L10n::LoadDictionaryForCurrentLocale()

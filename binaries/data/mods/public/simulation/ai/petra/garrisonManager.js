@@ -70,7 +70,7 @@ m.GarrisonManager.prototype.update = function(gameState, queues)
 				}
 				else
 				{
-					if (gameState.Config.debug > 0)
+					if (gameState.ai.Config.debug > 0)
 					{
 						API3.warn("Petra garrison error: unit " + ent.id() + " (" + ent.genericName()
 							+ ") is expected to garrison in " + id + " (" + holder.genericName()
@@ -145,7 +145,7 @@ m.GarrisonManager.prototype.garrison = function(gameState, ent, holder, type)
 	this.registerHolder(gameState, holder);
 	this.holders[holder.id()].push(ent.id());
 
-	if (gameState.Config.debug > 2)
+	if (gameState.ai.Config.debug > 2)
 	{
 		warn("garrison unit " + ent.genericName() + " in " + holder.genericName() + " with type " + type);
 		warn(" we try to garrison a unit with plan " + ent.getMetadata(PlayerID, "plan") + " and role " + ent.getMetadata(PlayerID, "role")
@@ -203,6 +203,16 @@ m.GarrisonManager.prototype.registerHolder = function(gameState, holder)
 		return;
 	this.holders[holder.id()] = [];
 	holder.setMetadata(PlayerID, "holderTimeUpdate", gameState.ai.elapsedTime);
+};
+
+m.GarrisonManager.prototype.Serialize = function()
+{
+	return { "holders": this.holders };
+};
+
+m.GarrisonManager.prototype.Deserialize = function(data)
+{
+	this.holders = data.holders;
 };
 
 return m;

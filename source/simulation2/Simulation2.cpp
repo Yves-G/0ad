@@ -20,6 +20,7 @@
 #include "Simulation2.h"
 
 #include "scriptinterface/ScriptInterface.h"
+#include "scriptinterface/ScriptRuntime.h"
 
 #include "simulation2/MessageTypes.h"
 #include "simulation2/system/ComponentManager.h"
@@ -74,8 +75,8 @@ public:
 		// Tests won't have config initialised
 		if (CConfigDB::IsInitialised())
 		{
-			CFG_GET_VAL("ooslog", Bool, m_EnableOOSLog);
-			CFG_GET_VAL("serializationtest", Bool, m_EnableSerializationTest);
+			CFG_GET_VAL("ooslog", m_EnableOOSLog);
+			CFG_GET_VAL("serializationtest", m_EnableSerializationTest);
 		}
 	}
 
@@ -453,7 +454,7 @@ void CSimulation2Impl::Update(int turnLength, const std::vector<SimulationComman
 	// much more turns in the same time than in normal games.
 	// (TODO: we ought to schedule this for a frame where we're not
 	// running the sim update, to spread the load)
-	m_ComponentManager.GetScriptInterface().MaybeIncrementalRuntimeGC(0.0f);
+	m_ComponentManager.GetScriptInterface().GetRuntime()->MaybeIncrementalGC(0.0f);
 
 	if (m_EnableOOSLog)
 		DumpState();

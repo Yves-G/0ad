@@ -17,7 +17,9 @@ function getCheatsData()
 	var cheatFileList = getJSONFileList("simulation/data/cheats/");
 	for each (var fileName in cheatFileList)
 	{
-		var currentCheat = parseJSONData("simulation/data/cheats/"+fileName+".json");
+		var currentCheat = Engine.ReadJSONFile("simulation/data/cheats/"+fileName+".json");
+		if (!currentCheat)
+			continue;
 		if (Object.keys(cheats).indexOf(currentCheat.Name) !== -1)
 			warn("Cheat name '" + currentCheat.Name + "' is already present");
 		else
@@ -269,7 +271,7 @@ function handleNetMessage(message)
 
 		g_PlayerAssignments = message.hosts;
 
-		if (g_IsController)
+		if (g_IsController && Engine.HasXmppClient())
 		{
 			var players = [ assignment.name for each (assignment in g_PlayerAssignments) ]
 			Engine.SendChangeStateGame(Object.keys(g_PlayerAssignments).length, players.join(", "));

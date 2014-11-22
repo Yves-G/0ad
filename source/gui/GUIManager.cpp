@@ -27,6 +27,7 @@
 #include "ps/Profile.h"
 #include "ps/XML/Xeromyces.h"
 #include "scriptinterface/ScriptInterface.h"
+#include "scriptinterface/ScriptRuntime.h"
 
 CGUIManager* g_GUI = NULL;
 
@@ -272,6 +273,15 @@ Status CGUIManager::ReloadChangedFile(const VfsPath& path)
 	return INFO::OK;
 }
 
+Status CGUIManager::ReloadAllPages()
+{
+	// TODO: this can crash if LoadPage runs an init script which modifies the page stack and breaks our iterators
+	for (PageStackType::iterator it = m_PageStack.begin(); it != m_PageStack.end(); ++it)
+		LoadPage(*it);
+
+	return INFO::OK;
+}
+
 CScriptVal CGUIManager::GetSavedGameData(ScriptInterface*& pPageScriptInterface)
 {
 	JSContext* cx = top()->GetScriptInterface()->GetContext();
@@ -379,7 +389,7 @@ void CGUIManager::TickObjects()
 
 	// We share the script runtime with everything else that runs in the same thread.
 	// This call makes sure we trigger GC regularly even if the simulation is not running.
-	m_ScriptInterface->MaybeIncrementalRuntimeGC(1.0f);
+	m_ScriptInterface->GetRuntime()->MaybeIncrementalGC(1.0f);
 	
 	// Save an immutable copy so iterators aren't invalidated by tick handlers
 	PageStackType pageStack = m_PageStack;

@@ -140,7 +140,7 @@ m.TradeManager.prototype.updateTrader = function(gameState, ent)
 		ent.tradeRoute(route.target, route.source);
 	else
 		ent.tradeRoute(route.source, route.target);
-	ent.setMetadata(PlayerID, "route", route);
+	ent.setMetadata(PlayerID, "route", this.routeEntToId(route));
 };
 
 m.TradeManager.prototype.setTradingGoods = function(gameState)
@@ -304,10 +304,15 @@ m.TradeManager.prototype.checkEvents = function(gameState, events)
 		var ent = evt.entityObj;
 		if (!ent || !ent.hasClass("Market") || !gameState.isPlayerAlly(ent.owner()))
 			continue;
-		if (this.Config.debug > 1 && evt.SuccessfulFoundation)
-			API3.warn("new market build ... checking routes");
-		else if (this.Config.debug > 1)
-			API3.warn("one market has been destroyed ... checking routes");
+		if (this.Config.debug > 1)
+		{
+			if (evt.SuccessfulFoundation)
+				API3.warn("new market build ... checking routes");
+			else
+				API3.warn("one market (or foundation) has been destroyed ... checking routes");
+		}
+		gameState.ai.HQ.restartBuild(gameState, "structures/{civ}_market");
+		gameState.ai.HQ.restartBuild(gameState, "structures/{civ}_dock");
 		return true;
 	}
 
@@ -327,7 +332,7 @@ m.TradeManager.prototype.checkRoutes = function(gameState, accessIndex)
 		return false;
 	}
 
-	if (market2.length === 0)
+	if (market2.length == 0)
 		market2 = market1;
 	var candidate = { "gain": 0 };
 	var potential = { "gain": 0 };
@@ -347,8 +352,8 @@ m.TradeManager.prototype.checkRoutes = function(gameState, accessIndex)
 				continue;
 			var access2 = gameState.ai.accessibility.getAccessValue(m2.position());
 			var sea2 = m2.hasClass("Dock") ? gameState.ai.HQ.navalManager.getDockIndex(gameState, m2, true) : undefined;
-			var land = (access1 === access2) ? access1 : undefined;
-			var sea = (sea1 && sea1 === sea2) ? sea1 : undefined;
+			var land = (access1 == access2) ? access1 : undefined;
+			var sea = (sea1 && sea1 == sea2) ? sea1 : undefined;
 			if (!land && !sea)
 				continue;
 			var gain = Math.round(API3.SquareVectorDistance(m1.position(), m2.position()) / this.Config.distUnitGain);
@@ -427,6 +432,13 @@ m.TradeManager.prototype.checkTrader = function(gameState, ent)
 	if (!presentRoute)
 		return;
 
+	if (!ent.position())
+	{
+		// This trader is garrisoned, we will decide later (when ungarrisoning) what to do
+		ent.setMetadata(PlayerID, "route", undefined);
+		return;
+	}
+
 	if (ent.hasClass("Ship"))
 		var access = ent.getMetadata(PlayerID, "sea");
 	else
@@ -439,9 +451,10 @@ m.TradeManager.prototype.checkTrader = function(gameState, ent)
 		return;
 	}
 
+	// Warning:  presentRoute is from metadata, so contains entity ids
 	if (possibleRoute && (
-		(possibleRoute.source.id() === presentRoute.source.id() && possibleRoute.target.id() === presentRoute.target.id()) ||
-		(possibleRoute.source.id() === presentRoute.target.id() && possibleRoute.target.id() === presentRoute.source.id())))
+		(possibleRoute.source.id() == presentRoute.source && possibleRoute.target.id() == presentRoute.target) ||
+		(possibleRoute.source.id() == presentRoute.target && possibleRoute.target.id() == presentRoute.source)))
 		return;
 
 	ent.stopMoving();
@@ -462,8 +475,11 @@ m.TradeManager.prototype.prospectForNewMarket = function(gameState, queues)
 		return;
 	this.checkRoutes(gameState);
 	var marketPos = gameState.ai.HQ.findMarketLocation(gameState, template);
-	if (!marketPos || marketPos[3] === 0)   // marketPos[3] is the expected gain
+	if (!marketPos || marketPos[3] == 0)   // marketPos[3] is the expected gain
+	{
+		gameState.ai.HQ.stopBuild(gameState, "structures/{civ}_market");
 		return;
+	}
 	if (this.potentialTradeRoute && marketPos[3] < 2*this.potentialTradeRoute.gain
 		&& marketPos[3] < this.potentialTradeRoute.gain + 20)
 		return;
@@ -499,14 +515,52 @@ m.TradeManager.prototype.update = function(gameState, events, queues)
 	if (this.tradeRoute)
 	{
 		this.traders.forEach(function(ent) { self.updateTrader(gameState, ent); });
-		if (gameState.ai.playedTurn % 5 === 0)
+		if (gameState.ai.playedTurn % 5 == 0)
 			this.trainMoreTraders(gameState, queues);
-		if (gameState.ai.playedTurn % 20 === 0 && this.traders.length >= 2)
+		if (gameState.ai.playedTurn % 20 == 0 && this.traders.length >= 2)
 			gameState.ai.HQ.researchManager.researchTradeBonus(gameState, queues);
-		if (gameState.ai.playedTurn % 80 === 0)
+		if (gameState.ai.playedTurn % 80 == 0)
 			this.setTradingGoods(gameState);
 	}
 };
+
+m.TradeManager.prototype.routeEntToId = function(route)
+{
+	if (!route)
+		return route;
+	let ret = {};
+	for (let key in route)
+		ret[key] = ((key == "source" || key == "target") ? route[key].id() : route[key]);
+	return ret;
+};
+
+m.TradeManager.prototype.routeIdToEnt = function(gameState, route)
+{
+	if (!route)
+		return route;
+	let ret = {};
+	for (let key in route)
+		ret[key] = ((key == "source" || key == "target") ? gameState.getEntityById(route[key]) : route[key]);
+	return ret;
+};
+
+m.TradeManager.prototype.Serialize = function()
+{
+	return {
+		"tradeRoute": this.routeEntToId(this.tradeRoute),
+		"potentialTradeRoute": this.routeEntToId(this.potentialTradeRoute),
+		"routeProspection": this.routeProspection,
+		"targetNumTraders": this.targetNumTraders
+	};
+}
+
+m.TradeManager.prototype.Deserialize = function(gameState, data)
+{
+	this.tradeRoute = this.routeIdToEnt(gameState, data.tradeRoute);
+	this.potentialTradeRoute = this.routeIdToEnt(gameState, data.potentialTradeRoute);
+	this.routeProspection = data.routeProspection;
+	this.targetNumTraders = data.targetNumTraders;
+}
 
 return m;
 }(PETRA);
