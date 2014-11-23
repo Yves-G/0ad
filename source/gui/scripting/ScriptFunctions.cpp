@@ -927,12 +927,12 @@ void GuiScriptingInit(ScriptInterface& scriptInterface)
 	JSI_Lobby::RegisterScriptFunctions(scriptInterface);
  
 	// VFS (external)
-	scriptInterface.RegisterFunction<CScriptVal, std::wstring, std::wstring, bool, &JSI_VFS::BuildDirEntList>("BuildDirEntList");
+	scriptInterface.RegisterFunction<JS::Value, std::wstring, std::wstring, bool, &JSI_VFS::BuildDirEntList>("BuildDirEntList");
 	scriptInterface.RegisterFunction<bool, CStrW, JSI_VFS::FileExists>("FileExists");
 	scriptInterface.RegisterFunction<double, std::wstring, &JSI_VFS::GetFileMTime>("GetFileMTime");
 	scriptInterface.RegisterFunction<unsigned int, std::wstring, &JSI_VFS::GetFileSize>("GetFileSize");
-	scriptInterface.RegisterFunction<CScriptVal, std::wstring, &JSI_VFS::ReadFile>("ReadFile");
-	scriptInterface.RegisterFunction<CScriptVal, std::wstring, &JSI_VFS::ReadFileLines>("ReadFileLines");
+	scriptInterface.RegisterFunction<JS::Value, std::wstring, &JSI_VFS::ReadFile>("ReadFile");
+	scriptInterface.RegisterFunction<JS::Value, std::wstring, &JSI_VFS::ReadFileLines>("ReadFileLines");
 	// GUI manager functions:
 	scriptInterface.RegisterFunction<void, std::wstring, CScriptVal, &PushGuiPage>("PushGuiPage");
 	scriptInterface.RegisterFunction<void, std::wstring, CScriptVal, &SwitchGuiPage>("SwitchGuiPage");
