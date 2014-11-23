@@ -33,7 +33,7 @@ public:
 
 	virtual void ScriptVal(const char* name, JS::MutableHandleValue out);
 	virtual void ScriptObjectAppend(const char* name, JS::HandleValue objVal);
-	virtual void ScriptString(const char* name, JSString*& out);
+	virtual void ScriptString(const char* name, JS::MutableHandleString out);
 
 	virtual std::istream& GetStream();
 	virtual void RequireBytesInStream(size_t numBytes);
