@@ -704,11 +704,13 @@ public:
 		// TODO: this is yucky - see comment in Deserialize()
 		ENSURE(proto.isObject() && "A serializable prototype has to be an object!");
 		JS::RootedObject obj(m_ScriptInterface->GetContext(), &proto.toObject());
-		bool ret1 = m_SerializablePrototypes->has(obj);
-		m_SerializablePrototypes->add(m_ScriptInterface->GetContext(), obj, name);
-		std::pair<std::map<std::wstring, JS::Heap<JSObject*> >::iterator, bool> ret2 = m_DeserializablePrototypes.emplace(name, JS::Heap<JSObject*>(obj));
-		if (!ret1 || !ret2.second)
+		if (m_SerializablePrototypes->has(obj) || m_DeserializablePrototypes.find(name) != m_DeserializablePrototypes.end())
+		{
 			LOGERROR(L"RegisterSerializablePrototype called with same prototype multiple times: p=%p n='%ls'", obj.get(), name.c_str());
+			return;
+		}
+		m_SerializablePrototypes->add(m_ScriptInterface->GetContext(), obj, name);
+		m_DeserializablePrototypes.insert({name, JS::Heap<JSObject*>(obj)});
 	}
 
 private:
@@ -731,7 +733,7 @@ private:
 		{
 			// Load and cache the AI player metadata
 			m_ScriptInterface->ReadJSONFile(path, out);
-			m_PlayerMetadata.emplace(path, JS::Heap<JS::Value>(out));
+			m_PlayerMetadata.insert({path, JS::Heap<JS::Value>(out)});
 			return;
 		}
 		out.set(m_PlayerMetadata[path].get());
