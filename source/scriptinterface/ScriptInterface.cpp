@@ -66,7 +66,11 @@ struct ScriptInterface_impl
 	boost::rand48* m_rng;
 	JS::PersistentRootedObject m_nativeScope; // native function scope object
 
-	typedef std::map<ScriptInterface::CACHED_VAL, CScriptValRooted> ScriptValCache;
+	// TODO: we need DefPersistentRooted to work around a problem with JS::PersistentRooted<T> 
+	// that is already solved in newer versions of SpiderMonkey (related to std::pair and 
+	// and the copy constructor of PersistentRooted<T> taking a non-const reference).
+	// Switch this to PersistentRooted<T> when upgrading to a newer SpiderMonkey version than v31.
+	typedef std::map<ScriptInterface::CACHED_VAL, DefPersistentRooted<JS::Value> > ScriptValCache;
 	ScriptValCache m_ScriptValCache;
 };
 
@@ -377,9 +381,6 @@ ScriptInterface_impl::ScriptInterface_impl(const char* nativeScopeName, const sh
 
 ScriptInterface_impl::~ScriptInterface_impl()
 {
-	// Important: this must come before JS_DestroyContext because CScriptValRooted needs the context to unroot the values!
-	m_ScriptValCache.clear();
-
 	m_runtime->UnRegisterContext(m_cx);
 	{
 		JSAutoRequest rq(m_cx);
@@ -477,9 +478,9 @@ ScriptInterface::CxPrivate* ScriptInterface::GetScriptInterfaceAndCBData(JSConte
 	return pCxPrivate;
 }
 
-CScriptValRooted ScriptInterface::GetCachedValue(CACHED_VAL valueIdentifier)
+JS::Value ScriptInterface::GetCachedValue(CACHED_VAL valueIdentifier)
 {
-	return m->m_ScriptValCache[valueIdentifier];
+	return m->m_ScriptValCache[valueIdentifier].get();
 }
 
 
@@ -505,9 +506,9 @@ bool ScriptInterface::LoadGlobalScripts()
 	JS::RootedValue proto(m->m_cx);
 	JS::RootedObject global(m->m_cx, m->m_glob);
 	if (JS_GetProperty(m->m_cx, global, "Vector2Dprototype", &proto))
-		m->m_ScriptValCache[CACHE_VECTOR2DPROTO] = CScriptValRooted(m->m_cx, proto);
+		m->m_ScriptValCache[CACHE_VECTOR2DPROTO] = DefPersistentRooted<JS::Value>(GetJSRuntime(), proto);
 	if (JS_GetProperty(m->m_cx, global, "Vector3Dprototype", &proto))
-		m->m_ScriptValCache[CACHE_VECTOR3DPROTO] = CScriptValRooted(m->m_cx, proto);
+		m->m_ScriptValCache[CACHE_VECTOR3DPROTO] = DefPersistentRooted<JS::Value>(GetJSRuntime(), proto);
 	return true;
 }
 

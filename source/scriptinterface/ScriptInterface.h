@@ -124,7 +124,7 @@ public:
 	bool LoadGlobalScripts();
 
 	enum CACHED_VAL { CACHE_VECTOR2DPROTO, CACHE_VECTOR3DPROTO };
-	CScriptValRooted GetCachedValue(CACHED_VAL valueIdentifier);
+	JS::Value GetCachedValue(CACHED_VAL valueIdentifier);
 
 	/**
 	 * Replace the default JS random number geenrator with a seeded, network-sync'd one.
