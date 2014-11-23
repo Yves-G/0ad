@@ -225,7 +225,7 @@ PSRETURN CGame::ReallyStartGame()
 		JS::RootedValue settings(cx);
 		JS::RootedValue tmpInitAttributes(cx, m_Simulation2->GetInitAttributes());
 		m_Simulation2->GetScriptInterface().GetProperty(tmpInitAttributes, "settings", &settings);
-		m_Simulation2->InitGame(CScriptVal(settings));
+		m_Simulation2->InitGame(settings);
 	}
 
 	// We need to do an initial Interpolate call to set up all the models etc,

@@ -20,7 +20,6 @@
 
 #include "scriptinterface/ScriptTypes.h"
 
-class CScriptValRooted;
 struct SimulationCommand;
 class ScriptInterface;
 

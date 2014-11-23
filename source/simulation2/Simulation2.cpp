@@ -657,7 +657,7 @@ void CSimulation2::ReplaceSkirmishGlobals()
 	GetScriptInterface().CallFunctionVoid(global, "ReplaceSkirmishGlobals");
 }
 
-void CSimulation2::InitGame(const CScriptVal& data)
+void CSimulation2::InitGame(JS::HandleValue data)
 {
 	JSContext* cx = GetScriptInterface().GetContext();
 	JSAutoRequest rq(cx);

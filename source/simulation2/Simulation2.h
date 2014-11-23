@@ -160,7 +160,7 @@ public:
 	 * (This mustn't be used when e.g. loading saved games, only when starting new ones.)
 	 * This calls the InitGame function defined in helpers/InitGame.js.
 	 */
-	void InitGame(const CScriptVal& data);
+	void InitGame(JS::HandleValue data);
 
 	void Update(int turnLength);
 	void Update(int turnLength, const std::vector<SimulationCommand>& commands);
