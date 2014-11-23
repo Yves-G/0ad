@@ -145,7 +145,8 @@ CScriptVal GuiInterfaceCall(ScriptInterface::CxPrivate* pCxPrivate, std::wstring
 	JSContext* cxSim = sim->GetScriptInterface().GetContext();
 	JSAutoRequest rqSim(cxSim);
 	JS::RootedValue arg(cxSim, sim->GetScriptInterface().CloneValueFromOtherContext(*(pCxPrivate->pScriptInterface), data));
-	JS::RootedValue ret(cxSim, cmpGuiInterface->ScriptCall(player, name, CScriptVal(arg)).get());
+	JS::RootedValue ret(cxSim);
+	cmpGuiInterface->ScriptCall(player, name, arg, &ret);
 
 	return pCxPrivate->pScriptInterface->CloneValueFromOtherContext(sim->GetScriptInterface(), ret);
 }

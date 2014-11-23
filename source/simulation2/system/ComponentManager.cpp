@@ -40,17 +40,17 @@ public:
 	virtual int GetType() const { return mtid; }
 	virtual const char* GetScriptHandlerName() const { return handlerName.c_str(); }
 	virtual const char* GetScriptGlobalHandlerName() const { return globalHandlerName.c_str(); }
-	virtual jsval ToJSVal(ScriptInterface& UNUSED(scriptInterface)) const { return msg.get(); }
+	virtual JS::Value ToJSVal(ScriptInterface& UNUSED(scriptInterface)) const { return msg.get(); }
 
 	CMessageScripted(ScriptInterface& scriptInterface, int mtid, const std::string& name, JS::HandleValue msg) :
-		mtid(mtid), handlerName("On" + name), globalHandlerName("OnGlobal" + name), msg(scriptInterface.GetContext(), msg)
+		mtid(mtid), handlerName("On" + name), globalHandlerName("OnGlobal" + name), msg(scriptInterface.GetJSRuntime(), msg)
 	{
 	}
 
 	int mtid;
 	std::string handlerName;
 	std::string globalHandlerName;
-	CScriptValRooted msg;
+	JS::PersistentRootedValue msg;
 };
 
 CComponentManager::CComponentManager(CSimContext& context, shared_ptr<ScriptRuntime> rt, bool skipScriptFunctions) :
