@@ -930,7 +930,8 @@ public:
 		
 		// Get the game state from AIInterface
 		// We flush events from the initialization so we get a clean state now.
-		JS::RootedValue state(cx, cmpAIInterface->GetFullRepresentation(true).get());
+		JS::RootedValue state(cx);
+		cmpAIInterface->GetFullRepresentation(&state, true);
 
 		// Get the passability data
 		Grid<u16> dummyGrid;
@@ -973,9 +974,9 @@ public:
 		// Get the game state from AIInterface
 		JS::RootedValue state(cx);
 		if (m_JustDeserialized)
-			state.set(cmpAIInterface->GetFullRepresentation(false).get());
+			cmpAIInterface->GetFullRepresentation(&state, false);
 		else
-			state.set(cmpAIInterface->GetRepresentation().get());
+			cmpAIInterface->GetRepresentation(&state);
 
 		// Get the passability data
 		Grid<u16> dummyGrid;
