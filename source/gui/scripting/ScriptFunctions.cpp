@@ -430,12 +430,12 @@ void SendNetworkReady(ScriptInterface::CxPrivate* UNUSED(pCxPrivate), int messag
 	g_NetClient->SendReadyMessage(message);
 }
 
-std::vector<CScriptValRooted> GetAIs(ScriptInterface::CxPrivate* pCxPrivate)
+JS::Value GetAIs(ScriptInterface::CxPrivate* pCxPrivate)
 {
 	return ICmpAIManager::GetAIs(*(pCxPrivate->pScriptInterface));
 }
 
-std::vector<CScriptValRooted> GetSavedGames(ScriptInterface::CxPrivate* pCxPrivate)
+JS::Value GetSavedGames(ScriptInterface::CxPrivate* pCxPrivate)
 {
 	return SavedGames::GetSavedGames(*(pCxPrivate->pScriptInterface));
 }
@@ -965,12 +965,12 @@ void GuiScriptingInit(ScriptInterface& scriptInterface)
 	scriptInterface.RegisterFunction<void, &ClearAllPlayerReady>("ClearAllPlayerReady");
 	scriptInterface.RegisterFunction<void, std::wstring, &SendNetworkChat>("SendNetworkChat");
 	scriptInterface.RegisterFunction<void, int, &SendNetworkReady>("SendNetworkReady");
-	scriptInterface.RegisterFunction<std::vector<CScriptValRooted>, &GetAIs>("GetAIs");
+	scriptInterface.RegisterFunction<JS::Value, &GetAIs>("GetAIs");
 	scriptInterface.RegisterFunction<CScriptValRooted, &GetEngineInfo>("GetEngineInfo");
 
 	// Saved games
 	scriptInterface.RegisterFunction<CScriptVal, std::wstring, &StartSavedGame>("StartSavedGame");
-	scriptInterface.RegisterFunction<std::vector<CScriptValRooted>, &GetSavedGames>("GetSavedGames");
+	scriptInterface.RegisterFunction<JS::Value, &GetSavedGames>("GetSavedGames");
 	scriptInterface.RegisterFunction<bool, std::wstring, &DeleteSavedGame>("DeleteSavedGame");
 	scriptInterface.RegisterFunction<void, std::wstring, std::wstring, CScriptVal, &SaveGame>("SaveGame");
 	scriptInterface.RegisterFunction<void, std::wstring, std::wstring, CScriptVal, &SaveGamePrefix>("SaveGamePrefix");

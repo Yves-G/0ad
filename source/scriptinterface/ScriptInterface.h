@@ -203,24 +203,12 @@ public:
 	 */
 	template<typename T>
 	bool GetProperty(JS::HandleValue obj, const char* name, T& out);
-
-	/**
-	 * Get the named property of the given object.
-	 * This overload takes JS::Rooted<T>* and converts it to JS::MutableHandle<T> in the function body because implicit 
-	 * conversion is not supported for templates. 
-	 * It's used in the case where a JS::Rooted<T> gets created inside the same function and then passed to GetProperty as
-	 * |out| using the & operator.
- 	 */
-	template<typename T>
-	bool GetProperty(JS::HandleValue obj, const char* name, JS::Rooted<T>* out);
 	
 	/**
 	 * Get the named property of the given object.
-	 * This overload gets used in the case when you don't need conversion from a JS::Rooted<T>* and pass JS::MutableHandle<T> 
-	 * to GetProperty as |out| parameter directly (usually when you get it as a function parameter).
 	 */
-	template<typename T>
-	bool GetProperty(JS::HandleValue obj, const char* name, JS::MutableHandle<T> out);
+	bool GetProperty(JS::HandleValue obj, const char* name, JS::MutableHandleValue out);
+	bool GetProperty(JS::HandleValue obj, const char* name, JS::MutableHandleObject out);
 
 	/**
 	 * Get the integer-named property on the given object.
@@ -229,22 +217,9 @@ public:
 	bool GetPropertyInt(JS::HandleValue obj, int name, T& out);
 	
 	/**
-	 * Get the integer-named property on the given object.
-	 * This overload takes JS::Rooted<T>* and converts it to JS::MutableHandle<T> in the function body because implicit 
-	 * conversion is not supported for templates. 
-	 * It's used in the case where a JS::Rooted<T> gets created inside the same function and then passed to GetPropertyInt as
-	 * |out| using the & operator.
-	 */
-	template<typename T>
-	bool GetPropertyInt(JS::HandleValue obj, int name, JS::Rooted<T>* out);
-	
-	/**
 	 * Get the named property of the given object.
-	 * This overload gets used in the case when you don't need conversion from a JS::Rooted<T>* and pass JS::MutableHandle<T> 
-	 * to GetPropertyInt as |out| parameter directly (usually when you get it as a function parameter).
 	 */
-	template<typename T>
-	bool GetPropertyInt(JS::HandleValue obj, int name, JS::MutableHandle<T> out);
+	bool GetPropertyInt(JS::HandleValue obj, int name, JS::MutableHandleValue out);
 
 	/**
 	 * Check the named property has been defined on the given object.
@@ -555,23 +530,6 @@ bool ScriptInterface::GetProperty(JS::HandleValue obj, const char* name, T& out)
 }
 
 template<typename T>
-bool ScriptInterface::GetProperty(JS::HandleValue obj, const char* name, JS::Rooted<T>* out)
-{
-	JS::MutableHandle<T> handleOut(out);
-	if (! GetProperty_(obj, name, handleOut))
-		return false;
-	return true;
-}
-
-template<typename T>
-bool ScriptInterface::GetProperty(JS::HandleValue obj, const char* name, JS::MutableHandle<T> out)
-{
-	if (! GetProperty_(obj, name, out))
-		return false;
-	return true;
-}
-
-template<typename T>
 bool ScriptInterface::GetPropertyInt(JS::HandleValue obj, int name, T& out)
 {
 	JSAutoRequest rq(GetContext());
@@ -579,23 +537,6 @@ bool ScriptInterface::GetPropertyInt(JS::HandleValue obj, int name, T& out)
 	if (! GetPropertyInt_(obj, name, &val))
 		return false;
 	return FromJSVal(GetContext(), val, out);
-}
-
-template<typename T>
-bool ScriptInterface::GetPropertyInt(JS::HandleValue obj, int name, JS::Rooted<T>* out)
-{
-	JS::MutableHandle<T> handleOut(out);
-	if (! GetPropertyInt_(obj, name, handleOut))
-		return false;
-	return true;
-}
-
-template<typename T>
-bool ScriptInterface::GetPropertyInt(JS::HandleValue obj, int name, JS::MutableHandle<T> out)
-{
-	if (! GetPropertyInt_(obj, name, out))
-		return false;
-	return true;
 }
 
 template<typename CHAR>

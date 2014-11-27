@@ -720,6 +720,33 @@ bool ScriptInterface::SetPropertyInt_(JS::HandleValue obj, int name, JS::HandleV
 	return true;
 }
 
+bool ScriptInterface::GetProperty(JS::HandleValue obj, const char* name, JS::MutableHandleValue out)
+{
+	return GetProperty_(obj, name, out);
+}
+
+bool ScriptInterface::GetProperty(JS::HandleValue obj, const char* name, JS::MutableHandleObject out)
+{
+	JSContext* cx = GetContext();
+	JSAutoRequest rq(cx);
+	JS::RootedValue val(cx);
+	if (!GetProperty_(obj, name, &val))
+		return false;
+	if (!val.isObject())
+	{
+		LOGERROR(L"GetProperty failed: trying to get an object, but the property is not an object!");
+		return false;
+	}
+	
+	out.set(&val.toObject());
+	return true;
+}
+
+bool ScriptInterface::GetPropertyInt(JS::HandleValue obj, int name, JS::MutableHandleValue out)
+{
+	return GetPropertyInt_(obj, name, out);
+}
+
 bool ScriptInterface::GetProperty_(JS::HandleValue obj, const char* name, JS::MutableHandleValue out)
 {
 	JSAutoRequest rq(m->m_cx);

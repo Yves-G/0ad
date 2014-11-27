@@ -923,7 +923,7 @@ std::string CSimulation2::GetAIData()
 	ScriptInterface& scriptInterface = GetScriptInterface();
 	JSContext* cx = scriptInterface.GetContext();
 	JSAutoRequest rq(cx);
-	std::vector<CScriptValRooted> aiData = ICmpAIManager::GetAIs(scriptInterface);
+	JS::RootedValue aiData(cx, ICmpAIManager::GetAIs(scriptInterface));
 	
 	// Build single JSON string with array of AI data
 	JS::RootedValue ais(cx);

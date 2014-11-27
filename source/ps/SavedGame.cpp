@@ -218,13 +218,13 @@ Status SavedGames::Load(const std::wstring& name, ScriptInterface& scriptInterfa
 	return INFO::OK;	
 }
 
-std::vector<CScriptValRooted> SavedGames::GetSavedGames(ScriptInterface& scriptInterface)
+JS::Value SavedGames::GetSavedGames(ScriptInterface& scriptInterface)
 {
 	TIMER(L"GetSavedGames");
 	JSContext* cx = scriptInterface.GetContext();
 	JSAutoRequest rq(cx);
 	
-	std::vector<CScriptValRooted> games;
+	JS::RootedObject games(cx, JS_NewArrayObject(cx, 0));
 
 	Status err;
 
@@ -263,10 +263,10 @@ std::vector<CScriptValRooted> SavedGames::GetSavedGames(ScriptInterface& scriptI
 		scriptInterface.Eval("({})", &game);
 		scriptInterface.SetProperty(game, "id", pathnames[i].Basename());
 		scriptInterface.SetProperty(game, "metadata", metadata);
-		games.push_back(CScriptValRooted(cx, game));
+		JS_SetElement(cx, games, i, game);
 	}
 
-	return games;
+	return JS::ObjectValue(*games);
 }
 
 bool SavedGames::DeleteSavedGame(const std::wstring& name)
