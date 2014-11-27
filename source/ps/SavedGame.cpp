@@ -291,7 +291,7 @@ bool SavedGames::DeleteSavedGame(const std::wstring& name)
 	return true;
 }
 
-CScriptValRooted SavedGames::GetEngineInfo(ScriptInterface& scriptInterface) 
+JS::Value SavedGames::GetEngineInfo(ScriptInterface& scriptInterface) 
 { 
 	JSContext* cx = scriptInterface.GetContext();
 	JSAutoRequest rq(cx);
@@ -301,6 +301,6 @@ CScriptValRooted SavedGames::GetEngineInfo(ScriptInterface& scriptInterface)
 	scriptInterface.SetProperty(metainfo, "version_major", SAVED_GAME_VERSION_MAJOR); 
 	scriptInterface.SetProperty(metainfo, "version_minor", SAVED_GAME_VERSION_MINOR); 
 	scriptInterface.SetProperty(metainfo, "mods"         , g_modsLoaded);
-	return CScriptValRooted(cx, metainfo); 
+	return metainfo;
 }
 

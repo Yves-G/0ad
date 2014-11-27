@@ -508,9 +508,10 @@ namespace
 			JSAutoRequest rq(cx);
 			
 			JS::RootedValue t(cx);
+			JS::RootedValue rows(cx, DumpRows(table));
 			m_ScriptInterface.Eval(L"({})", &t);
 			m_ScriptInterface.SetProperty(t, "cols", DumpCols(table));
-			m_ScriptInterface.SetProperty(t, "data", DumpRows(table));
+			m_ScriptInterface.SetProperty(t, "data", rows);
 			
 			m_ScriptInterface.SetProperty(m_Root, table->GetTitle().c_str(), t);
 		}
@@ -527,7 +528,7 @@ namespace
 			return titles;
 		}
 
-		CScriptVal DumpRows(AbstractProfileTable* table)
+		JS::Value DumpRows(AbstractProfileTable* table)
 		{
 			JSContext* cx = m_ScriptInterface.GetContext();
 			JSAutoRequest rq(cx);
@@ -544,13 +545,16 @@ namespace
 				m_ScriptInterface.SetProperty(data, table->GetCellText(r, 0).c_str(), row);
 
 				if (table->GetChild(r))
-					m_ScriptInterface.SetPropertyInt(row, 0, DumpRows(table->GetChild(r)));
+				{
+					JS::RootedValue childRows(cx, DumpRows(table->GetChild(r)));
+					m_ScriptInterface.SetPropertyInt(row, 0, childRows);
+				}
 
 				for (size_t c = 1; c < columns.size(); ++c)
 					m_ScriptInterface.SetPropertyInt(row, c, table->GetCellText(r, c));
 			}
 
-			return data.get();
+			return data;
 		}
 
 	private:
@@ -599,7 +603,7 @@ void CProfileViewer::SaveToFile()
 	m->outputStream.flush();
 }
 
-CScriptVal CProfileViewer::SaveToJS(ScriptInterface& scriptInterface)
+JS::Value CProfileViewer::SaveToJS(ScriptInterface& scriptInterface)
 {
 	JSContext* cx = scriptInterface.GetContext();
 	JSAutoRequest rq(cx);
@@ -611,7 +615,7 @@ CScriptVal CProfileViewer::SaveToJS(ScriptInterface& scriptInterface)
 	sort(tables.begin(), tables.end(), SortByName);
 	for_each(tables.begin(), tables.end(), DumpTable(scriptInterface, root));
 
-	return root.get();
+	return root;
 }
 
 void CProfileViewer::ShowTable(const CStr& table)

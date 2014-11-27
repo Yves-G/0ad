@@ -220,7 +220,7 @@ void SetPlayerID(ScriptInterface::CxPrivate* UNUSED(pCxPrivate), int id)
 		g_Game->SetPlayerID(id);
 }
 
-CScriptValRooted GetEngineInfo(ScriptInterface::CxPrivate* pCxPrivate)
+JS::Value GetEngineInfo(ScriptInterface::CxPrivate* pCxPrivate)
 {
 	return SavedGames::GetEngineInfo(*(pCxPrivate->pScriptInterface));
 }
@@ -966,7 +966,7 @@ void GuiScriptingInit(ScriptInterface& scriptInterface)
 	scriptInterface.RegisterFunction<void, std::wstring, &SendNetworkChat>("SendNetworkChat");
 	scriptInterface.RegisterFunction<void, int, &SendNetworkReady>("SendNetworkReady");
 	scriptInterface.RegisterFunction<JS::Value, &GetAIs>("GetAIs");
-	scriptInterface.RegisterFunction<CScriptValRooted, &GetEngineInfo>("GetEngineInfo");
+	scriptInterface.RegisterFunction<JS::Value, &GetEngineInfo>("GetEngineInfo");
 
 	// Saved games
 	scriptInterface.RegisterFunction<CScriptVal, std::wstring, &StartSavedGame>("StartSavedGame");

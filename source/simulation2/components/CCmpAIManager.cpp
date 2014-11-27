@@ -217,7 +217,7 @@ public:
 		m_SerializablePrototypes->init();
 		JS_AddExtraGCRootsTracer(m_ScriptInterface->GetJSRuntime(), Trace, this);
 
-		m_ScriptInterface->RegisterFunction<void, int, CScriptValRooted, CAIWorker::PostCommand>("PostCommand");
+		m_ScriptInterface->RegisterFunction<void, int, JS::HandleValue, CAIWorker::PostCommand>("PostCommand");
 		m_ScriptInterface->RegisterFunction<void, std::wstring, CAIWorker::IncludeModule>("IncludeModule");
 		m_ScriptInterface->RegisterFunction<void, CAIWorker::DumpHeap>("DumpHeap");
 		m_ScriptInterface->RegisterFunction<void, CAIWorker::ForceGC>("ForceGC");
@@ -266,16 +266,10 @@ public:
 		self->LoadScripts(name);
 	}
 
-	static void PostCommand(ScriptInterface::CxPrivate* pCxPrivate, int playerid, CScriptValRooted cmd1)
+	static void PostCommand(ScriptInterface::CxPrivate* pCxPrivate, int playerid, JS::HandleValue cmd)
 	{
 		ENSURE(pCxPrivate->pCBData);
 		CAIWorker* self = static_cast<CAIWorker*> (pCxPrivate->pCBData);
-		
-		JSContext* cx = pCxPrivate->pScriptInterface->GetContext();
-		JSAutoRequest rq(cx);
-		// TODO: Get Handle parameter directly with SpiderMonkey 31
-		JS::RootedValue cmd(cx, cmd1.get());
-		
 		self->PostCommand(playerid, cmd);
 	}
 	

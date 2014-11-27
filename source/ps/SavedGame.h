@@ -20,8 +20,6 @@
 
 #include "scriptinterface/ScriptInterface.h"
 class CSimulation2;
-class ScriptInterface;
-class CScriptValRooted;
 class CGUIManager;
 
 /**
@@ -98,7 +96,7 @@ bool DeleteSavedGame(const std::wstring& name);
  * @param scriptInterface the ScriptInterface in which to create the return data.
  * @return list of objects containing saved game data
  */
-CScriptValRooted GetEngineInfo(ScriptInterface& scriptInterface);
+JS::Value GetEngineInfo(ScriptInterface& scriptInterface);
 
 }
 

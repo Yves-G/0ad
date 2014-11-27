@@ -59,7 +59,6 @@ The base class of an object
 struct SGUISetting;
 struct SGUIStyle;
 class CGUI;
-class CScriptValRooted;
 
 //--------------------------------------------------------
 //  Macros

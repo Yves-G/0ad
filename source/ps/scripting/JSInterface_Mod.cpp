@@ -43,7 +43,7 @@ extern void restart_engine();
  * @return JS object with available mods as the keys of the modname.json
  *         properties.
  */
-CScriptVal JSI_Mod::GetAvailableMods(ScriptInterface::CxPrivate* pCxPrivate)
+JS::Value JSI_Mod::GetAvailableMods(ScriptInterface::CxPrivate* pCxPrivate)
 {
 	ScriptInterface* scriptInterface = pCxPrivate->pScriptInterface;
 	JSContext* cx = scriptInterface->GetContext();
@@ -124,7 +124,7 @@ void JSI_Mod::SetMods(ScriptInterface::CxPrivate* UNUSED(pCxPrivate), std::vecto
 
 void JSI_Mod::RegisterScriptFunctions(ScriptInterface& scriptInterface)
 {
-	scriptInterface.RegisterFunction<CScriptVal, &JSI_Mod::GetAvailableMods>("GetAvailableMods");
+	scriptInterface.RegisterFunction<JS::Value, &JSI_Mod::GetAvailableMods>("GetAvailableMods");
 	scriptInterface.RegisterFunction<void, &JSI_Mod::RestartEngine>("RestartEngine");
 	scriptInterface.RegisterFunction<void, std::vector<CStr>, &JSI_Mod::SetMods>("SetMods");
 }
