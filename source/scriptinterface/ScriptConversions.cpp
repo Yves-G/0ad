@@ -143,18 +143,6 @@ template<> bool ScriptInterface::FromJSVal<ssize_t>(JSContext* cx, JS::HandleVal
 
 #endif
 
-template<> bool ScriptInterface::FromJSVal<CScriptVal>(JSContext* UNUSED(cx), JS::HandleValue v, CScriptVal& out)
-{
-	out = v.get();
-	return true;
-}
-
-template<> bool ScriptInterface::FromJSVal<CScriptValRooted>(JSContext* cx, JS::HandleValue v, CScriptValRooted& out)
-{
-	out = CScriptValRooted(cx, v);
-	return true;
-}
-
 template<> bool ScriptInterface::FromJSVal<std::wstring>(JSContext* cx, JS::HandleValue v, std::wstring& out)
 {
 	JSAutoRequest rq(cx);
@@ -298,16 +286,6 @@ template<> void ScriptInterface::ToJSVal<ssize_t>(JSContext* UNUSED(cx), JS::Mut
 }
 
 #endif
-
-template<> void ScriptInterface::ToJSVal<CScriptVal>(JSContext* UNUSED(cx), JS::MutableHandleValue ret, const CScriptVal& val)
-{
-	ret.set(val.get());
-}
-
-template<> void ScriptInterface::ToJSVal<CScriptValRooted>(JSContext* UNUSED(cx), JS::MutableHandleValue ret, const CScriptValRooted& val)
-{
-	ret.set(val.get());
-}
 
 template<> void ScriptInterface::ToJSVal<std::wstring>(JSContext* cx, JS::MutableHandleValue ret, const std::wstring& val)
 {
