@@ -99,7 +99,7 @@ bool CMapGeneratorWorker::Run()
 
 	// Functions for RMS
 	m_ScriptInterface->RegisterFunction<bool, std::wstring, CMapGeneratorWorker::LoadLibrary>("LoadLibrary");
-	m_ScriptInterface->RegisterFunction<void, CScriptValRooted, CMapGeneratorWorker::ExportMap>("ExportMap");
+	m_ScriptInterface->RegisterFunction<void, JS::HandleValue, CMapGeneratorWorker::ExportMap>("ExportMap");
 	m_ScriptInterface->RegisterFunction<void, int, CMapGeneratorWorker::SetProgress>("SetProgress");
 	m_ScriptInterface->RegisterFunction<void, CMapGeneratorWorker::MaybeGC>("MaybeGC");
 	m_ScriptInterface->RegisterFunction<std::vector<std::string>, CMapGeneratorWorker::GetCivData>("GetCivData");
@@ -162,14 +162,9 @@ bool CMapGeneratorWorker::LoadLibrary(ScriptInterface::CxPrivate* pCxPrivate, st
 	return self->LoadScripts(name);
 }
 
-void CMapGeneratorWorker::ExportMap(ScriptInterface::CxPrivate* pCxPrivate, CScriptValRooted data1)
+void CMapGeneratorWorker::ExportMap(ScriptInterface::CxPrivate* pCxPrivate, JS::HandleValue data)
 {
 	CMapGeneratorWorker* self = static_cast<CMapGeneratorWorker*>(pCxPrivate->pCBData);
-	
-	JSContext* cx = self->m_ScriptInterface->GetContext();
-	JSAutoRequest rq(cx);
-	// TODO: Get Handle parameter directly with SpiderMonkey 31
-	JS::RootedValue data(cx, data1.get());
 
 	// Copy results
 	CScopeLock lock(self->m_WorkerMutex);

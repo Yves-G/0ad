@@ -37,7 +37,6 @@ class CTriggerManager;
 class CSimulation2;
 class CSimContext;
 class CTerrainTextureEntry;
-class CScriptValRooted;
 class ScriptInterface;
 class CGameView;
 class CXMLReader;
