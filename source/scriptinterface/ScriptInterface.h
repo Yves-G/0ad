@@ -363,6 +363,19 @@ public:
 	 */
 	template <typename T>
 	static void AssignOrToJSVal(JSContext* cx, JS::MutableHandleValue handle, const T& a);
+	
+	/**
+	 * The same as AssignOrToJSVal, but also allows JS::Value for T.
+	 * In most cases it's not safe to use the plain (unrooted) JS::Value type, but this can happen quite
+	 * easily with template functions. The idea is that the linker prints an error if AssignOrToJSVal is
+	 * used with JS::Value. If the specialization for JS::Value should be allowed, you can use this 
+	 * "unrooted" version of AssignOrToJSVal.
+	 */
+	template <typename T>
+	static void AssignOrToJSValUnrooted(JSContext* cx, JS::MutableHandleValue handle, const T& a)
+	{
+		AssignOrToJSVal(cx, handle, a);
+	}
 
 private:
 	
@@ -438,7 +451,7 @@ inline void ScriptInterface::AssignOrToJSVal<JS::HandleValue>(JSContext* UNUSED(
 }
 
 template <>
-inline void ScriptInterface::AssignOrToJSVal<JS::Value>(JSContext* UNUSED(cx), JS::MutableHandleValue handle, const JS::Value& a)
+inline void ScriptInterface::AssignOrToJSValUnrooted<JS::Value>(JSContext* UNUSED(cx), JS::MutableHandleValue handle, const JS::Value& a)
 {
 	handle.set(a);
 }

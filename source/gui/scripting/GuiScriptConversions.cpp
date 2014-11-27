@@ -98,7 +98,7 @@ template<> void ScriptInterface::ToJSVal<SDL_Event_>(JSContext* cx, JS::MutableH
 		else
 #endif
 		{
-			SET(keysym, "unicode", JS::UndefinedValue());
+			SET(keysym, "unicode", JS::UndefinedHandleValue);
 		}
 		// TODO: scripts have no idea what all the key/mod enum values are;
 		// we should probably expose them as constants if we expect scripts to use them
