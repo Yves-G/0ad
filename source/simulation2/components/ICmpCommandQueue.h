@@ -45,7 +45,7 @@ public:
 	/**
 	 * Send a command associated with the current player to the networking system.
 	 */
-	virtual void PostNetworkCommand(CScriptVal cmd) = 0;
+	virtual void PostNetworkCommand(JS::HandleValue cmd) = 0;
 
 	/**
 	 * Calls the ProcessCommand(player, cmd) global script function for each command in the

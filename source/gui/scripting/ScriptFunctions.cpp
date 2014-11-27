@@ -171,7 +171,7 @@ void PostNetworkCommand(ScriptInterface::CxPrivate* pCxPrivate, CScriptVal cmd1)
 	JSAutoRequest rqSim(cxSim);
 	JS::RootedValue cmd2(cxSim, sim->GetScriptInterface().CloneValueFromOtherContext(*(pCxPrivate->pScriptInterface), cmd));
 
-	cmpCommandQueue->PostNetworkCommand(CScriptVal(cmd2));
+	cmpCommandQueue->PostNetworkCommand(cmd2);
 }
 
 std::vector<entity_id_t> PickEntitiesAtPoint(ScriptInterface::CxPrivate* UNUSED(pCxPrivate), int x, int y, int range)

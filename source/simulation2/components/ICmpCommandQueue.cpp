@@ -23,6 +23,6 @@
 
 BEGIN_INTERFACE_WRAPPER(CommandQueue)
 DEFINE_INTERFACE_METHOD_2("PushLocalCommand", void, ICmpCommandQueue, PushLocalCommand, player_id_t, JS::HandleValue)
-DEFINE_INTERFACE_METHOD_1("PostNetworkCommand", void, ICmpCommandQueue, PostNetworkCommand, CScriptVal)
+DEFINE_INTERFACE_METHOD_1("PostNetworkCommand", void, ICmpCommandQueue, PostNetworkCommand, JS::HandleValue)
 // Excluded: FlushTurn (doesn't make sense for scripts to call it)
 END_INTERFACE_WRAPPER(CommandQueue)

@@ -85,12 +85,12 @@ public:
 		m_LocalQueue.emplace_back(player, cx, cmd);
 	}
 
-	virtual void PostNetworkCommand(CScriptVal cmd1)
+	virtual void PostNetworkCommand(JS::HandleValue cmd1)
 	{
 		JSContext* cx = GetSimContext().GetScriptInterface().GetContext();
 		JSAutoRequest rq(cx);
 		
-		// TODO: With ESR31 we should be able to take JS::HandleValue directly
+		// TODO: This is a workaround because we need to pass a MutableHandle to StringifyJSON.
 		JS::RootedValue cmd(cx, cmd1.get());
 
 		PROFILE2_EVENT("post net command");

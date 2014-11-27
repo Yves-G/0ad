@@ -157,7 +157,7 @@ JS::Value JSI_VFS::ReadFile(ScriptInterface::CxPrivate* pCxPrivate, std::wstring
 	// Decode as UTF-8
 	JS::RootedValue ret(cx);
 	ScriptInterface::ToJSVal(cx, &ret, contents.FromUTF8());
-	return ret.get();
+	return ret;
 }
 
 

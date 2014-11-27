@@ -500,7 +500,7 @@ bool ScriptInterface::SetGlobal(const char* name, const T& value, bool replace)
 {
 	JSAutoRequest rq(GetContext());
 	JS::RootedValue val(GetContext());
-	ToJSVal(GetContext(), &val, value);
+	AssignOrToJSVal(GetContext(), &val, value);
 	return SetGlobal_(name, val, replace);
 }
 

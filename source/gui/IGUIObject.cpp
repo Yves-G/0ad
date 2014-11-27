@@ -499,7 +499,7 @@ void IGUIObject::ScriptEvent(const CStr& Action)
 	JS::AutoValueVector paramData(cx);
 	paramData.append(mouse);
 	JS::RootedObject obj(cx, GetJSObject());
-	JS::RootedValue handlerVal(cx, JS::ObjectValue(*it->second.get()));
+	JS::RootedValue handlerVal(cx, JS::ObjectValue(*it->second));
 	JS::RootedValue result(cx);
 	bool ok = JS_CallFunctionValue(cx, obj, handlerVal, paramData, &result);
 	if (!ok)
@@ -520,7 +520,7 @@ void IGUIObject::ScriptEvent(const CStr& Action, JS::HandleValue Argument)
 	JS::AutoValueVector paramData(cx);
 	paramData.append(Argument.get());
 	JS::RootedObject obj(cx, GetJSObject());
-	JS::RootedValue handlerVal(cx, JS::ObjectValue(*it->second.get()));
+	JS::RootedValue handlerVal(cx, JS::ObjectValue(*it->second));
 	JS::RootedValue result(cx);
 	bool ok = JS_CallFunctionValue(cx, obj, handlerVal, paramData, &result);
 	if (!ok)
