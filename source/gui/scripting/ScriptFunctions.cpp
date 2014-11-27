@@ -86,23 +86,13 @@ namespace {
 // Note that the initData argument may only contain clonable data.
 // Functions aren't supported for example!
 // TODO: Use LOGERROR to print a friendly error message when the requirements aren't met instead of failing with debug_warn when cloning.
-void PushGuiPage(ScriptInterface::CxPrivate* pCxPrivate, std::wstring name, CScriptVal initData1)
+void PushGuiPage(ScriptInterface::CxPrivate* pCxPrivate, std::wstring name, JS::HandleValue initData)
 {
-	JSContext* cx = pCxPrivate->pScriptInterface->GetContext();
-	JSAutoRequest rq(cx);
-	// TODO: Get Handle parameter directly with SpiderMonkey 31
-	JS::RootedValue initData(cx, initData1.get());
-	
 	g_GUI->PushPage(name, pCxPrivate->pScriptInterface->WriteStructuredClone(initData));
 }
 
-void SwitchGuiPage(ScriptInterface::CxPrivate* pCxPrivate, std::wstring name, CScriptVal initData1)
+void SwitchGuiPage(ScriptInterface::CxPrivate* pCxPrivate, std::wstring name, JS::HandleValue initData)
 {
-	JSContext* cx = pCxPrivate->pScriptInterface->GetContext();
-	JSAutoRequest rq(cx);
-	// TODO: Get Handle parameter directly with SpiderMonkey 31
-	JS::RootedValue initData(cx, initData1.get());
-	
 	g_GUI->SwitchPage(name, pCxPrivate->pScriptInterface, initData);
 }
 
@@ -114,23 +104,13 @@ void PopGuiPage(ScriptInterface::CxPrivate* UNUSED(pCxPrivate))
 // Note that the args argument may only contain clonable data.
 // Functions aren't supported for example!
 // TODO: Use LOGERROR to print a friendly error message when the requirements aren't met instead of failing with debug_warn when cloning.
-void PopGuiPageCB(ScriptInterface::CxPrivate* pCxPrivate, CScriptVal args1)
-{
-	JSContext* cx = pCxPrivate->pScriptInterface->GetContext();
-	JSAutoRequest rq(cx);
-	// TODO: Get Handle parameter directly with SpiderMonkey 31
-	JS::RootedValue args(cx, args1.get());
-	
+void PopGuiPageCB(ScriptInterface::CxPrivate* pCxPrivate, JS::HandleValue args)
+{	
 	g_GUI->PopPageCB(pCxPrivate->pScriptInterface->WriteStructuredClone(args));
 }
 
-CScriptVal GuiInterfaceCall(ScriptInterface::CxPrivate* pCxPrivate, std::wstring name, CScriptVal data1)
-{
-	// TODO: With ESR31 we should be able to take JS::HandleValue directly 
-	JSContext* cx = pCxPrivate->pScriptInterface->GetContext();
-	JSAutoRequest rq(cx);
-	JS::RootedValue data(cx, data1.get());
-	
+JS::Value GuiInterfaceCall(ScriptInterface::CxPrivate* pCxPrivate, std::wstring name, JS::HandleValue data)
+{	
 	if (!g_Game)
 		return JS::UndefinedValue();
 	CSimulation2* sim = g_Game->GetSimulation2();
@@ -151,7 +131,7 @@ CScriptVal GuiInterfaceCall(ScriptInterface::CxPrivate* pCxPrivate, std::wstring
 	return pCxPrivate->pScriptInterface->CloneValueFromOtherContext(sim->GetScriptInterface(), ret);
 }
 
-void PostNetworkCommand(ScriptInterface::CxPrivate* pCxPrivate, CScriptVal cmd1)
+void PostNetworkCommand(ScriptInterface::CxPrivate* pCxPrivate, JS::HandleValue cmd)
 {
 	if (!g_Game)
 		return;
@@ -161,11 +141,6 @@ void PostNetworkCommand(ScriptInterface::CxPrivate* pCxPrivate, CScriptVal cmd1)
 	CmpPtr<ICmpCommandQueue> cmpCommandQueue(*sim, SYSTEM_ENTITY);
 	if (!cmpCommandQueue)
 		return;
-	
-	// TODO: With ESR31 we should be able to take JS::HandleValue directly 
-	JSContext* cx = pCxPrivate->pScriptInterface->GetContext();
-	JSAutoRequest rq(cx);
-	JS::RootedValue cmd(cx, cmd1.get());
 
 	JSContext* cxSim = sim->GetScriptInterface().GetContext();
 	JSAutoRequest rqSim(cxSim);
@@ -251,7 +226,7 @@ void StartGame(ScriptInterface::CxPrivate* pCxPrivate, JS::HandleValue attribs, 
 	g_Game->StartGame(&gameAttribs, "");
 }
 
-CScriptVal StartSavedGame(ScriptInterface::CxPrivate* pCxPrivate, std::wstring name)
+JS::Value StartSavedGame(ScriptInterface::CxPrivate* pCxPrivate, std::wstring name)
 {
 	// We need to be careful with different compartments and contexts.
 	// The GUI calls this function from the GUI context and expects the return value in the same context.
@@ -292,40 +267,31 @@ CScriptVal StartSavedGame(ScriptInterface::CxPrivate* pCxPrivate, std::wstring n
 		g_Game->StartGame(&gameInitAttributes, savedState);
 	}
 
-	return guiContextMetadata.get();
+	return guiContextMetadata;
 }
 
-void SaveGame(ScriptInterface::CxPrivate* pCxPrivate, std::wstring filename, std::wstring description, CScriptVal GUIMetadata1)
+void SaveGame(ScriptInterface::CxPrivate* pCxPrivate, std::wstring filename, std::wstring description, JS::HandleValue GUIMetadata)
 {
-	JSContext* cx = pCxPrivate->pScriptInterface->GetContext();
-	JSAutoRequest rq(cx);
-	// TODO: Get Handle parameter directly with SpiderMonkey 31
-	JS::RootedValue GUIMetadata(cx, GUIMetadata1.get());
-	
 	shared_ptr<ScriptInterface::StructuredClone> GUIMetadataClone = pCxPrivate->pScriptInterface->WriteStructuredClone(GUIMetadata);
 	if (SavedGames::Save(filename, description, *g_Game->GetSimulation2(), GUIMetadataClone, g_Game->GetPlayerID()) < 0)
 		LOGERROR(L"Failed to save game");
 }
 
-void SaveGamePrefix(ScriptInterface::CxPrivate* pCxPrivate, std::wstring prefix, std::wstring description, CScriptVal GUIMetadata1)
+void SaveGamePrefix(ScriptInterface::CxPrivate* pCxPrivate, std::wstring prefix, std::wstring description, JS::HandleValue GUIMetadata)
 {
-	JSContext* cx = pCxPrivate->pScriptInterface->GetContext();
-	JSAutoRequest rq(cx);
-	// TODO: Get Handle parameter directly with SpiderMonkey 31
-	JS::RootedValue GUIMetadata(cx, GUIMetadata1.get());
-	
 	shared_ptr<ScriptInterface::StructuredClone> GUIMetadataClone = pCxPrivate->pScriptInterface->WriteStructuredClone(GUIMetadata);
 	if (SavedGames::SavePrefix(prefix, description, *g_Game->GetSimulation2(), GUIMetadataClone, g_Game->GetPlayerID()) < 0)
 		LOGERROR(L"Failed to save game");
 }
 
-void SetNetworkGameAttributes(ScriptInterface::CxPrivate* pCxPrivate, CScriptVal attribs1)
+void SetNetworkGameAttributes(ScriptInterface::CxPrivate* pCxPrivate, JS::HandleValue attribs1)
 {
 	ENSURE(g_NetServer);
-	// TODO: Get Handle parameter directly with SpiderMonkey 31
+	//TODO: This is a workaround because we need to pass a MutableHandle to a JSAPI functions somewhere
+	// (with no obvious reason).
 	JSContext* cx = pCxPrivate->pScriptInterface->GetContext();
 	JSAutoRequest rq(cx);
-	JS::RootedValue attribs(cx, attribs1.get());
+	JS::RootedValue attribs(cx, attribs1);
 
 	g_NetServer->UpdateGameAttributes(&attribs, *(pCxPrivate->pScriptInterface));
 }
@@ -382,7 +348,7 @@ void DisconnectNetworkGame(ScriptInterface::CxPrivate* UNUSED(pCxPrivate))
 	SAFE_DELETE(g_Game);
 }
 
-CScriptVal PollNetworkClient(ScriptInterface::CxPrivate* pCxPrivate)
+JS::Value PollNetworkClient(ScriptInterface::CxPrivate* pCxPrivate)
 {
 	if (!g_NetClient)
 		return JS::UndefinedValue();
@@ -592,7 +558,7 @@ void DisplayErrorDialog(ScriptInterface::CxPrivate* UNUSED(pCxPrivate), std::wst
 	debug_DisplayError(msg.c_str(), DE_NO_DEBUG_INFO, NULL, NULL, NULL, 0, NULL, NULL);
 }
 
-CScriptVal GetProfilerState(ScriptInterface::CxPrivate* pCxPrivate)
+JS::Value GetProfilerState(ScriptInterface::CxPrivate* pCxPrivate)
 {
 	return g_ProfileViewer.SaveToJS(*(pCxPrivate->pScriptInterface));
 }
@@ -763,13 +729,13 @@ int GetFps(ScriptInterface::CxPrivate* UNUSED(pCxPrivate))
 	return freq;
 }
 
-CScriptVal GetGUIObjectByName(ScriptInterface::CxPrivate* UNUSED(pCxPrivate), CStr name)
+JS::Value GetGUIObjectByName(ScriptInterface::CxPrivate* UNUSED(pCxPrivate), CStr name)
 {
 	IGUIObject* guiObj = g_GUI->FindObjectByName(name);
 	if (guiObj)
-		return OBJECT_TO_JSVAL(guiObj->GetJSObject());
+		return JS::ObjectValue(*guiObj->GetJSObject());
 	else
-		return JSVAL_VOID;
+		return JS::UndefinedValue();
 }
 
 // Return the date/time at which the current executable was compiled.
@@ -835,13 +801,13 @@ std::wstring GetBuildTimestamp(ScriptInterface::CxPrivate* UNUSED(pCxPrivate), i
 	return wstring_from_utf8(buf);
 }
 
-CScriptVal ReadJSONFile(ScriptInterface::CxPrivate* pCxPrivate, std::wstring filePath)
+JS::Value ReadJSONFile(ScriptInterface::CxPrivate* pCxPrivate, std::wstring filePath)
 {
 	JSContext* cx = pCxPrivate->pScriptInterface->GetContext();
 	JSAutoRequest rq(cx);
 	JS::RootedValue out(cx);
 	pCxPrivate->pScriptInterface->ReadJSONFile(filePath, &out);
-	return out.get();
+	return out;
 }
 
 //-----------------------------------------------------------------------------
@@ -934,15 +900,15 @@ void GuiScriptingInit(ScriptInterface& scriptInterface)
 	scriptInterface.RegisterFunction<JS::Value, std::wstring, &JSI_VFS::ReadFile>("ReadFile");
 	scriptInterface.RegisterFunction<JS::Value, std::wstring, &JSI_VFS::ReadFileLines>("ReadFileLines");
 	// GUI manager functions:
-	scriptInterface.RegisterFunction<void, std::wstring, CScriptVal, &PushGuiPage>("PushGuiPage");
-	scriptInterface.RegisterFunction<void, std::wstring, CScriptVal, &SwitchGuiPage>("SwitchGuiPage");
+	scriptInterface.RegisterFunction<void, std::wstring, JS::HandleValue, &PushGuiPage>("PushGuiPage");
+	scriptInterface.RegisterFunction<void, std::wstring, JS::HandleValue, &SwitchGuiPage>("SwitchGuiPage");
 	scriptInterface.RegisterFunction<void, &PopGuiPage>("PopGuiPage");
-	scriptInterface.RegisterFunction<void, CScriptVal, &PopGuiPageCB>("PopGuiPageCB");
-	scriptInterface.RegisterFunction<CScriptVal, CStr, &GetGUIObjectByName>("GetGUIObjectByName");
+	scriptInterface.RegisterFunction<void, JS::HandleValue, &PopGuiPageCB>("PopGuiPageCB");
+	scriptInterface.RegisterFunction<JS::Value, CStr, &GetGUIObjectByName>("GetGUIObjectByName");
 
 	// Simulation<->GUI interface functions:
-	scriptInterface.RegisterFunction<CScriptVal, std::wstring, CScriptVal, &GuiInterfaceCall>("GuiInterfaceCall");
-	scriptInterface.RegisterFunction<void, CScriptVal, &PostNetworkCommand>("PostNetworkCommand");
+	scriptInterface.RegisterFunction<JS::Value, std::wstring, JS::HandleValue, &GuiInterfaceCall>("GuiInterfaceCall");
+	scriptInterface.RegisterFunction<void, JS::HandleValue, &PostNetworkCommand>("PostNetworkCommand");
 
 	// Entity picking
 	scriptInterface.RegisterFunction<std::vector<entity_id_t>, int, int, int, &PickEntitiesAtPoint>("PickEntitiesAtPoint");
@@ -958,8 +924,8 @@ void GuiScriptingInit(ScriptInterface& scriptInterface)
 	scriptInterface.RegisterFunction<void, std::wstring, &StartNetworkHost>("StartNetworkHost");
 	scriptInterface.RegisterFunction<void, std::wstring, std::string, &StartNetworkJoin>("StartNetworkJoin");
 	scriptInterface.RegisterFunction<void, &DisconnectNetworkGame>("DisconnectNetworkGame");
-	scriptInterface.RegisterFunction<CScriptVal, &PollNetworkClient>("PollNetworkClient");
-	scriptInterface.RegisterFunction<void, CScriptVal, &SetNetworkGameAttributes>("SetNetworkGameAttributes");
+	scriptInterface.RegisterFunction<JS::Value, &PollNetworkClient>("PollNetworkClient");
+	scriptInterface.RegisterFunction<void, JS::HandleValue, &SetNetworkGameAttributes>("SetNetworkGameAttributes");
 	scriptInterface.RegisterFunction<void, int, std::string, &AssignNetworkPlayer>("AssignNetworkPlayer");
 	scriptInterface.RegisterFunction<void, std::string, int, &SetNetworkPlayerStatus>("SetNetworkPlayerStatus");
 	scriptInterface.RegisterFunction<void, &ClearAllPlayerReady>("ClearAllPlayerReady");
@@ -969,11 +935,11 @@ void GuiScriptingInit(ScriptInterface& scriptInterface)
 	scriptInterface.RegisterFunction<JS::Value, &GetEngineInfo>("GetEngineInfo");
 
 	// Saved games
-	scriptInterface.RegisterFunction<CScriptVal, std::wstring, &StartSavedGame>("StartSavedGame");
+	scriptInterface.RegisterFunction<JS::Value, std::wstring, &StartSavedGame>("StartSavedGame");
 	scriptInterface.RegisterFunction<JS::Value, &GetSavedGames>("GetSavedGames");
 	scriptInterface.RegisterFunction<bool, std::wstring, &DeleteSavedGame>("DeleteSavedGame");
-	scriptInterface.RegisterFunction<void, std::wstring, std::wstring, CScriptVal, &SaveGame>("SaveGame");
-	scriptInterface.RegisterFunction<void, std::wstring, std::wstring, CScriptVal, &SaveGamePrefix>("SaveGamePrefix");
+	scriptInterface.RegisterFunction<void, std::wstring, std::wstring, JS::HandleValue, &SaveGame>("SaveGame");
+	scriptInterface.RegisterFunction<void, std::wstring, std::wstring, JS::HandleValue, &SaveGamePrefix>("SaveGamePrefix");
 	scriptInterface.RegisterFunction<void, &QuickSave>("QuickSave");
 	scriptInterface.RegisterFunction<void, &QuickLoad>("QuickLoad");
 
@@ -997,13 +963,13 @@ void GuiScriptingInit(ScriptInterface& scriptInterface)
 	scriptInterface.RegisterFunction<entity_id_t, &GetFollowedEntity>("GetFollowedEntity");
 	scriptInterface.RegisterFunction<bool, std::string, &HotkeyIsPressed_>("HotkeyIsPressed");
 	scriptInterface.RegisterFunction<void, std::wstring, &DisplayErrorDialog>("DisplayErrorDialog");
-	scriptInterface.RegisterFunction<CScriptVal, &GetProfilerState>("GetProfilerState");
+	scriptInterface.RegisterFunction<JS::Value, &GetProfilerState>("GetProfilerState");
 	scriptInterface.RegisterFunction<void, &ExitProgram>("Exit");
 	scriptInterface.RegisterFunction<bool, &IsPaused>("IsPaused");
 	scriptInterface.RegisterFunction<void, bool, &SetPaused>("SetPaused");
 	scriptInterface.RegisterFunction<int, &GetFps>("GetFPS");
 	scriptInterface.RegisterFunction<std::wstring, int, &GetBuildTimestamp>("GetBuildTimestamp");
-	scriptInterface.RegisterFunction<CScriptVal, std::wstring, &ReadJSONFile>("ReadJSONFile");
+	scriptInterface.RegisterFunction<JS::Value, std::wstring, &ReadJSONFile>("ReadJSONFile");
 
 	// User report functions
 	scriptInterface.RegisterFunction<bool, &IsUserReportEnabled>("IsUserReportEnabled");
