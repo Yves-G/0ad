@@ -395,7 +395,7 @@ private:
 	class CustomType
 	{
 	public:
-		JSObject*	m_Prototype;
+		DefPersistentRooted<JSObject*>	m_Prototype;
 		JSClass*	m_Class;
 		JSNative 	m_Constructor;
 	};

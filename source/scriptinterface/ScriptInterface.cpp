@@ -579,22 +579,17 @@ void ScriptInterface::DefineCustomObjectType(JSClass *clasp, JSNative constructo
 	}
 
 	JS::RootedObject global(m->m_cx, m->m_glob);
-	JSObject * obj = JS_InitClass(	m->m_cx, global, JS::NullPtr(),
+	JS::RootedObject obj(m->m_cx, JS_InitClass(m->m_cx, global, JS::NullPtr(),
 									clasp,
 									constructor, minArgs,				// Constructor, min args
 									ps, fs,								// Properties, methods
-									static_ps, static_fs);				// Constructor properties, methods
+									static_ps, static_fs));				// Constructor properties, methods
 
 	if (obj == NULL)
 		throw PSERROR_Scripting_DefineType_CreationFailed();
 
-	CustomType type;
-
-	type.m_Prototype = obj;
-	type.m_Class = clasp;
-	type.m_Constructor = constructor;
-
-	m_CustomObjectTypes[typeName] = type;
+	CustomType type { { m->m_cx, obj }, clasp, constructor };
+	m_CustomObjectTypes[typeName] = std::move(type);
 }
 
 JSObject* ScriptInterface::CreateCustomObject(const std::string & typeName)
@@ -604,7 +599,7 @@ JSObject* ScriptInterface::CreateCustomObject(const std::string & typeName)
 	if (it == m_CustomObjectTypes.end())
 		throw PSERROR_Scripting_TypeDoesNotExist();
 
-	JS::RootedObject prototype(m->m_cx, (*it).second.m_Prototype);
+	JS::RootedObject prototype(m->m_cx, it->second.m_Prototype.get());
 	return JS_NewObject(m->m_cx, (*it).second.m_Class, prototype, JS::NullPtr());
 }
 

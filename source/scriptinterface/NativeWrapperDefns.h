@@ -90,8 +90,7 @@ struct ScriptInterface_NativeMethodWrapper<void, TC> {
 	if (g_ScriptProfilingEnabled) \
 	{ \
 		const char* name = "(unknown)"; \
-		jsval nameval; \
-		nameval = JS_GetReservedSlot( &args.callee(), 0); \
+		JS::RootedValue nameval(cx, JS_GetReservedSlot( &args.callee(), 0)); \
 		if (!nameval.isUndefined()) \
 			name = static_cast<const char*>(JSVAL_TO_PRIVATE(nameval)); \
 		CProfileSampleScript profile(name); \
