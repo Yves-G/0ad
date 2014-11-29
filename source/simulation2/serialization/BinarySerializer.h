@@ -57,7 +57,7 @@ class CBinarySerializerScriptImpl
 public:
 	CBinarySerializerScriptImpl(ScriptInterface& scriptInterface, ISerializer& serializer);
 
-	void ScriptString(const char* name, JSString* string);
+	void ScriptString(const char* name, JS::HandleString string);
 	void HandleScriptVal(JS::HandleValue val);
 	void SetSerializablePrototypes(shared_ptr<ObjectIdCache<std::wstring> > prototypes);
 private:

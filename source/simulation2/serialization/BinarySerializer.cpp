@@ -210,7 +210,7 @@ void CBinarySerializerScriptImpl::HandleScriptVal(JS::HandleValue val)
 				// Standard String object
 				m_Serializer.NumberU8_Unbounded("type", SCRIPT_TYPE_OBJECT_STRING);
 				// Get primitive value
-				JSString* str = JS::ToString(cx, val);
+				JS::RootedString str(cx, JS::ToString(cx, val));
 				if (!str)
 					throw PSERROR_Serialize_ScriptError("JS_ValueToString failed");
 				ScriptString("value", str);
@@ -289,7 +289,7 @@ void CBinarySerializerScriptImpl::HandleScriptVal(JS::HandleValue val)
 			// Get the property name as a string
 			if (!JS_IdToValue(cx, id, &idval))
 				throw PSERROR_Serialize_ScriptError("JS_IdToValue failed");
-			JSString* idstr = JS::ToString(cx, idval);
+			JS::RootedString idstr(cx, JS::ToString(cx, idval));
 			if (!idstr)
 				throw PSERROR_Serialize_ScriptError("JS_ValueToString failed");
 
@@ -309,10 +309,10 @@ void CBinarySerializerScriptImpl::HandleScriptVal(JS::HandleValue val)
 	{
 		// We can't serialise functions, but we can at least name the offender (hopefully)
 		std::wstring funcname(L"(unnamed)");
-		JSFunction* func = JS_ValueToFunction(cx, val);
+		JS::RootedFunction func(cx, JS_ValueToFunction(cx, val));
 		if (func)
 		{
-			JSString* string = JS_GetFunctionId(func);
+			JS::RootedString string(cx, JS_GetFunctionId(func));
 			if (string)
 			{
 				size_t length;
@@ -328,7 +328,8 @@ void CBinarySerializerScriptImpl::HandleScriptVal(JS::HandleValue val)
 	case JSTYPE_STRING:
 	{
 		m_Serializer.NumberU8_Unbounded("type", SCRIPT_TYPE_STRING);
-		ScriptString("string", val.toString());
+		JS::RootedString stringVal(cx, val.toString());
+		ScriptString("string", stringVal);
 		break;
 	}
 	case JSTYPE_NUMBER:
@@ -370,7 +371,7 @@ void CBinarySerializerScriptImpl::HandleScriptVal(JS::HandleValue val)
 	}
 }
 
-void CBinarySerializerScriptImpl::ScriptString(const char* name, JSString* string)
+void CBinarySerializerScriptImpl::ScriptString(const char* name, JS::HandleString string)
 {
 	JSContext* cx = m_ScriptInterface.GetContext();
 	JSAutoRequest rq(cx);

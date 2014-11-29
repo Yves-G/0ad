@@ -146,8 +146,8 @@ template<> bool ScriptInterface::FromJSVal<ssize_t>(JSContext* cx, JS::HandleVal
 template<> bool ScriptInterface::FromJSVal<std::wstring>(JSContext* cx, JS::HandleValue v, std::wstring& out)
 {
 	JSAutoRequest rq(cx);
-	WARN_IF_NOT(JSVAL_IS_STRING(v) || JSVAL_IS_NUMBER(v), v); // allow implicit number conversions
-	JSString* str = JS::ToString(cx, v);
+	WARN_IF_NOT(v.isString() || v.isNumber(), v); // allow implicit number conversions
+	JS::RootedString str(cx, JS::ToString(cx, v));
 	if (!str)
 		FAIL("Argument must be convertible to a string");
 	size_t length;
@@ -171,7 +171,7 @@ template<> bool ScriptInterface::FromJSVal<std::string>(JSContext* cx, JS::Handl
 {
 	JSAutoRequest rq(cx);
 	WARN_IF_NOT(v.isString() || v.isNumber(), v); // allow implicit number conversions
-	JSString* str = JS::ToString(cx, v);
+	JS::RootedString str(cx, JS::ToString(cx, v));
 	if (!str)
 		FAIL("Argument must be convertible to a string");
 	char* ch = JS_EncodeString(cx, str); // chops off high byte of each jschar
@@ -291,7 +291,7 @@ template<> void ScriptInterface::ToJSVal<std::wstring>(JSContext* cx, JS::Mutabl
 {
 	JSAutoRequest rq(cx);
 	utf16string utf16(val.begin(), val.end());
-	JSString* str = JS_NewUCStringCopyN(cx, reinterpret_cast<const jschar*> (utf16.c_str()), utf16.length());
+	JS::RootedString str(cx, JS_NewUCStringCopyN(cx, reinterpret_cast<const jschar*> (utf16.c_str()), utf16.length()));
 	if (str)
 		ret.setString(str);
 	else
@@ -306,7 +306,7 @@ template<> void ScriptInterface::ToJSVal<Path>(JSContext* cx, JS::MutableHandleV
 template<> void ScriptInterface::ToJSVal<std::string>(JSContext* cx, JS::MutableHandleValue ret, const std::string& val)
 {
 	JSAutoRequest rq(cx);
-	JSString* str = JS_NewStringCopyN(cx, val.c_str(), val.length());
+	JS::RootedString str(cx, JS_NewStringCopyN(cx, val.c_str(), val.length()));
 	if (str)
 		ret.setString(str);
 	else
@@ -321,7 +321,7 @@ template<> void ScriptInterface::ToJSVal<const wchar_t*>(JSContext* cx, JS::Muta
 template<> void ScriptInterface::ToJSVal<const char*>(JSContext* cx, JS::MutableHandleValue ret, const char* const& val)
 {
 	JSAutoRequest rq(cx);
-	JSString* str = JS_NewStringCopyZ(cx, val);
+	JS::RootedString str(cx, JS_NewStringCopyZ(cx, val));
 	if (str)
 		ret.setString(str);
 	else

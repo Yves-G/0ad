@@ -520,8 +520,8 @@ bool ScriptInterface::ReplaceNondeterministicRNG(boost::rand48& rng)
 	if (JS_GetProperty(m->m_cx, global, "Math", &math) && math.isObject())
 	{
 		JS::RootedObject mathObj(m->m_cx, &math.toObject());
-		JSFunction* random = JS_DefineFunction(m->m_cx, mathObj, "random", Math_random, 0,
-			JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT);
+		JS::RootedFunction random(m->m_cx, JS_DefineFunction(m->m_cx, mathObj, "random", Math_random, 0,
+			JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT));
 		if (random)
 		{
 			m->m_rng = &rng;

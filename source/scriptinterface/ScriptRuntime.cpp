@@ -289,13 +289,15 @@ void* ScriptRuntime::jshook_script(JSContext* UNUSED(cx), JSAbstractFramePtr UNU
 
 void* ScriptRuntime::jshook_function(JSContext* cx, JSAbstractFramePtr fp, bool UNUSED(isConstructing), bool before, bool* UNUSED(ok), void* closure)
 {
+	JSAutoRequest rq(cx);
+	
 	if (!before)
 	{
 		g_Profiler.Stop();
 		return closure;
 	}
 
-	JSFunction* fn = fp.maybeFun();
+	JS::RootedFunction fn(cx, fp.maybeFun());
 	if (!fn)
 	{
 		g_Profiler.StartScript("(function)");
@@ -303,7 +305,7 @@ void* ScriptRuntime::jshook_function(JSContext* cx, JSAbstractFramePtr fp, bool 
 	}
 
 	// Try to get the name of non-anonymous functions
-	JSString* name = JS_GetFunctionId(fn);
+	JS::RootedString name(cx, JS_GetFunctionId(fn));
 	if (name)
 	{
 		char* chars = JS_EncodeString(cx, name);
