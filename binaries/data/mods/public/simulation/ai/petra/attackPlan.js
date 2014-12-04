@@ -187,8 +187,7 @@ m.AttackPlan.prototype.init = function(gameState)
 	for (var cat in this.unitStat)
 	{
 		var Unit = this.unitStat[cat];
-		var filter = API3.Filters.and(API3.Filters.byClassesAnd(Unit["classes"]), API3.Filters.byMetadata(PlayerID, "plan",this.name));
-		this.unit[cat] = gameState.getOwnUnits().filter(filter);
+		this.unit[cat] = this.unitCollection.filter(API3.Filters.byClassesAnd(Unit["classes"]));
 		this.unit[cat].registerUpdates();
 		if (this.canBuildUnits)
 			this.buildOrder.push([0, Unit["classes"], this.unit[cat], Unit, cat]);
@@ -255,15 +254,14 @@ m.AttackPlan.prototype.getEnemyPlayer = function(gameState)
 		enemyDefense[i] = 0;
 		enemyCivCentre[i] = false;
 	}
-	gameState.getEntities().forEach(function(ent) { 
-		if (gameState.isEntityEnemy(ent) && ent.owner() !== 0)
-		{
-			enemyCount[ent.owner()]++;
-			if (ent.hasClass("Tower") || ent.hasClass("Fortress"))
-				enemyDefense[ent.owner()]++;
-			if (ent.hasClass("CivCentre"))
-				enemyCivCentre[ent.owner()] = true;
-		}
+	gameState.getEnemyEntities().forEach(function(ent) { 
+		if (ent.owner() == 0)
+			return;
+		enemyCount[ent.owner()]++;
+		if (ent.hasClass("Tower") || ent.hasClass("Fortress"))
+			enemyDefense[ent.owner()]++;
+		if (ent.hasClass("CivCentre"))
+			enemyCivCentre[ent.owner()] = true;
 	});
 	var max = 0;
 	for (var i in enemyCount)
@@ -469,6 +467,8 @@ m.AttackPlan.prototype.updatePreparation = function(gameState, events)
 		return 1;
 
 	this.assignUnits(gameState);
+	if (this.type !== "Raid" && gameState.ai.HQ.attackManager.getAttackInPreparation("Raid") !== undefined)
+		this.reassignCavUnit(gameState);    // reassign some cav (if any) to fasten raid preparations
 
 	// special case: if we've reached max pop, and we can start the plan, start it.
 	if (gameState.getPopulationMax() - gameState.getPopulation() < 10)
@@ -519,7 +519,10 @@ m.AttackPlan.prototype.updatePreparation = function(gameState, events)
 
 	// if we're here, it means we must start (and have no units in training left).
 	this.state = "completing";
-	this.maxCompletingTurn = gameState.ai.playedTurn + 60;
+	if (this.type === "Raid")
+		this.maxCompletingTurn = gameState.ai.playedTurn + 20;
+	else
+		this.maxCompletingTurn = gameState.ai.playedTurn + 60;
 
 	var rallyPoint = this.rallyPoint;
 	var rallyIndex = gameState.ai.accessibility.getAccessValue(rallyPoint);
@@ -730,6 +733,27 @@ m.AttackPlan.prototype.assignUnits = function(gameState)
 	return added;
 };
 
+// Reassign one (at each turn) Cav unit to fasten raid preparation
+m.AttackPlan.prototype.reassignCavUnit = function(gameState)
+{
+	var found = undefined;
+	this.unitCollection.forEach(function(ent) {
+		if (found)
+			return;
+		if (!ent.position() || ent.getMetadata(PlayerID, "transport") !== undefined)
+			return;
+		if (!ent.hasClass("Cavalry") || !ent.hasClass("CitizenSoldier"))
+			return;
+		found = ent;
+	});
+	if (!found)
+		return;
+	let raid = gameState.ai.HQ.attackManager.getAttackInPreparation("Raid");
+	found.setMetadata(PlayerID, "plan", raid.name);
+	this.unitCollection.updateEnt(found);
+	raid.unitCollection.updateEnt(found);
+};
+
 // sameLand true means that we look for a target for which we do not need to take a transport
 m.AttackPlan.prototype.getNearestTarget = function(gameState, position, sameLand)
 {
@@ -746,25 +770,24 @@ m.AttackPlan.prototype.getNearestTarget = function(gameState, position, sameLand
 
 	// picking the nearest target
 	var minDist = -1;
-	var index = undefined;
-	for (var i in targets._entities)
-	{
-		if (!targets._entities[i].position())
-			continue;
-		if (sameLand && gameState.ai.accessibility.getAccessValue(targets._entities[i].position()) !== land)
-			continue;
-		var dist = API3.SquareVectorDistance(targets._entities[i].position(), position);
+	var target = undefined;
+	targets.forEach(function (ent) {
+		if (!ent.position())
+			return;
+		if (sameLand && gameState.ai.accessibility.getAccessValue(ent.position()) != land)
+			return;
+		var dist = API3.SquareVectorDistance(ent.position(), position);
 		if (dist < minDist || minDist == -1)
 		{
 			minDist = dist;
-			index = i;
+			target = ent;
 		}
-	}
-	if (!index)
+	});
+	if (!target)
 		return undefined;
 	// Rushes can change their enemy target if nothing found with the preferred enemy
-	this.targetPlayer = targets._entities[index].owner();
-	return targets._entities[index];
+	this.targetPlayer = target.owner();
+	return target;
 };
 
 // Default target finder aims for conquest critical targets
@@ -1577,7 +1600,7 @@ m.AttackPlan.prototype.Abort = function(gameState)
 	gameState.ai.queueManager.removeQueue("plan_" + this.name + "_siege");
 };
 
-m.AttackPlan.prototype.removeUnit = function(ent)
+m.AttackPlan.prototype.removeUnit = function(ent, update)
 {
 	if (ent.hasClass("CitizenSoldier") && ent.getMetadata(PlayerID, "role") !== "worker")
 	{
@@ -1585,7 +1608,8 @@ m.AttackPlan.prototype.removeUnit = function(ent)
 		ent.setMetadata(PlayerID, "subrole", undefined);
 	}
 	ent.setMetadata(PlayerID, "plan", -1);
-	this.unitCollection.updateEnt(ent);
+	if (update)
+		this.unitCollection.updateEnt(ent);
 };
 
 m.AttackPlan.prototype.checkEvents = function(gameState, events)
