@@ -52,7 +52,9 @@ Building NSPR:
    tar -xzvf nspr-4.10.3.tar.gz
    cd nspr-4.10.3
    cd nspr
-4. Build nspr by calling make
+4. Call configure. I've used this command:
+   ./configure --disable-debug --enable-optimize --enable-win32-target=WIN95
+5. Call make
 
 Building SpiderMonkey:
 1. Adjust the absolute paths to nspr in the build.sh file to match your environment.
