@@ -190,7 +190,7 @@ void CReplayPlayer::Replay(bool serializationtest)
 			JS::RootedValue data(cx);
 			game.GetSimulation2()->GetScriptInterface().ParseJSON(line, &data);
 
-			commands.emplace_back(player, cx, data);
+			commands.emplace_back(SimulationCommand(player, cx, data));
 		}
 		else if (type == "hash" || type == "hash-quick")
 		{

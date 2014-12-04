@@ -71,6 +71,46 @@ private:
 		std::string name;
 		std::string schema; // RelaxNG fragment
 		DefPersistentRooted<JS::Value> ctor; // only valid if type == CT_Script
+
+		// TODO: Constructor, move assignment operator and move constructor only have to be
+		// explicitely defined for VS2010 and probably other old compilers that
+		// don't fully support C++11
+		// For newer compilers we could omit these and use the struct with aggregate initialization.
+		ComponentType() {}
+		ComponentType (EComponentTypeType type, InterfaceId iid, AllocFunc alloc,
+			DeallocFunc dealloc, std::string name, std::string schema, DefPersistentRooted<JS::Value> ctor) :
+				type(type),
+				iid(iid),
+				alloc(alloc),
+				dealloc(dealloc),
+				name(name),
+				schema(schema),
+				ctor(std::move(ctor)) 
+		{
+		}
+
+		ComponentType& operator= (ComponentType&& other) 
+		{
+			type = std::move(other.type);
+			iid = std::move(other.iid);
+			alloc = std::move(other.alloc);
+			dealloc = std::move(other.dealloc);
+			name = std::move(other.name);
+			schema = std::move(other.schema);
+			ctor = std::move(other.ctor);
+			return *this;
+		}
+
+		ComponentType(ComponentType&& other) 
+		{
+			type = std::move(other.type);
+			iid = std::move(other.iid);
+			alloc = std::move(other.alloc);
+			dealloc = std::move(other.dealloc);
+			name = std::move(other.name);
+			schema = std::move(other.schema);
+			ctor = std::move(other.ctor);
+		}
 	};
 	
 	struct FindJSONFilesCallbackData

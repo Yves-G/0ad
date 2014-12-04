@@ -704,7 +704,7 @@ public:
 			return;
 		}
 		m_SerializablePrototypes->add(m_ScriptInterface->GetContext(), obj, name);
-		m_DeserializablePrototypes.insert({name, JS::Heap<JSObject*>(obj)});
+		m_DeserializablePrototypes[name] = JS::Heap<JSObject*>(obj);
 	}
 
 private:
@@ -727,7 +727,7 @@ private:
 		{
 			// Load and cache the AI player metadata
 			m_ScriptInterface->ReadJSONFile(path, out);
-			m_PlayerMetadata.insert({path, JS::Heap<JS::Value>(out)});
+			m_PlayerMetadata[path] = JS::Heap<JS::Value>(out);
 			return;
 		}
 		out.set(m_PlayerMetadata[path].get());

@@ -633,6 +633,7 @@ extern_lib_defs = {
 			else
 				if os.is("windows") then
 					include_dir = "include-win32"
+					buildoptions { "/FI\"js/RequiredDefines.h\"" }
 				else
 					include_dir = "include-unix"
 				end

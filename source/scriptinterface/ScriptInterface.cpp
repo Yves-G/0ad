@@ -588,7 +588,12 @@ void ScriptInterface::DefineCustomObjectType(JSClass *clasp, JSNative constructo
 	if (obj == NULL)
 		throw PSERROR_Scripting_DefineType_CreationFailed();
 
-	CustomType type { { m->m_cx, obj }, clasp, constructor };
+	CustomType type;
+
+	type.m_Prototype = DefPersistentRooted<JSObject*>(m->m_cx, obj);
+	type.m_Class = clasp;
+	type.m_Constructor = constructor;
+
 	m_CustomObjectTypes[typeName] = std::move(type);
 }
 

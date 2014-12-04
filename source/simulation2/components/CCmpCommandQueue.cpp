@@ -75,14 +75,14 @@ public:
 			JS::RootedValue data(cx);
 			deserialize.NumberI32_Unbounded("player", player);
 			deserialize.ScriptVal("data", &data);
-			m_LocalQueue.emplace_back(player, cx, data);
+			m_LocalQueue.emplace_back(SimulationCommand(player, cx, data));
 		}
 	}
 
 	virtual void PushLocalCommand(player_id_t player, JS::HandleValue cmd)
 	{
 		JSContext* cx = GetSimContext().GetScriptInterface().GetContext();
-		m_LocalQueue.emplace_back(player, cx, cmd);
+		m_LocalQueue.emplace_back(SimulationCommand(player, cx, cmd));
 	}
 
 	virtual void PostNetworkCommand(JS::HandleValue cmd1)

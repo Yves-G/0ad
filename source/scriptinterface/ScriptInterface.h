@@ -83,7 +83,7 @@ public:
 	 * Each runtime should only ever be used on a single thread.
 	 * @param runtimeSize Maximum size in bytes of the new runtime
 	 */
-	static shared_ptr<ScriptRuntime> CreateRuntime(shared_ptr<ScriptRuntime> parentRuntime = { }, int runtimeSize = DEFAULT_RUNTIME_SIZE, 
+	static shared_ptr<ScriptRuntime> CreateRuntime(shared_ptr<ScriptRuntime> parentRuntime = shared_ptr<ScriptRuntime>(), int runtimeSize = DEFAULT_RUNTIME_SIZE, 
 		int heapGrowthBytesGCTrigger = DEFAULT_HEAP_GROWTH_BYTES_GCTRIGGER);
 
 
@@ -395,6 +395,24 @@ private:
 	class CustomType
 	{
 	public:
+		// TODO: Move assignment operator and move constructor only have to be
+		// explicitely defined for VS2010 and probably other old compilers that
+		// don't fully support C++11
+		CustomType() {}
+		CustomType& operator=(CustomType&& other)
+		{
+			m_Prototype = std::move(other.m_Prototype);
+			m_Class = std::move(other.m_Class);
+			m_Constructor = std::move(other.m_Constructor);
+			return *this;
+		}
+		CustomType(CustomType&& other)
+		{
+			m_Prototype = std::move(other.m_Prototype);
+			m_Class = std::move(other.m_Class);
+			m_Constructor = std::move(other.m_Constructor);
+		}
+
 		DefPersistentRooted<JSObject*>	m_Prototype;
 		JSClass*	m_Class;
 		JSNative 	m_Constructor;

@@ -266,7 +266,8 @@ void CNetTurnManager::AddCommand(int client, int player, JS::HandleValue data, u
 		return;
 	}
 	
-	m_QueuedCommands[turn - (m_CurrentTurn+1)][client].emplace_back(player, m_Simulation2.GetScriptInterface().GetContext(), data);
+	SimulationCommand cmd(player, m_Simulation2.GetScriptInterface().GetContext(), data);
+	m_QueuedCommands[turn - (m_CurrentTurn+1)][client].emplace_back(std::move(cmd));
 }
 
 void CNetTurnManager::FinishedAllCommands(u32 turn, u32 turnLength)

@@ -25,7 +25,6 @@
 
 #include "scriptinterface/ScriptRuntime.h"
 #include "scriptinterface/ScriptTypes.h"
-#include <unistd.h>
 #include <stdint.h>
 
 // Map JSObjects -> ids
@@ -42,9 +41,6 @@ class ObjectIdCache
 	{
 		JS_AddExtraGCRootsTracer(m_rt->m_rt, ObjectIdCache::Trace, this);
 	}
-	
-	ObjectIdCache(const ObjectIdCache&) = delete;
-	ObjectIdCache& operator= (const ObjectIdCache& other) = delete;
 	
 	~ObjectIdCache()
 	{
@@ -105,6 +101,10 @@ class ObjectIdCache
 	}
 
   private:
+  	
+	ObjectIdCache(const ObjectIdCache&) {};
+	ObjectIdCache& operator= (const ObjectIdCache& other) {};
+  	
 	static void keyMarkCallback(JSTracer *trc, JSObject *key, void *data) 
 	{
 		ObjectIdTable* table = static_cast<ObjectIdTable*>(data);
