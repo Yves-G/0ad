@@ -36,12 +36,7 @@
 # define MOZJS_DEBUG_ABI 0
 #endif
 
-// Ignore some harmless warnings triggered by jsapi.h
-// Not all of these warnings can be disabled in older versions of GCC.
-// The version checking was taken from the manual here:
-// 	http://gcc.gnu.org/onlinedocs/
-// Choose the version and navigate to "Options to Request or Suppress Warnings"
-// or for some flags "Options Controlling C++ Dialect".
+// Ignore some harmless warnings
 #if GCC_VERSION
 # pragma GCC diagnostic push
 # pragma GCC diagnostic ignored "-Wunused-parameter"
