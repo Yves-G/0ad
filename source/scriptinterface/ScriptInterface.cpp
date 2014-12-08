@@ -324,30 +324,16 @@ ScriptInterface_impl::ScriptInterface_impl(const char* nativeScopeName, const sh
 	JS_SetGlobalJitCompilerOption(m_runtime->m_rt, JSJITCOMPILER_ION_ENABLE, 1);
 	JS_SetGlobalJitCompilerOption(m_runtime->m_rt, JSJITCOMPILER_BASELINE_ENABLE, 1);
 	
-	// TODO: figure out how to enable:
-	//		- CompileAndGo
-	//		- TypeInference
-	// .. and think more about where to enable the options (e.g. runtime vs context)   and check the other options more closely.
 	JS::ContextOptionsRef(m_cx).setExtraWarnings(1)
 		.setWerror(0)
 		.setVarObjFix(1)
-		//.setCompileAndGo(1)
-		//.setDontReportUncaught( )
-		//.setNoDefaultCompartmentObject( )
-		//.setNoScriptRval( )
 		.setStrictMode(1);
-		//.setBaseline(options & JSOPTION_BASELINE)
-		//.setTypeInference(1)
-		//.setIon(options & JSOPTION_ION)
-		//.setAsmJS(0);
 
 	JS::CompartmentOptions opt;
 	opt.setVersion(JSVERSION_LATEST);
 	
 	JSAutoRequest rq(m_cx);
-	JS::RootedObject globalRootedVal(m_cx, JS_NewGlobalObject(m_cx, &global_class, NULL, JS::OnNewGlobalHookOption::DontFireOnNewGlobalHook, opt));
-	// TODO: check again if we're doing everything correctly https://bugzilla.mozilla.org/show_bug.cgi?id=897322
-	JS_FireOnNewGlobalObject(m_cx, globalRootedVal);
+	JS::RootedObject globalRootedVal(m_cx, JS_NewGlobalObject(m_cx, &global_class, NULL, JS::OnNewGlobalHookOption::FireOnNewGlobalHook, opt));
 	m_comp = JS_EnterCompartment(m_cx, globalRootedVal);
 	ok = JS_InitStandardClasses(m_cx, globalRootedVal);
 	ENSURE(ok);
