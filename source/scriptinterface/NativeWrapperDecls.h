@@ -58,13 +58,13 @@ public:
 #define TYPED_ARGS_CONST_REF(z, i, data) const T##i& a##i,
 
 // TODO: We allow optional parameters when the C++ type can be converted from JS::UndefinedValue.
-// FromJSVal is expected to either set a##i or return false (otherwise we could get undeifned
+// FromJSVal is expected to either set a##i or return false (otherwise we could get undefined
 // behaviour because some types have undefined values when not being initialized).
 // This is not very clear and also a bit fragile. Another problem is that the error reporting lacks
 // a bit. SpiderMonkey will throw a JS exception and abort the execution of the current function when
 // we return false here (without printing a callstack or additional detail telling that an argument 
 // converson failed). So we have two TODOs here:
-// 1. On the conceptual side: How to consistently work with optional parameter (or drop them completely?)
+// 1. On the conceptual side: How to consistently work with optional parameters (or drop them completely?)
 // 2. On the technical side: Improve error handling, find a better way to ensure parameters are initialized
 #define CONVERT_ARG(z, i, data) \
 	typename WrapperIfHandle<T##i>::Type a##i; \
