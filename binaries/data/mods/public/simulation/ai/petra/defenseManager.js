@@ -27,8 +27,8 @@ m.DefenseManager.prototype.update = function(gameState, events)
 m.DefenseManager.prototype.makeIntoArmy = function(gameState, entityID)
 {
 	// Try to add it to an existing army.
-	for (var o in this.armies)
-		if (this.armies[o].addFoe(gameState,entityID))
+	for (let army of this.armies)
+		if (army.addFoe(gameState, entityID))
 			return;	// over
 
 	// Create a new army for it.
@@ -39,9 +39,9 @@ m.DefenseManager.prototype.makeIntoArmy = function(gameState, entityID)
 m.DefenseManager.prototype.getArmy = function(partOfArmy)
 {
 	// Find the army corresponding to this ID partOfArmy
-	for (var o in this.armies)
-		if (this.armies[o].ID === partOfArmy)
-		    return this.armies[o];
+	for (let army of this.armies)
+		if (army.ID === partOfArmy)
+		    return army;
 
 	return undefined;
 };
@@ -160,11 +160,8 @@ m.DefenseManager.prototype.checkEnemyArmies = function(gameState, events)
 		// this returns a list of IDs: the units that broke away from the army for being too far.
 		var breakaways = army.update(gameState);
 
-		for (var u in breakaways)
-		{
-			// assume dangerosity
-			this.makeIntoArmy(gameState,breakaways[u]);
-		}
+		for (let breakers of breakaways)
+			this.makeIntoArmy(gameState, breakers);		// assume dangerosity
 
 		if (army.getState(gameState) === 0)
 		{
@@ -238,10 +235,9 @@ m.DefenseManager.prototype.assignDefenders = function(gameState)
 	var armiesNeeding = [];
 	// Okay, let's add defenders
 	// TODO: this is dumb.
-	for (var i in this.armies)
+	for (let army of this.armies)
 	{
-		var army = this.armies[i];
-		var needsDef = army.needsDefenders(gameState);
+		let needsDef = army.needsDefenders(gameState);
 		if (needsDef === false)
 			continue;
 		
@@ -386,11 +382,11 @@ m.DefenseManager.prototype.garrisonRangedUnitsInside = function(gameState, targe
 // garrison a hurt unit inside the nearest healing structure
 m.DefenseManager.prototype.garrisonUnitForHealing = function(gameState, unit)
 {
-	var distmin = Math.min();
-	var nearest = undefined;
-	var unitAccess = gameState.ai.accessibility.getAccessValue(unit.position());
-	var garrisonManager = gameState.ai.HQ.garrisonManager;
-	gameState.getAllyEntities().filter(API3.Filters.byClass("Structure")).forEach(function(ent) {
+	let distmin = Math.min();
+	let nearest = undefined;
+	let unitAccess = gameState.ai.accessibility.getAccessValue(unit.position());
+	let garrisonManager = gameState.ai.HQ.garrisonManager;
+	gameState.getAllyStructures().forEach(function(ent) {
 		if (!ent.buffHeal())
 			return;
 		if (!MatchesClassList(ent.garrisonableClasses(), unit.classes()))
