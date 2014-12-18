@@ -75,6 +75,11 @@ cd mozjs31
 # patches are only needed if the tracelogger is used):
 patch -p1 -i ../FixTraceLoggerBuild.diff
 patch -p1 -i ../FixTraceLoggerFlushing.diff
+
+# A patch to fix a bug that prevents Ion compiling of for .. of loops.
+# It makes quite a big difference for performance.
+# https://bugzilla.mozilla.org/show_bug.cgi?id=1046176
+patch -p1 -i ../FixForOfBailouts.diff
 cd ..
 
 # Clean up header files that may be left over by earlier versions of SpiderMonkey
