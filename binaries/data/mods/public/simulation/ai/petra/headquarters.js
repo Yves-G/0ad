@@ -52,7 +52,7 @@ m.HQ.prototype.init = function(gameState, queues, deserializing)
 {
 	this.territoryMap = m.createTerritoryMap(gameState);
 	// initialize base map. Each pixel is a base ID, or 0 if not or not accessible
-	this.basesMap = new API3.Map(gameState.sharedScript);
+	this.basesMap = new API3.Map(gameState.sharedScript, "territory");
 	// area of 10 cells on the border of the map : 0=inside map, 1=border map, 2=outside map
 	this.borderMap = m.createBorderMap(gameState);
 	// initialize frontier map. Each cell is 2 if on the near frontier, 1 on the frontier and 0 otherwise
@@ -112,6 +112,26 @@ m.HQ.prototype.init = function(gameState, queues, deserializing)
 	});
 	this.treasures.registerUpdates();
 
+	if (deserializing)
+		return;
+
+	// TODO: change that to something dynamic.
+	var civ = gameState.playerData.civ;
+	// load units and buildings from the config files	
+	if (civ in this.Config.buildings.base)
+		this.bBase = this.Config.buildings.base[civ];
+	else
+		this.bBase = this.Config.buildings.base['default'];
+
+	if (civ in this.Config.buildings.advanced)
+		this.bAdvanced = this.Config.buildings.advanced[civ];
+	else
+		this.bAdvanced = this.Config.buildings.advanced['default'];	
+	for (var i in this.bBase)
+		this.bBase[i] = gameState.applyCiv(this.bBase[i]);
+	for (var i in this.bAdvanced)
+		this.bAdvanced[i] = gameState.applyCiv(this.bAdvanced[i]);
+
 	// Let's get our initial situation here.
 	var b0 = gameState.ai.uniqueIDs.bases;
 	var ccEnts = gameState.getOwnStructures().filter(API3.Filters.byClass("CivCentre")).toEntityArray();	
@@ -123,7 +143,7 @@ m.HQ.prototype.init = function(gameState, queues, deserializing)
 	}
 	this.updateTerritories(gameState);
 
-	if (this.baseManagers[b0] && !deserializing)     // Assign entities in the different bases
+	if (this.baseManagers[b0])     // Assign entities in the different bases
 	{
 		var self = this;
 		var width = gameState.getMap().width;
@@ -156,7 +176,6 @@ m.HQ.prototype.init = function(gameState, queues, deserializing)
 			self.baseManagers[b0].assignEntity(ent);
 			if (ent.resourceDropsiteTypes() && !ent.hasClass("Elephant"))
 				self.baseManagers[b0].assignResourceToDropsite(gameState, ent);
-
 		});
 	}
 
@@ -169,26 +188,6 @@ m.HQ.prototype.init = function(gameState, queues, deserializing)
 		if (newDP.quality > 40 && this.canBuild(gameState, "structures/{civ}_storehouse"))
 			queues.dropsites.addItem(new m.ConstructionPlan(gameState, "structures/{civ}_storehouse", { "base": 1 }, newDP.pos));
 	}
-
-	// TODO: change that to something dynamic.
-	var civ = gameState.playerData.civ;
-	
-	// load units and buildings from the config files
-	
-	if (civ in this.Config.buildings.base)
-		this.bBase = this.Config.buildings.base[civ];
-	else
-		this.bBase = this.Config.buildings.base['default'];
-
-	if (civ in this.Config.buildings.advanced)
-		this.bAdvanced = this.Config.buildings.advanced[civ];
-	else
-		this.bAdvanced = this.Config.buildings.advanced['default'];
-	
-	for (var i in this.bBase)
-		this.bBase[i] = gameState.applyCiv(this.bBase[i]);
-	for (var i in this.bAdvanced)
-		this.bAdvanced[i] = gameState.applyCiv(this.bAdvanced[i]);
 
 	// Check if we will ever be able to produce units
 	this.canBuildUnits = true;
@@ -288,7 +287,7 @@ m.HQ.prototype.start = function(gameState, deserializing)
 	if (deserializing)
 	{
 		// Rebuild the base maps from the territory indices of each base
-		this.basesMap = new API3.Map(gameState.sharedScript);
+		this.basesMap = new API3.Map(gameState.sharedScript, "territory");
 		for each (let base in this.baseManagers)
 			for (let j of base.territoryIndices)
 				this.basesMap.map[j] = base.ID;
@@ -531,7 +530,8 @@ m.HQ.prototype.trainMoreWorkers = function(gameState, queues)
 		});
 	});
 
-	// Adapt the batch size of the first and second queued workers and females to the present population
+	// Anticipate the optimal batch size when this queue will start
+	// and adapt the batch size of the first and second queued workers and females to the present population
 	// to ease a possible recovery if our population was drastically reduced by an attack
 	// (need to go up to second queued as it is accounted in queueManager)
 	if (numWorkers < 12)
@@ -566,19 +566,27 @@ m.HQ.prototype.trainMoreWorkers = function(gameState, queues)
 
 	// default template
 	var template = gameState.applyCiv("units/{civ}_support_female_citizen");
-	// anticipate the optimal batch size when this queue will start
-	if (numTotal < 12)
-		var size = 1;
-	else
-		var size = Math.min(5, Math.ceil(numTotal / 10));
 
 	// Choose whether we want soldiers instead.
 	if ((numFemales+numQueuedF) > 8 && (numFemales+numQueuedF)/numTotal > this.femaleRatio)
 	{
 		if (numTotal < 45)
-			template = this.findBestTrainableUnit(gameState, ["CitizenSoldier", "Infantry"], [ ["cost", 1], ["speed", 0.5], ["costsResource", 0.5, "stone"], ["costsResource", 0.5, "metal"]]);
+			var requirements = [ ["cost", 1], ["speed", 0.5], ["costsResource", 0.5, "stone"], ["costsResource", 0.5, "metal"]];
 		else
-			template = this.findBestTrainableUnit(gameState, ["CitizenSoldier", "Infantry"], [ ["strength", 1] ]);
+			var requirements = [ ["strength", 1] ];
+
+		template = undefined;
+		var proba = Math.random();
+		if (proba < 0.6)
+		{	// we require at least 30% ranged and 30% melee
+			if (proba < 0.3)
+				var classes = ["CitizenSoldier", "Infantry", "Ranged"];
+			else
+				var classes = ["CitizenSoldier", "Infantry", "Melee"];
+			template = this.findBestTrainableUnit(gameState, classes, requirements);
+		}
+		if (!template)
+			template = this.findBestTrainableUnit(gameState, ["CitizenSoldier", "Infantry"], requirements);
 		if (!template)
 			template = gameState.applyCiv("units/{civ}_support_female_citizen");
 	}
@@ -2039,7 +2047,7 @@ m.HQ.prototype.Deserialize = function(gameState, data)
 	this.tradeManager.Deserialize(gameState, data.tradeManager);
 
 	this.navalManager = new m.NavalManager(this.Config);
-	this.navalManager.init(gameState);
+	this.navalManager.init(gameState, true);
 	this.navalManager.Deserialize(gameState, data.navalManager);
 
 	this.researchManager = new m.ResearchManager(this.Config);
