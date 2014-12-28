@@ -91,14 +91,6 @@ cd mozjs31/js/src
 rm -rf build-debug
 rm -rf build-release
 
-# Run autoconf to create the configure script
-if [ "${OS}" = "Windows_NT" ]
-then
-  autoconf-2.13
-else
-  autoconf2.13
-fi
-
 # We want separate debug/release versions of the library, so we have to change
 # the LIBRARY_NAME for each build.
 # (We use perl instead of sed so that it works with MozillaBuild on Windows,
