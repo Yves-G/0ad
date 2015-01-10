@@ -1,4 +1,4 @@
-/* Copyright (C) 2013 Wildfire Games.
+/* Copyright (C) 2014 Wildfire Games.
  * This file is part of 0 A.D.
  *
  * 0 A.D. is free software: you can redistribute it and/or modify
@@ -622,17 +622,16 @@ QUERYHANDLER(PickObject)
 	
 	// Normally this function would be called with a player ID to check LOS,
 	//	but in Atlas the entire map is revealed, so just pass INVALID_PLAYER
-	std::vector<entity_id_t> ents = EntitySelection::PickEntitiesAtPoint(*g_Game->GetSimulation2(), *g_Game->GetView()->GetCamera(), x, y, INVALID_PLAYER, msg->selectActors);
+	entity_id_t ent = EntitySelection::PickEntityAtPoint(*g_Game->GetSimulation2(), *g_Game->GetView()->GetCamera(), x, y, INVALID_PLAYER, msg->selectActors);;
 
-	// Multiple entities may have been picked, but they are sorted by distance,
-	//	so only take the first one
-	if (!ents.empty())
+	if (ent == INVALID_ENTITY)
+		msg->id = INVALID_ENTITY;
+	else
 	{
-		msg->id = ents[0];
-
+		msg->id = ent;
 		// Calculate offset of object from original mouse click position
 		//	so it gets moved by that offset
-		CmpPtr<ICmpPosition> cmpPosition(*g_Game->GetSimulation2(), (entity_id_t)ents[0]);
+		CmpPtr<ICmpPosition> cmpPosition(*g_Game->GetSimulation2(), ent);
 		if (!cmpPosition || !cmpPosition->IsInWorld())
 		{
 			// error
@@ -649,11 +648,6 @@ QUERYHANDLER(PickObject)
 			msg->offsetx = (int)(cx - x);
 			msg->offsety = (int)(cy - y);
 		}
-	}
-	else
-	{
-		// No entity picked
-		msg->id = INVALID_ENTITY;
 	}
 }
 
@@ -878,6 +872,7 @@ BEGIN_COMMAND(DeleteObjects)
 			oldObjects.push_back(obj);
 			g_Game->GetSimulation2()->DestroyEntity(obj.entityID);
 		}
+		g_Game->GetSimulation2()->FlushDestroyedEntities();
 	}
 
 	void Undo()

@@ -11,7 +11,7 @@ PlayerManager.prototype.Init = function()
 PlayerManager.prototype.AddPlayer = function(ent)
 {
 	var id = this.playerEntities.length;
-	var cmpPlayer = Engine.QueryInterface(ent, IID_Player)
+	var cmpPlayer = Engine.QueryInterface(ent, IID_Player);
 	cmpPlayer.SetPlayerID(id);
 	this.playerEntities.push(ent);
 	// initialize / update the diplomacy arrays
@@ -26,6 +26,40 @@ PlayerManager.prototype.AddPlayer = function(ent)
 	cmpPlayer.SetDiplomacy(newDiplo);
 	
 	return id;
+};
+
+/**
+ * To avoid possible problems with cached quantities (as in TechnologyManager),
+ * we first remove all entities from this player, and add them back after the replacement.
+ * Note: This should only be called during setup/init and not during the game
+ */
+PlayerManager.prototype.ReplacePlayer = function(id, ent)
+{
+	var cmpRangeManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_RangeManager);
+	var entities = cmpRangeManager.GetEntitiesByPlayer(id);
+	for (var e of entities)
+	{
+		var cmpOwnership = Engine.QueryInterface(e, IID_Ownership);
+		if (cmpOwnership)
+			cmpOwnership.SetOwner(-1);
+	}
+
+	var oldent = this.playerEntities[id];
+	var cmpPlayer = Engine.QueryInterface(oldent, IID_Player);
+	var diplo = cmpPlayer.GetDiplomacy();
+	var cmpPlayer = Engine.QueryInterface(ent, IID_Player);
+	cmpPlayer.SetPlayerID(id);
+	this.playerEntities[id] = ent;
+	cmpPlayer.SetDiplomacy(diplo);
+	Engine.DestroyEntity(oldent);
+	Engine.FlushDestroyedEntities();
+
+	for (var e of entities)
+	{
+		var cmpOwnership = Engine.QueryInterface(e, IID_Ownership);
+		if (cmpOwnership)
+			cmpOwnership.SetOwner(id);
+	}
 };
 
 /**
@@ -56,10 +90,18 @@ PlayerManager.prototype.RemoveAllPlayers = function()
 {
 	// Destroy existing player entities
 	for each (var id in this.playerEntities)
-	{
 		Engine.DestroyEntity(id);
-	}
+
 	this.playerEntities = [];
+};
+
+PlayerManager.prototype.RemoveLastPlayer = function()
+{
+	if (this.playerEntities.length == 0) 
+		return;
+
+	var lastId = this.playerEntities.pop();
+	Engine.DestroyEntity(lastId);
 };
 
 PlayerManager.prototype.GetAllPlayerEntities = function()
