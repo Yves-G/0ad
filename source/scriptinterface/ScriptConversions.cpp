@@ -206,7 +206,7 @@ template<> bool ScriptInterface::FromJSVal<Entity>(JSContext* cx, JS::HandleValu
 	JS::RootedValue rotation(cx);
 
 	// TODO: Report type errors
-	if(!JS_GetProperty(cx, obj, "player", &player) || !FromJSVal(cx, player, out.playerID))
+	if (!JS_GetProperty(cx, obj, "player", &player) || !FromJSVal(cx, player, out.playerID))
 		FAIL("Failed to read Entity.player property");
 	if (!JS_GetProperty(cx, obj, "templateName", &templateName) || !FromJSVal(cx, templateName, out.templateName))
 		FAIL("Failed to read Entity.templateName property");

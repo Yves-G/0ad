@@ -116,7 +116,7 @@ public:
 	CSimulationMessage(ScriptInterface& scriptInterface);
 	CSimulationMessage(ScriptInterface& scriptInterface, u32 client, i32 player, u32 turn, JS::HandleValue data);
 	
-	/** The compiler can't create a copy constructor because of te PersistentRooted member, 
+	/** The compiler can't create a copy constructor because of the PersistentRooted member, 
 	 * so we have to write it manually.
 	 * NOTE: It doesn't clone the m_Data member and the copy will reference the same JS::Value!
 	 */

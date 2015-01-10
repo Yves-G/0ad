@@ -63,10 +63,10 @@ public:
 	
 	/**
 	 * Registers an object to be freed/finalized by the ScriptRuntime. Freeing is
-	 * guaranteed to happen after next minor GC has completed, but might also
+	 * guaranteed to happen after the next minor GC has completed, but might also
 	 * happen a bit later). This is only needed in very special situations
 	 * and you should only use it if you know exactly why you need it!
-	 * Specify a Deleter for the shared_ptr to free the void pointer correctly
+	 * Specify a deleter for the shared_ptr to free the void pointer correctly
 	 * (by casting to the right type before calling delete for example).
 	 */
 	void AddDeferredFinalizationObject(const std::shared_ptr<void>& obj);

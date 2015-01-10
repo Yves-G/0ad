@@ -390,12 +390,12 @@ void CMapSummaryReader::GetMapSettings(ScriptInterface& scriptInterface, JS::Mut
 	JSAutoRequest rq(cx);
 	
 	scriptInterface.Eval("({})", ret);
-	if (!m_ScriptSettings.empty())
-	{
-		JS::RootedValue scriptSettingsVal(cx);
-		scriptInterface.ParseJSON(m_ScriptSettings, &scriptSettingsVal);
-		scriptInterface.SetProperty(ret, "settings", scriptSettingsVal, false);
-	}
+	if (m_ScriptSettings.empty())
+		return;
+
+	JS::RootedValue scriptSettingsVal(cx);
+	scriptInterface.ParseJSON(m_ScriptSettings, &scriptSettingsVal);
+	scriptInterface.SetProperty(ret, "settings", scriptSettingsVal, false);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////

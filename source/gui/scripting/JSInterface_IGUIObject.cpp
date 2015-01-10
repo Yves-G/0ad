@@ -549,37 +549,35 @@ bool JSI_IGUIObject::setProperty(JSContext* cx, JS::HandleObject obj, JS::Handle
 	case GUIST_CGUIList:
 		{
 			u32 length;
-			if (vp.isObject() && JS_GetArrayLength(cx, vpObj, &length) == true)
-			{
-				CGUIList list;
-				JS::RootedObject obj(cx, &vp.toObject());
-				
-				for (u32 i=0; i<length; ++i)
-				{
-					JS::RootedValue element(cx);
-					if (! JS_GetElement(cx, obj, i, &element))
-					{
-						JS_ReportError(cx, "Failed to get list element");
-						return false;
-					}
-
-					std::wstring value;
-					if (!ScriptInterface::FromJSVal(cx, element, value))
-						return false;
-
-					CGUIString str;
-					str.SetValue(value);
-
-					list.m_Items.push_back(str);
-				}
-
-				GUI<CGUIList>::SetSetting(e, propName, list);
-			}
-			else
+			if (!vp.isObject() || !JS_GetArrayLength(cx, vpObj, &length))
 			{
 				JS_ReportError(cx, "List only accepts a GUIList object");
 				return false;
 			}
+
+			CGUIList list;
+			JS::RootedObject obj(cx, &vp.toObject());
+			
+			for (u32 i=0; i<length; ++i)
+			{
+				JS::RootedValue element(cx);
+				if (! JS_GetElement(cx, obj, i, &element))
+				{
+					JS_ReportError(cx, "Failed to get list element");
+					return false;
+				}
+
+				std::wstring value;
+				if (!ScriptInterface::FromJSVal(cx, element, value))
+					return false;
+
+				CGUIString str;
+				str.SetValue(value);
+
+				list.m_Items.push_back(str);
+			}
+
+			GUI<CGUIList>::SetSetting(e, propName, list);
 			break;
 		}
 

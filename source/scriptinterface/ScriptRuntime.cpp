@@ -122,7 +122,6 @@ ScriptRuntime::ScriptRuntime(shared_ptr<ScriptRuntime> parentRuntime, int runtim
 	m_rt = JS_NewRuntime(runtimeSize, JS_USE_HELPER_THREADS, parentJSRuntime);
 	ENSURE(m_rt); // TODO: error handling
 
-	//JS_SetNativeStackQuota(m_rt, 128 * sizeof(size_t) * 1024);
 	if (g_ScriptProfilingEnabled)
 	{
 		// Profiler isn't thread-safe, so only enable this on the main thread

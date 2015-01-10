@@ -366,7 +366,7 @@ void CNetServerWorker::Run()
 	// To avoid the need for JS_SetContextThread, we create and use and destroy
 	// the script interface entirely within this network thread
 	m_ScriptInterface = new ScriptInterface("Engine", "Net server", ScriptInterface::CreateRuntime(g_ScriptRuntime));
-	m_GameAttributes.reset(new JS::PersistentRootedValue(m_ScriptInterface->GetJSRuntime()));
+	m_GameAttributes.set(m_ScriptInterface->GetJSRuntime(), JS::UndefinedValue());
 	
 	while (true)
 	{
@@ -613,7 +613,7 @@ void CNetServerWorker::OnUserJoin(CNetServerSession* session)
 	AddPlayer(session->GetGUID(), session->GetUserName());
 
 	CGameSetupMessage gameSetupMessage(GetScriptInterface());
-	gameSetupMessage.m_Data = *m_GameAttributes;
+	gameSetupMessage.m_Data = m_GameAttributes.get();
 	session->SendMessage(&gameSetupMessage);
 
 	CPlayerAssignmentMessage assignMessage;
@@ -1021,7 +1021,7 @@ void CNetServerWorker::StartGame()
 	m_State = SERVER_STATE_LOADING;
 
 	// Send the final setup state to all clients
-	UpdateGameAttributes(&*m_GameAttributes.get());
+	UpdateGameAttributes(&m_GameAttributes.get());
 	SendPlayerAssignments();
 
 	CGameStartMessage gameStart;
@@ -1030,13 +1030,13 @@ void CNetServerWorker::StartGame()
 
 void CNetServerWorker::UpdateGameAttributes(JS::MutableHandleValue attrs)
 {
-	m_GameAttributes->set(attrs);
+	m_GameAttributes.set(m_ScriptInterface->GetJSRuntime(), attrs);
 
 	if (!m_Host)
 		return;
 
 	CGameSetupMessage gameSetupMessage(GetScriptInterface());
-	gameSetupMessage.m_Data.set(*m_GameAttributes);
+	gameSetupMessage.m_Data.set(m_GameAttributes.get());
 	Broadcast(&gameSetupMessage);
 }
 

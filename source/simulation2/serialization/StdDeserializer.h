@@ -57,6 +57,7 @@ private:
 	virtual void SetReservedScriptBackref(u32 tag, JS::HandleObject obj);
 	void FreeScriptBackrefs();
 	std::vector<JS::Heap<JSObject*> > m_ScriptBackrefs;
+	JS::PersistentRooted<JSObject*> m_dummyObject;
 
 	ScriptInterface& m_ScriptInterface;
 

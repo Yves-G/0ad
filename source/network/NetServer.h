@@ -283,11 +283,8 @@ private:
 
 	/**
 	 * Stores the most current game attributes.
-	 * Using a pointer is a workaround because PersistentRooted<T> isn't default constructible and
-	 * we need a JSRuntime to create it. Having the runtime already available in the constructor
-	 * is difficult and probably uglier than this solution.
 	 */
-	std::unique_ptr<JS::PersistentRootedValue> m_GameAttributes;
+	DefPersistentRooted<JS::Value> m_GameAttributes;
 
 	int m_AutostartPlayers;
 

@@ -28,9 +28,19 @@
 #include "lib/byte_order.h"
 
 CStdDeserializer::CStdDeserializer(ScriptInterface& scriptInterface, std::istream& stream) :
-	m_ScriptInterface(scriptInterface), m_Stream(stream)
+	m_ScriptInterface(scriptInterface), m_Stream(stream), 
+	m_dummyObject(scriptInterface.GetJSRuntime())
 {
+	JSContext* cx = m_ScriptInterface.GetContext();
+	JSAutoRequest rq(cx);
+
 	JS_AddExtraGCRootsTracer(m_ScriptInterface.GetJSRuntime(), CStdDeserializer::Trace, this);
+	
+	
+	// Add a dummy tag because the serializer uses the tag 0 to indicate that a value
+	// needs to be serialized and then tagged
+	m_dummyObject.set(JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
+	m_ScriptBackrefs.push_back(JS::Heap<JSObject*>(m_dummyObject));
 }
 
 CStdDeserializer::~CStdDeserializer()
@@ -103,21 +113,19 @@ void CStdDeserializer::AddScriptBackref(JS::HandleObject obj)
 
 void CStdDeserializer::GetScriptBackref(u32 tag, JS::MutableHandleObject ret)
 {
-	tag--; // TODO: remove when the serializer is also adjusted (uses tag numbering starting with 1 currently)
 	ENSURE(m_ScriptBackrefs.size() > tag);
 	ret.set(m_ScriptBackrefs[tag]);
 }
 
 u32 CStdDeserializer::ReserveScriptBackref()
 {
-	m_ScriptBackrefs.push_back(JS::Heap<JSObject*>());
-	return m_ScriptBackrefs.size();
+	m_ScriptBackrefs.push_back(JS::Heap<JSObject*>(m_dummyObject));
+	return m_ScriptBackrefs.size()-1;
 }
 
 void CStdDeserializer::SetReservedScriptBackref(u32 tag, JS::HandleObject obj)
 {
-	tag--; // TODO: remove when the serializer is also adjusted (uses tag numbering starting with 1 currently)
-	ENSURE(m_ScriptBackrefs[tag].get() == nullptr);
+	ENSURE(m_ScriptBackrefs[tag] == m_dummyObject);
 	m_ScriptBackrefs[tag] = JS::Heap<JSObject*>(obj);
 }
 

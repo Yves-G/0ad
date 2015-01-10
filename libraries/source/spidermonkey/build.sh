@@ -35,7 +35,6 @@ TLCXXFLAGS='-DTRACE_LOG_DIR="\"/tmp/traces/\""'
 # We bundle prebuilt binaries for Windows and the .libs for nspr aren't included.
 # If you want to build on Windows, check README.txt and edit the absolute paths 
 # to match your enviroment.
-# TODO: Test on Windows and update NSPR
 if [ "${OS}" = "Windows_NT" ]
 then
   NSPR_INCLUDES="-IC:/Projects/0ad/libraries/source/spidermonkey/nspr-4.10.3/nspr/dist/include/nspr"

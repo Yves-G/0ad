@@ -452,7 +452,7 @@ void CSimulation2Impl::Update(int turnLength, const std::vector<SimulationComman
 	//
 	// (TODO: we ought to schedule this for a frame where we're not
 	// running the sim update, to spread the load)
-	if(m_TurnNumber % 500 == 0)
+	if (m_TurnNumber % 500 == 0)
 		scriptInterface.GetRuntime()->ShrinkingGC();
 	else
 		scriptInterface.GetRuntime()->MaybeIncrementalGC(0.0f);

@@ -30,28 +30,6 @@ JSClass JSI_GUISize::JSI_class = {
 		NULL, NULL, JSI_GUISize::construct, NULL
 };
 
-JSPropertySpec JSI_GUISize::JSI_props[] = 
-{
-	/*
-	JS_PSGS( "left", JS_PropertyStub, JS_StrictPropertyStub, JSPROP_ENUMERATE ),
-	{ "top", JS_PropertyStub, JS_StrictPropertyStub, JSPROP_ENUMERATE },
-	{ "right", JS_PropertyStub, JS_StrictPropertyStub, JSPROP_ENUMERATE },
-	{ "bottom", JS_PropertyStub, JS_StrictPropertyStub, JSPROP_ENUMERATE },
-	{ "rleft", JS_PropertyStub, JS_StrictPropertyStub, JSPROP_ENUMERATE },
-	{ "rtop", JS_PropertyStub, JS_StrictPropertyStub, JSPROP_ENUMERATE },
-	{ "rright", JS_PropertyStub, JS_StrictPropertyStub, JSPROP_ENUMERATE },
-	{ "rbottom", JS_PropertyStub, JS_StrictPropertyStub, JSPROP_ENUMERATE }, */
-	//{ "left"		,JS_PropertyStub , JS_StrictPropertyStub, JSPROP_ENUMERATE},
-	//{ "top", 		JSPROP_ENUMERATE},
-	//{ "right",		JSPROP_ENUMERATE},
-	//{ "bottom",		JSPROP_ENUMERATE},
-	//{ "rleft",		JSPROP_ENUMERATE},
-	//{ "rtop",		JSPROP_ENUMERATE},
-	//{ "rright",		JSPROP_ENUMERATE},
-	//{ "rbottom",	JSPROP_ENUMERATE},
-	JS_PS_END
-};
-
 JSFunctionSpec JSI_GUISize::JSI_methods[] = 
 {
 	JS_FS("toString", JSI_GUISize::toString, 0, 0),
@@ -160,15 +138,6 @@ JSClass JSI_GUIColor::JSI_class = {
 		NULL, NULL, JSI_GUIColor::construct, NULL
 };
 
-JSPropertySpec JSI_GUIColor::JSI_props[] = 
-{
-	/*{ "r",	JSPROP_ENUMERATE},
-	{ "g",	JSPROP_ENUMERATE},
-	{ "b",	JSPROP_ENUMERATE},
-	{ "a",	JSPROP_ENUMERATE},*/
-	{ 0 }
-};
-
 JSFunctionSpec JSI_GUIColor::JSI_methods[] = 
 {
 	JS_FS("toString", JSI_GUIColor::toString, 0, 0),
@@ -239,14 +208,6 @@ JSClass JSI_GUIMouse::JSI_class = {
 		NULL, NULL, JSI_GUIMouse::construct, NULL
 };
 
-JSPropertySpec JSI_GUIMouse::JSI_props[] = 
-{
-	/*{ "x",			JSPROP_ENUMERATE},
-	{ "y",			JSPROP_ENUMERATE},
-	{ "buttons",	JSPROP_ENUMERATE},*/
-	{ 0 }
-};
-
 JSFunctionSpec JSI_GUIMouse::JSI_methods[] = 
 {
 	JS_FS("toString", JSI_GUIMouse::toString, 0, 0),
@@ -300,7 +261,7 @@ bool JSI_GUIMouse::toString(JSContext* cx, uint argc, jsval* vp)
 // Initialise all the types at once:
 void JSI_GUITypes::init(ScriptInterface& scriptInterface)
 {
-	scriptInterface.DefineCustomObjectType(&JSI_GUISize::JSI_class,  JSI_GUISize::construct,  1, JSI_GUISize::JSI_props,  JSI_GUISize::JSI_methods,  NULL, NULL);
-	scriptInterface.DefineCustomObjectType(&JSI_GUIColor::JSI_class, JSI_GUIColor::construct, 1, JSI_GUIColor::JSI_props, JSI_GUIColor::JSI_methods, NULL, NULL);
-	scriptInterface.DefineCustomObjectType(&JSI_GUIMouse::JSI_class, JSI_GUIMouse::construct, 1, JSI_GUIMouse::JSI_props, JSI_GUIMouse::JSI_methods, NULL, NULL);
+	scriptInterface.DefineCustomObjectType(&JSI_GUISize::JSI_class,  JSI_GUISize::construct,  1, nullptr,  JSI_GUISize::JSI_methods,  NULL, NULL);
+	scriptInterface.DefineCustomObjectType(&JSI_GUIColor::JSI_class, JSI_GUIColor::construct, 1, nullptr, JSI_GUIColor::JSI_methods, NULL, NULL);
+	scriptInterface.DefineCustomObjectType(&JSI_GUIMouse::JSI_class, JSI_GUIMouse::construct, 1, nullptr, JSI_GUIMouse::JSI_methods, NULL, NULL);
 }
