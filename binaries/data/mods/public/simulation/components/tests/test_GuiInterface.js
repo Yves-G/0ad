@@ -117,6 +117,7 @@ AddMock(100, IID_StatisticsTracker, {
 			},
 			"treasuresCollected": 0,
 			"percentMapExplored": 10,
+			"teamPercentMapExplored": 10
 		};
 	},
 	IncreaseTrainedUnitsCounter: function() { return 1; },
@@ -180,6 +181,7 @@ AddMock(101, IID_StatisticsTracker, {
 			},
 			"treasuresCollected": 0,
 			"percentMapExplored": 10,
+			"teamPercentMapExplored": 10
 		};
 	},
 	IncreaseTrainedUnitsCounter: function() { return 1; },
@@ -206,6 +208,7 @@ TS_ASSERT_UNEVAL_EQUALS(cmp.GetSimulationState(), {
 			team: -1,
 			teamsLocked: false,
 			cheatsEnabled: false,
+			disabledTemplates: {},
 			phase: "village",
 			isAlly: [false, false],
 			isMutualAlly: [false, false],
@@ -214,7 +217,6 @@ TS_ASSERT_UNEVAL_EQUALS(cmp.GetSimulationState(), {
 			entityLimits: {"Foo": 10},
 			entityCounts: {"Foo": 5},
 			entityLimitChangers: {"Foo": {}},
-			disabledTemplates: {},
 			researchQueued: {},
 			researchStarted: {},
 			researchedTechs: {},
@@ -235,6 +237,7 @@ TS_ASSERT_UNEVAL_EQUALS(cmp.GetSimulationState(), {
 			team: -1,
 			teamsLocked: false,
 			cheatsEnabled: false,
+			disabledTemplates: {},
 			phase: "village",
 			isAlly: [true, true],
 			isMutualAlly: [false, false],
@@ -243,7 +246,6 @@ TS_ASSERT_UNEVAL_EQUALS(cmp.GetSimulationState(), {
 			entityLimits: {"Bar": 20},
 			entityCounts: {"Bar": 0},
 			entityLimitChangers: {"Bar": {}},
-			disabledTemplates: {},
 			researchQueued: {},
 			researchStarted: {},
 			researchedTechs: {},
@@ -254,6 +256,7 @@ TS_ASSERT_UNEVAL_EQUALS(cmp.GetSimulationState(), {
 	circularMap: false,
 	timeElapsed: 0,
 	gameType: "conquest",
+	barterPrices: {buy: {food: 150}, sell: {food: 25}}
 });
 
 TS_ASSERT_UNEVAL_EQUALS(cmp.GetExtendedSimulationState(), {
@@ -272,6 +275,7 @@ TS_ASSERT_UNEVAL_EQUALS(cmp.GetExtendedSimulationState(), {
 			team: -1,
 			teamsLocked: false,
 			cheatsEnabled: false,
+			disabledTemplates: {},
 			phase: "village",
 			isAlly: [false, false],
 			isMutualAlly: [false, false],
@@ -280,7 +284,6 @@ TS_ASSERT_UNEVAL_EQUALS(cmp.GetExtendedSimulationState(), {
 			entityLimits: {"Foo": 10},
 			entityCounts: {"Foo": 5},
 			entityLimitChangers: {"Foo": {}},
-			disabledTemplates: {},
 			researchQueued: {},
 			researchStarted: {},
 			researchedTechs: {},
@@ -301,6 +304,7 @@ TS_ASSERT_UNEVAL_EQUALS(cmp.GetExtendedSimulationState(), {
 				},
 				treasuresCollected: 0,
 				percentMapExplored: 10,
+				teamPercentMapExplored: 10
 			},
 		},
 		{
@@ -317,6 +321,7 @@ TS_ASSERT_UNEVAL_EQUALS(cmp.GetExtendedSimulationState(), {
 			team: -1,
 			teamsLocked: false,
 			cheatsEnabled: false,
+			disabledTemplates: {},
 			phase: "village",
 			isAlly: [true, true],
 			isMutualAlly: [false, false],
@@ -325,7 +330,6 @@ TS_ASSERT_UNEVAL_EQUALS(cmp.GetExtendedSimulationState(), {
 			entityLimits: {"Bar": 20},
 			entityCounts: {"Bar": 0},
 			entityLimitChangers: {"Bar": {}},
-			disabledTemplates: {},
 			researchQueued: {},
 			researchStarted: {},
 			researchedTechs: {},
@@ -346,6 +350,7 @@ TS_ASSERT_UNEVAL_EQUALS(cmp.GetExtendedSimulationState(), {
 				},
 				treasuresCollected: 0,
 				percentMapExplored: 10,
+				teamPercentMapExplored: 10
 			},
 		}
 	],

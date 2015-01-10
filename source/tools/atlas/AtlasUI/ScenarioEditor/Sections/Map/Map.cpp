@@ -1,4 +1,4 @@
-/* Copyright (C) 2014 Wildfire Games.
+/* Copyright (C) 2015 Wildfire Games.
  * This file is part of 0 A.D.
  *
  * 0 A.D. is free software: you can redistribute it and/or modify
@@ -401,6 +401,7 @@ void MapSidebar::OnMapReload()
 
 	// Reset sim test buttons
 	POST_MESSAGE(SimPlay, (0.f, false));
+	POST_MESSAGE(SimStopMusic, ());
 	POST_MESSAGE(GuiSwitchPage, (L"page_atlas.xml"));
 	m_SimState = SimInactive;
 	UpdateSimButtons();
@@ -480,6 +481,7 @@ void MapSidebar::OnSimReset(wxCommandEvent& WXUNUSED(event))
 	{
 		POST_MESSAGE(SimPlay, (0.f, true));
 		POST_MESSAGE(SimStateRestore, (L"default"));
+		POST_MESSAGE(SimStopMusic, ());
 		POST_MESSAGE(SimPlay, (0.f, false));
 		POST_MESSAGE(GuiSwitchPage, (L"page_atlas.xml"));
 		m_SimState = SimInactive;
@@ -488,6 +490,7 @@ void MapSidebar::OnSimReset(wxCommandEvent& WXUNUSED(event))
 	{
 		POST_MESSAGE(SimPlay, (0.f, true));
 		POST_MESSAGE(SimStateRestore, (L"default"));
+		POST_MESSAGE(SimStopMusic, ());
 		POST_MESSAGE(SimPlay, (0.f, false));
 		POST_MESSAGE(GuiSwitchPage, (L"page_atlas.xml"));
 		m_SimState = SimInactive;
@@ -505,6 +508,9 @@ void MapSidebar::OnRandomReseed(wxCommandEvent& WXUNUSED(evt))
 
 void MapSidebar::OnRandomGenerate(wxCommandEvent& WXUNUSED(evt))
 {
+	if (m_ScenarioEditor.DiscardChangesDialog())
+		return;
+
 	wxChoice* scriptChoice = wxDynamicCast(FindWindow(ID_RandomScript), wxChoice);
 
 	if (scriptChoice->GetSelection() < 0)

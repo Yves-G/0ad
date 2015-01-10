@@ -4,7 +4,12 @@
  */
 function PreInitGame()
 {
+	// We need to replace skirmish "default" entities with real ones.
+	// This needs to happen before AI initialization (in InitGame).
+	// And we need to flush destroyed entities otherwise the AI gets the wrong game state in 
+	// the beginning and a bunch of "destroy" messages on turn 0, which just shouldn't happen.
 	Engine.BroadcastMessage(MT_SkirmishReplace, {});
+	Engine.FlushDestroyedEntities(); 
 
 	let cmpPlayerManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_PlayerManager);
 	let playerIds = cmpPlayerManager.GetAllPlayerEntities().slice(1); // ignore gaia
@@ -14,6 +19,10 @@ function PreInitGame()
 		if (cmpTechnologyManager)
 			cmpTechnologyManager.UpdateAutoResearch();
 	}
+
+	// Explore the map inside the players' territory borders
+	let cmpRangeManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_RangeManager);
+	cmpRangeManager.ExploreTerritories();
 }
 
 function InitGame(settings)
@@ -22,23 +31,22 @@ function InitGame(settings)
 	if (!settings)
 		return;
 
-	let cmpRangeManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_RangeManager);
 	if (settings.ExploreMap)
-		for (var i = 0; i < settings.PlayerData.length; i++)
-			cmpRangeManager.ExploreAllTiles(i+1);
-	else
-		// Explore the map only inside the players' territory borders
-		cmpRangeManager.ExploreTerritories();
+	{
+		let cmpRangeManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_RangeManager);
+		for (let i = 1; i < settings.PlayerData.length; ++i)
+			cmpRangeManager.ExploreAllTiles(i);
+	}
 
 	let cmpPlayerManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_PlayerManager);
 	let cmpAIManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_AIManager);
-	for (let i = 0; i < settings.PlayerData.length; ++i)
+	for (let i = 1; i < settings.PlayerData.length; ++i)
 	{
-		let cmpPlayer = Engine.QueryInterface(cmpPlayerManager.GetPlayerByID(i+1), IID_Player);
+		let cmpPlayer = Engine.QueryInterface(cmpPlayerManager.GetPlayerByID(i), IID_Player);
 		cmpPlayer.SetCheatsEnabled(!!settings.CheatsEnabled);
 		if (settings.PlayerData[i] && settings.PlayerData[i].AI && settings.PlayerData[i].AI != "")
 		{
-			cmpAIManager.AddPlayer(settings.PlayerData[i].AI, i+1, +settings.PlayerData[i].AIDiff);
+			cmpAIManager.AddPlayer(settings.PlayerData[i].AI, i, +settings.PlayerData[i].AIDiff);
 			cmpPlayer.SetAI(true);
 			// Sandbox: 50%, very easy: 50%, easy: 66%, Medium: 100%, hard: 133%, very hard: 166%
 			cmpPlayer.SetGatherRateMultiplier(Math.max(0.5,(+settings.PlayerData[i].AIDiff)/3.0));

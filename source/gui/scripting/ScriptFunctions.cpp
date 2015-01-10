@@ -173,9 +173,9 @@ void PostNetworkCommand(ScriptInterface::CxPrivate* pCxPrivate, CScriptVal cmd1)
 	cmpCommandQueue->PostNetworkCommand(CScriptVal(cmd2));
 }
 
-std::vector<entity_id_t> PickEntitiesAtPoint(ScriptInterface::CxPrivate* UNUSED(pCxPrivate), int x, int y, int range)
+entity_id_t PickEntityAtPoint(ScriptInterface::CxPrivate* UNUSED(pCxPrivate), int x, int y)
 {
-	return EntitySelection::PickEntitiesAtPoint(*g_Game->GetSimulation2(), *g_Game->GetView()->GetCamera(), x, y, g_Game->GetPlayerID(), false, range);
+	return EntitySelection::PickEntityAtPoint(*g_Game->GetSimulation2(), *g_Game->GetView()->GetCamera(), x, y, g_Game->GetPlayerID(), false);
 }
 
 std::vector<entity_id_t> PickFriendlyEntitiesInRect(ScriptInterface::CxPrivate* UNUSED(pCxPrivate), int x0, int y0, int x1, int y1, int player)
@@ -842,6 +842,22 @@ CScriptVal ReadJSONFile(ScriptInterface::CxPrivate* pCxPrivate, std::wstring fil
 	return out.get();
 }
 
+void WriteJSONFile(ScriptInterface::CxPrivate* pCxPrivate, std::wstring filePath, CScriptVal scriptVal)
+{
+	JS::RootedValue val(pCxPrivate->pScriptInterface->GetContext(), scriptVal.get());
+	std::string str(pCxPrivate->pScriptInterface->StringifyJSON(&val, false));
+
+	VfsPath path(filePath);
+	WriteBuffer buf;
+	buf.Append(str.c_str(), str.length());
+	g_VFS->CreateFile(path, buf.Data(), buf.Size());
+}
+
+CParamNode GetTemplate(ScriptInterface::CxPrivate* UNUSED(pCxPrivate), std::string templateName)
+{
+	return g_GUI->GetTemplate(templateName);
+}
+
 //-----------------------------------------------------------------------------
 // Timer
 //-----------------------------------------------------------------------------
@@ -943,7 +959,7 @@ void GuiScriptingInit(ScriptInterface& scriptInterface)
 	scriptInterface.RegisterFunction<void, CScriptVal, &PostNetworkCommand>("PostNetworkCommand");
 
 	// Entity picking
-	scriptInterface.RegisterFunction<std::vector<entity_id_t>, int, int, int, &PickEntitiesAtPoint>("PickEntitiesAtPoint");
+	scriptInterface.RegisterFunction<entity_id_t, int, int, &PickEntityAtPoint>("PickEntityAtPoint");
 	scriptInterface.RegisterFunction<std::vector<entity_id_t>, int, int, int, int, int, &PickFriendlyEntitiesInRect>("PickFriendlyEntitiesInRect");
 	scriptInterface.RegisterFunction<std::vector<entity_id_t>, int, &PickFriendlyEntitiesOnScreen>("PickFriendlyEntitiesOnScreen");
 	scriptInterface.RegisterFunction<std::vector<entity_id_t>, std::string, bool, bool, bool, &PickSimilarFriendlyEntities>("PickSimilarFriendlyEntities");
@@ -1002,6 +1018,8 @@ void GuiScriptingInit(ScriptInterface& scriptInterface)
 	scriptInterface.RegisterFunction<int, &GetFps>("GetFPS");
 	scriptInterface.RegisterFunction<std::wstring, int, &GetBuildTimestamp>("GetBuildTimestamp");
 	scriptInterface.RegisterFunction<CScriptVal, std::wstring, &ReadJSONFile>("ReadJSONFile");
+	scriptInterface.RegisterFunction<void, std::wstring, CScriptVal, &WriteJSONFile>("WriteJSONFile");
+	scriptInterface.RegisterFunction<CParamNode, std::string, &GetTemplate>("GetTemplate");
 
 	// User report functions
 	scriptInterface.RegisterFunction<bool, &IsUserReportEnabled>("IsUserReportEnabled");
