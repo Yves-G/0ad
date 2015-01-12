@@ -657,9 +657,8 @@ popd > /dev/null
 # be customized, so we build and install them from bundled sources
 # --------------------------------------------------------------------
 echo -e "Building Spidermonkey..."
-
-LIB_VERSION="mozjs-31.2.0.rc0"
-LIB_ARCHIVE="$LIB_VERSION.tar.bz2"
+LIB_VERSION="mozjs-31.2.0"
+LIB_ARCHIVE="$LIB_VERSION.rc0.tar.bz2"
 LIB_DIRECTORY="mozjs31"
 
 pushd ../source/spidermonkey/ > /dev/null
@@ -691,9 +690,6 @@ then
   if [[ $SYSROOT && ${SYSROOT-_} ]]; then
     CONF_OPTS="$CONF_OPTS --with-macosx-sdk=$SYSROOT"
   fi
-
-  # apply patch to fix clang build on Mavericks (see https://bugzilla.mozilla.org/show_bug.cgi?id=917526)
-  patch -p0 -d ../../ -i ../../../osx/patches/sm-mavericks-clang-fix.diff || die "Spidermonkey build failed"
 
   mkdir -p build-debug
   pushd build-debug
