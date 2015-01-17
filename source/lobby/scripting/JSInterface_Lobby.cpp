@@ -179,7 +179,7 @@ JS::Value JSI_Lobby::GetPlayerList(ScriptInterface::CxPrivate* pCxPrivate)
 {
 	if (!g_XmppClient)
 		return JS::UndefinedValue();
-	
+
 	JSContext* cx = pCxPrivate->pScriptInterface->GetContext();
 	JSAutoRequest rq(cx);
 		
@@ -196,7 +196,7 @@ JS::Value JSI_Lobby::GetGameList(ScriptInterface::CxPrivate* pCxPrivate)
 
 	JSContext* cx = pCxPrivate->pScriptInterface->GetContext();
 	JSAutoRequest rq(cx);
-	
+
 	JS::RootedValue gameList(cx);
 	g_XmppClient->GUIGetGameList(*(pCxPrivate->pScriptInterface), &gameList);
 
@@ -210,7 +210,7 @@ JS::Value JSI_Lobby::GetBoardList(ScriptInterface::CxPrivate* pCxPrivate)
 
 	JSContext* cx = pCxPrivate->pScriptInterface->GetContext();
 	JSAutoRequest rq(cx);
-	
+
 	JS::RootedValue boardList(cx);
 	g_XmppClient->GUIGetBoardList(*(pCxPrivate->pScriptInterface), &boardList);
 

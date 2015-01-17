@@ -63,7 +63,7 @@ public:
 private:
 	ScriptInterface& m_ScriptInterface;
 	ISerializer& m_Serializer;
-	
+
 	ObjectIdCache<u32> m_ScriptBackrefs;
 	u32 m_ScriptBackrefsNext;
 	u32 GetScriptBackrefTag(JS::HandleObject obj);

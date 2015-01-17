@@ -289,7 +289,7 @@ void* ScriptRuntime::jshook_script(JSContext* UNUSED(cx), JSAbstractFramePtr UNU
 void* ScriptRuntime::jshook_function(JSContext* cx, JSAbstractFramePtr fp, bool UNUSED(isConstructing), bool before, bool* UNUSED(ok), void* closure)
 {
 	JSAutoRequest rq(cx);
-	
+
 	if (!before)
 	{
 		g_Profiler.Stop();
@@ -320,9 +320,9 @@ void* ScriptRuntime::jshook_function(JSContext* cx, JSAbstractFramePtr fp, bool 
 	JS::AutoFilename fileName;
 	unsigned lineno;
 	JS::DescribeScriptedCaller(cx, &fileName, &lineno);
-	
+
 	std::stringstream ss;
-	ss << "(" << fileName.get() << ":" << lineno << ")";		
+	ss << "(" << fileName.get() << ":" << lineno << ")";
 	g_Profiler.StartScript(ss.str().c_str());
 
 	return closure;

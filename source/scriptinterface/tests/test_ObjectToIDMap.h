@@ -29,11 +29,11 @@ public:
 		ScriptInterface script("Test", "Test", g_ScriptRuntime);
 		JSContext* cx = script.GetContext();
 		JSAutoRequest rq(cx);
-		
+
 		JS::RootedObject obj(cx, JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));
 		ObjectIdCache<u32> map(g_ScriptRuntime);
 		map.init();
-		
+
 		TS_ASSERT(map.add(cx, obj, 1));
 		JSObject* plainObj = obj;
 		// The map should contain the object we've just added
@@ -47,7 +47,7 @@ public:
 		// in the map.
 		//
 		// NOTE: It's observed behaviour that a full GC always moves an object.
-		// This might change in future SpiderMonkey versions. We only rely on 
+		// This might change in future SpiderMonkey versions. We only rely on
 		// that behaviour for this test.
 		//
 		// TODO: It might be a good idea to test the behaviour when only a minor
@@ -57,7 +57,7 @@ public:
 		TS_ASSERT(map.has(obj));
 
 		// Finding the ID associated with the object
-		u32 ret(0); 
+		u32 ret(0);
 		TS_ASSERT(map.find(obj, ret));
 		TS_ASSERT_EQUALS(ret, 1);
 	}

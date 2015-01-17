@@ -493,7 +493,7 @@ namespace
 			m_ScriptInterface(scriptInterface), m_Root(scriptInterface.GetJSRuntime(), root)
 		{
 		}
-		
+
 		// std::for_each requires a move constructor and the use of JS::PersistentRooted<T> apparently breaks a requirement for an 
 		// automatic move constructor
 		DumpTable(DumpTable && original) :

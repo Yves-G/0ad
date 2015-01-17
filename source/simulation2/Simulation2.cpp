@@ -340,7 +340,7 @@ void CSimulation2Impl::Update(int turnLength, const std::vector<SimulationComman
 
 	SerializationTestState primaryStateBefore;
 	ScriptInterface& scriptInterface = m_ComponentManager.GetScriptInterface();
-	
+
 	if (m_EnableSerializationTest)
 	{
 		ENSURE(m_ComponentManager.SerializeState(primaryStateBefore.state));
@@ -363,7 +363,6 @@ void CSimulation2Impl::Update(int turnLength, const std::vector<SimulationComman
 		secondaryComponentManager.LoadComponentTypes();
 		ENSURE(LoadDefaultScripts(secondaryComponentManager, NULL));
 		ResetComponentState(secondaryComponentManager, false, false);
-		
 
 		// Load the trigger scripts after we have loaded the simulation.
 		{
@@ -393,11 +392,11 @@ void CSimulation2Impl::Update(int turnLength, const std::vector<SimulationComman
 			scriptInterface.GetProperty(m_InitAttributes, "map", mapFile);
 
 			VfsPath mapfilename = VfsPath(mapFile).ChangeExtension(L".pmp");
-			mapReader->LoadMap(mapfilename, scriptInterface.GetJSRuntime(), JS::UndefinedHandleValue, 
+			mapReader->LoadMap(mapfilename, scriptInterface.GetJSRuntime(), JS::UndefinedHandleValue,
 				&secondaryTerrain, NULL, NULL, NULL, NULL, NULL, NULL,
 				NULL, NULL, &secondaryContext, INVALID_PLAYER, true); // throws exception on failure
 		}
-		
+
 		LDR_EndRegistering();
 		ENSURE(LDR_NonprogressiveLoad() == INFO::OK);
 
@@ -447,7 +446,7 @@ void CSimulation2Impl::Update(int turnLength, const std::vector<SimulationComman
 	// much more turns in the same time than in normal games.
 	// All 500 turns we run a shrinking GC, which decommits unused memory and frees all JIT code.
 	// Based on testing, this seems to be a good compromise between memory usage and performance.
-	// Also check the comment about gcPreserveCode in the ScriptInterface code and this forum topic: 
+	// Also check the comment about gcPreserveCode in the ScriptInterface code and this forum topic:
 	// http://www.wildfiregames.com/forum/index.php?showtopic=18466&p=300323
 	//
 	// (TODO: we ought to schedule this for a frame where we're not

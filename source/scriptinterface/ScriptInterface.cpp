@@ -66,8 +66,8 @@ struct ScriptInterface_impl
 	boost::rand48* m_rng;
 	JS::PersistentRootedObject m_nativeScope; // native function scope object
 
-	// TODO: we need DefPersistentRooted to work around a problem with JS::PersistentRooted<T> 
-	// that is already solved in newer versions of SpiderMonkey (related to std::pair and 
+	// TODO: we need DefPersistentRooted to work around a problem with JS::PersistentRooted<T>
+	// that is already solved in newer versions of SpiderMonkey (related to std::pair and
 	// and the copy constructor of PersistentRooted<T> taking a non-const reference).
 	// Switch this to PersistentRooted<T> when upgrading to a newer SpiderMonkey version than v31.
 	typedef std::map<ScriptInterface::CACHED_VAL, DefPersistentRooted<JS::Value> > ScriptValCache;
@@ -320,10 +320,10 @@ ScriptInterface_impl::ScriptInterface_impl(const char* nativeScopeName, const sh
 	JS_SetContextPrivate(m_cx, NULL);
 
 	JS_SetErrorReporter(m_cx, ErrorReporter);
-	
+
 	JS_SetGlobalJitCompilerOption(m_runtime->m_rt, JSJITCOMPILER_ION_ENABLE, 1);
 	JS_SetGlobalJitCompilerOption(m_runtime->m_rt, JSJITCOMPILER_BASELINE_ENABLE, 1);
-	
+
 	JS::ContextOptionsRef(m_cx).setExtraWarnings(1)
 		.setWerror(0)
 		.setVarObjFix(1)
@@ -331,14 +331,14 @@ ScriptInterface_impl::ScriptInterface_impl(const char* nativeScopeName, const sh
 
 	JS::CompartmentOptions opt;
 	opt.setVersion(JSVERSION_LATEST);
-	
+
 	JSAutoRequest rq(m_cx);
 	JS::RootedObject globalRootedVal(m_cx, JS_NewGlobalObject(m_cx, &global_class, NULL, JS::OnNewGlobalHookOption::FireOnNewGlobalHook, opt));
 	m_comp = JS_EnterCompartment(m_cx, globalRootedVal);
 	ok = JS_InitStandardClasses(m_cx, globalRootedVal);
 	ENSURE(ok);
 	m_glob = globalRootedVal.get();
-	
+
 	// Use the testing functions to globally enable gcPreserveCode. This brings quite a 
 	// big performance improvement. In future SpiderMonkey versions, we should probably 
 	// use the functions implemented here: https://bugzilla.mozilla.org/show_bug.cgi?id=1068697
@@ -548,7 +548,7 @@ void ScriptInterface::CallConstructor(JS::HandleValue ctor, JS::HandleValueArray
 		out.setNull();
 		return;
 	}
-	
+
 	JS::RootedObject ctorObj(m->m_cx, &ctor.toObject());
 	out.setObjectOrNull(JS_New(m->m_cx, ctorObj, argv));
 }
@@ -723,7 +723,7 @@ bool ScriptInterface::GetProperty(JS::HandleValue obj, const char* name, JS::Mut
 		LOGERROR(L"GetProperty failed: trying to get an object, but the property is not an object!");
 		return false;
 	}
-	
+
 	out.set(&val.toObject());
 	return true;
 }
@@ -858,7 +858,6 @@ bool ScriptInterface::LoadScript(const VfsPath& filename, const std::string& cod
 	JSAutoRequest rq(m->m_cx);
 	JS::RootedObject global(m->m_cx, m->m_glob);
 	utf16string codeUtf16(code.begin(), code.end());
-	
 	uint lineNo = 1;
 	// CompileOptions does not copy the contents of the filename string pointer.
 	// Passing a temporary string there will cause undefined behaviour, so we create a separate string to avoid the temporary.
@@ -876,9 +875,7 @@ bool ScriptInterface::LoadScript(const VfsPath& filename, const std::string& cod
 		return false;
 
 	JS::RootedValue rval(m->m_cx);
-	bool ok = JS_CallFunction(m->m_cx, JS::NullPtr(), func, JS::HandleValueArray::empty(), &rval);
-
-	return ok;
+	return JS_CallFunction(m->m_cx, JS::NullPtr(), func, JS::HandleValueArray::empty(), &rval);
 }
 
 shared_ptr<ScriptRuntime> ScriptInterface::CreateRuntime(shared_ptr<ScriptRuntime> parentRuntime, int runtimeSize, int heapGrowthBytesGCTrigger)
@@ -894,11 +891,9 @@ bool ScriptInterface::LoadGlobalScript(const VfsPath& filename, const std::wstri
 	uint lineNo = 1;
 
 	JS::RootedValue rval(m->m_cx);
-	bool ok = JS_EvaluateUCScript(m->m_cx, global,
+	return JS_EvaluateUCScript(m->m_cx, global,
 			reinterpret_cast<const jschar*> (codeUtf16.c_str()), (uint)(codeUtf16.length()),
 			utf8_from_wstring(filename.string()).c_str(), lineNo, &rval);
-
-	return ok;
 }
 
 bool ScriptInterface::LoadGlobalScriptFile(const VfsPath& path)
@@ -927,11 +922,9 @@ bool ScriptInterface::LoadGlobalScriptFile(const VfsPath& path)
 	uint lineNo = 1;
 
 	JS::RootedValue rval(m->m_cx);
-	bool ok = JS_EvaluateUCScript(m->m_cx, global,
+	return JS_EvaluateUCScript(m->m_cx, global,
 			reinterpret_cast<const jschar*> (codeUtf16.c_str()), (uint)(codeUtf16.length()),
 			utf8_from_wstring(path.string()).c_str(), lineNo, &rval);
-
-	return ok;
 }
 
 bool ScriptInterface::Eval(const char* code)
@@ -947,8 +940,7 @@ bool ScriptInterface::Eval_(const char* code, JS::MutableHandleValue rval)
 	JS::RootedObject global(m->m_cx, m->m_glob);
 	utf16string codeUtf16(code, code+strlen(code));
 	
-	bool ok = JS_EvaluateUCScript(m->m_cx, global, (const jschar*)codeUtf16.c_str(), (uint)codeUtf16.length(), "(eval)", 1, rval);
-	return ok;
+	return JS_EvaluateUCScript(m->m_cx, global, (const jschar*)codeUtf16.c_str(), (uint)codeUtf16.length(), "(eval)", 1, rval);
 }
 
 bool ScriptInterface::Eval_(const wchar_t* code, JS::MutableHandleValue rval)
@@ -957,8 +949,7 @@ bool ScriptInterface::Eval_(const wchar_t* code, JS::MutableHandleValue rval)
 	JS::RootedObject global(m->m_cx, m->m_glob);
 	utf16string codeUtf16(code, code+wcslen(code));
 
-	bool ok = JS_EvaluateUCScript(m->m_cx, global, (const jschar*)codeUtf16.c_str(), (uint)codeUtf16.length(), "(eval)", 1, rval);
-	return ok;
+	return JS_EvaluateUCScript(m->m_cx, global, (const jschar*)codeUtf16.c_str(), (uint)codeUtf16.length(), "(eval)", 1, rval);
 }
 
 bool ScriptInterface::ParseJSON(const std::string& string_utf8, JS::MutableHandleValue out)
@@ -1075,7 +1066,7 @@ std::wstring ScriptInterface::ToString(JS::MutableHandleValue obj, bool pretty)
 	{
 		StringifierW str;
 		JS::RootedValue indentVal(m->m_cx, JS::Int32Value(2));
-		
+
 		// Temporary disable the error reporter, so we don't print complaints about cyclic values
 		JSErrorReporter er = JS_SetErrorReporter(m->m_cx, NULL);
 

@@ -265,7 +265,7 @@ void CNetTurnManager::AddCommand(int client, int player, JS::HandleValue data, u
 		debug_warn(L"Received command for invalid turn");
 		return;
 	}
-	
+
 	SimulationCommand cmd(player, m_Simulation2.GetScriptInterface().GetContext(), data);
 	m_QueuedCommands[turn - (m_CurrentTurn+1)][client].emplace_back(std::move(cmd));
 }

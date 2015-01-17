@@ -34,16 +34,16 @@ class HandleWrapper
 public:
 	HandleWrapper() : m_Handle(JS::NullHandleValue) {};
 	void set(JS::HandleValue handle) { m_Handle.repoint(handle); }
-	operator JS::HandleValue() 
+	operator JS::HandleValue()
 	{
-		return m_Handle; 
+		return m_Handle;
 	}
-	
+
 private:
 	JS::HandleValue m_Handle;
 };
 
-template<typename T> struct WrapperIfHandle;
+template <typename T> struct WrapperIfHandle;
 
 public:
 
@@ -62,7 +62,7 @@ public:
 // behaviour because some types have undefined values when not being initialized).
 // This is not very clear and also a bit fragile. Another problem is that the error reporting lacks
 // a bit. SpiderMonkey will throw a JS exception and abort the execution of the current function when
-// we return false here (without printing a callstack or additional detail telling that an argument 
+// we return false here (without printing a callstack or additional detail telling that an argument
 // converson failed). So we have two TODOs here:
 // 1. On the conceptual side: How to consistently work with optional parameters (or drop them completely?)
 // 2. On the technical side: Improve error handling, find a better way to ensure parameters are initialized

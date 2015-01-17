@@ -25,7 +25,7 @@
  * A default constructible wrapper around JS::PersistentRootedValue
  *
  * It's a very common case that we need to store JS::Values on the heap as
- * class members and only need them conditionally or want to initialize 
+ * class members and only need them conditionally or want to initialize
  * them after the constructor because we don't have the runtime available yet.
  * Use it in these cases, but prefer to use JS::PersistentRootedValue directly
  * if initializing it with a runtime/context in the constructor isn't a problem.
@@ -37,38 +37,38 @@ public:
 	DefPersistentRooted()
 	{
 	}
-	
+
 	DefPersistentRooted(JSRuntime* rt)
 	{
 		m_Val.reset(new JS::PersistentRooted<T>(rt));
 	}
-	
+
 	DefPersistentRooted(JSRuntime* rt, JS::HandleValue val)
 	{
 		m_Val.reset(new JS::PersistentRooted<T>(rt, val));
 	}
-	
+
 	DefPersistentRooted(JSContext* cx, JS::Handle<T> val)
 	{
 		m_Val.reset(new JS::PersistentRooted<T>(cx, val));
 	}
-	
+
 	inline bool uninitialized()
 	{
 		return m_Val == nullptr;
 	}
-	
+
 	inline JS::PersistentRooted<T>& get() const
 	{
 		ENSURE(m_Val);
 		return *m_Val;
 	}
-	
+
 	inline void set(JSRuntime* rt, T val)
 	{
 		m_Val.reset(new JS::PersistentRooted<T>(rt, val));
 	}
-	
+
 	inline void set(JSContext* cx, T val)
 	{
 		m_Val.reset(new JS::PersistentRooted<T>(cx, val));
@@ -87,8 +87,8 @@ public:
 	{
 		m_Val = std::move(other.m_Val);
 	}
-	
-private:	
+
+private:
 	std::unique_ptr<JS::PersistentRooted<T> > m_Val;
 };
 

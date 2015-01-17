@@ -212,7 +212,7 @@ public:
 		m_ScriptInterface->LoadGlobalScripts();
 
 		m_ScriptInterface->SetCallbackData(static_cast<void*> (this));
-		
+
 		m_SerializablePrototypes->init();
 		JS_AddExtraGCRootsTracer(m_ScriptInterface->GetJSRuntime(), Trace, this);
 
@@ -471,7 +471,7 @@ public:
 
 		if (passabilityMap.m_DirtyID != m_PassabilityMap.m_DirtyID)
 		{
-			m_PassabilityMap = passabilityMap; 
+			m_PassabilityMap = passabilityMap;
 			ScriptInterface::ToJSVal(cx, &m_PassabilityMapVal, m_PassabilityMap);
 		}
 
@@ -506,7 +506,7 @@ public:
 		}
 	}
 
-	void RegisterTechTemplates(const shared_ptr<ScriptInterface::StructuredClone>& techTemplates) 
+	void RegisterTechTemplates(const shared_ptr<ScriptInterface::StructuredClone>& techTemplates)
 	{
 		m_ScriptInterface->ReadStructuredClone(techTemplates, &m_TechTemplates);
 	}
@@ -711,7 +711,7 @@ private:
 	{
 		reinterpret_cast<CAIWorker*>(data)->TraceMember(trc);
 	}
-	
+
 	void TraceMember(JSTracer *trc)
 	{
 		for (auto itr = m_DeserializablePrototypes.begin(); itr != m_DeserializablePrototypes.end(); ++itr)
@@ -719,7 +719,7 @@ private:
 		for (auto itr = m_PlayerMetadata.begin(); itr != m_PlayerMetadata.end(); ++itr)
 			JS_CallHeapValueTracer(trc, &itr->second, "CAIWorker::m_PlayerMetadata");
 	}
-	
+
 	void LoadMetadata(const VfsPath& path, JS::MutableHandleValue out)
 	{
 		if (m_PlayerMetadata.find(path) == m_PlayerMetadata.end())

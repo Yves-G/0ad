@@ -500,12 +500,12 @@ private:
 	 * @return the error result
 	 */
 	PSRETURN LogInvalidSettings(const CStr8& Setting) const;
-	
+
 	static void Trace(JSTracer *trc, void *data)
 	{
 		reinterpret_cast<IGUIObject*>(data)->TraceMember(trc);
 	}
-	
+
 	void TraceMember(JSTracer *trc);
 
 	// Variables

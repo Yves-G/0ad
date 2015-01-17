@@ -43,8 +43,8 @@ class ScriptRuntime
 {
 public:
 	ScriptRuntime(shared_ptr<ScriptRuntime> parentRuntime, int runtimeSize, int heapGrowthBytesGCTrigger);
-	~ScriptRuntime(); 
-	
+	~ScriptRuntime();
+
 	/**
 	 * MaybeIncrementalRuntimeGC tries to determine whether a runtime-wide garbage collection would free up enough memory to 
 	 * be worth the amount of time it would take. It does this with our own logic and NOT some predefined JSAPI logic because
@@ -70,7 +70,7 @@ public:
 	 * (by casting to the right type before calling delete for example).
 	 */
 	void AddDeferredFinalizationObject(const std::shared_ptr<void>& obj);
-	
+
 	JSRuntime* m_rt;
 
 private:
@@ -89,15 +89,15 @@ private:
 	int m_HeapGrowthBytesGCTrigger;
 	int m_LastGCBytes;
 	double m_LastGCCheck;
-	
+
 	static void GCCallback(JSRuntime *rt, JSGCStatus status, void *data);
 
 	static void* jshook_script(JSContext* UNUSED(cx), JSAbstractFramePtr UNUSED(fp), 
-		bool UNUSED(isConstructing), bool before, 
+		bool UNUSED(isConstructing), bool before,
 		bool* UNUSED(ok), void* closure);
 	
 	static void* jshook_function(JSContext* cx, JSAbstractFramePtr fp, 
-		bool UNUSED(isConstructing), bool before, 
+		bool UNUSED(isConstructing), bool before,
 		bool* UNUSED(ok), void* closure);
 
 	// To profile scripts usefully, we use a call hook that's called on every enter/exit,

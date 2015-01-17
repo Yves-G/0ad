@@ -152,8 +152,8 @@ public:
 	 * types and confusing (a chain of pointers pointing to other pointers).
 	 */
 	CGameLoader(ScriptInterface& scriptInterface, std::string* savedState) :
-		m_ScriptInterface(scriptInterface), 
-		m_Metadata(scriptInterface.GetJSRuntime()), 
+		m_ScriptInterface(scriptInterface),
+		m_Metadata(scriptInterface.GetJSRuntime()),
 		m_SavedState(savedState)
 	{
 	}

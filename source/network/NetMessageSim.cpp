@@ -120,14 +120,13 @@ CSimulationMessage::CSimulationMessage(ScriptInterface& scriptInterface, u32 cli
 {
 }
 
-CSimulationMessage::CSimulationMessage(const CSimulationMessage& orig) : 
+CSimulationMessage::CSimulationMessage(const CSimulationMessage& orig) :
 	m_Data(orig.m_ScriptInterface->GetJSRuntime()),
 	m_Client(orig.m_Client),
 	m_Player(orig.m_Player),
 	m_ScriptInterface(orig.m_ScriptInterface),
 	m_Turn(orig.m_Turn),
 	CNetMessage(orig)
-	
 {
 	m_Data.set(orig.m_Data);
 }
@@ -141,7 +140,7 @@ u8* CSimulationMessage::Serialize(u8* pBuffer) const
 	serializer.NumberU32_Unbounded("client", m_Client);
 	serializer.NumberI32_Unbounded("player", m_Player);
 	serializer.NumberU32_Unbounded("turn", m_Turn);
-	
+
 	serializer.ScriptVal("command", const_cast<JS::PersistentRootedValue*>(&m_Data));
 	return serializer.GetBuffer();
 }
@@ -168,7 +167,7 @@ size_t CSimulationMessage::GetSerializedLength() const
 	serializer.NumberU32_Unbounded("client", m_Client);
 	serializer.NumberI32_Unbounded("player", m_Player);
 	serializer.NumberU32_Unbounded("turn", m_Turn);
-	
+
 	// TODO: The cast can probably be removed if and when ScriptVal can take a JS::HandleValue instead of
 	// a JS::MutableHandleValue (relies on JSAPI change). Also search for other casts like this one in that case.
 	serializer.ScriptVal("command", const_cast<JS::PersistentRootedValue*>(&m_Data));
@@ -198,7 +197,7 @@ CGameSetupMessage::CGameSetupMessage(ScriptInterface& scriptInterface, JS::Handl
 
 u8* CGameSetupMessage::Serialize(u8* pBuffer) const
 {
-	// TODO: ought to handle serialization exceptions	
+	// TODO: ought to handle serialization exceptions
 	u8* pos = CNetMessage::Serialize(pBuffer);
 	CBufferBinarySerializer serializer(m_ScriptInterface, pos);
 	serializer.ScriptVal("command", const_cast<JS::PersistentRootedValue*>(&m_Data));

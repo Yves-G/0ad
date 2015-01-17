@@ -363,7 +363,7 @@ public:
 	 */
 	template <typename T>
 	static void AssignOrToJSVal(JSContext* cx, JS::MutableHandleValue handle, const T& a);
-	
+
 	/**
 	 * The same as AssignOrToJSVal, but also allows JS::Value for T.
 	 * In most cases it's not safe to use the plain (unrooted) JS::Value type, but this can happen quite

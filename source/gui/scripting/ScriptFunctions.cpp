@@ -105,12 +105,12 @@ void PopGuiPage(ScriptInterface::CxPrivate* UNUSED(pCxPrivate))
 // Functions aren't supported for example!
 // TODO: Use LOGERROR to print a friendly error message when the requirements aren't met instead of failing with debug_warn when cloning.
 void PopGuiPageCB(ScriptInterface::CxPrivate* pCxPrivate, JS::HandleValue args)
-{	
+{
 	g_GUI->PopPageCB(pCxPrivate->pScriptInterface->WriteStructuredClone(args));
 }
 
 JS::Value GuiInterfaceCall(ScriptInterface::CxPrivate* pCxPrivate, std::wstring name, JS::HandleValue data)
-{	
+{
 	if (!g_Game)
 		return JS::UndefinedValue();
 	CSimulation2* sim = g_Game->GetSimulation2();
@@ -440,12 +440,12 @@ JS::Value LoadMapSettings(ScriptInterface::CxPrivate* pCxPrivate, VfsPath pathna
 {
 	JSContext* cx = pCxPrivate->pScriptInterface->GetContext();
 	JSAutoRequest rq(cx);
-	
+
 	CMapSummaryReader reader;
 
 	if (reader.LoadMap(pathname) != PSRETURN_OK)
 		return JS::UndefinedValue();
-	
+
 	JS::RootedValue settings(cx);
 	reader.GetMapSettings(*(pCxPrivate->pScriptInterface), &settings);
 	return settings;
@@ -814,10 +814,10 @@ void WriteJSONFile(ScriptInterface::CxPrivate* pCxPrivate, std::wstring filePath
 {
 	JSContext* cx = pCxPrivate->pScriptInterface->GetContext();
 	JSAutoRequest rq(cx);
-	
+
 	// TODO: This is a workaround because we need to pass a MutableHandle to StringifyJSON.
 	JS::RootedValue val(cx, val1);
-	
+
 	std::string str(pCxPrivate->pScriptInterface->StringifyJSON(&val, false));
 
 	VfsPath path(filePath);

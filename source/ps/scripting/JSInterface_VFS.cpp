@@ -50,7 +50,7 @@ struct BuildDirEntListState
 	int cur_idx;
 
 	BuildDirEntListState(JSContext* cx_)
-		: cx(cx_), 
+		: cx(cx_),
 		filename_array(cx, JS_NewArrayObject(cx, JS::HandleValueArray::empty())),
 		cur_idx(0)
 	{
@@ -62,7 +62,7 @@ static Status BuildDirEntListCB(const VfsPath& pathname, const CFileInfo& UNUSED
 {
 	BuildDirEntListState* s = (BuildDirEntListState*)cbData;
 	JSAutoRequest rq(s->cx);
-	
+
 	JS::RootedObject filenameArrayObj(s->cx, s->filename_array);
 	JS::RootedValue val(s->cx);
 	ScriptInterface::ToJSVal( s->cx, &val, CStrW(pathname.string()) );
@@ -189,7 +189,7 @@ JS::Value JSI_VFS::ReadFileLines(ScriptInterface::CxPrivate* pCxPrivate, std::ws
 	JS::RootedObject line_array(cx, JS_NewArrayObject(cx, JS::HandleValueArray::empty()));
 	std::string line;
 	int cur_line = 0;
-	
+
 	while (std::getline(ss, line))
 	{
 		// Decode each line as UTF-8

@@ -598,7 +598,6 @@ void XmppClient::GuiPollMessage(ScriptInterface& scriptInterface, JS::MutableHan
 		ret.setUndefined();
 		return;
 	}
-		
 
 	GUIMessage message = m_GuiMessageQueue.front();
 	JSContext* cx = scriptInterface.GetContext();

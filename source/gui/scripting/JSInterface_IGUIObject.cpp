@@ -306,7 +306,7 @@ bool JSI_IGUIObject::setProperty(JSContext* cx, JS::HandleObject obj, JS::Handle
 	IGUIObject* e = (IGUIObject*)JS_GetInstancePrivate(cx, obj, &JSI_IGUIObject::JSI_class, NULL);
 	if (!e)
 		return false;
-		
+
 	JSAutoRequest rq(cx);
 	JS::RootedValue idval(cx);
 	if (!JS_IdToValue(cx, id, &idval))
@@ -348,7 +348,7 @@ bool JSI_IGUIObject::setProperty(JSContext* cx, JS::HandleObject obj, JS::Handle
 		JS_ReportError(cx, "Invalid setting '%s'", propName.c_str());
 		return true;
 	}
-	
+
 	JS::RootedObject vpObj(cx);
 	if (vp.isObject())
 		vpObj = &vp.toObject();
@@ -470,7 +470,7 @@ bool JSI_IGUIObject::setProperty(JSContext* cx, JS::HandleObject obj, JS::Handle
 		}
 
 	case GUIST_CClientArea:
-		{				
+		{
 			if (vp.isString())
 			{
 				std::wstring value;
@@ -557,7 +557,7 @@ bool JSI_IGUIObject::setProperty(JSContext* cx, JS::HandleObject obj, JS::Handle
 
 			CGUIList list;
 			JS::RootedObject obj(cx, &vp.toObject());
-			
+
 			for (u32 i=0; i<length; ++i)
 			{
 				JS::RootedValue element(cx);

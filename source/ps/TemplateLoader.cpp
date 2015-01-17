@@ -227,7 +227,7 @@ std::vector<std::string> CTemplateLoader::FindPlaceableTemplates(const std::stri
 	{
 		JS::RootedValue placeablesFilter(cx);
 		scriptInterface.ReadJSONFile("simulation/data/placeablesFilter.json", &placeablesFilter);
-	
+
 		JS::RootedObject folders(cx);
 		if (scriptInterface.GetProperty(placeablesFilter, "templates", &folders))
 		{
@@ -236,14 +236,13 @@ std::vector<std::string> CTemplateLoader::FindPlaceableTemplates(const std::stri
 				LOGERROR(L"FindPlaceableTemplates: Argument must be an array!");
 				return templates;
 			}
-			
+
 			u32 length;
 			if (!JS_GetArrayLength(cx, folders, &length))
 			{
 				LOGERROR(L"FindPlaceableTemplates: Failed to get array length!");
 				return templates;
 			}
-			
 
 			templatePath = VfsPath(TEMPLATE_ROOT) / path;
 			//I have every object inside, just run for each
@@ -254,8 +253,8 @@ std::vector<std::string> CTemplateLoader::FindPlaceableTemplates(const std::stri
 				{
 					LOGERROR(L"FindPlaceableTemplates: Failed to read array element!");
 					return templates;
-				}			
-				
+				}
+
 				std::string directoryPath;
 				std::wstring fileFilter;
 				scriptInterface.GetProperty(val, "directory", directoryPath);

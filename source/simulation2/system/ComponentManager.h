@@ -85,11 +85,11 @@ private:
 				dealloc(dealloc),
 				name(name),
 				schema(schema),
-				ctor(std::move(ctor)) 
+				ctor(std::move(ctor))
 		{
 		}
 
-		ComponentType& operator= (ComponentType&& other) 
+		ComponentType& operator= (ComponentType&& other)
 		{
 			type = std::move(other.type);
 			iid = std::move(other.iid);
@@ -101,7 +101,7 @@ private:
 			return *this;
 		}
 
-		ComponentType(ComponentType&& other) 
+		ComponentType(ComponentType&& other)
 		{
 			type = std::move(other.type);
 			iid = std::move(other.iid);

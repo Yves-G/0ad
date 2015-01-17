@@ -35,8 +35,7 @@ CStdDeserializer::CStdDeserializer(ScriptInterface& scriptInterface, std::istrea
 	JSAutoRequest rq(cx);
 
 	JS_AddExtraGCRootsTracer(m_ScriptInterface.GetJSRuntime(), CStdDeserializer::Trace, this);
-	
-	
+
 	// Add a dummy tag because the serializer uses the tag 0 to indicate that a value
 	// needs to be serialized and then tagged
 	m_dummyObject.set(JS_NewObject(cx, nullptr, JS::NullPtr(), JS::NullPtr()));

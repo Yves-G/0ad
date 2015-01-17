@@ -377,7 +377,7 @@ void CParamNode::ConstructJSVal(JSContext* cx, JS::MutableHandleValue ret) const
 			ret.setUndefined();
 			return; // TODO: report error
 		}
-			
+
 		JS::RootedValue childVal(cx, JS::StringValue(str));
 		if (!JS_SetProperty(cx, obj, "_string", childVal))
 		{

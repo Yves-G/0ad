@@ -367,7 +367,7 @@ void CNetServerWorker::Run()
 	// the script interface entirely within this network thread
 	m_ScriptInterface = new ScriptInterface("Engine", "Net server", ScriptInterface::CreateRuntime(g_ScriptRuntime));
 	m_GameAttributes.set(m_ScriptInterface->GetJSRuntime(), JS::UndefinedValue());
-	
+
 	while (true)
 	{
 		if (!RunStep())

@@ -26,16 +26,16 @@
  */
 struct SimulationCommand
 {
-	SimulationCommand(player_id_t player, JSContext* cx, JS::HandleValue val) 
+	SimulationCommand(player_id_t player, JSContext* cx, JS::HandleValue val)
 		: player(player), data(cx, val)
 	{
 	}
-	
-	SimulationCommand(SimulationCommand&& cmd) 
+
+	SimulationCommand(SimulationCommand&& cmd)
 		: player(cmd.player), data(cmd.data)
 	{
 	}
-	
+
 	// std::vector::insert requires the move assignment operator at compilation time,
 	// but apparently never uses it (it uses the move constructor).
 	SimulationCommand& operator=(SimulationCommand&& other)
@@ -44,7 +44,7 @@ struct SimulationCommand
 		this->data.set(other.data);
 		return *this;
 	}
-	
+
 	player_id_t player;
 	JS::PersistentRootedValue data;
 };

@@ -39,11 +39,11 @@ public:
 	virtual void RequireBytesInStream(size_t numBytes);
 
 	virtual void SetSerializablePrototypes(std::map<std::wstring, JS::Heap<JSObject*> >& prototypes);
-	
+
 	static void Trace(JSTracer *trc, void *data);
-    
+
 	void TraceMember(JSTracer *trc);
-	
+
 protected:
 	virtual void Get(const char* name, u8* data, size_t len);
 

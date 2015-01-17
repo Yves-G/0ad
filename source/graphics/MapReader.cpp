@@ -1573,7 +1573,7 @@ int CMapReader::ParseCamera()
 #define GET_CAMERA_PROPERTY(val, prop, out)\
 	if (!pSimulation2->GetScriptInterface().GetProperty(val, #prop, out))\
 		LOGWARNING(L"CMapReader::ParseCamera() failed to get '%hs' property", #prop);
- 
+
 	JS::RootedValue cameraObj(cx);
 	GET_CAMERA_PROPERTY(m_MapData.get(), Camera, &cameraObj)
 

@@ -39,7 +39,7 @@ struct GetAIsHelper
 	NONCOPYABLE(GetAIsHelper);
 public:
 	GetAIsHelper(ScriptInterface& scriptInterface) :
-		m_ScriptInterface(scriptInterface), 
+		m_ScriptInterface(scriptInterface),
 		m_AIs(scriptInterface.GetJSRuntime())
 	{
 		JSContext* cx = m_ScriptInterface.GetContext();

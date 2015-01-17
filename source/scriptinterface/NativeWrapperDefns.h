@@ -14,15 +14,15 @@
  * You should have received a copy of the GNU General Public License
  * along with 0 A.D.  If not, see <http://www.gnu.org/licenses/>.
  */
- #include "ps/GameSetup/Config.h"
- 
-template<typename T> struct ScriptInterface::WrapperIfHandle
-{ 
-	typedef T Type;
-}; 
+#include "ps/GameSetup/Config.h"
 
-template<> struct ScriptInterface::WrapperIfHandle<JS::HandleValue>
-{ 
+template <typename T> struct ScriptInterface::WrapperIfHandle
+{
+	typedef T Type;
+};
+
+template <> struct ScriptInterface::WrapperIfHandle<JS::HandleValue>
+{
 	typedef HandleWrapper Type;
 };
 

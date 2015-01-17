@@ -251,7 +251,7 @@ void CComponentManager::Script_RegisterComponentType_Common(ScriptInterface::CxP
 		ctWrapper.dealloc,
 		cname,
 		schema,
-		DefPersistentRooted<JS::Value>(cx, ctor) 
+		DefPersistentRooted<JS::Value>(cx, ctor)
 	);
 	componentManager->m_ComponentTypesById[cid] = std::move(ct);
 

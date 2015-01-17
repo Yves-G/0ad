@@ -83,7 +83,7 @@ IGUIObject::~IGUIObject()
 			}
 		}
 	}
-	
+
 	if (m_pGUI)
 		JS_RemoveExtraGCRootsTracer(m_pGUI->GetScriptInterface()->GetJSRuntime(), Trace, this);
 }
@@ -448,7 +448,7 @@ void IGUIObject::RegisterScriptHandler(const CStr& Action, const CStr& Code, CGU
 	JS::CompileOptions options(cx);
 	options.setFileAndLine(CodeName.c_str(), 0);
 	options.setCompileAndGo(true);
-	
+
 	JS::RootedFunction func(cx, JS_CompileFunction(cx, globalObj,
 		buf, paramCount, paramNames, Code.c_str(), Code.length(), options));
 

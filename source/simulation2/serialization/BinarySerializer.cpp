@@ -400,7 +400,7 @@ u32 CBinarySerializerScriptImpl::GetScriptBackrefTag(JS::HandleObject obj)
 	//
 	// The tags are stored in a map. Maybe it'd be more efficient to store it inline in the object
 	// somehow? but this works okay for now
-	
+
 	// If it was already there, return the tag
 	u32 tag;
 	if (m_ScriptBackrefs.find(obj, tag))
