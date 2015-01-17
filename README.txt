@@ -1,17 +1,47 @@
- ESR31 branch information
-=========================
+ 0 A.D. Introductory Information
+=================================
 
-This branch contains the changes for updating 0 A.D. to the SpiderMonkey 31 extended support release (ESR).
+0 A.D. (pronounced "zero ey-dee") is a free, open-source, cross-platform
+real-time strategy game of ancient warfare.
 
--------------------
- Testing the branch
--------------------
+This is currently an incomplete, under-development version of the game.
+We're always interested in getting more people involved, to help bring the game
+towards completion and to share the interesting experience of developing a
+project of this scope.
 
-The ESR31 branch was successfully tested on Linux and Windows, but still requires testing on the Mac.
+There are several ways to contact us and find more information:
 
-Refer to the 0 A.D. build process here:
+  Web site: http://play0ad.com/
+
+  Forums: http://www.wildfiregames.com/forum/
+
+  Trac (development info, bug tracker): http://trac.wildfiregames.com/
+
+  IRC: #0ad on irc.quakenet.org
+
+
+---------------------------------------
+Running precompiled binaries on Windows
+---------------------------------------
+
+Open the "binaries\system" folder.
+
+To launch the game: Run pyrogenesis.exe
+
+To launch the map editor: Run Atlas.bat or "pyrogenesis.exe -editor"
+
+
+-----------------------------------
+Compiling the game from source code
+-----------------------------------
+
+The instructions for compiling the game on Windows, Linux and OS X are at
 http://trac.wildfiregames.com/wiki/BuildInstructions
 
-Run the game by starting pyrogenesis from binaries/system after the successful build.
 
+------------------
+Reporting problems
+------------------
 
+Bugs should be reported on Trac. For information on reporting problems
+and finding logs, see http://trac.wildfiregames.com/wiki/ReportingErrors
