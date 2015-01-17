@@ -545,7 +545,7 @@ then
   tar -xf $LIB_ARCHIVE
   pushd $LIB_DIRECTORY/nspr
 
-  (CFLAGS="$CFLAGS" CPPFLAGS="$CPPFLAGS" LDFLAGS="$LDFLAGS" ./configure --prefix="$NSPR_DIR" && make ${JOBS} && make install) || die "NSPR build failed"
+  (CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" LDFLAGS="$LDFLAGS" ./configure --prefix="$NSPR_DIR" && make ${JOBS} && make install) || die "NSPR build failed"
   popd
   # TODO: how can we not build the dylibs?
   rm -f lib/*.dylib
