@@ -71,7 +71,12 @@ mv mozjs-31.2.0 mozjs31
 # Apply patches if needed
 cd mozjs31
 # Tracelogger patches (the Tracelogger is a tool for developers and these
-# patches are only needed if the tracelogger is used):
+# patches are only needed if the tracelogger is used). The first patch is
+# a backport from newer SpiderMonkey versions and the second patch
+# combines some fixes from newer versions with a change that makes it
+# flush data to the disk after 100 MB. The developer of the tracelogger
+# (h4writer) is informed about everything and an these patches shouldn't
+# be needed anymore for the next version of SpiderMonkey.
 patch -p1 -i ../FixTraceLoggerBuild.diff
 patch -p1 -i ../FixTraceLoggerFlushing.diff
 
