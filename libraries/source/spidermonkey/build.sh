@@ -37,11 +37,11 @@ TLCXXFLAGS='-DTRACE_LOG_DIR="\"/tmp/traces/\""'
 # to match your enviroment.
 if [ "${OS}" = "Windows_NT" ]
 then
-  NSPR_INCLUDES="-IC:/Projects/0ad/libraries/source/spidermonkey/nspr-4.10.3/nspr/dist/include/nspr"
+  NSPR_INCLUDES="-IC:/Projects/nspr/nspr-4.10.7/nspr/dist/include/nspr"
   NSPR_LIBS=" \
-  C:/Projects/0ad/libraries/source/spidermonkey/nspr-4.10.3/nspr/dist/lib/nspr4.lib \
-  C:/Projects/0ad/libraries/source/spidermonkey/nspr-4.10.3/nspr/dist/lib/plds4.lib \
-  C:/Projects/0ad/libraries/source/spidermonkey/nspr-4.10.3/nspr/dist/lib/plc4.lib"
+  C:/Projects/nspr/nspr-4.10.7/nspr/dist/lib/nspr4.lib \
+  C:/Projects/nspr/nspr-4.10.7/nspr/dist/lib/plds4.lib \
+  C:/Projects/nspr/nspr-4.10.7/nspr/dist/lib/plc4.lib"
 else
   NSPR_INCLUDES="`pkg-config nspr --cflags`"
   NSPR_LIBS="`pkg-config nspr --libs`"
