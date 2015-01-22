@@ -124,6 +124,9 @@ ScriptRuntime::ScriptRuntime(shared_ptr<ScriptRuntime> parentRuntime, int runtim
 
 	if (g_ScriptProfilingEnabled)
 	{
+		// Execute and call hooks are disabled if the runtime debug mode is disabled
+		JS_SetRuntimeDebugMode(m_rt, true);
+
 		// Profiler isn't thread-safe, so only enable this on the main thread
 		if (ThreadUtil::IsMainThread())
 		{
@@ -316,14 +319,14 @@ void* ScriptRuntime::jshook_function(JSContext* cx, JSAbstractFramePtr fp, bool 
 		}
 	}
 
-	// No name - compute from the location instead
+	// No name - use fileName and line instead
 	JS::AutoFilename fileName;
 	unsigned lineno;
 	JS::DescribeScriptedCaller(cx, &fileName, &lineno);
 
 	std::stringstream ss;
 	ss << "(" << fileName.get() << ":" << lineno << ")";
-	g_Profiler.StartScript(ss.str().c_str());
+	g_Profiler.StartScript(StringFlyweight(ss.str()).get().c_str());
 
 	return closure;
 }

@@ -19,10 +19,6 @@
 #define INCLUDED_SCRIPTRUNTIME
 
 #include <sstream>
-#include <boost/flyweight.hpp>
-#include <boost/flyweight/key_value.hpp>
-#include <boost/flyweight/no_locking.hpp>
-#include <boost/flyweight/no_tracking.hpp>
 
 #include "ScriptTypes.h"
 #include "ScriptExtraHeaders.h"
@@ -99,73 +95,6 @@ private:
 	static void* jshook_function(JSContext* cx, JSAbstractFramePtr fp, 
 		bool UNUSED(isConstructing), bool before,
 		bool* UNUSED(ok), void* closure);
-
-	// To profile scripts usefully, we use a call hook that's called on every enter/exit,
-	// and need to find the function name. But most functions are anonymous so we make do
-	// with filename plus line number instead.
-	// Computing the names is fairly expensive, and we need to return an interned char*
-	// for the profiler to hold a copy of, so we use boost::flyweight to construct interned
-	// strings per call location.
-
-	// Identifies a location in a script
-	struct ScriptLocation
-	{
-		JSContext* cx;
-		JSScript* script;
-		jsbytecode* pc;
-
-		bool operator==(const ScriptLocation& b) const
-		{
-			return cx == b.cx && script == b.script && pc == b.pc;
-		}
-
-		friend std::size_t hash_value(const ScriptLocation& loc)
-		{
-			std::size_t seed = 0;
-			boost::hash_combine(seed, loc.cx);
-			boost::hash_combine(seed, loc.script);
-			boost::hash_combine(seed, loc.pc);
-			return seed;
-		}
-	};
-
-	// Computes and stores the name of a location in a script
-	struct ScriptLocationName
-	{
-		ScriptLocationName(const ScriptLocation& loc)
-		{
-			JSContext* cx = loc.cx;
-			JSScript* script = loc.script;
-			jsbytecode* pc = loc.pc;
-
-			std::string filename = JS_GetScriptFilename(script);
-			size_t slash = filename.rfind('/');
-			if (slash != filename.npos)
-				filename = filename.substr(slash+1);
-
-			uint line = JS_PCToLineNumber(cx, script, pc);
-
-			std::stringstream ss;
-			ss << "(" << filename << ":" << line << ")";
-			name = ss.str();
-		}
-
-		std::string name;
-	};
-
-	// Flyweight types (with no_locking because the call hooks are only used in the
-	// main thread, and no_tracking because we mustn't delete values the profiler is
-	// using and it's not going to waste much memory)
-	typedef boost::flyweight<
-		std::string,
-		boost::flyweights::no_tracking,
-		boost::flyweights::no_locking
-	> StringFlyweight;
-	typedef boost::flyweight<
-		boost::flyweights::key_value<ScriptLocation, ScriptLocationName>,
-		boost::flyweights::no_tracking,
-		boost::flyweights::no_locking
-	> LocFlyweight;
 
 };
 

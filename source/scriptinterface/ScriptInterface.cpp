@@ -390,27 +390,6 @@ void ScriptInterface_impl::Register(const char* name, JSNative fptr, uint nargs)
 	JSAutoRequest rq(m_cx);
 	JS::RootedObject nativeScope(m_cx, m_nativeScope);
 	JS::RootedFunction func(m_cx, JS_DefineFunction(m_cx, nativeScope, name, fptr, nargs, JSPROP_ENUMERATE | JSPROP_READONLY | JSPROP_PERMANENT));
-
-	if (!func)
-		return;
-
-	if (g_ScriptProfilingEnabled)
-	{
-		// Store the function name in a slot, so we can pass it to the profiler.
-
-		// Use a flyweight std::string because we can't assume the caller has
-		// a correctly-aligned string and that its lifetime is long enough
-		typedef boost::flyweight<
-			std::string,
-			boost::flyweights::no_tracking
-			// can't use no_locking; Register might be called in threads
-		> LockedStringFlyweight;
-
-		LockedStringFlyweight fw(name);
-		JS::RootedObject funcObj(m_cx, JS_GetFunctionObject(func));
-		JS::RootedValue privateVal(m_cx, JS::PrivateValue((void*)fw.get().c_str()));
-		JS_SetReservedSlot(funcObj, 0, privateVal);
-	}
 }
 
 ScriptInterface::ScriptInterface(const char* nativeScopeName, const char* debugName, const shared_ptr<ScriptRuntime>& runtime) :

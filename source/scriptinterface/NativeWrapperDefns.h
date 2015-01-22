@@ -84,16 +84,17 @@ struct ScriptInterface_NativeMethodWrapper<void, TC> {
 // Fast natives don't trigger the hook we use for profiling, so explicitly
 // notify the profiler when these functions are being called.
 // ScriptInterface_impl::Register stores the name in a reserved slot.
-// (TODO: this doesn't work for functions registered via InterfaceScripted.h.
-// Maybe we should do some interned JS_GetFunctionId thing.)
 #define SCRIPT_PROFILE \
 	if (g_ScriptProfilingEnabled) \
 	{ \
-		const char* name = "(unknown)"; \
-		JS::RootedValue nameval(cx, JS_GetReservedSlot( &args.callee(), 0)); \
-		if (!nameval.isUndefined()) \
-			name = static_cast<const char*>(JSVAL_TO_PRIVATE(nameval)); \
-		CProfileSampleScript profile(name); \
+		std::string name = "(unknown)"; \
+		JS::RootedString str(cx, JS_GetFunctionId(JS_ValueToFunction(cx, args.calleev()))); \
+		if (str) \
+		{ \
+			JS::RootedValue strVal(cx, JS::StringValue(str)); \
+			ScriptInterface::FromJSVal(cx, strVal, name); \
+		} \
+		CProfileSampleScript profile(StringFlyweight(std::string(name)).get().c_str()); \
 	}
 
 // JSFastNative-compatible function that wraps the function identified in the template argument list
