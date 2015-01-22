@@ -23,7 +23,7 @@ private:
 /**
  * In our interface code (the CONVERT_ARG macro specifically) we require types to be default-constructible.
  * This is a workaround to make the current design work with JS::HandleValue types, which have a private constructor.
- * JS::HandleValue objects are meant to be implicitely created only from JS::RootedValue objects.
+ * JS::HandleValue objects are meant to be implicitly created only from JS::RootedValue objects.
  * Generally handles should not be used this way, but in this case we can be sure that the handle will not live longer than its root,
  * so it should be OK.
  * This solution involves some overhead, but it should be quite small and shouldn't affect performance in practice.
@@ -43,6 +43,10 @@ private:
 	JS::HandleValue m_Handle;
 };
 
+// WrapperIfHandle<T>::Type has the type HandleWrapper for T == JS::HandleValue and
+// T for all other types.
+// Allows to use default-constructible HandleWrapper types in templates instead of the
+// HandleValue type that isn't default-constructible without code duplication.
 template <typename T> struct WrapperIfHandle;
 
 public:
@@ -63,7 +67,7 @@ public:
 // This is not very clear and also a bit fragile. Another problem is that the error reporting lacks
 // a bit. SpiderMonkey will throw a JS exception and abort the execution of the current function when
 // we return false here (without printing a callstack or additional detail telling that an argument
-// converson failed). So we have two TODOs here:
+// conversion failed). So we have two TODOs here:
 // 1. On the conceptual side: How to consistently work with optional parameters (or drop them completely?)
 // 2. On the technical side: Improve error handling, find a better way to ensure parameters are initialized
 #define CONVERT_ARG(z, i, data) \

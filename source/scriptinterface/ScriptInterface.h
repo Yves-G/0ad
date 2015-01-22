@@ -418,6 +418,9 @@ private:
 		JSNative 	m_Constructor;
 	};
 	void Register(const char* name, JSNative fptr, size_t nargs);
+	
+	// Take care to keep this declaration before heap rooted members. Destructors of heap rooted
+	// members have to be called before the runtime destructor.
 	std::auto_ptr<ScriptInterface_impl> m;
 	
 	boost::rand48* m_rng;

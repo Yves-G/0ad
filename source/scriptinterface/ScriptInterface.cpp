@@ -59,7 +59,10 @@ struct ScriptInterface_impl
 	~ScriptInterface_impl();
 	void Register(const char* name, JSNative fptr, uint nargs);
 
+	// Take care to keep this declaration before heap rooted members. Destructors of heap rooted
+	// members have to be called before the runtime destructor.
 	shared_ptr<ScriptRuntime> m_runtime;
+
 	JSContext* m_cx;
 	JS::PersistentRootedObject m_glob; // global scope object
 	JSCompartment* m_comp;

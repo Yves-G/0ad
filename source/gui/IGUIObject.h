@@ -1,4 +1,4 @@
-/* Copyright (C) 2012 Wildfire Games.
+/* Copyright (C) 2015 Wildfire Games.
  * This file is part of 0 A.D.
  *
  * 0 A.D. is free software: you can redistribute it and/or modify
@@ -561,7 +561,6 @@ private:
 	
 	// Cached JSObject representing this GUI object
 	DefPersistentRooted<JSObject*>			 m_JSObject;
-	shared_ptr<ScriptRuntime> m_ScriptRuntime;
 };
 
 

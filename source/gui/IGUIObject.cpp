@@ -461,7 +461,8 @@ void IGUIObject::RegisterScriptHandler(const CStr& Action, const CStr& Code, CGU
 
 void IGUIObject::SetScriptHandler(const CStr& Action, JS::HandleObject Function)
 {
-	// A GUI is needed to get the JSRuntime which is needed for rooting m_ScriptHandlers
+	// m_ScriptHandlers is only rooted after SetGUI() has been called (which sets up the GC trace callbacks),
+	// so we can't safely store objects in it if the GUI hasn't been set yet.
 	ENSURE(m_pGUI && "A GUI must be associated with the GUIObject before adding ScriptHandlers!");
 	m_ScriptHandlers[Action] = JS::Heap<JSObject*>(Function);
 }
@@ -574,8 +575,8 @@ bool IGUIObject::IsRootObject() const
 
 void IGUIObject::TraceMember(JSTracer *trc)
 {
-	for (auto itr=m_ScriptHandlers.begin(); itr != m_ScriptHandlers.end(); ++itr)
-		JS_CallHeapObjectTracer(trc, &itr->second, "IGUIObject::m_ScriptHandlers");
+	for (auto& handler : m_ScriptHandlers)
+		JS_CallHeapObjectTracer(trc, &handler.second, "IGUIObject::m_ScriptHandlers");
 }
 
 PSRETURN IGUIObject::LogInvalidSettings(const CStr8 &Setting) const

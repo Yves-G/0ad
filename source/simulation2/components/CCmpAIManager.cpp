@@ -182,7 +182,10 @@ private:
 		uint8_t m_Difficulty;
 		bool m_UseSharedComponent;
 		
+		// Take care to keep this declaration before heap rooted members. Destructors of heap rooted
+		// members have to be called before the runtime destructor.
 		shared_ptr<ScriptInterface> m_ScriptInterface;
+		
 		JS::PersistentRootedValue m_Obj;
 		std::vector<shared_ptr<ScriptInterface::StructuredClone> > m_Commands;
 	};
@@ -772,7 +775,10 @@ private:
 		}
 	}
 
+	// Take care to keep this declaration before heap rooted members. Destructors of heap rooted
+	// members have to be called before the runtime destructor.
 	shared_ptr<ScriptRuntime> m_ScriptRuntime;
+	
 	shared_ptr<ScriptInterface> m_ScriptInterface;
 	boost::rand48 m_RNG;
 	u32 m_TurnNum;

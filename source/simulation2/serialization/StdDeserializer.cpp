@@ -58,9 +58,8 @@ void CStdDeserializer::TraceMember(JSTracer *trc)
 	for (size_t i=0; i<m_ScriptBackrefs.size(); i++)
 		JS_CallHeapObjectTracer(trc, &m_ScriptBackrefs[i], "StdDeserializer::m_ScriptBackrefs");
 
-	std::map<std::wstring, JS::Heap<JSObject*> >::iterator itr;
-	for (itr=m_SerializablePrototypes.begin(); itr!=m_SerializablePrototypes.end(); ++itr)
-		JS_CallHeapObjectTracer(trc, &itr->second, "StdDeserializer::m_SerializablePrototypes");
+	for (auto& proto : m_SerializablePrototypes)
+		JS_CallHeapObjectTracer(trc, &proto.second, "StdDeserializer::m_SerializablePrototypes");
 }
 
 void CStdDeserializer::Get(const char* name, u8* data, size_t len)

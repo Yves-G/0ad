@@ -380,6 +380,10 @@ void CNetServerWorker::Run()
 		// Update profiler stats
 		m_Stats->LatchHostState(m_Host);
 	}
+	
+	// Clear roots before deleting their context
+	m_GameAttributes.clear();
+	m_SavedCommands.clear();
 
 	SAFE_DELETE(m_ScriptInterface);
 }
