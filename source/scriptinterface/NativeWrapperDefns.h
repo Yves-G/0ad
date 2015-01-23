@@ -94,7 +94,7 @@ struct ScriptInterface_NativeMethodWrapper<void, TC> {
 			JS::RootedValue strVal(cx, JS::StringValue(str)); \
 			ScriptInterface::FromJSVal(cx, strVal, name); \
 		} \
-		CProfileSampleScript profile(StringFlyweight(std::string(name)).get().c_str()); \
+		CProfileSampleScript profile(StringFlyweight(name).get().c_str()); \
 	}
 
 // JSFastNative-compatible function that wraps the function identified in the template argument list
