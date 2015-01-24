@@ -79,20 +79,6 @@ public:
 		m_Val.reset(new JS::PersistentRooted<T>(cx, val));
 	}
 
-	// TODO: Move assignment operator and move constructor only have to be
-	// explicitly defined for VS2010 and probably other old compilers that
-	// don't fully support C++11
-	DefPersistentRooted<T>& operator=(DefPersistentRooted<T>&& other)
-	{
-		m_Val = std::move(other.m_Val);
-		return *this;
-	}
-
-	DefPersistentRooted<T>(DefPersistentRooted<T>&& other)
-	{
-		m_Val = std::move(other.m_Val);
-	}
-
 private:
 	std::unique_ptr<JS::PersistentRooted<T> > m_Val;
 };

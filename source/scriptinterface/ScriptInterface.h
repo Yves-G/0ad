@@ -392,27 +392,8 @@ private:
 	static const JSClass* GetClass(JS::HandleObject obj);
 	static void* GetPrivate(JS::HandleObject obj);
 
-	class CustomType
+	struct CustomType
 	{
-	public:
-		// TODO: Move assignment operator and move constructor only have to be
-		// explicitely defined for VS2010 and probably other old compilers that
-		// don't fully support C++11
-		CustomType() {}
-		CustomType& operator=(CustomType&& other)
-		{
-			m_Prototype = std::move(other.m_Prototype);
-			m_Class = std::move(other.m_Class);
-			m_Constructor = std::move(other.m_Constructor);
-			return *this;
-		}
-		CustomType(CustomType&& other)
-		{
-			m_Prototype = std::move(other.m_Prototype);
-			m_Class = std::move(other.m_Class);
-			m_Constructor = std::move(other.m_Constructor);
-		}
-
 		DefPersistentRooted<JSObject*>	m_Prototype;
 		JSClass*	m_Class;
 		JSNative 	m_Constructor;
