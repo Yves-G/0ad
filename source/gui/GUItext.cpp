@@ -1,4 +1,4 @@
-/* Copyright (C) 2014 Wildfire Games.
+/* Copyright (C) 2015 Wildfire Games.
  * This file is part of 0 A.D.
  *
  * 0 A.D. is free software: you can redistribute it and/or modify
@@ -109,7 +109,7 @@ void CGUIString::GenerateTextCall(const CGUI *pGUI,
 			if (!pGUI->IconExists(path))
 			{
 				if (pObject)
-					LOGERROR(L"Trying to use an icon, imgleft or imgright-tag with an undefined icon (\"%hs\").", path.c_str());
+					LOGERROR("Trying to use an icon, imgleft or imgright-tag with an undefined icon (\"%s\").", path.c_str());
 				continue;
 			}
 
@@ -123,61 +123,66 @@ void CGUIString::GenerateTextCall(const CGUI *pGUI,
 				break;
 
 			case CGUIString::TextChunk::Tag::TAG_ICON:
-				// We'll need to setup a text-call that will point
-				//  to the icon, this is to be able to iterate
-				//  through the text-calls without having to
-				//  complex the structure virtually for nothing more.
-				SGUIText::STextCall TextCall;
-
-				// Also add it to the sprites being rendered.
-				SGUIText::SSpriteCall SpriteCall;
-
-				// Get Icon from icon database in pGUI
-				SGUIIcon icon = pGUI->GetIcon(path);
-
-				CSize size = icon.m_Size;
-
-				// append width, and make maximum height the height.
-				Feedback.m_Size.cx += size.cx;
-				Feedback.m_Size.cy = std::max(Feedback.m_Size.cy, size.cy);
-
-				// These are also needed later
-				TextCall.m_Size = size;
-				SpriteCall.m_Area = size;
-
-				// Handle additional attributes
-				std::vector<TextChunk::Tag::TagAttribute>::const_iterator att_it;
-				for (att_it = tag.m_TagAttributes.begin(); att_it != tag.m_TagAttributes.end(); ++att_it)
 				{
-					const TextChunk::Tag::TagAttribute& tagAttrib = *att_it;
+					// We'll need to setup a text-call that will point
+					//  to the icon, this is to be able to iterate
+					//  through the text-calls without having to
+					//  complex the structure virtually for nothing more.
+					SGUIText::STextCall TextCall;
 
-					if (tagAttrib.attrib == L"displace" && !tagAttrib.value.empty())
+					// Also add it to the sprites being rendered.
+					SGUIText::SSpriteCall SpriteCall;
+
+					// Get Icon from icon database in pGUI
+					SGUIIcon icon = pGUI->GetIcon(path);
+
+					CSize size = icon.m_Size;
+
+					// append width, and make maximum height the height.
+					Feedback.m_Size.cx += size.cx;
+					Feedback.m_Size.cy = std::max(Feedback.m_Size.cy, size.cy);
+
+					// These are also needed later
+					TextCall.m_Size = size;
+					SpriteCall.m_Area = size;
+
+					// Handle additional attributes
+					std::vector<TextChunk::Tag::TagAttribute>::const_iterator att_it;
+					for (att_it = tag.m_TagAttributes.begin(); att_it != tag.m_TagAttributes.end(); ++att_it)
 					{
-						//Displace the sprite
-						CSize displacement;
-						// Parse the value
-						if (!GUI<CSize>::ParseString(tagAttrib.value, displacement))
-							LOGERROR(L"Error parsing 'displace' value for tag [ICON]");
-						else
-							SpriteCall.m_Area += displacement;
+						const TextChunk::Tag::TagAttribute& tagAttrib = *att_it;
+
+						if (tagAttrib.attrib == L"displace" && !tagAttrib.value.empty())
+						{
+							//Displace the sprite
+							CSize displacement;
+							// Parse the value
+							if (!GUI<CSize>::ParseString(tagAttrib.value, displacement))
+								LOGERROR("Error parsing 'displace' value for tag [ICON]");
+							else
+								SpriteCall.m_Area += displacement;
+						}
+						else if (tagAttrib.attrib == L"tooltip")
+							SpriteCall.m_Tooltip = tagAttrib.value;
+						else if (tagAttrib.attrib == L"tooltip_style")
+							SpriteCall.m_TooltipStyle = tagAttrib.value;
 					}
-					else if (tagAttrib.attrib == L"tooltip")
-						SpriteCall.m_Tooltip = tagAttrib.value;
-					else if (tagAttrib.attrib == L"tooltip_style")
-						SpriteCall.m_TooltipStyle = tagAttrib.value;
+
+					SpriteCall.m_Sprite = icon.m_SpriteName;
+					SpriteCall.m_CellID = icon.m_CellID;
+
+					// Add sprite call
+					Feedback.m_SpriteCalls.push_back(SpriteCall);
+
+					// Finalize text call
+					TextCall.m_pSpriteCall = &Feedback.m_SpriteCalls.back();
+
+					// Add text call
+					Feedback.m_TextCalls.push_back(TextCall);
 				}
-
-				SpriteCall.m_Sprite = icon.m_SpriteName;
-				SpriteCall.m_CellID = icon.m_CellID;
-
-				// Add sprite call
-				Feedback.m_SpriteCalls.push_back(SpriteCall);
-
-				// Finalize text call
-				TextCall.m_pSpriteCall = &Feedback.m_SpriteCalls.back();
-
-				// Add text call
-				Feedback.m_TextCalls.push_back(TextCall);
+				break;
+			default:
+				LOGERROR("Encountered unexpected tag applied to text");
 				break;
 			}
 		}
@@ -202,14 +207,14 @@ void CGUIString::GenerateTextCall(const CGUI *pGUI,
 
 					if (!GUI<CColor>::ParseString(it2->m_TagValue, TextCall.m_Color)
 					    && pObject)
-						LOGERROR(L"Error parsing the value of a [color]-tag in GUI text when reading object \"%hs\".", pObject->GetPresentableName().c_str());
+						LOGERROR("Error parsing the value of a [color]-tag in GUI text when reading object \"%s\".", pObject->GetPresentableName().c_str());
 					break;
 				case CGUIString::TextChunk::Tag::TAG_FONT:
 					// TODO Gee: (2004-08-15) Check if Font exists?
 					TextCall.m_Font = CStrIntern(utf8_from_wstring(it2->m_TagValue));
 					break;
 				default:
-					LOGERROR(L"Encountered unexpected tag applied to text");
+					LOGERROR("Encountered unexpected tag applied to text");
 					break;
 				}
 			}
@@ -301,7 +306,7 @@ void CGUIString::SetValue(const CStrW& str)
 			closing = false;
 			if (++p == l)
 			{
-				LOGERROR(L"Partial tag at end of string '%ls'", str.c_str());
+				LOGERROR("Partial tag at end of string '%s'", utf8_from_wstring(str));
 				break;
 			}
 			if (str[p] == L'/')
@@ -309,12 +314,12 @@ void CGUIString::SetValue(const CStrW& str)
 				closing = true;
 				if (tags.empty())
 				{
-					LOGERROR(L"Encountered closing tag without having any open tags. At %d in '%ls'", p, str.c_str());
+					LOGERROR("Encountered closing tag without having any open tags. At %d in '%s'", p, utf8_from_wstring(str));
 					break;
 				}
 				if (++p == l)
 				{
-					LOGERROR(L"Partial closing tag at end of string '%ls'", str.c_str());
+					LOGERROR("Partial closing tag at end of string '%s'", utf8_from_wstring(str));
 					break;
 				}
 			}
@@ -327,7 +332,7 @@ void CGUIString::SetValue(const CStrW& str)
 				{
 				case L' ':
 					if (closing) // We still parse them to make error handling cleaner
-						LOGERROR(L"Closing tags do not support parameters (at pos %d '%ls')", p, str.c_str());
+						LOGERROR("Closing tags do not support parameters (at pos %d '%s')", p, utf8_from_wstring(str));
 
 					// parse something="something else"
 					for (++p; p < l && str[p] != L'='; ++p)
@@ -335,23 +340,23 @@ void CGUIString::SetValue(const CStrW& str)
 
 					if (p == l)
 					{
-						LOGERROR(L"Parameter without value at pos %d '%ls'", p, str.c_str());
+						LOGERROR("Parameter without value at pos %d '%s'", p, utf8_from_wstring(str));
 						break;
 					}
 					// fall-through
 				case L'=':
 					// parse a quoted parameter
 					if (closing) // We still parse them to make error handling cleaner
-						LOGERROR(L"Closing tags do not support parameters (at pos %d '%ls')", p, str.c_str());
+						LOGERROR("Closing tags do not support parameters (at pos %d '%s')", p, utf8_from_wstring(str));
 
 					if (++p == l)
 					{
-						LOGERROR(L"Expected parameter, got end of string '%ls'", str.c_str());
+						LOGERROR("Expected parameter, got end of string '%s'", utf8_from_wstring(str));
 						break;
 					}
 					if (str[p] != L'"')
 					{
-						LOGERROR(L"Unquoted parameters are not supported (at pos %d '%ls')", p, str.c_str());
+						LOGERROR("Unquoted parameters are not supported (at pos %d '%s')", p, utf8_from_wstring(str));
 						break;
 					}
 					for (++p; p < l && str[p] != L'"'; ++p)
@@ -361,7 +366,7 @@ void CGUIString::SetValue(const CStrW& str)
 						case L'\\':
 							if (++p == l)
 							{
-								LOGERROR(L"Escape character at end of string '%ls'", str.c_str());
+								LOGERROR("Escape character at end of string '%s'", utf8_from_wstring(str));
 								break;
 							}
 							// NOTE: We do not support \n in tag parameters
@@ -387,7 +392,7 @@ void CGUIString::SetValue(const CStrW& str)
 
 			if (!tag_.SetTagType(tag))
 			{
-				LOGERROR(L"Invalid tag '%ls' at %d in '%ls'", tag.c_str(), p, str.c_str());
+				LOGERROR("Invalid tag '%s' at %d in '%s'", utf8_from_wstring(tag), p, utf8_from_wstring(str));
 				break;
 			}
 			if (!closing)
@@ -410,7 +415,7 @@ void CGUIString::SetValue(const CStrW& str)
 			{
 				if (tag != tags.back())
 				{
-					LOGERROR(L"Closing tag '%ls' does not match last opened tag '%ls' at %d in '%ls'", tag.c_str(), tags.back().c_str(), p, str.c_str());
+					LOGERROR("Closing tag '%s' does not match last opened tag '%s' at %d in '%s'", utf8_from_wstring(tag), utf8_from_wstring(tags.back()), p, utf8_from_wstring(str));
 					break;
 				}
 
@@ -421,7 +426,7 @@ void CGUIString::SetValue(const CStrW& str)
 		case L'\\':
 			if (++p == l)
 			{
-				LOGERROR(L"Escape character at end of string '%ls'", str.c_str());
+				LOGERROR("Escape character at end of string '%s'", utf8_from_wstring(str));
 				break;
 			}
 			if (str[p] == L'n')

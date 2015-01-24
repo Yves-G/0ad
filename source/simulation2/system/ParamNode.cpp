@@ -27,11 +27,6 @@
 
 #include <sstream>
 
-// Disable "'boost::algorithm::detail::is_classifiedF' : assignment operator could not be generated"
-#if MSC_VERSION
-#pragma warning(disable:4512)
-#endif
-
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/join.hpp>	// this isn't in string.hpp in old Boosts
 
@@ -123,8 +118,8 @@ void CParamNode::ApplyLayer(const XMBFile& xmb, const XMBElement& element, const
 						if (tokenIt != tokens.end())
 							tokens.erase(tokenIt);
 						else
-							LOGWARNING(L"[ParamNode] Could not remove token '%ls' from node '%hs'%ls; not present in list nor inherited (possible typo?)",
-								newTokens[i].substr(1).c_str(), name.c_str(), sourceIdentifier ? (L" in '" + std::wstring(sourceIdentifier) + L"'").c_str() : L"");
+							LOGWARNING("[ParamNode] Could not remove token '%s' from node '%s'%s; not present in list nor inherited (possible typo?)",
+								utf8_from_wstring(newTokens[i].substr(1)), name, sourceIdentifier ? (" in '" + utf8_from_wstring(sourceIdentifier) + "'").c_str() : "");
 					}
 					else
 					{
