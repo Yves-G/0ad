@@ -98,7 +98,7 @@ private:
 			m_Worker.LoadMetadata(path, &metadata);
 			if (metadata.isUndefined())
 			{
-				LOGERROR(L"Failed to create AI player: can't find %ls", path.string().c_str());
+				LOGERROR("Failed to create AI player: can't find %s", path.string8());
 				return false;
 			}
 
@@ -110,7 +110,7 @@ private:
 			JS::RootedValue ctor(cx);
 			if (!m_ScriptInterface->HasProperty(metadata, "moduleName"))
 			{
-				LOGERROR(L"Failed to create AI player: %ls: missing 'moduleName'", path.string().c_str());
+				LOGERROR("Failed to create AI player: %s: missing 'moduleName'", path.string8());
 				return false;
 			}
 
@@ -118,13 +118,13 @@ private:
 			if (!m_ScriptInterface->GetProperty(global, moduleName.c_str(), &objectWithConstructor)
 			    || objectWithConstructor.isUndefined())
 			{
-				LOGERROR(L"Failed to create AI player: %ls: can't find the module that should contain the constructor: '%hs'", path.string().c_str(), moduleName.c_str());
+				LOGERROR("Failed to create AI player: %s: can't find the module that should contain the constructor: '%s'", path.string8(), moduleName);
 				return false;
 			}
 
 			if (!m_ScriptInterface->GetProperty(metadata, "constructor", constructor))
 			{
-				LOGERROR(L"Failed to create AI player: %ls: missing 'constructor'", path.string().c_str());
+				LOGERROR("Failed to create AI player: %s: missing 'constructor'", path.string8());
 				return false;
 			}
 
@@ -132,7 +132,7 @@ private:
 			if (!m_ScriptInterface->GetProperty(objectWithConstructor, constructor.c_str(), &ctor)
 			    || ctor.isNull())
 			{
-				LOGERROR(L"Failed to create AI player: %ls: can't find constructor '%hs'", path.string().c_str(), constructor.c_str());
+				LOGERROR("Failed to create AI player: %s: can't find constructor '%s'", path.string8(), constructor);
 				return false;
 			}
 
@@ -152,7 +152,7 @@ private:
 
 			if (m_Obj.get().isNull())
 			{
-				LOGERROR(L"Failed to create AI player: %ls: error calling constructor '%hs'", path.string().c_str(), constructor.c_str());
+				LOGERROR("Failed to create AI player: %s: error calling constructor '%s'", path.string8(), constructor);
 				return false;
 			}
 			return true;
@@ -245,7 +245,7 @@ public:
 		VfsPaths pathnames;
 		if (vfs::GetPathnames(g_VFS, L"simulation/ai/" + moduleName + L"/", L"*.js", pathnames) < 0)
 		{
-			LOGERROR(L"Failed to load AI scripts for module %ls", moduleName.c_str());
+			LOGERROR("Failed to load AI scripts for module %s", utf8_from_wstring(moduleName));
 			return false;
 		}
 
@@ -253,7 +253,7 @@ public:
 		{
 			if (!m_ScriptInterface->LoadGlobalScriptFile(*it))
 			{
-				LOGERROR(L"Failed to load script %ls", it->string().c_str());
+				LOGERROR("Failed to load script %s", it->string8());
 				return false;
 			}
 		}
@@ -286,7 +286,7 @@ public:
 			}
 		}
 		
-		LOGERROR(L"Invalid playerid in PostCommand!");	
+		LOGERROR("Invalid playerid in PostCommand!");	
 	}
 	// The next two ought to be implmeneted someday but for now as it returns "null" it can't
 	static void DumpHeap(ScriptInterface::CxPrivate* pCxPrivate)
@@ -369,14 +369,14 @@ public:
 		JS::RootedValue ctor(cx);
 		if (!m_ScriptInterface->GetProperty(global, "API3", &AIModule) || AIModule.isUndefined())
 		{
-			LOGERROR(L"Failed to create shared AI component: %ls: can't find module '%hs'", path.string().c_str(), "API3");
+			LOGERROR("Failed to create shared AI component: %s: can't find module '%s'", path.string8(), "API3");
 			return false;
 		}
 		
 		if (!m_ScriptInterface->GetProperty(AIModule, "SharedScript", &ctor)
 		    || ctor.isUndefined())
 		{
-			LOGERROR(L"Failed to create shared AI component: %ls: can't find constructor '%hs'", path.string().c_str(), "SharedScript");
+			LOGERROR("Failed to create shared AI component: %s: can't find constructor '%s'", path.string8(), "SharedScript");
 			return false;
 		}
 		
@@ -415,7 +415,7 @@ public:
 		
 		if (m_SharedAIObj.get().isNull())
 		{
-			LOGERROR(L"Failed to create shared AI component: %ls: error calling constructor '%hs'", path.string().c_str(), "SharedScript");
+			LOGERROR("Failed to create shared AI component: %s: error calling constructor '%s'", path.string8(), "SharedScript");
 			return false;
 		}
 		
@@ -573,7 +573,7 @@ public:
 			JS::RootedValue sharedData(cx);
 			JS::RootedValue tmpSharedAIObj(cx, m_SharedAIObj.get()); // TODO: Check if this temporary root can be removed after SpiderMonkey 31 upgrade
 			if (!m_ScriptInterface->CallFunction(tmpSharedAIObj, "Serialize", &sharedData))
-				LOGERROR(L"AI shared script Serialize call failed");
+				LOGERROR("AI shared script Serialize call failed");
 			serializer.ScriptVal("sharedData", &sharedData);
 		}
 		for (size_t i = 0; i < m_Players.size(); ++i)
@@ -596,7 +596,7 @@ public:
 			{
 				JS::RootedValue scriptData(cx);
 				if (!m_ScriptInterface->CallFunction(tmpPlayerObj, "Serialize", &scriptData))
-					LOGERROR(L"AI script Serialize call failed");
+					LOGERROR("AI script Serialize call failed");
 				serializer.ScriptVal("data", &scriptData);
 			}
 			else
@@ -637,7 +637,7 @@ public:
 			JS::RootedValue tmpSharedAIObj(cx, m_SharedAIObj.get()); // TODO: Check if this temporary root can be removed after SpiderMonkey 31
 			deserializer.ScriptVal("sharedData", &sharedData);
 			if (!m_ScriptInterface->CallFunctionVoid(tmpSharedAIObj, "Deserialize", sharedData))
-				LOGERROR(L"AI shared script Deserialize call failed");
+				LOGERROR("AI shared script Deserialize call failed");
 		}
 
 		for (size_t i = 0; i < numAis; ++i)
@@ -675,11 +675,11 @@ public:
 				if (m_Players[i]->m_UseSharedComponent)
 				{
 					if (!m_ScriptInterface->CallFunctionVoid(m_Players.back()->m_Obj, "Deserialize", scriptData, m_SharedAIObj))
-						LOGERROR(L"AI script Deserialize call failed");
+						LOGERROR("AI script Deserialize call failed");
 				}
 				else if (!m_ScriptInterface->CallFunctionVoid(m_Players.back()->m_Obj, "Deserialize", scriptData))
 				{
-					LOGERROR(L"AI script deserialize() call failed");
+					LOGERROR("AI script deserialize() call failed");
 				}
 			}
 			else
@@ -702,7 +702,7 @@ public:
 		JS::RootedObject obj(m_ScriptInterface->GetContext(), &proto.toObject());
 		if (m_SerializablePrototypes->has(obj) || m_DeserializablePrototypes.find(name) != m_DeserializablePrototypes.end())
 		{
-			LOGERROR(L"RegisterSerializablePrototype called with same prototype multiple times: p=%p n='%ls'", obj.get(), name.c_str());
+			LOGERROR("RegisterSerializablePrototype called with same prototype multiple times: p=%p n='%s'", (void *)obj.get(), utf8_from_wstring(name));
 			return;
 		}
 		m_SerializablePrototypes->add(m_ScriptInterface->GetContext(), obj, name);

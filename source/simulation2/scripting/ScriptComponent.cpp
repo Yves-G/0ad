@@ -1,4 +1,4 @@
-/* Copyright (C) 2010 Wildfire Games.
+/* Copyright (C) 2015 Wildfire Games.
  * This file is part of 0 A.D.
  *
  * 0 A.D. is free software: you can redistribute it and/or modify
@@ -63,7 +63,7 @@ void CComponentTypeScript::HandleMessage(const CMessage& msg, bool global)
 	JS::RootedValue msgVal(cx, msg.ToJSValCached(m_ScriptInterface));
 
 	if (!m_ScriptInterface.CallFunctionVoid(m_Instance, name, msgVal))
-		LOGERROR(L"Script message handler %hs failed", name);
+		LOGERROR("Script message handler %s failed", name);
 }
 
 void CComponentTypeScript::Serialize(ISerializer& serialize)
@@ -81,7 +81,7 @@ void CComponentTypeScript::Serialize(ISerializer& serialize)
 	{
 		JS::RootedValue val(cx);
 		if (!m_ScriptInterface.CallFunction(m_Instance, "Serialize", &val))
-			LOGERROR(L"Script Serialize call failed");
+			LOGERROR("Script Serialize call failed");
 		serialize.ScriptVal("object", &val);
 	}
 	else
@@ -106,7 +106,7 @@ void CComponentTypeScript::Deserialize(const CParamNode& paramNode, IDeserialize
 			deserialize.ScriptVal("object", &val);
 
 		if (!m_ScriptInterface.CallFunctionVoid(m_Instance, "Deserialize", val))
-			LOGERROR(L"Script Deserialize call failed");
+			LOGERROR("Script Deserialize call failed");
 	}
 	else
 	{

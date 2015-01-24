@@ -128,7 +128,7 @@ Status SavedGames::Save(const std::wstring& name, const std::wstring& descriptio
 
 	OsPath realPath;
 	WARN_RETURN_STATUS_IF_ERR(g_VFS->GetRealPath(filename, realPath));
-	LOGMESSAGERENDER(wstring_from_utf8(g_L10n.Translate("Saved game to '%ls'") + "\n").c_str(), realPath.string().c_str());
+	LOGMESSAGERENDER(g_L10n.Translate("Saved game to '%s'"), realPath.string8());
 
 	return INFO::OK;
 }
@@ -246,7 +246,7 @@ JS::Value SavedGames::GetSavedGames(ScriptInterface& scriptInterface)
 		if (!archiveReader)
 		{
 			// Triggered by e.g. the file being open in another program
-			LOGWARNING(L"Failed to read saved game '%ls'", realPath.string().c_str());
+			LOGWARNING("Failed to read saved game '%s'", realPath.string8());
 			continue; // skip this file
 		}
 

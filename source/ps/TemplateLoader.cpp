@@ -39,7 +39,7 @@ bool CTemplateLoader::LoadTemplateFile(const std::string& templateName, int dept
 	// Handle infinite loops more gracefully than running out of stack space and crashing
 	if (depth > 100)
 	{
-		LOGERROR(L"Probable infinite inheritance loop in entity template '%hs'", templateName.c_str());
+		LOGERROR("Probable infinite inheritance loop in entity template '%s'", templateName.c_str());
 		return false;
 	}
 
@@ -57,7 +57,7 @@ bool CTemplateLoader::LoadTemplateFile(const std::string& templateName, int dept
 		std::string baseName = templateName.substr(8);
 		if (!LoadTemplateFile(baseName, depth+1))
 		{
-			LOGERROR(L"Failed to load entity template '%hs'", baseName.c_str());
+			LOGERROR("Failed to load entity template '%s'", baseName.c_str());
 			return false;
 		}
 		// Copy a subset to the requested template
@@ -72,7 +72,7 @@ bool CTemplateLoader::LoadTemplateFile(const std::string& templateName, int dept
 		std::string baseName = templateName.substr(7);
 		if (!LoadTemplateFile(baseName, depth+1))
 		{
-			LOGERROR(L"Failed to load entity template '%hs'", baseName.c_str());
+			LOGERROR("Failed to load entity template '%s'", baseName.c_str());
 			return false;
 		}
 		// Copy a subset to the requested template
@@ -87,7 +87,7 @@ bool CTemplateLoader::LoadTemplateFile(const std::string& templateName, int dept
 		std::string baseName = templateName.substr(7);
 		if (!LoadTemplateFile(baseName, depth+1))
 		{
-			LOGERROR(L"Failed to load entity template '%hs'", baseName.c_str());
+			LOGERROR("Failed to load entity template '%s'", baseName.c_str());
 			return false;
 		}
 		// Copy a subset to the requested template
@@ -102,7 +102,7 @@ bool CTemplateLoader::LoadTemplateFile(const std::string& templateName, int dept
 		std::string baseName = templateName.substr(11);
 		if (!LoadTemplateFile(baseName, depth+1))
 		{
-			LOGERROR(L"Failed to load entity template '%hs'", baseName.c_str());
+			LOGERROR("Failed to load entity template '%s'", baseName.c_str());
 			return false;
 		}
 		// Copy a subset to the requested template
@@ -117,7 +117,7 @@ bool CTemplateLoader::LoadTemplateFile(const std::string& templateName, int dept
 		std::string baseName = templateName.substr(13);
 		if (!LoadTemplateFile(baseName, depth+1))
 		{
-			LOGERROR(L"Failed to load entity template '%hs'", baseName.c_str());
+			LOGERROR("Failed to load entity template '%s'", baseName.c_str());
 			return false;
 		}
 		// Copy a subset to the requested template
@@ -132,7 +132,7 @@ bool CTemplateLoader::LoadTemplateFile(const std::string& templateName, int dept
 		std::string baseName = templateName.substr(9);
 		if (!LoadTemplateFile(baseName, depth+1))
 		{
-			LOGERROR(L"Failed to load entity template '%hs'", baseName.c_str());
+			LOGERROR("Failed to load entity template '%s'", baseName.c_str());
 			return false;
 		}
 		// Copy a subset to the requested template
@@ -155,14 +155,14 @@ bool CTemplateLoader::LoadTemplateFile(const std::string& templateName, int dept
 		// To prevent needless complexity in template design, we don't allow |-separated strings as parents
 		if (parentName.find('|') != parentName.npos)
 		{
-			LOGERROR(L"Invalid parent '%hs' in entity template '%hs'", parentName.c_str(), templateName.c_str());
+			LOGERROR("Invalid parent '%s' in entity template '%s'", parentName.c_str(), templateName.c_str());
 			return false;
 		}
 
 		// Ensure the parent is loaded
 		if (!LoadTemplateFile(parentName, depth+1))
 		{
-			LOGERROR(L"Failed to load parent '%hs' of entity template '%hs'", parentName.c_str(), templateName.c_str());
+			LOGERROR("Failed to load parent '%s' of entity template '%s'", parentName.c_str(), templateName.c_str());
 			return false;
 		}
 
@@ -233,14 +233,14 @@ std::vector<std::string> CTemplateLoader::FindPlaceableTemplates(const std::stri
 		{
 			if (!(JS_IsArrayObject(cx, folders)))
 			{
-				LOGERROR(L"FindPlaceableTemplates: Argument must be an array!");
+				LOGERROR("FindPlaceableTemplates: Argument must be an array!");
 				return templates;
 			}
 
 			u32 length;
 			if (!JS_GetArrayLength(cx, folders, &length))
 			{
-				LOGERROR(L"FindPlaceableTemplates: Failed to get array length!");
+				LOGERROR("FindPlaceableTemplates: Failed to get array length!");
 				return templates;
 			}
 
@@ -251,7 +251,7 @@ std::vector<std::string> CTemplateLoader::FindPlaceableTemplates(const std::stri
 				JS::RootedValue val(cx);
 				if (!JS_GetElement(cx, folders, i, &val))
 				{
-					LOGERROR(L"FindPlaceableTemplates: Failed to read array element!");
+					LOGERROR("FindPlaceableTemplates: Failed to read array element!");
 					return templates;
 				}
 
@@ -291,7 +291,7 @@ std::vector<std::string> CTemplateLoader::FindPlaceableTemplates(const std::stri
 	}
 
 	if (templatesType != SIMULATION_TEMPLATES && templatesType != ACTOR_TEMPLATES && templatesType != ALL_TEMPLATES)
-		LOGERROR(L"Undefined template type (valid: all, simulation, actor)");
+		LOGERROR("Undefined template type (valid: all, simulation, actor)");
 
 	return templates;
 }
@@ -323,7 +323,7 @@ std::vector<std::string> CTemplateLoader::FindTemplates(const std::string& path,
 	}
 
 	if (templatesType != SIMULATION_TEMPLATES && templatesType != ACTOR_TEMPLATES && templatesType != ALL_TEMPLATES)
-		LOGERROR(L"Undefined template type (valid: all, simulation, actor)");
+		LOGERROR("Undefined template type (valid: all, simulation, actor)");
 
 	return templates;
 }
@@ -333,7 +333,7 @@ const CParamNode& CTemplateLoader::GetTemplateFileData(const std::string& templa
 	// Load the template if necessary
 	if (!LoadTemplateFile(templateName, 0))
 	{
-		LOGERROR(L"Failed to load entity template '%hs'", templateName.c_str());
+		LOGERROR("Failed to load entity template '%s'", templateName.c_str());
 		return NULL_NODE;
 	}
 
@@ -346,7 +346,7 @@ void CTemplateLoader::ConstructTemplateActor(const std::string& actorName, CPara
 	const char* templateName = "special/actor";
 	if (!LoadTemplateFile(templateName, 0))
 	{
-		LOGERROR(L"Failed to load entity template '%hs'", templateName);
+		LOGERROR("Failed to load entity template '%s'", templateName);
 		return;
 	}
 
@@ -412,9 +412,9 @@ void CTemplateLoader::CopyPreviewSubset(CParamNode& out, const CParamNode& in, b
 
 	if (corpse)
 	{
-		// Corpses should include decay components and un-inactivate them
+		// Corpses should include decay components and activate them
 		if (out.GetChild("Entity").GetChild("Decay").IsOk())
-			CParamNode::LoadXMLString(out, "<Entity><Decay><Inactive disable=''/></Decay></Entity>");
+			CParamNode::LoadXMLString(out, "<Entity><Decay><Active>true</Active></Decay></Entity>");
 
 		// Corpses shouldn't display silhouettes (especially since they're often half underground)
 		if (out.GetChild("Entity").GetChild("VisualActor").IsOk())

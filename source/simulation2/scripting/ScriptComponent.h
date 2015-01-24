@@ -61,21 +61,21 @@ public:
 		R ret; \
 		if (m_ScriptInterface.CallFunction(m_Instance, funcname  BOOST_PP_ENUM_TRAILING_PARAMS(i, a), ret)) \
 			return ret; \
-		LOGERROR(L"Error calling component script function %hs", funcname); \
+		LOGERROR("Error calling component script function %s", funcname); \
 		return R(); \
 	} \
 	template<typename R  BOOST_PP_ENUM_TRAILING_PARAMS(i, typename T)> \
 	void CallRef(const char* funcname  BOOST_PP_ENUM_TRAILING_BINARY_PARAMS(i, const T, &a), R ret) \
 	{ \
 		if (!m_ScriptInterface.CallFunction(m_Instance, funcname  BOOST_PP_ENUM_TRAILING_PARAMS(i, a), ret)) \
-			LOGERROR(L"Error calling component script function %hs", funcname); \
+			LOGERROR("Error calling component script function %s", funcname); \
 	} \
 	BOOST_PP_IF(i, template<, ) BOOST_PP_ENUM_PARAMS(i, typename T) BOOST_PP_IF(i, >, ) \
 	void CallVoid(const char* funcname  BOOST_PP_ENUM_TRAILING_BINARY_PARAMS(i, const T, &a)) \
 	{ \
 		if (m_ScriptInterface.CallFunctionVoid(m_Instance, funcname  BOOST_PP_ENUM_TRAILING_PARAMS(i, a))) \
 			return; \
-		LOGERROR(L"Error calling component script function %hs", funcname); \
+		LOGERROR("Error calling component script function %s", funcname); \
 	}
 BOOST_PP_REPEAT(SCRIPT_INTERFACE_MAX_ARGS, OVERLOADS, ~)
 #undef OVERLOADS
