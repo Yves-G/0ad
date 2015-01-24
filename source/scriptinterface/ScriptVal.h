@@ -80,7 +80,7 @@ public:
 	}
 
 	// TODO: Move assignment operator and move constructor only have to be
-	// explicitely defined for VS2010 and probably other old compilers that
+	// explicitly defined for VS2010 and probably other old compilers that
 	// don't fully support C++11
 	DefPersistentRooted<T>& operator=(DefPersistentRooted<T>&& other)
 	{

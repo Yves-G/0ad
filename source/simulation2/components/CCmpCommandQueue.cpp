@@ -52,8 +52,7 @@ public:
 	{
 		JSContext* cx = GetSimContext().GetScriptInterface().GetContext();
 		JSAutoRequest rq(cx);
-		
-		JS::RootedValue tmpRoot(cx); // TODO: Check if this temporary root can be removed after SpiderMonkey 31 upgrade
+
 		serialize.NumberU32_Unbounded("num commands", (u32)m_LocalQueue.size());
 		for (size_t i = 0; i < m_LocalQueue.size(); ++i)
 		{

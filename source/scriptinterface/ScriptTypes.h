@@ -30,7 +30,7 @@
 
 // Guess whether the library was compiled with the release-mode or debug-mode ABI
 // (for JS_DumpHeap etc)
-#if defined(DEBUG) && !defined(WITH_SYSTEM_MOZJS24)
+#if defined(DEBUG) && !defined(WITH_SYSTEM_MOZJS31)
 # define MOZJS_DEBUG_ABI 1
 #else
 # define MOZJS_DEBUG_ABI 0
@@ -43,7 +43,6 @@
 # pragma GCC diagnostic ignored "-Wredundant-decls"
 # pragma GCC diagnostic ignored "-Wundef" // Some versions of GCC will still print warnings (see http://gcc.gnu.org/bugzilla/show_bug.cgi?id=53431).
 # pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
-# pragma GCC diagnostic ignored "-Wignored-qualifiers"
 # pragma GCC diagnostic ignored "-Wignored-qualifiers"
 # pragma GCC diagnostic ignored "-Wextra"
 #endif
@@ -68,7 +67,7 @@
 #include "jspubtd.h"
 #include "jsapi.h"
 
-
+// restore user flags and re-enable the warnings disabled a few lines above
 #if MSC_VERSION
 # pragma warning(pop)
 #endif
@@ -76,12 +75,6 @@
 # pragma clang diagnostic pop
 #endif
 #if GCC_VERSION
-# pragma GCC diagnostic warning "-Wunused-parameter"
-# pragma GCC diagnostic warning "-Wredundant-decls"
-# pragma GCC diagnostic warning "-Wundef"
-# pragma GCC diagnostic ignored "-Wnon-virtual-dtor"
-# pragma GCC diagnostic warning "-Wignored-qualifiers"
-// restore user flags and re-enable the warnings disabled a few lines above
 # pragma GCC diagnostic pop
 #endif
 
