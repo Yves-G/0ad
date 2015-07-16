@@ -58,6 +58,7 @@
 #include "graphics/Terrain.h"
 #include "graphics/Texture.h"
 #include "graphics/TextureManager.h"
+#include "graphics/UniformBlockManager.h"
 #include "renderer/HWLightingModelRenderer.h"
 #include "renderer/InstancingModelRenderer.h"
 #include "renderer/ModelRenderer.h"
@@ -265,6 +266,8 @@ public:
 
 	/// Shader manager
 	CShaderManager shaderManager;
+	
+	UniformBlockManager uniformBlockManager;
 
 	/// Water manager
 	WaterManager waterManager;
@@ -414,7 +417,8 @@ CRenderer::CRenderer()
 {
 	m = new CRendererInternals;
 	m_WaterManager = &m->waterManager;
-	m_SkyManager = &m->skyManager;
+	m_SkyManager = &m->skyManager;	
+	m_UniformBlockManager = &m->uniformBlockManager;
 
 	g_ProfileViewer.AddRootTable(&m->profileTable);
 
@@ -650,6 +654,8 @@ bool CRenderer::Open(int width, int height)
 	// Let component renderers perform one-time initialization after graphics capabilities and
 	// the shader path have been determined.
 	m->overlayRenderer.Initialize();
+	
+	m->uniformBlockManager.Initialize();
 	
 	if (m_Options.m_Postproc)
 		m->postprocManager.Initialize();

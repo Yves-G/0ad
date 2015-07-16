@@ -31,8 +31,11 @@
 #include "graphics/Material.h"
 #include "graphics/Model.h"
 #include "graphics/ModelDef.h"
+#include "graphics/MultiDrawIndirectCommands.h"
 #include "graphics/ShaderManager.h"
 #include "graphics/TextureManager.h"
+#include "graphics/UniformBlockManager.h"
+#include "graphics/ShaderBlockUniforms.h"
 
 #include "renderer/MikktspaceWrap.h"
 #include "renderer/ModelRenderer.h"
@@ -345,16 +348,6 @@ struct SMRMaterialBucketKeyHash
 	}
 };
 
-struct SMRTechBucket
-{
-	CShaderTechniquePtr tech;
-	CModel** models;
-	size_t numModels;
-
-	// Model list is stored as pointers, not as a std::vector,
-	// so that sorting lists of this struct is fast
-};
-
 struct SMRCompareTechBucket
 {
 	bool operator()(const SMRTechBucket& a, const SMRTechBucket& b)
@@ -362,6 +355,113 @@ struct SMRCompareTechBucket
 		return a.tech < b.tech;
 	}
 };
+
+void ShaderModelRenderer::PrepareUniformBuffers(size_t startInstance, size_t maxInstancesPerDraw, 
+												int flags, const std::vector<SMRTechBucket, TechBucketsAllocator>& techBuckets, 
+												const RenderModifierPtr& modifier)
+{
+	PROFILE3("PrepareUniformBuffers");
+	UniformBlockManager& uniformBlockManager = g_Renderer.GetUniformBlockManager();
+	ENSURE(maxInstancesPerDraw != 0);
+	
+	size_t idxTechStart = 0;
+	size_t instanceId = 0;
+	u64 materialUniformsSet = 0;
+	
+	UniformBinding materialIdBinding = uniformBlockManager.GetBinding(CStrIntern("ModelUBO"), CStrIntern("materialID[0]"), true);
+	
+
+	while (idxTechStart < techBuckets.size())
+	{
+		CShaderTechniquePtr currentTech = techBuckets[idxTechStart].tech;
+
+		// Find runs [idxTechStart, idxTechEnd) in techBuckets of the same technique
+		size_t idxTechEnd;
+		for (idxTechEnd = idxTechStart + 1; idxTechEnd < techBuckets.size(); ++idxTechEnd)
+		{
+			if (techBuckets[idxTechEnd].tech != currentTech)
+				break;
+		}
+
+		// For each of the technique's passes, render all the models in this run
+		for (int pass = 0; pass < currentTech->GetNumPasses(); ++pass)
+		{
+			const CShaderProgramPtr& shader = currentTech->GetShader(pass);
+			int streamflags = shader->GetStreamFlags();
+			
+			for (size_t idx = idxTechStart; idx < idxTechEnd; ++idx)
+			{
+				CModel** models = techBuckets[idx].models;
+				size_t numModels = techBuckets[idx].numModels;
+				for (size_t i = 0; i < numModels; ++i)
+				{
+					CModel* model = models[i];
+
+					if (flags && !(model->GetFlags() & flags))
+						continue;
+				
+					if (instanceId >= startInstance)
+					{
+						int materialId = model->GetMaterial().GetId();
+						ENSURE(materialId != -1 && materialId < 64);
+						
+						uniformBlockManager.SetCurrentInstance<UniformBlockManager::MODEL_INSTANCED>(instanceId % maxInstancesPerDraw);
+						uniformBlockManager.SetUniform<UniformBlockManager::MODEL_INSTANCED>(materialIdBinding, (GLuint)materialId);
+						
+						
+						// Only set uniforms that have not already been set. Use a bitmask to keep track of already set uniforms
+						// efficiently.
+						// TODO: This should be taken out of the rendering loop.
+						u64 materialBit = 1 << materialId; 
+						if ((materialBit & materialUniformsSet) == 0)
+						{	
+							CShaderBlockUniforms& staticUniforms = model->GetMaterial().GetStaticBlockUniforms();
+							staticUniforms.SetUniforms<UniformBlockManager::MATERIAL_INSTANCED>(materialId);
+							materialUniformsSet |= materialBit;
+						}
+						
+						modifier->SetModelUniforms(model);
+						
+						m->vertexRenderer->PrepareModel(shader, model);
+						
+						//CModelRData* rdata = static_cast<CModelRData*>(model->GetRenderData());
+						//ENSURE(rdata->GetKey() == m->vertexRenderer.get());
+						CModelRData* rdata = NULL;
+												
+						//if (sameInstance)
+						//	m->vertexRenderer->AddInstance();
+						//else
+						//{
+
+							m->vertexRenderer->SetRenderModelInstanced(shader, streamflags, model, rdata);
+						//	sameInstance = true;
+						//}
+						
+					}
+					
+					instanceId++;
+					
+					if (instanceId - startInstance == maxInstancesPerDraw)
+					{
+						PROFILE3("upload uniforms (1)");
+						uniformBlockManager.Upload();
+						m->vertexRenderer->BindAndUpload();
+						return;
+					}
+						
+				}
+			}
+		}
+
+		idxTechStart = idxTechEnd;
+	}
+	
+	{
+	PROFILE3("upload uniforms (2)");
+	uniformBlockManager.Upload();
+	m->vertexRenderer->BindAndUpload();
+	}
+}
 
 void ShaderModelRenderer::Render(const RenderModifierPtr& modifier, const CShaderDefines& context, int cullGroup, int flags)
 {
@@ -494,7 +594,6 @@ void ShaderModelRenderer::Render(const RenderModifierPtr& modifier, const CShade
 		// if we just stored raw CShaderTechnique* and assumed the shader manager
 		// will keep it alive long enough)
 
-	typedef ProxyAllocator<SMRTechBucket, Allocators::DynamicArena> TechBucketsAllocator;
 	std::vector<SMRTechBucket, TechBucketsAllocator> techBuckets((TechBucketsAllocator(arena)));
 
 	{
@@ -601,6 +700,28 @@ void ShaderModelRenderer::Render(const RenderModifierPtr& modifier, const CShade
 
 		size_t idxTechStart = 0;
 		
+		size_t startInstance = 0;
+		size_t preparedModelUniformsLeft = 2000;
+		const size_t maxInstancesPerDraw = 2000;
+		
+		UniformBlockManager& uniformBlockManager = g_Renderer.GetUniformBlockManager();
+		
+		// Set all per-frame uniforms
+		UniformBinding binding = uniformBlockManager.GetBinding(CStrIntern("FrameUBO"), CStrIntern("sim_time"), false);
+		if (binding.Active())
+		{
+			double time = g_Renderer.GetTimeManager().GetGlobalTime();
+			// TODO: Why don't we just use a single float instead of vec4?
+			uniformBlockManager.SetUniform<UniformBlockManager::NOT_INSTANCED>(binding, CVector4D(time, 0, 0, 0));
+		}
+		
+		modifier->SetFrameUniforms();
+		
+		// prepare the first batch of uniforms.
+		// This causes an upload of all modified uniform buffers, and will also take care of uploading
+		// the per-frame uniforms
+		PrepareUniformBuffers(startInstance, maxInstancesPerDraw, flags, techBuckets, modifier);
+		
 		// This vector keeps track of texture changes during rendering. It is kept outside the
 		// loops to avoid excessive reallocations. The token allocation of 64 elements 
 		// should be plenty, though it is reallocated below (at a cost) if necessary.
@@ -611,8 +732,8 @@ void ShaderModelRenderer::Render(const RenderModifierPtr& modifier, const CShade
 		// texBindings holds the identifier bindings in the shader, which can no longer be defined 
 		// statically in the ShaderRenderModifier class. texBindingNames uses interned strings to
 		// keep track of when bindings need to be reevaluated.
-		typedef ProxyAllocator<CShaderProgram::Binding, Allocators::DynamicArena> BindingListAllocator;
-		std::vector<CShaderProgram::Binding, BindingListAllocator> texBindings((BindingListAllocator(arena)));
+		typedef ProxyAllocator<Binding, Allocators::DynamicArena> BindingListAllocator;
+		std::vector<Binding, BindingListAllocator> texBindings((BindingListAllocator(arena)));
 		texBindings.reserve(64);
 
 		typedef ProxyAllocator<CStrIntern, Allocators::DynamicArena> BindingNamesListAllocator;
@@ -622,6 +743,12 @@ void ShaderModelRenderer::Render(const RenderModifierPtr& modifier, const CShade
 		while (idxTechStart < techBuckets.size())
 		{
 			CShaderTechniquePtr currentTech = techBuckets[idxTechStart].tech;
+			
+			// Set to true when a new instanced draw command gets added.
+			// Everytime we do a state-change that requires adding a new DrawElementsIndirectCommand,
+			// we have to set this to false
+			// TODO: Completely useless currently because we only ever draw one instance
+			bool sameInstance = false;
 
 			// Find runs [idxTechStart, idxTechEnd) in techBuckets of the same technique
 			size_t idxTechEnd;
@@ -638,6 +765,9 @@ void ShaderModelRenderer::Render(const RenderModifierPtr& modifier, const CShade
 
 				const CShaderProgramPtr& shader = currentTech->GetShader(pass);
 				int streamflags = shader->GetStreamFlags();
+				
+				// TODO: Check the return value and force drawing if it's false
+				uniformBlockManager.EnsureBlockBinding(shader);
 
 				modifier->BeginPass(shader);
 
@@ -660,6 +790,9 @@ void ShaderModelRenderer::Render(const RenderModifierPtr& modifier, const CShade
 					for (size_t i = 0; i < numModels; ++i)
 					{
 						CModel* model = models[i];
+						
+						// TODO: Instancing is completely useless currently because we only ever draw one instance
+						sameInstance = false;
 
 						if (flags && !(model->GetFlags() & flags))
 							continue;
@@ -672,11 +805,11 @@ void ShaderModelRenderer::Render(const RenderModifierPtr& modifier, const CShade
 						if (currentTexs.size() != samplersNum)
 						{
 							currentTexs.resize(samplersNum, NULL);
-							texBindings.resize(samplersNum, CShaderProgram::Binding());
+							texBindings.resize(samplersNum, Binding());
 							texBindingNames.resize(samplersNum, CStrIntern());
 							
 							// ensure they are definitely empty
-							std::fill(texBindings.begin(), texBindings.end(), CShaderProgram::Binding());
+							std::fill(texBindings.begin(), texBindings.end(), Binding());
 							std::fill(currentTexs.begin(), currentTexs.end(), (CTexture*)NULL);
 							std::fill(texBindingNames.begin(), texBindingNames.end(), CStrIntern());
 						}
@@ -686,7 +819,7 @@ void ShaderModelRenderer::Render(const RenderModifierPtr& modifier, const CShade
 						{
 							const CMaterial::TextureSampler& samp = samplers[s];
 							
-							CShaderProgram::Binding bind = texBindings[s];
+							Binding bind = texBindings[s];
 							// check that the handles are current
 							// and reevaluate them if necessary
 							if (texBindingNames[s] == samp.Name && bind.Active())
@@ -716,30 +849,48 @@ void ShaderModelRenderer::Render(const RenderModifierPtr& modifier, const CShade
 							currentModeldef = newModeldef;
 							m->vertexRenderer->PrepareModelDef(shader, streamflags, *currentModeldef);
 						}
-
+						
+						//CShaderBlockUniforms& staticUniforms = model->GetMaterial().GetStaticBlockUniforms();
+						//staticUniforms.SetUniforms(uniformBlockManager);
+						/*
 						// Bind all uniforms when any change
 						CShaderUniforms newStaticUniforms = model->GetMaterial().GetStaticUniforms();
 						if (newStaticUniforms != currentStaticUniforms)
 						{
 							currentStaticUniforms = newStaticUniforms;
 							currentStaticUniforms.BindUniforms(shader);
-						}
+						}*/
 						
 						const CShaderRenderQueries& renderQueries = model->GetMaterial().GetRenderQueries();
 						
 						for (size_t q = 0; q < renderQueries.GetSize(); q++)
 						{
 							CShaderRenderQueries::RenderQuery rq = renderQueries.GetItem(q);
-							if (rq.first == RQUERY_TIME)
+							/*if (rq.first == RQUERY_TIME)
 							{
-								CShaderProgram::Binding binding = shader->GetUniformBinding(rq.second);
+								
+//								Binding binding = shader->GetUniformBinding(rq.second);
+//								if (binding.Active())
+//								{
+//									double time = g_Renderer.GetTimeManager().GetGlobalTime();
+//									shader->Uniform(binding, time, 0,0,0);
+//								}
+								
+								
+								// TODO: Could we just use a time value per frame and store it in a uniform block
+								// where all shaders can use it? With uniform blocks, RenderQueries only seem to
+								// make sense for per-object data.
+								UniformBinding binding = uniformBlockManager.GetBinding("TODO", rq.second);
+								binding.m_IsInstanced = false;
 								if (binding.Active())
 								{
 									double time = g_Renderer.GetTimeManager().GetGlobalTime();
-									shader->Uniform(binding, time, 0,0,0);
+									uniformBlockManager.SetUniform(binding, time, 0, 0, 0);
 								}
+								
+								
 							}
-							else if (rq.first == RQUERY_WATER_TEX)
+							else */if (rq.first == RQUERY_WATER_TEX)
 							{
 								WaterManager* WaterMgr = g_Renderer.GetWaterManager();
 								double time = WaterMgr->m_WaterTexTimer;
@@ -758,11 +909,27 @@ void ShaderModelRenderer::Render(const RenderModifierPtr& modifier, const CShade
 						}
 
 						modifier->PrepareModel(shader, model);
-
-						CModelRData* rdata = static_cast<CModelRData*>(model->GetRenderData());
-						ENSURE(rdata->GetKey() == m->vertexRenderer.get());
-
-						m->vertexRenderer->RenderModel(shader, streamflags, model, rdata);
+						
+						// TODO: will not need to be done for each models in the future						
+						m->vertexRenderer->RenderModelsInstanced(1);
+						//m->vertexRenderer->RenderModel(shader, streamflags, model, rdata);
+						
+						preparedModelUniformsLeft--;
+						if (preparedModelUniformsLeft == 0)
+						{
+							m->vertexRenderer->ResetDrawID();
+							m->vertexRenderer->ResetCommands();
+							startInstance += maxInstancesPerDraw;
+							PrepareUniformBuffers(startInstance, maxInstancesPerDraw, flags, techBuckets, modifier);
+							
+							// technically not true when less models than maxInstancesPerDraw models are left, 
+							// but preparedModelUniformsLeft is only used to detect when PrepareUniformBuffers
+							// needs to be called, so it does not matter.
+							preparedModelUniformsLeft = maxInstancesPerDraw;
+							
+							// TODO: Force drawing (currently we draw always anyway, so it is already "forced",
+							// but this will change when instancing works properly)
+						}
 					}
 				}
 
@@ -774,4 +941,7 @@ void ShaderModelRenderer::Render(const RenderModifierPtr& modifier, const CShade
 			idxTechStart = idxTechEnd;
 		}
 	}
+	
+	m->vertexRenderer->ResetDrawID();
+	m->vertexRenderer->ResetCommands();
 }

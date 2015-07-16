@@ -309,6 +309,17 @@ u8* VertexArray::Bind()
 	return base;
 }
 
+// Bind this array, returns the base address for calls to glVertexPointer etc.
+u8* VertexArray::GetBindAddress()
+{
+	if (!m_VB)
+		return NULL;
+
+	u8* base = m_VB->m_Owner->GetBindAddress();
+	base += m_VB->m_Index*m_Stride;
+	return base;
+}
+
 
 // Free the backing store to save some memory
 void VertexArray::FreeBackingStore()

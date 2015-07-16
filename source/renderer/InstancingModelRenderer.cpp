@@ -26,11 +26,14 @@
 #include "maths/Vector4D.h"
 
 #include "ps/CLogger.h"
+#include "ps/Profile.h"
+
 
 #include "graphics/Color.h"
 #include "graphics/LightEnv.h"
 #include "graphics/Model.h"
 #include "graphics/ModelDef.h"
+#include "graphics/UniformBlockManager.h"
 
 #include "renderer/InstancingModelRenderer.h"
 #include "renderer/Renderer.h"
@@ -258,6 +261,8 @@ struct InstancingModelRendererInternals
 
 	/// Index base for imodeldef
 	u8* imodeldefIndexBase;
+	
+	MultiDrawIndirectCommands multiDrawIndirectCommands;
 };
 
 
@@ -325,6 +330,12 @@ void InstancingModelRenderer::PrepareModelDef(const CShaderProgramPtr& shader, i
 
 	u8* base = m->imodeldef->m_Array.Bind();
 	GLsizei stride = (GLsizei)m->imodeldef->m_Array.GetStride();
+	
+	// HACK: Hardcode the vertex attribute to 15 (gl_MultiTexCoord7) because that doesn't seem to be
+	// used anywhere currently
+	u8* instancingDataBasePtr = m->imodeldef->m_Array.GetInstancingDataBasePtr();
+	pglVertexAttribIPointerEXT(15, 1, GL_UNSIGNED_INT, 0, (const GLvoid*)instancingDataBasePtr);
+	pglVertexBindingDivisor(15, 1);
 
 	m->imodeldefIndexBase = m->imodeldef->m_IndexArray.Bind();
 
@@ -353,12 +364,31 @@ void InstancingModelRenderer::PrepareModelDef(const CShaderProgramPtr& shader, i
 	shader->AssertPointersBound();
 }
 
+void InstancingModelRenderer::PrepareModel(const CShaderProgramPtr& shader, CModel* model)
+{
+	UniformBlockManager& uniformBlockManager = g_Renderer.GetUniformBlockManager();
+	if (m->gpuSkinning)
+	{
+		CModelDefPtr mdldef = model->GetModelDef();
+		
+		// Bind matrices for current animation state.
+		// Add 1 to NumBones because of the special 'root' bone.
+		// HACK: NVIDIA drivers return uniform name with "[0]", Intel Windows drivers without;
+		// try uploading both names since one of them should work, and this is easier than
+		// canonicalising the uniform names in CShaderProgramGLSL
+		UniformBinding binding = uniformBlockManager.GetBinding(CStrIntern("GPUSkinningUBO"), str_skinBlendMatrices_0, true);
+		uniformBlockManager.SetUniform<UniformBlockManager::MODEL_INSTANCED>(binding, mdldef->GetNumBones() + 1, model->GetAnimatedBoneMatrices());
+		//shader->Uniform(str_skinBlendMatrices_0, mdldef->GetNumBones() + 1, model->GetAnimatedBoneMatrices());
+		//shader->Uniform(str_skinBlendMatrices, mdldef->GetNumBones() + 1, model->GetAnimatedBoneMatrices());
+	}
+}
 
 // Render one model
 void InstancingModelRenderer::RenderModel(const CShaderProgramPtr& shader, int UNUSED(streamflags), CModel* model, CModelRData* UNUSED(data))
 {
+	
 	CModelDefPtr mdldef = model->GetModelDef();
-
+	/*
 	if (m->gpuSkinning)
 	{
 		// Bind matrices for current animation state.
@@ -368,7 +398,7 @@ void InstancingModelRenderer::RenderModel(const CShaderProgramPtr& shader, int U
 		// canonicalising the uniform names in CShaderProgramGLSL
 		shader->Uniform(str_skinBlendMatrices_0, mdldef->GetNumBones() + 1, model->GetAnimatedBoneMatrices());
 		shader->Uniform(str_skinBlendMatrices, mdldef->GetNumBones() + 1, model->GetAnimatedBoneMatrices());
-	}
+	}*/
 
 	// render the lot
 	size_t numFaces = mdldef->GetNumFaces();
@@ -386,6 +416,78 @@ void InstancingModelRenderer::RenderModel(const CShaderProgramPtr& shader, int U
 
 	// bump stats
 	g_Renderer.m_Stats.m_DrawCalls++;
+	g_Renderer.m_Stats.m_ModelTris += numFaces;
+
+}
+
+// TODO: there are too many functions here that do nothing else than forwarding
+// the functions from multiDrawIndirectCommands.
+
+
+void InstancingModelRenderer::ResetDrawID()
+{
+	m->multiDrawIndirectCommands.ResetDrawID();
+}
+
+void InstancingModelRenderer::ResetCommands()
+{
+	m->multiDrawIndirectCommands.ResetCommands();
+}
+
+
+void InstancingModelRenderer::AddInstance()
+{
+	m->multiDrawIndirectCommands.AddInstance();
+}
+
+void InstancingModelRenderer::BindAndUpload()
+{
+		m->multiDrawIndirectCommands.BindAndUpload();
+}
+
+void InstancingModelRenderer::RenderModelsInstanced(u32 modelsCount)
+{
+	if (!g_Renderer.m_SkipSubmit)
+		m->multiDrawIndirectCommands.Draw(modelsCount);
+}
+
+void InstancingModelRenderer::SetRenderModelInstanced(const CShaderProgramPtr& shader, int UNUSED(streamflags), CModel* model, CModelRData* UNUSED(data))
+{
+	/*
+	CModelDefPtr mdldef = model->GetModelDef();
+
+	if (m->gpuSkinning)
+	{
+		// Bind matrices for current animation state.
+		// Add 1 to NumBones because of the special 'root' bone.
+		// HACK: NVIDIA drivers return uniform name with "[0]", Intel Windows drivers without;
+		// try uploading both names since one of them should work, and this is easier than
+		// canonicalising the uniform names in CShaderProgramGLSL
+		shader->Uniform(str_skinBlendMatrices_0, mdldef->GetNumBones() + 1, model->GetAnimatedBoneMatrices());
+		shader->Uniform(str_skinBlendMatrices, mdldef->GetNumBones() + 1, model->GetAnimatedBoneMatrices());
+	}*/
+
+	CModelDefPtr mdldef = model->GetModelDef();
+	
+	size_t numFaces = mdldef->GetNumFaces();
+	
+	//u64 indexBase = (u64)m->imodeldefIndexBase;
+	//indexBase = indexBase / 2;
+	
+	IModelDef* imodeldef = (IModelDef*)mdldef->GetRenderData(m);
+	ENSURE(imodeldef);
+	u8* imodeldefIndexBase = imodeldef->m_IndexArray.GetBindAddress();
+	// Hardcoded sizeof(index-buffer-element-type) as 2 byte assuming u16
+	size_t imodeldefIndexBaseUnit = (size_t)imodeldefIndexBase / 2;
+	
+	
+	m->multiDrawIndirectCommands.AddCommand((GLsizei)numFaces*3, // primCount
+											1, // instanceCount
+											imodeldefIndexBaseUnit, // m->imodeldefIndexBase, // firstIndex
+											0); // baseVertex... I guess that should be 0 because the offset for instancing data was already passed to glVertexPinter
+
+	// bump stats
+	g_Renderer.m_Stats.m_DrawCalls++; // TODO: how with instancing...?
 	g_Renderer.m_Stats.m_ModelTris += numFaces;
 
 }

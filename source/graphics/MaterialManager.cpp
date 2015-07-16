@@ -31,6 +31,8 @@
 
 #include <sstream>
 
+int CMaterialManager::m_NextFreeMaterialID = 0;
+
 CMaterialManager::CMaterialManager()
 {
 	qualityLevel = 5.0;
@@ -61,6 +63,7 @@ CMaterial CMaterialManager::LoadMaterial(const VfsPath& pathname)
 	EL(define);
 	EL(shader);
 	EL(uniform);
+	EL(blockuniform);
 	EL(renderquery);
 	EL(required_texture);
 	EL(conditional_define);
@@ -70,6 +73,8 @@ CMaterial CMaterialManager::LoadMaterial(const VfsPath& pathname)
 	AT(quality);
 	AT(material);
 	AT(name);
+	AT(blockname);
+	AT(instanced);
 	AT(value);
 	AT(type);
 	AT(min);
@@ -79,14 +84,18 @@ CMaterial CMaterialManager::LoadMaterial(const VfsPath& pathname)
 	#undef EL
 
 	CMaterial material;
+	material.SetId(m_NextFreeMaterialID++);
 
 	XMBElement root = xeroFile.GetRoot();
 	
 	CPreprocessorWrapper preprocessor;
 	preprocessor.AddDefine("CFG_FORCE_ALPHATEST", g_Renderer.m_Options.m_ForceAlphaTest ? "1" : "0");
 	
-	CVector4D vec(qualityLevel,0,0,0);
-	material.AddStaticUniform("qualityLevel", vec);
+	//CVector4D vec(qualityLevel,0,0,0);
+	//material.AddStaticUniform("qualityLevel", vec);
+	
+	//CVector4D vec(qualityLevel,0,0,0);
+	//material.AddStaticUniform(CStrIntern("UnusedBlock"), CStrIntern("qualityLevel"), false, vec);
 
 	XERO_ITER_EL(root, node)
 	{
@@ -181,7 +190,31 @@ CMaterial CMaterialManager::LoadMaterial(const VfsPath& pathname)
 			CVector4D vec;
 			str >> vec.X >> vec.Y >> vec.Z >> vec.W;
 			material.AddStaticUniform(attrs.GetNamedItem(at_name).c_str(), vec);
+			
+			CStr blockName = attrs.GetNamedItem(at_blockname);
+			if (!blockName.empty())
+			{
+							bool isInstanced = attrs.GetNamedItem(at_instanced).ToInt();
+			
+							material.AddStaticBlockUniform(CStrIntern(blockName),
+			                  CStrIntern(attrs.GetNamedItem(at_name).c_str()),
+							  isInstanced,
+			                  vec);
+			}			                  
 		}
+		/*
+		else if (token == el_blockuniform)
+		{
+			std::stringstream str(attrs.GetNamedItem(at_value));
+			CVector4D vec;
+			str >> vec.X >> vec.Y >> vec.Z >> vec.W;
+			bool isInstanced = attrs.GetNamedItem(at_instanced).ToInt();
+			
+			material.AddStaticBlockUniform(CStrIntern(attrs.GetNamedItem(at_blockname)),
+			                  CStrIntern(attrs.GetNamedItem(at_name).c_str()),
+							  isInstanced,
+			                  vec);
+		}*/
 		else if (token == el_renderquery)
 		{
 			material.AddRenderQuery(attrs.GetNamedItem(at_name).c_str());

@@ -26,10 +26,15 @@
 
 #include <memory>
 
+#include "lib/allocators/allocator_adapters.h"
+#include "lib/allocators/arena.h"
+
 #include "graphics/MeshManager.h"
 #include "graphics/RenderableObject.h"
 #include "graphics/SColor.h"
+#include "graphics/ShaderManager.h"
 #include "renderer/VertexArray.h"
+#include "graphics/MultiDrawIndirectCommands.h"
 
 class RenderModifier;
 typedef shared_ptr<RenderModifier> RenderModifierPtr;
@@ -45,6 +50,7 @@ typedef shared_ptr<ModelRenderer> ModelRendererPtr;
 
 class CModel;
 class CShaderDefines;
+class MultiDrawIndirectCommands;
 
 /**
  * Class CModelRData: Render data that is maintained per CModel.
@@ -245,6 +251,18 @@ public:
 	static void GenTangents(const CModelDefPtr& mdef, std::vector<float>& newVertices, bool gpuSkinning);
 };
 
+// TODO: Make this a class member?
+struct SMRTechBucket
+{
+	CShaderTechniquePtr tech;
+	CModel** models;
+	size_t numModels;
+
+	// Model list is stored as pointers, not as a std::vector,
+	// so that sorting lists of this struct is fast
+};
+	
+
 
 struct ShaderModelRendererInternals;
 
@@ -270,7 +288,15 @@ public:
 	virtual void Render(const RenderModifierPtr& modifier, const CShaderDefines& context, int cullGroup, int flags);
 
 private:
+	
+	typedef ProxyAllocator<SMRTechBucket, Allocators::DynamicArena> TechBucketsAllocator;
+	
+	void PrepareUniformBuffers(size_t startInstance, size_t maxInstancesPerDraw, int flags, 
+						const std::vector<SMRTechBucket, TechBucketsAllocator>& techBuckets,
+						const RenderModifierPtr& modifier);
+	
 	ShaderModelRendererInternals* m;
+	MultiDrawIndirectCommands m_MultiDrawIndirectCommands;
 };
 
 #endif // INCLUDED_MODELRENDERER

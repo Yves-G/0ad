@@ -21,6 +21,8 @@
 
 #include "graphics/ShaderManager.h"
 #include "graphics/TextureManager.h"
+#include "graphics/UniformBlockManager.h"
+#include "graphics/UniformBuffer.h"
 #include "lib/res/graphics/ogl_tex.h"
 #include "maths/Matrix3D.h"
 #include "maths/Vector3D.h"
@@ -28,6 +30,7 @@
 #include "ps/Filesystem.h"
 #include "ps/PreprocessorWrapper.h"
 #include "ps/Shapes.h"
+#include "renderer/Renderer.h"
 
 #if !CONFIG2_GLES
 
@@ -408,6 +411,11 @@ public:
 				ogl_WarnIfError();
 			}
 		}
+		
+		UniformBuffer::GetBlockIdentifiers(m_Program, m_UniformBlockIdentifiers);
+		UniformBlockManager& uniformBlockManager = g_Renderer.GetUniformBlockManager();
+		uniformBlockManager.RegisterUniformBlocks(*this);
+		m_BlockBindings.resize(m_UniformBlockIdentifiers.size());
 
 		// TODO: verify that we're not using more samplers than is supported
 
@@ -642,7 +650,7 @@ private:
 	CShaderDefines m_Defines;
 	std::map<CStrIntern, int> m_VertexAttribs;
 
-	GLhandleARB m_Program;
+	//GLhandleARB m_Program;
 	GLhandleARB m_VertexShader;
 	GLhandleARB m_FragmentShader;
 

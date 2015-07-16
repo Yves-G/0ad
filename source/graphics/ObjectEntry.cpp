@@ -128,7 +128,8 @@ bool CObjectEntry::BuildVariation(const std::vector<std::set<CStr> >& selections
 	delete m_Model;
 	m_Model = model;
 	model->SetMaterial(g_Renderer.GetMaterialManager().LoadMaterial(m_Base->m_Material));
-	model->GetMaterial().AddStaticUniform("objectColor", CVector4D(m_Color.r, m_Color.g, m_Color.b, m_Color.a));
+	//model->GetMaterial().AddStaticUniform("objectColor", CVector4D(m_Color.r, m_Color.g, m_Color.b, m_Color.a));
+	model->GetMaterial().AddStaticBlockUniform(CStrIntern("MaterialUBO"), CStrIntern("objectColor[0]"), true, CVector4D(m_Color.r, m_Color.g, m_Color.b, m_Color.a));
 	model->InitModel(modeldef);
 	
 	if (m_Samplers.size() == 0)

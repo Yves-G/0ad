@@ -341,6 +341,7 @@ FUNC2(void, glUniform4uivEXT, glUniform4uiv, "3.0", (GLint location, GLsizei cou
 FUNC2(void, glGetUniformuivEXT, glGetUniformuiv, "3.0", (GLuint program, GLint location, GLuint *params))
 FUNC2(void, glBindFragDataLocationEXT, glBindFragDataLocation, "3.0", (GLuint program, GLuint colorNumber, const char *name))
 FUNC2(GLint, glGetFragDataLocationEXT, glGetFragDataLocation, "3.0", (GLuint program, const char *name))
+FUNC2(void, glBindBufferBase, glBindBufferBase, "3.0", (GLenum target, GLuint index, GLuint buffer))
 
 // GL_ARB_occlusion_query / GL1.5:
 FUNC2(void, glGenQueriesARB, glGenQueries, "1.5", (GLsizei n, GLuint *ids))
@@ -351,6 +352,16 @@ FUNC2(void, glEndQueryARB, glEndQuery, "1.5", (GLenum target))
 FUNC2(void, glGetQueryivARB, glGetQueryiv, "1.5", (GLenum target, GLenum pname, GLint *params))
 FUNC2(void, glGetQueryObjectivARB, glGetQueryObjectiv, "1.5", (GLuint id, GLenum pname, GLint *params))
 FUNC2(void, glGetQueryObjectuivARB, glGetQueryObjectuiv, "1.5", (GLuint id, GLenum pname, GLuint *params))
+
+// GL3.1
+FUNC2(void, glGetActiveUniformsiv, glGetActiveUniformsiv, "3.1", (GLuint program, GLsizei uniformCount, const GLuint *uniformIndices, GLenum pname, GLint *params))
+FUNC2(void, glGetActiveUniformBlockiv, glGetActiveUniformBlockiv, "3.1", (GLuint program, GLuint uniformBlockIndex, GLenum pname, GLint *params))
+FUNC2(void, glGetActiveUniformBlockName, glGetActiveUniformBlockName, "3.1", (GLuint program,  GLuint uniformBlockIndex,  GLsizei bufSize,  GLsizei *length,  GLchar *uniformBlockName))
+FUNC2(void, glUniformBlockBinding, glUniformBlockBinding, "3.1", (GLuint program, GLuint uniformBlockIndex, GLuint uniformBlockBinding))
+
+// GL4.3
+FUNC2(void, glVertexBindingDivisor, glVertexBindingDivisor, "4.3", (GLuint bindingindex, GLuint divisor))
+FUNC2(void, glMultiDrawElementsIndirect, glMultiDrawElementsIndirect, "4.3", (GLenum mode, GLenum type, const void* indirect, GLsizei drawcount, GLsizei stride))
 
 // GL_ARB_sync / GL3.2:
 FUNC2(void, glGetInteger64v, glGetInteger64v, "3.2", (GLenum pname, GLint64 *params))

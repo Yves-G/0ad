@@ -42,6 +42,14 @@
     <zeroOrMore>
       <element name="uniform">
         <attribute name="name"/>
+        <optional>
+          <attribute name="blockName"/>
+        </optional>
+        <optional>
+          <attribute name="instanced">
+            <data type="int"/>
+          </attribute>
+        </optional>
         <attribute name="value">
           <list>
             <!-- X Y Z W -->

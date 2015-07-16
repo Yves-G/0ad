@@ -5,8 +5,8 @@
     <renderquery name="sim_time"/>
     <uniform name="translation" value="0.0 -0.1"/>
 	<define name="USE_SELF_LIGHT" value="1"/>
-	<uniform name="specularPower" value="100.0"/>
-    <uniform name="specularColor" value="1.0 1.0 1.0"/>
+	<uniform instanced="1" blockName="MaterialUBO" name="specularPower[0]" value="100.0"/>
+    <uniform instanced="1" blockName="MaterialUBO" name="specularColor[0]" value="1.0 1.0 1.0"/>
 	<required_texture name="baseTex"/>
 	<required_texture name="specTex" define="USE_SPECULAR_MAP"/>
 </material>

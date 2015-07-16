@@ -180,6 +180,10 @@ public:
 	void PrepareForRendering();
 	// Bind this array, returns the base address for calls to glVertexPointer etc.
 	u8* Bind();
+	
+	u8* GetBindAddress();
+	
+	u8* GetInstancingDataBasePtr() { return m_VB->m_Owner->GetInstancingDataBasePtr(); }
 
 	// If you know for certain that you'll never have to change the data again,
 	// call this to free some memory.

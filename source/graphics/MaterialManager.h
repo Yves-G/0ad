@@ -31,6 +31,9 @@ public:
 private:
 	std::map<VfsPath, CMaterial> m_Materials;
 	float qualityLevel;
+	
+	// TODO: We might want to reuse IDs in cases when we reload materials or stop using them
+	static int m_NextFreeMaterialID;
 };
 
 #endif // INCLUDED_MATERIALMANAGER

@@ -26,6 +26,8 @@ element material {
     }*
   & element uniform {
       attribute name { text },
+      attribute blockName { text }?,
+      attribute instanced { xsd:int }?,
       attribute value {
         list {
           # X Y Z W

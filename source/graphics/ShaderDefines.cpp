@@ -22,6 +22,7 @@
 #include "graphics/ShaderProgram.h"
 #include "maths/Vector4D.h"
 #include "ps/ThreadUtil.h"
+#include "ps/Profile.h"
 
 #include <sstream>
 
@@ -232,7 +233,7 @@ void CShaderUniforms::BindUniforms(const CShaderProgramPtr& shader) const
 	const std::vector<SItems::Item>& items = m_Items->items;
 	for (size_t i = 0; i < items.size(); ++i)
 	{
-		CShaderProgram::Binding binding = shader->GetUniformBinding(items[i].first);
+		Binding binding = shader->GetUniformBinding(items[i].first);
 		if (binding.Active())
 		{
 			CVector4D v = items[i].second;

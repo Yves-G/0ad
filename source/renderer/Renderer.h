@@ -32,6 +32,7 @@
 
 #include "graphics/ShaderDefines.h"
 #include "renderer/Scene.h"
+//#include "graphics/UniformBlockManager.h"
 
 // necessary declarations
 class CFontManager;
@@ -51,6 +52,7 @@ class ScriptInterface;
 class SkyManager;
 class TerrainRenderer;
 class WaterManager;
+class UniformBlockManager;
 
 // rendering modes
 enum ERenderMode { WIREFRAME, SOLID, EDGED_FACES };
@@ -293,6 +295,8 @@ public:
 	// return the current cull camera
 	const CCamera& GetCullCamera() const { return m_CullCamera; }
 
+	UniformBlockManager& GetUniformBlockManager() { return *m_UniformBlockManager; }
+
 	/**
 	 * GetWaterManager: Return the renderer's water manager.
 	 *
@@ -449,6 +453,8 @@ protected:
 	void EnumCaps();
 	// per-frame renderer stats
 	Stats m_Stats;
+	
+	UniformBlockManager* m_UniformBlockManager;
 
 	/**
 	 * m_WaterManager: the WaterManager object used for water textures and settings

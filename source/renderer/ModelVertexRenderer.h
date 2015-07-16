@@ -154,6 +154,16 @@ public:
 	 * succeed.
 	 */
 	virtual void RenderModel(const CShaderProgramPtr& shader, int streamflags, CModel* model, CModelRData* data) = 0;
+	
+	// TODO: check if it still makes sense to derive from a ModelVertexRenderer class if the way of interacting with the
+	// "ModelVertexRenderer" differs too much between the different specializations
+	virtual void ResetDrawID() { debug_warn("not implemented"); }
+	virtual void ResetCommands() { debug_warn("not implemented"); }
+	virtual void AddInstance() { debug_warn("not implemented"); }
+	virtual void SetRenderModelInstanced(const CShaderProgramPtr& shader, int UNUSED(streamflags), CModel* model, CModelRData* UNUSED(data)) {}
+	virtual void RenderModelsInstanced(u32 modelsCount) { debug_warn("not implemented"); }
+	virtual void PrepareModel(const CShaderProgramPtr& shader, CModel* model) { debug_warn("not implemented"); }
+	virtual void BindAndUpload() { debug_warn("not implemented"); }
 };
 
 

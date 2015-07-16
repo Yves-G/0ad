@@ -97,6 +97,8 @@ public:
 
 	/// Get the address that Bind() will return, without actually binding
 	u8* GetBindAddress();
+	
+	u8* GetInstancingDataBasePtr() { return 0; }
 
 	/// Unbind any currently-bound buffer, so glVertexPointer etc calls will not attempt to use it
 	static void Unbind();
@@ -158,6 +160,9 @@ private:
 	GLenum m_Usage;
 	/// Buffer target (GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER)
 	GLenum m_Target;
+	
+	/// Pointing after the instancing data, i.e. where the per-vertex data starts
+	size_t m_InstancingDataOffset;
 };
 
 #endif

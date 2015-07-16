@@ -24,6 +24,9 @@
 #include "ps/CStrIntern.h"
 #include "ps/Shapes.h"
 #include "simulation2/helpers/Player.h"
+#include "graphics/ShaderBlockUniforms.h"
+
+//class CShaderBlockUniforms;
 
 class CMaterial
 {
@@ -66,8 +69,16 @@ public:
 
 	const CShaderConditionalDefines& GetConditionalDefines() const { return m_ConditionalDefines; }
 
+	// single uniforms in the default block (temporary for backwards compatibility with older code and shaders)
 	void AddStaticUniform(const char* key, const CVector4D& value);
 	const CShaderUniforms& GetStaticUniforms() const { return m_StaticUniforms; }
+
+	// uniforms in blocks
+	void AddStaticBlockUniform(CStrIntern blockName, CStrIntern name, bool isInstanced, const CVector4D& value);
+	CShaderBlockUniforms& GetStaticBlockUniforms() { return m_StaticBlockUniforms; }
+	
+	// Requires UniformBlockManager to be initialized and all available blocks to be added
+	void GetBindings();
 
 	void AddSampler(const TextureSampler& texture);
 	const SamplersVector& GetSamplers() const { return m_Samplers; }
@@ -80,6 +91,9 @@ public:
 
 	// Must be called after all AddShaderDefine and AddConditionalDefine
 	void RecomputeCombinedShaderDefines();
+	
+	int GetId() { return m_MaterialId; }
+	void SetId(int id) { m_MaterialId = id; } // TODO: Make this private and use fried classes?
 
 private:
 	
@@ -94,10 +108,14 @@ private:
 	CShaderDefines m_ShaderDefines;
 	CShaderConditionalDefines m_ConditionalDefines;
 	std::vector<CShaderDefines> m_CombinedShaderDefines;
+	// TODO: try to reduce compile time when CShaderBlockUniforms changes using the pimpl idom or similar
+	CShaderBlockUniforms m_StaticBlockUniforms;
 	CShaderUniforms m_StaticUniforms;
 	CShaderRenderQueries m_RenderQueries;
 
 	bool m_AlphaBlending;
+	
+	int m_MaterialId;
 };
 
 #endif

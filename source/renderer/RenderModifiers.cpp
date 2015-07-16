@@ -22,6 +22,7 @@
 #include "precompiled.h"
 
 #include "lib/ogl.h"
+#include "maths/Vector2D.h"
 #include "maths/Vector3D.h"
 #include "maths/Vector4D.h"
 #include "maths/Matrix3D.h"
@@ -33,6 +34,7 @@
 #include "graphics/LOSTexture.h"
 #include "graphics/Model.h"
 #include "graphics/TextureManager.h"
+#include "graphics/UniformBlockManager.h"
 
 #include "renderer/RenderModifiers.h"
 #include "renderer/Renderer.h"
@@ -71,45 +73,114 @@ ShaderRenderModifier::ShaderRenderModifier()
 {
 }
 
-void ShaderRenderModifier::BeginPass(const CShaderProgramPtr& shader)
-{
-	shader->Uniform(str_transform, g_Renderer.GetViewCamera().GetViewProjection());
-	shader->Uniform(str_cameraPos, g_Renderer.GetViewCamera().GetOrientation().GetTranslation());
 
-	if (GetShadowMap() && shader->GetTextureBinding(str_shadowTex).Active())
+void ShaderRenderModifier::SetFrameUniforms()
+{
+	UniformBlockManager& uniformBlockManager = g_Renderer.GetUniformBlockManager();
+	CStrIntern frameUBO("FrameUBO");
+	CStrIntern modelUBO("ModelUBO");
+	UniformBinding transformBinding = uniformBlockManager.GetBinding(frameUBO, str_transform, false);
+	UniformBinding cameraPosBinding = uniformBlockManager.GetBinding(frameUBO, str_cameraPos, false);
+	
+	uniformBlockManager.SetUniform<UniformBlockManager::NOT_INSTANCED>(transformBinding, g_Renderer.GetViewCamera().GetViewProjection());
+	uniformBlockManager.SetUniform<UniformBlockManager::NOT_INSTANCED>(cameraPosBinding, g_Renderer.GetViewCamera().GetOrientation().GetTranslation());
+	
+	//shader->Uniform(str_transform, g_Renderer.GetViewCamera().GetViewProjection());
+	//shader->Uniform(str_cameraPos, g_Renderer.GetViewCamera().GetOrientation().GetTranslation());
+	
+	if (GetShadowMap())
 	{
-		shader->BindTexture(str_shadowTex, GetShadowMap()->GetTexture());
-		shader->Uniform(str_shadowTransform, GetShadowMap()->GetTextureMatrix());
+		UniformBinding shadowTransformBinding = uniformBlockManager.GetBinding(frameUBO, str_shadowTransform, false);
+		UniformBinding shadowScaleBinding = uniformBlockManager.GetBinding(frameUBO, str_shadowScale, false);
+
+		//shader->Uniform(str_shadowTransform, GetShadowMap()->GetTextureMatrix());
 		int width = GetShadowMap()->GetWidth();
 		int height = GetShadowMap()->GetHeight();
-		shader->Uniform(str_shadowScale, width, height, 1.0f / width, 1.0f / height); 
+		uniformBlockManager.SetUniform<UniformBlockManager::NOT_INSTANCED>(shadowScaleBinding, CVector4D(width, height, 1.0f / width, 1.0f / height));
+		uniformBlockManager.SetUniform<UniformBlockManager::NOT_INSTANCED>(shadowTransformBinding, GetShadowMap()->GetTextureMatrix());
+		//shader->Uniform(str_shadowScale, width, height, 1.0f / width, 1.0f / height);
 	}
-
+	
 	if (GetLightEnv())
 	{
-		shader->Uniform(str_ambient, GetLightEnv()->m_UnitsAmbientColor);
+		UniformBinding ambientBinding = uniformBlockManager.GetBinding(frameUBO, str_ambient, false);
+		UniformBinding sunDirBinding = uniformBlockManager.GetBinding(frameUBO, str_sunDir, false);
+		UniformBinding sunColorBinding = uniformBlockManager.GetBinding(frameUBO, str_sunColor, false);
+		
+		UniformBinding fogColorBinding = uniformBlockManager.GetBinding(frameUBO, str_fogColor, false);
+		UniformBinding fogParamsBinding = uniformBlockManager.GetBinding(frameUBO, str_fogParams, false);
+		
+		uniformBlockManager.SetUniform<UniformBlockManager::NOT_INSTANCED>(ambientBinding, GetLightEnv()->m_UnitsAmbientColor);
+		uniformBlockManager.SetUniform<UniformBlockManager::NOT_INSTANCED>(sunDirBinding, GetLightEnv()->GetSunDir());
+		uniformBlockManager.SetUniform<UniformBlockManager::NOT_INSTANCED>(sunColorBinding, GetLightEnv()->m_SunColor);
+		
+		uniformBlockManager.SetUniform<UniformBlockManager::NOT_INSTANCED>(fogColorBinding, GetLightEnv()->m_FogColor);
+		uniformBlockManager.SetUniform<UniformBlockManager::NOT_INSTANCED>(fogParamsBinding, CVector2D(GetLightEnv()->m_FogFactor, GetLightEnv()->m_FogMax));
+		/*shader->Uniform(str_ambient, GetLightEnv()->m_UnitsAmbientColor);
 		shader->Uniform(str_sunDir, GetLightEnv()->GetSunDir());
 		shader->Uniform(str_sunColor, GetLightEnv()->m_SunColor);
 		
 		shader->Uniform(str_fogColor, GetLightEnv()->m_FogColor);
-		shader->Uniform(str_fogParams, GetLightEnv()->m_FogFactor, GetLightEnv()->m_FogMax, 0.f, 0.f);
+		shader->Uniform(str_fogParams, GetLightEnv()->m_FogFactor, GetLightEnv()->m_FogMax, 0.f, 0.f);*/
+	}
+	
+	//if (shader->GetTextureBinding(str_losTex).Active())
+	//{
+	UniformBinding losTransformBinding = uniformBlockManager.GetBinding(frameUBO, str_losTransform, false);
+	CLOSTexture& los = g_Renderer.GetScene().GetLOSTexture();
+	// Don't bother sending the whole matrix, we just need two floats (scale and translation)
+	uniformBlockManager.SetUniform<UniformBlockManager::NOT_INSTANCED>(losTransformBinding, CVector2D(los.GetTextureMatrix()[0], los.GetTextureMatrix()[12]));
+	//shader->Uniform(str_losTransform, los.GetTextureMatrix()[0], los.GetTextureMatrix()[12], 0.f, 0.f);
+		
+	//}
+
+	// TODO: Bindings should probably be used differently now (with uniform blocks)
+	m_BindingInstancingTransform = uniformBlockManager.GetBinding(modelUBO, str_instancingTransform_0, true);
+	m_BindingShadingColor = uniformBlockManager.GetBinding(modelUBO, str_shadingColor_0, true);
+	m_BindingPlayerColor = uniformBlockManager.GetBinding(modelUBO, str_playerColor_0, true);
+	/*
+	m_BindingInstancingTransform = shader->GetUniformBinding(str_instancingTransform);
+	m_BindingShadingColor = shader->GetUniformBinding(str_shadingColor);
+	m_BindingPlayerColor = shader->GetUniformBinding(str_playerColor);
+	*/
+}
+
+void ShaderRenderModifier::BeginPass(const CShaderProgramPtr& shader)
+{
+	if (GetShadowMap() && shader->GetTextureBinding(str_shadowTex).Active())
+	{
+		shader->BindTexture(str_shadowTex, GetShadowMap()->GetTexture());
 	}
 
 	if (shader->GetTextureBinding(str_losTex).Active())
 	{
 		CLOSTexture& los = g_Renderer.GetScene().GetLOSTexture();
 		shader->BindTexture(str_losTex, los.GetTextureSmooth());
-		// Don't bother sending the whole matrix, we just need two floats (scale and translation)
-		shader->Uniform(str_losTransform, los.GetTextureMatrix()[0], los.GetTextureMatrix()[12], 0.f, 0.f);
+	}
+}
+
+
+void ShaderRenderModifier::SetModelUniforms(CModel* model)
+{
+	UniformBlockManager& uniformBlockManager = g_Renderer.GetUniformBlockManager();
+	if (m_BindingInstancingTransform.Active())
+	{
+		uniformBlockManager.SetUniform<UniformBlockManager::MODEL_INSTANCED>(m_BindingInstancingTransform, model->GetTransform());
+		//CMatrix3D mat;
+		//mat.SetIdentity();
+		//uniformBlockManager.SetUniform(m_BindingInstancingTransform, mat);
 	}
 
-	m_BindingInstancingTransform = shader->GetUniformBinding(str_instancingTransform);
-	m_BindingShadingColor = shader->GetUniformBinding(str_shadingColor);
-	m_BindingPlayerColor = shader->GetUniformBinding(str_playerColor);
+	if (m_BindingShadingColor.Active())
+		uniformBlockManager.SetUniform<UniformBlockManager::MODEL_INSTANCED>(m_BindingShadingColor, model->GetShadingColor());
+
+	if (m_BindingPlayerColor.Active())
+		uniformBlockManager.SetUniform<UniformBlockManager::MODEL_INSTANCED>(m_BindingPlayerColor, g_Game->GetPlayerColor(model->GetPlayerID()));
 }
 
 void ShaderRenderModifier::PrepareModel(const CShaderProgramPtr& shader, CModel* model)
 {
+	/*
 	if (m_BindingInstancingTransform.Active())
 		shader->Uniform(m_BindingInstancingTransform, model->GetTransform());
 
@@ -118,4 +189,5 @@ void ShaderRenderModifier::PrepareModel(const CShaderProgramPtr& shader, CModel*
 
 	if (m_BindingPlayerColor.Active())
 		shader->Uniform(m_BindingPlayerColor, g_Game->GetPlayerColor(model->GetPlayerID()));
+	*/
 }

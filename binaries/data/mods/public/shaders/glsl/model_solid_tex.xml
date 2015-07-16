@@ -6,6 +6,7 @@
         <stream name="uv0"/>
         <attrib name="a_vertex" semantics="gl_Vertex"/>
         <attrib name="a_uv0" semantics="gl_MultiTexCoord0"/>
+	<attrib name="a_drawId" semantics="gl_MultiTexCoord7"/>
         <attrib name="a_skinJoints" semantics="CustomAttribute0" if="USE_GPU_SKINNING"/>
         <attrib name="a_skinWeights" semantics="CustomAttribute1" if="USE_GPU_SKINNING"/>
     </vertex>

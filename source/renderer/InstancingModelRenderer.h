@@ -45,6 +45,13 @@ public:
 	void BeginPass(int streamflags);
 	void EndPass(int streamflags);
 	void PrepareModelDef(const CShaderProgramPtr& shader, int streamflags, const CModelDef& def);
+	void ResetDrawID();
+	void ResetCommands();
+	void AddInstance();
+	void SetRenderModelInstanced(const CShaderProgramPtr& shader, int UNUSED(streamflags), CModel* model, CModelRData* UNUSED(data));
+	void RenderModelsInstanced(u32 modelsCount);
+	void BindAndUpload();
+	void PrepareModel(const CShaderProgramPtr& shader, CModel* model);
 	void RenderModel(const CShaderProgramPtr& shader, int streamflags, CModel* model, CModelRData* data);
 
 protected:

@@ -42,7 +42,7 @@
 	 Second value: Specular power.
 	 Third value: Parallax scale.
 	 Fourth value: AO amount. -->
-    <uniform name="effectSettings" value="5.0 50.0 0.0075 0.85"/>
+    <uniform blockName="MaterialUBO" name="effectSettings[0]" instanced="1" value="5.0 50.0 0.0075 0.85"/>
 	
 	<required_texture name="baseTex"/>
 	<required_texture name="normTex" define="USE_NORMAL_MAP"/>

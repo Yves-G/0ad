@@ -50,6 +50,11 @@ class RenderModifier
 public:
 	RenderModifier() { }
 	virtual ~RenderModifier() { }
+	
+	/**
+	 * Sets values for uniforms that can be set once per frame and are the same for all objects
+	 */ 
+	virtual void SetFrameUniforms() { debug_warn("not implemented"); };
 
 	/**
 	 * BeginPass: Setup OpenGL for the given rendering pass.
@@ -72,6 +77,8 @@ public:
 	 * @param model The model that is about to be rendered.
 	 */
 	virtual void PrepareModel(const CShaderProgramPtr& shader, CModel* model) = 0;
+	
+	virtual void SetModelUniforms(CModel* model) = 0;
 };
 
 
@@ -96,6 +103,8 @@ public:
 	 * @param shadow the shadow map
 	 */
 	void SetShadowMap(const ShadowMap* shadow);
+	
+	virtual void SetModelUniforms(CModel* model) { debug_warn("not implemented!"); }
 
 	/**
 	 * SetLightEnv: Set the light environment that will be used for rendering.
@@ -122,13 +131,15 @@ public:
 	ShaderRenderModifier();
 
 	// Implementation
+	void SetFrameUniforms();
+	void SetModelUniforms(CModel* model);
 	void BeginPass(const CShaderProgramPtr& shader);
 	void PrepareModel(const CShaderProgramPtr& shader, CModel* model);
 
 private:
-	CShaderProgram::Binding m_BindingInstancingTransform;
-	CShaderProgram::Binding m_BindingShadingColor;
-	CShaderProgram::Binding m_BindingPlayerColor;
+	UniformBinding m_BindingInstancingTransform;
+	UniformBinding m_BindingShadingColor;
+	UniformBinding m_BindingPlayerColor;
 };
 
 #endif // INCLUDED_RENDERMODIFIERS

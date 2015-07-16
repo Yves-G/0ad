@@ -19,10 +19,12 @@
 #define INCLUDED_SHADERPROGRAM
 
 #include "graphics/ShaderProgramPtr.h"
+#include "graphics/ShaderDefines.h"
 #include "graphics/Texture.h"
 #include "lib/ogl.h"
 #include "lib/file/vfs/vfs_path.h"
 #include "lib/res/handle.h"
+#include "graphics/UniformBinding.h"
 
 #include <map>
 
@@ -92,31 +94,6 @@ public:
 	 * Construct an instance of a pre-defined fixed-function pipeline setup.
 	 */
 	static CShaderProgram* ConstructFFP(const std::string& id, const CShaderDefines& defines);
-	
-	/**
-	 * Represents a uniform attribute or texture binding.
-	 * For uniforms:
-	 *  - ARB shaders store vertex location in 'first', fragment location in 'second'.
-	 *  - GLSL shaders store uniform location in 'first', data type in 'second'.
-	 *  - FFP shaders store -1 in 'first', index in 'second'.
-	 * For textures, all store texture target (e.g. GL_TEXTURE_2D) in 'first', texture unit in 'second'.
-	 * Non-existent bindings must store -1 in both.
-	 */
-	struct Binding
-	{
-		Binding(int a, int b) : first(a), second(b) { }
-
-		Binding() : first(-1), second(-1) { }
-
-		/**
-		 * Returns whether this uniform attribute is active in the shader.
-		 * If not then there's no point calling Uniform() to set its value.
-		 */
-		bool Active() { return first != -1 || second != -1; }
-
-		int first;
-		int second;
-	};
 
 	virtual ~CShaderProgram() { }
 
@@ -143,6 +120,11 @@ public:
 	 * vertex shader needs (e.g. position, color, UV, ...).
 	 */
 	int GetStreamFlags() const;
+	
+	GLuint GetProgram() const
+	{
+		return m_Program;
+	}
 
 
 	virtual Binding GetTextureBinding(texture_id_t id) = 0;
@@ -192,9 +174,35 @@ public:
 	 * Call this before calling glDrawArrays/glDrawElements etc to avoid potential crashes.
 	 */
 	void AssertPointersBound();
+	
+	void UniformBlockBinding(const UniformBlockIdentifier& uniformBlockIdentifier, GLuint bindingPoint)
+	{
+		pglUniformBlockBinding(m_Program, uniformBlockIdentifier.ID, bindingPoint);
+	}
+	
+	GLuint GetUniformBlockBindingPoint(GLuint blockID)
+	{
+		// TODO: replace with ENSURE?
+		if (blockID >= m_BlockBindings.size())
+		{
+			std::cerr << "Trying to query shader for non-existant uniform block index!" << std::endl;
+			return 0;
+		}
+		return m_BlockBindings[blockID];
+	}
+	
+	const std::vector<UniformBlockIdentifier>& GetUniformBlockIdentifiers() const
+	{
+		return m_UniformBlockIdentifiers;
+	}
 
 protected:
 	CShaderProgram(int streamflags);
+	
+	std::vector<GLuint> m_BlockBindings; // which block (by ID) is bound to which binding point
+	std::vector<UniformBlockIdentifier> m_UniformBlockIdentifiers;
+	
+	GLuint m_Program;
 
 	bool m_IsValid;
 	int m_StreamFlags;
