@@ -139,7 +139,7 @@ public:
 private:
 	UniformBinding m_BindingInstancingTransform;
 	UniformBinding m_BindingShadingColor;
-	UniformBinding m_BindingPlayerColor;
+	UniformBinding m_BindingModelID;
 };
 
 #endif // INCLUDED_RENDERMODIFIERS

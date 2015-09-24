@@ -28,6 +28,7 @@
 #include "ps/PreprocessorWrapper.h"
 #include "ps/XML/Xeromyces.h"
 #include "renderer/Renderer.h"
+#include "graphics/UniformBlockManager.h"
 
 #include <sstream>
 
@@ -229,6 +230,9 @@ CMaterial CMaterialManager::LoadMaterial(const VfsPath& pathname)
 
 	material.RecomputeCombinedShaderDefines();
 
+	std::cout << "MaterialLoaded: " << pathname.string8().c_str() << "   ID: " << material.GetId() << std::endl;
 	m_Materials[pathname] = material;
+	UniformBlockManager& uniformBlockManager = g_Renderer.GetUniformBlockManager();
+	uniformBlockManager.MaterialAdded(material.GetStaticBlockUniforms(), material.GetId());
 	return material;
 }

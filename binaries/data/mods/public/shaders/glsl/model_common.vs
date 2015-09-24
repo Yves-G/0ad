@@ -6,12 +6,11 @@ layout (location = 15) in uint drawID;
 
 out VS_OUT
 {
-    uint drawID;
+    flat uint drawID;
 } vs_out;
 
-const uint debug=0;
  
-uniform FrameUBO
+layout(shared) uniform FrameUBO
 {
 	vec4 sim_time;
 
@@ -33,21 +32,27 @@ uniform FrameUBO
 } frame;
 
 // TODO: make these conditional again (in some way...)
-uniform ModelUBO
+layout(shared) buffer ModelUBO
 {
-  uint materialID[MAX_INSTANCES];
+  uint modelId[MAX_INSTANCES];
+  //uint materialID[MAX_INSTANCES];
   mat4 instancingTransform[MAX_INSTANCES];
   //#if USE_OBJECTCOLOR
   //  vec3 objectColor[MAX_INSTANCES];
   //#else
   //#if USE_PLAYERCOLOR
-    vec4 playerColor[MAX_INSTANCES];
+  //  vec4 playerColor[MAX_INSTANCES];
   //#endif
   //#endif
-  vec3 shadingColor[MAX_INSTANCES];
+  //vec3 shadingColor[MAX_INSTANCES];
 } model;
 
-uniform MaterialUBO
+layout(shared) buffer MaterialIDBlock
+{
+  uint materialID[];
+};
+
+layout(shared) uniform MaterialUBO
 {
 
 //#if USE_SPECULAR
@@ -66,49 +71,52 @@ uniform MaterialUBO
 } material;
 
 
-varying vec4 v_lighting;
-varying vec2 v_tex;
-varying vec2 v_los;
+out vec4 v_lighting;
+out vec2 v_tex;
+out vec2 v_los;
 
 #if USE_SHADOW
-  varying vec4 v_shadow;
+  out vec4 v_shadow;
 #endif
 
 #if (USE_INSTANCING || USE_GPU_SKINNING) && USE_AO
-  varying vec2 v_tex2;
+  out vec2 v_tex2;
 #endif
 
 #if USE_SPECULAR || USE_NORMAL_MAP || USE_SPECULAR_MAP || USE_PARALLAX
-  varying vec4 v_normal;
+  out vec4 v_normal;
   #if (USE_INSTANCING || USE_GPU_SKINNING) && (USE_NORMAL_MAP || USE_PARALLAX)
-    varying vec4 v_tangent;
+    out vec4 v_tangent;
     //varying vec3 v_bitangent;
   #endif
   #if USE_SPECULAR || USE_SPECULAR_MAP
-    varying vec3 v_half;
+    out vec3 v_half;
   #endif
   #if (USE_INSTANCING || USE_GPU_SKINNING) && USE_PARALLAX
-    varying vec3 v_eyeVec;
+    out vec3 v_eyeVec;
   #endif
 #endif
 
-attribute vec3 a_vertex;
-attribute vec3 a_normal;
+in vec3 a_vertex;
+in vec3 a_normal;
 #if (USE_INSTANCING || USE_GPU_SKINNING)
-  attribute vec4 a_tangent;
+  in vec4 a_tangent;
 #endif
-attribute vec2 a_uv0;
-attribute vec2 a_uv1;
+in vec2 a_uv0;
+in vec2 a_uv1;
 
 #if USE_GPU_SKINNING
   const int MAX_INFLUENCES = 4;
   const int MAX_BONES = 64;
-  uniform GPUSkinningUBO 
+
+  // skindBlendMatrices could be set to a fixed size (MAX_INSTANCES * MAX_BONES), but the Nvidia drivers have a bug
+  // that causes terribly long (tens of minutes) linking times when large fixed size SSBOs are used.
+  buffer GPUSkinningUBO 
   {
-    mat4 skinBlendMatrices[MAX_INSTANCES * MAX_BONES];
+    mat4 skinBlendMatrices[]; 
   } gpuSkinning;
-  attribute vec4 a_skinJoints;
-  attribute vec4 a_skinWeights;
+  in vec4 a_skinJoints;
+  in vec4 a_skinWeights;
 #endif
 
 
@@ -121,8 +129,8 @@ vec4 fakeCos(vec4 x)
 
 void main()
 {
+  const uint materialIDVal = materialID[model.modelId[drawID]];
 
-  const uint materialID = model.materialID[drawID];
 //mat4 model.instancingTransform[drawID] = mat4(1.0, 0,   0,   0,
 //                        0  , 1.0, 0,   0,
 //                        0  , 0,   1.0, 0,
@@ -130,19 +138,22 @@ void main()
 
   vs_out.drawID = drawID;
 
-  if (debug)
+#if 0
+  if (vec2(1.0, 1.0) != material.windData[materialIDVal].xy)
   {
-	const vec4 vertices[] = vec4[](vec4( 0.25+materialID*0.05, -0.25, 0.5, 1.0),
-                                       vec4( 0.25+materialID*0.05,  0.25, 0.5, 1.0),
-                                       vec4(-0.25+materialID*0.05, -0.25, 0.5, 1.0));
-#if 1
+	const vec4 vertices[] = vec4[](vec4( 0.25+materialIDVal*0.05, -0.25, 0.5, 1.0),
+                                       vec4( 0.25+materialIDVal*0.05,  0.25, 0.5, 1.0),
+                                       vec4(-0.25+materialIDVal*0.05, -0.25, 0.5, 1.0));
+	//const vec4 vertices[] = vec4[](vec4( 0.25, -0.25, 0.1, 1.0),
+        //                               vec4( 0.25,  0.25, 0.1, 1.0),
+        //                               vec4(-0.25, -0.25, 0.1, 1.0));
 	if (gl_VertexID < 3)
 	{
-        	gl_Position = vertices[gl_VertexID] * mat4(1.0); // model.instancingTransform[drawID];
+        	gl_Position = vertices[gl_VertexID] * mat4(1.0); //model.instancingTransform[drawID];
 	}
-#endif
 	return;
   }
+#endif
 
   #if USE_GPU_SKINNING
     vec3 p = vec3(0.0);
@@ -177,7 +188,7 @@ void main()
 
 
   #if USE_WIND
-    vec2 wind = material.windData[materialID].xy;
+    vec2 wind = material.windData[materialIDVal].xy;
 
     // fractional part of model position, clamped to >.4
     vec4 modelPos = model.instancingTransform[drawID][3];
@@ -251,4 +262,5 @@ void main()
   #endif
 
   v_los = position.xz * frame.losTransform.x + frame.losTransform.y;
+
 }

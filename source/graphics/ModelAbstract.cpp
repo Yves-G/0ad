@@ -18,8 +18,36 @@
 #include "precompiled.h"
 
 #include "ModelAbstract.h"
+#include "graphics/UniformBlockManager.h"
 
 #include "ps/CLogger.h"
+
+std::set<int> CModelAbstract::m_FreeIDs;
+int CModelAbstract::m_MaxID = 0;
+
+CModelAbstract::CModelAbstract()
+	: m_Parent(NULL), m_PositionValid(false), m_ShadingColor(1, 1, 1, 1), m_PlayerID(INVALID_PLAYER), 
+	  m_SelectionBoxValid(false), m_CustomSelectionShape(NULL)
+{
+	 m_ID = AcquireID();
+	 UniformBlockManager& uniformBlockManager = g_Renderer.GetUniformBlockManager();
+	 uniformBlockManager.ModelAdded(this);
+}
+
+CModelAbstract::~CModelAbstract()
+{
+	FreeID(m_ID);
+	UniformBlockManager& uniformBlockManager = g_Renderer.GetUniformBlockManager();
+	uniformBlockManager.ModelRemoved(this);
+	delete m_CustomSelectionShape; // allocated and set externally by CCmpVisualActor, but our responsibility to clean up
+}
+
+void CModelAbstract::SetMaterial(const CMaterial &material)
+{
+	m_Material = material;
+	UniformBlockManager& uniformBlockManager = g_Renderer.GetUniformBlockManager();
+	uniformBlockManager.MaterialChanged(this);
+}
 
 const CBoundingBoxOriented& CModelAbstract::GetSelectionBox()
 {
@@ -89,4 +117,18 @@ void CModelAbstract::CalcSelectionBox()
 		objBounds.Transform(GetTransform(), m_SelectionBox);
 	}
 	
+}
+
+void CModelAbstract::SetPlayerID(player_id_t id)
+{
+	m_PlayerID = id;
+	UniformBlockManager& uniformBlockManager = g_Renderer.GetUniformBlockManager();
+	uniformBlockManager.PlayerIDChanged(this);
+}
+
+void CModelAbstract::SetShadingColor(const CColor& color) 
+{
+	m_ShadingColor = color;
+	UniformBlockManager& uniformBlockManager = g_Renderer.GetUniformBlockManager();
+	uniformBlockManager.ShadingColorChanged(this);
 }

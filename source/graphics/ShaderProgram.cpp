@@ -412,10 +412,16 @@ public:
 			}
 		}
 		
-		UniformBuffer::GetBlockIdentifiers(m_Program, m_UniformBlockIdentifiers);
+		int numSSBOBlocks = 0;
+		int numUBOBlocks = 0;
+		std::cout << "Linking Shader. m_Program = " << m_Program << std::endl;
+		std::cout << "VS: " << m_VertexFile.Filename().string8().c_str() << std::endl;
+		std::cout << "VS: " << m_FragmentFile.Filename().string8().c_str() << std::endl;
+		InterfaceBlock::GetBlockIdentifiers(m_Program, m_InterfaceBlockIdentifiers, numUBOBlocks, numSSBOBlocks);
 		UniformBlockManager& uniformBlockManager = g_Renderer.GetUniformBlockManager();
 		uniformBlockManager.RegisterUniformBlocks(*this);
-		m_BlockBindings.resize(m_UniformBlockIdentifiers.size());
+		m_UBOBindings.resize(numUBOBlocks);
+		m_SSBOBindings.resize(numSSBOBlocks);
 
 		// TODO: verify that we're not using more samplers than is supported
 

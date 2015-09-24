@@ -5,8 +5,10 @@ const int MAX_MATERIALS = 64;
 
 in VS_OUT
 {
-  uint drawID;
+  flat uint drawID;
 } fs_in;
+
+out vec4 fragColor;
 
 uniform FrameUBO
 {
@@ -29,21 +31,30 @@ uniform FrameUBO
 
 } frame;
 
-// TODO: make these conditional again (in some way...)
-uniform ModelUBO
+layout(shared) buffer ModelUBO
 {
-  uint materialID[MAX_INSTANCES];
+  uint modelId[MAX_INSTANCES];
+  //uint materialID[MAX_INSTANCES];
   mat4 instancingTransform[MAX_INSTANCES];
   //#if USE_OBJECTCOLOR
   //  vec3 objectColor[MAX_INSTANCES];
   //#else
   //#if USE_PLAYERCOLOR
-    vec4 playerColor[MAX_INSTANCES];
+  //  vec4 playerColor[MAX_INSTANCES];
   //#endif
   //#endif
-  vec3 shadingColor[MAX_INSTANCES];
+  //vec3 shadingColor[MAX_INSTANCES];
 } model;
 
+layout(shared) buffer PlayerColorBlock
+{
+  vec4 playerColor[];
+};
+
+layout(shared) buffer MaterialIDBlock
+{
+  uint materialID[];
+};
 
 vec3 get_fog(vec3 color)
 {
@@ -63,5 +74,6 @@ vec3 get_fog(vec3 color)
 
 void main()
 {
-	gl_FragColor = vec4(get_fog(model.playerColor[fs_in.drawID].rgb), model.playerColor[fs_in.drawID].a);
+	const uint materialIDVal = materialID[model.modelId[fs_in.drawID]];
+	fragColor = vec4(get_fog(playerColor[materialIDVal].rgb), playerColor[materialIDVal].a);
 }

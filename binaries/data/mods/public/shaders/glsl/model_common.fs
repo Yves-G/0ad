@@ -5,12 +5,12 @@ const int MAX_MATERIALS = 64;
 
 in VS_OUT
 {
-  uint drawID;
+  flat uint drawID;
 } fs_in;
 
-const uint debug=0;
+out vec4 fragColor;
 
-uniform FrameUBO
+layout(shared) uniform FrameUBO
 {
 	vec4 sim_time;
 
@@ -38,7 +38,7 @@ uniform sampler2D normTex;
 uniform sampler2D specTex;
 
 #if USE_SHADOW
-  varying vec4 v_shadow;
+  in vec4 v_shadow;
   #if USE_SHADOW_SAMPLER
     uniform sampler2DShadow shadowTex;
 //    #if USE_SHADOW_PCF
@@ -50,21 +50,37 @@ uniform sampler2D specTex;
 #endif
 
 // TODO: make these conditional again (in some way...)
-uniform ModelUBO
+layout(shared) buffer ModelUBO
 {
-  uint materialID[MAX_INSTANCES];
+  uint modelId[MAX_INSTANCES];
+  //uint materialID[MAX_INSTANCES];
   mat4 instancingTransform[MAX_INSTANCES];
   //#if USE_OBJECTCOLOR
   //  vec3 objectColor[MAX_INSTANCES];
   //#else
   //#if USE_PLAYERCOLOR
-    vec4 playerColor[MAX_INSTANCES];
+  //  vec4 playerColor[MAX_INSTANCES];
   //#endif
   //#endif
-  vec3 shadingColor[MAX_INSTANCES];
+  //vec3 shadingColor[MAX_INSTANCES];
 } model;
 
-uniform MaterialUBO
+layout(shared) buffer MaterialIDBlock
+{
+  uint materialID[];
+};
+
+layout(shared) buffer PlayerColorBlock
+{
+  vec4 playerColor[];
+};
+
+layout(shared) buffer ShadingColorBlock
+{
+  vec3 shadingColor[];
+};
+
+layout(shared) uniform MaterialUBO
 {
 
 //#if USE_SPECULAR
@@ -82,25 +98,25 @@ uniform MaterialUBO
 
 } material;
 
-varying vec4 v_lighting;
-varying vec2 v_tex;
-varying vec2 v_los;
+in vec4 v_lighting;
+in vec2 v_tex;
+in vec2 v_los;
 
 #if (USE_INSTANCING || USE_GPU_SKINNING) && USE_AO
-  varying vec2 v_tex2;
+  in vec2 v_tex2;
 #endif
 
 #if USE_SPECULAR || USE_NORMAL_MAP || USE_SPECULAR_MAP || USE_PARALLAX
-  varying vec4 v_normal;
+  in vec4 v_normal;
   #if (USE_INSTANCING || USE_GPU_SKINNING) && (USE_NORMAL_MAP || USE_PARALLAX)
-    varying vec4 v_tangent;
-    //varying vec3 v_bitangent;
+    in vec4 v_tangent;
+    //in vec3 v_bitangent;
   #endif
   #if USE_SPECULAR || USE_SPECULAR_MAP
-    varying vec3 v_half;
+    in vec3 v_half;
   #endif
   #if (USE_INSTANCING || USE_GPU_SKINNING) && USE_PARALLAX
-    varying vec3 v_eyeVec;
+    in vec3 v_eyeVec;
   #endif
 #endif
 
@@ -109,24 +125,24 @@ float get_shadow()
   float shadowBias = 0.003;
   #if USE_SHADOW && !DISABLE_RECEIVE_SHADOWS
     float biasedShdwZ = v_shadow.z - shadowBias;
-    #if USE_SHADOW_SAMPLER
+    //#if USE_SHADOW_SAMPLER
       #if USE_SHADOW_PCF
         vec2 offset = fract(v_shadow.xy - 0.5);
         vec4 size = vec4(offset + 1.0, 2.0 - offset);
         vec4 weight = (vec4(1.0, 1.0, -0.5, -0.5) + (v_shadow.xy - 0.5*offset).xyxy) * frame.shadowScale.zwzw;
         return (1.0/9.0)*dot(size.zxzx*size.wwyy,
-          vec4(shadow2D(shadowTex, vec3(weight.zw, biasedShdwZ)).r,
-               shadow2D(shadowTex, vec3(weight.xw, biasedShdwZ)).r,
-               shadow2D(shadowTex, vec3(weight.zy, biasedShdwZ)).r,
-               shadow2D(shadowTex, vec3(weight.xy, biasedShdwZ)).r));
+          vec4(texture(shadowTex, vec3(weight.zw, biasedShdwZ)).r,
+               texture(shadowTex, vec3(weight.xw, biasedShdwZ)).r,
+               texture(shadowTex, vec3(weight.zy, biasedShdwZ)).r,
+               texture(shadowTex, vec3(weight.xy, biasedShdwZ)).r));
       #else
-        return shadow2D(shadowTex, vec3(v_shadow.xy, biasedShdwZ)).r;
+        return texture(shadowTex, vec3(v_shadow.xy, biasedShdwZ)).r;
       #endif
-    #else
-      if (biasedShdwZ >= 1.0)
-        return 1.0;
-      return (biasedShdwZ < texture2D(shadowTex, v_shadow.xy).x ? 1.0 : 0.0);
-    #endif
+    //#else
+    //  if (biasedShdwZ >= 1.0)
+    //    return 1.0;
+    //  return (biasedShdwZ < texture2D(shadowTex, v_shadow.xy).x ? 1.0 : 0.0);
+    //#endif
   #else
     return 1.0;
   #endif
@@ -150,12 +166,7 @@ vec3 get_fog(vec3 color)
 
 void main()
 {
-  const uint materialID = model.materialID[fs_in.drawID];
-  if (debug)
-  {
-    gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
-    return;
-  }
+  const uint materialIDVal = materialID[model.modelId[fs_in.drawID]];
 
   vec2 coord = v_tex;
 
@@ -173,7 +184,7 @@ void main()
 
     vec2 move;
     float height = 1.0;
-    float scale = material.effectSettings[materialID].z;
+    float scale = material.effectSettings[materialIDVal].z;
 	  
     int iter = int(min(20, 25.0 - dist/10.0));
 	
@@ -210,19 +221,19 @@ void main()
   #endif
 
   #if USE_TRANSPARENT
-    gl_FragColor.a = tex.a;
+    fragColor.a = tex.a;
   #else
-    gl_FragColor.a = 1.0;
+    fragColor.a = 1.0;
   #endif
   
   vec3 texdiffuse = tex.rgb;
 
   // Apply-coloring based on texture alpha
   #if USE_OBJECTCOLOR
-    texdiffuse *= mix(material.objectColor[materialID], vec3(1.0, 1.0, 1.0), tex.a);
+    texdiffuse *= mix(material.objectColor[materialIDVal], vec3(1.0, 1.0, 1.0), tex.a);
   #else
   #if USE_PLAYERCOLOR
-    texdiffuse *= mix(model.playerColor[fs_in.drawID].rgb, vec3(1.0, 1.0, 1.0), tex.a);
+    texdiffuse *= mix(playerColor[model.modelId[fs_in.drawID]].rgb, vec3(1.0, 1.0, 1.0), tex.a);
   #endif
   #endif
 
@@ -235,7 +246,7 @@ void main()
     ntex.y = -ntex.y;
     normal = normalize(tbn * ntex);
     vec3 bumplight = max(dot(-frame.sunDir, normal), 0.0) * frame.sunColor;
-    vec3 sundiffuse = (bumplight - v_lighting.rgb) * material.effectSettings[materialID].x + v_lighting.rgb;
+    vec3 sundiffuse = (bumplight - v_lighting.rgb) * material.effectSettings[materialIDVal].x + v_lighting.rgb;
   #else
     vec3 sundiffuse = v_lighting.rgb;
   #endif
@@ -248,10 +259,10 @@ void main()
       vec4 s = texture2D(specTex, coord);
       specCol = s.rgb;
       specular.a = s.a;
-      specPow = material.effectSettings[materialID].y;
+      specPow = material.effectSettings[materialIDVal].y;
     #else
-      specCol = material.specularColor[materialID];
-      specPow = material.specularPower[materialID];
+      specCol = material.specularColor[materialIDVal];
+      specPow = material.specularPower[materialIDVal];
     #endif
     specular.rgb = frame.sunColor * specCol * pow(max(0.0, dot(normalize(normal), v_half)), specPow);
   #endif
@@ -261,7 +272,7 @@ void main()
 
   #if (USE_INSTANCING || USE_GPU_SKINNING) && USE_AO
     vec3 ao = texture2D(aoTex, v_tex2).rrr;
-    ao = mix(vec3(1.0), ao * 2.0, material.effectSettings[materialID].w);
+    ao = mix(vec3(1.0), ao * 2.0, material.effectSettings[materialIDVal].w);
     ambColor *= ao;
   #endif
 
@@ -279,7 +290,7 @@ void main()
     color *= los;
   #endif
 
-  color *= model.shadingColor[fs_in.drawID];
+  color *= shadingColor[model.modelId[fs_in.drawID]];
 
-  gl_FragColor.rgb = color;
+  fragColor.rgb = color;
 }

@@ -45,16 +45,19 @@ class CShaderProgram;
  * to the uniform buffer on the GPU.
  *
  */
-class UniformBuffer
+class InterfaceBlock
 {
 public:
-	UniformBuffer(GLuint program, const UniformBlockIdentifier& blockIdentifier);
+	InterfaceBlock(GLuint program, const InterfaceBlockIdentifier& blockIdentifier, const int InterfaceBlockType);
 	
 	// A uniform buffer owns memory. It can be moved but not copied.
-	UniformBuffer(const UniformBuffer&) = delete;
-	UniformBuffer(UniformBuffer&&) = default;
+	InterfaceBlock(const InterfaceBlock&) = delete;
+	InterfaceBlock(InterfaceBlock&&) = default;
 	
-	static void GetBlockIdentifiers(GLuint program, std::vector<UniformBlockIdentifier>& out);
+	//template <int BLOCKTYPE>
+	//static void GetBlockIdentifiers(GLuint program, std::vector<InterfaceBlockIdentifier>& out);
+	static void GetBlockIdentifiers(GLuint program, std::vector<InterfaceBlockIdentifier>& out,
+		int& numUBOBlocks, int& numSSBOBlocks);
 	
 	/**
 	 * @param id: id.first contains a number identifying the uniform in the block 
@@ -95,93 +98,120 @@ public:
 	GLuint m_UBOBufferID; // TODO: should be private in the final code
 
 private:
+	int m_InterfaceBlockType;
+	int m_MemberType;
+	int m_MemberBufferType;
+	
 	GLint m_UBOBlockSize;
-	std::unique_ptr<GLubyte> m_UBOSourceBuffer;
+	bool m_BufferResized;
+	
+	// TODO: Using a vector is most convenient for resizing the buffer. However, I'm not sure if using resize could
+	// cause the vector capacity to be significantly larger than the requested size. In this use case, we should control
+	// when we need to acquire how much more memory and not a generic vector class.
+	std::vector<GLubyte> m_UBOSourceBuffer;
+	//std::unique_ptr<GLubyte> m_UBOSourceBuffer;
 	
 	std::vector<CStrIntern> m_UniformNames;
 	std::vector<int> m_UniformTypes;
 	std::vector<GLuint> m_UniformIndices;
-	std::vector<GLint> m_UniformOffsets;
-	std::vector<GLint> m_ArrayStrides;
-	std::vector<GLint> m_MatrixStrides;
+	
+	static constexpr GLenum MemberProps[] { GL_OFFSET, GL_ARRAY_STRIDE, GL_MATRIX_STRIDE };
+	enum PROPS { PROP_OFFSET, PROP_ARRAY_STRIDE, PROP_MATRIX_STRIDE, COUNT };
+	std::vector<GLint> m_MemberProps;
+	
+	// The data is laid out so that data for one member are stored together.
+	// This might theoretically improve caching
+	inline GLint GetMemberProp(int memberIx, PROPS prop) { return m_MemberProps[memberIx * PROPS::COUNT + prop]; }
+	
+	void IncreaseBufferSize(GLint minRequiredBlockSize)
+	{
+		// Increase buffer size to the required minimum block size, but at least by 10%
+		m_UBOBlockSize = std::max(GLint(m_UBOBlockSize * 1.1), minRequiredBlockSize);
+		m_UBOSourceBuffer.resize(m_UBOBlockSize);
+		m_BufferResized = true;
+	}
 	
 	GLint m_UBODirtyBytes; // upper bound of modified content
-
+public:
 	CStrIntern m_BlockName;
 };
 
-inline void UniformBuffer::SetUniform(const UniformBinding& id, CColor& v, GLuint instanceId)
+inline void InterfaceBlock::SetUniform(const UniformBinding& id, CColor& v, GLuint instanceId)
 {
 	//PROFILE3("SetUniform (CColor&)");
-		
-	GLuint offset = m_UniformOffsets[id.m_UniformId] + m_ArrayStrides[id.m_UniformId] * instanceId;
+	GLuint offset = GetMemberProp(id.m_UniformId, PROPS::PROP_OFFSET) + GetMemberProp(id.m_UniformId, PROPS::PROP_ARRAY_STRIDE) * instanceId;
+	m_UBODirtyBytes = std::max((size_t)m_UBODirtyBytes, (size_t)(offset + 3 * sizeof(float)));
+	
+	if (m_UBOBlockSize < m_UBODirtyBytes)
+		IncreaseBufferSize(m_UBODirtyBytes);
+
 #if DEBUG_UNIFORM_BUFFER
 	for (int k = 0; k < sizeof(float); ++k)
 	{
-		ENSURE(*(m_UBOSourceBuffer.get() + offset + 0 * sizeof(float) + k) == 0xFD);
-		ENSURE(*(m_UBOSourceBuffer.get() + offset + 1 * sizeof(float) + k) == 0xFD);
-		ENSURE(*(m_UBOSourceBuffer.get() + offset + 2 * sizeof(float) + k) == 0xFD);
+		ENSURE(*(m_UBOSourceBuffer.data() + offset + 0 * sizeof(float) + k) == 0xFD);
+		ENSURE(*(m_UBOSourceBuffer.data() + offset + 1 * sizeof(float) + k) == 0xFD);
+		ENSURE(*(m_UBOSourceBuffer.data() + offset + 2 * sizeof(float) + k) == 0xFD);
 	}
 #endif // DEBUG_UNIFORM_BUFFER
-	*((float*)(m_UBOSourceBuffer.get() + offset + 0 * sizeof(float))) = v.r;
-	*((float*)(m_UBOSourceBuffer.get() + offset + 1 * sizeof(float))) = v.g;
-	*((float*)(m_UBOSourceBuffer.get() + offset + 2 * sizeof(float))) = v.b;
+	*((float*)(m_UBOSourceBuffer.data() + offset + 0 * sizeof(float))) = v.r;
+	*((float*)(m_UBOSourceBuffer.data() + offset + 1 * sizeof(float))) = v.g;
+	*((float*)(m_UBOSourceBuffer.data() + offset + 2 * sizeof(float))) = v.b;
 	
 	// TODO: What if we need the alpha-channel?
-	//*((float*)(m_UBOSourceBuffer.get() + offset + 3 * sizeof(float))) = v.a;
-	
-	m_UBODirtyBytes = std::max((size_t)m_UBODirtyBytes, (size_t)(offset + 3 * sizeof(float)));
-	ENSURE(m_UBOBlockSize >= m_UBODirtyBytes);
+	//*((float*)(m_UBOSourceBuffer.data() + offset + 3 * sizeof(float))) = v.a;
 }
 
-inline void UniformBuffer::SetUniform(const UniformBinding& id, GLuint v, GLuint instanceId)
+inline void InterfaceBlock::SetUniform(const UniformBinding& id, GLuint v, GLuint instanceId)
 {
 	//PROFILE3("SetUniform (GLuint)");
-		
-	GLuint offset = m_UniformOffsets[id.m_UniformId] + m_ArrayStrides[id.m_UniformId] * instanceId;
-#if DEBUG_UNIFORM_BUFFER
-	for (int k = 0; k < sizeof(GLuint); ++k)
-		ENSURE(*(m_UBOSourceBuffer.get() + offset + k) == 0xFD);
-#endif // DEBUG_UNIFORM_BUFFER
-	*((GLuint*)(m_UBOSourceBuffer.get() + offset)) = v;
+	GLuint offset = GetMemberProp(id.m_UniformId, PROPS::PROP_OFFSET) + GetMemberProp(id.m_UniformId, PROPS::PROP_ARRAY_STRIDE) * instanceId;
 	
 	m_UBODirtyBytes = std::max((size_t)m_UBODirtyBytes, (size_t)(offset + 1 * sizeof(GLuint)));
-	ENSURE(m_UBOBlockSize >= m_UBODirtyBytes);
+
+	if (m_UBOBlockSize < m_UBODirtyBytes)
+		IncreaseBufferSize(m_UBODirtyBytes);
+
+#if DEBUG_UNIFORM_BUFFER
+	for (int k = 0; k < sizeof(GLuint); ++k)
+		ENSURE(*(m_UBOSourceBuffer.data() + offset + k) == 0xFD);
+#endif // DEBUG_UNIFORM_BUFFER
+	*((GLuint*)(m_UBOSourceBuffer.data() + offset)) = v;
 }
 
-inline void UniformBuffer::SetUniform(const UniformBinding& id, CMatrix3D matrix, GLuint instanceId)
+inline void InterfaceBlock::SetUniform(const UniformBinding& id, CMatrix3D matrix, GLuint instanceId)
 {
 	//PROFILE3("SetUniform (CMatrix3D)");
 	/*
 	GLuint offset;
 	for (int i=0; i<4; ++i)
 	{
-		offset = m_UniformOffsets[id.m_UniformId] + m_MatrixStrides[id.m_UniformId] * i;
+		offset = GetMemberProp(id.m_UniformId, PROPS::PROP_OFFSET) + GetMemberProp(id.m_UniformId, PROPS::PROP_MATRIX_STRIDE) * i;
 		for (int j=0; j<4; ++j)
 		{
 #if DEBUG_UNIFORM_BUFFER
 			for (int k = 0; k < sizeof(float); ++k)
-				ENSURE(*(m_UBOSourceBuffer.get() + m_ArrayStrides[id.m_UniformId] * instanceId + offset + k) == 0xFD);
+				ENSURE(*(m_UBOSourceBuffer.data() + GetMemberProp(id.m_UniformId, PROPS::PROP_ARRAY_STRIDE) * instanceId + offset + k) == 0xFD);
 #endif // DEBUG_UNIFORM_BUFFER
-			*((float*)(m_UBOSourceBuffer.get() + m_ArrayStrides[id.m_UniformId] * instanceId + offset)) = matrix[i * 4 + j];
+			*((float*)(m_UBOSourceBuffer.data() + GetMemberProp(id.m_UniformId, PROPS::PROP_ARRAY_STRIDE) * instanceId + offset)) = matrix[i * 4 + j];
 			offset += sizeof(GLfloat);
 		}	
 	}
 	
-	m_UBODirtyBytes = std::max((size_t)m_UBODirtyBytes, (size_t)(m_ArrayStrides[id.m_UniformId] * instanceId + offset));
+	m_UBODirtyBytes = std::max((size_t)m_UBODirtyBytes, (size_t)(GetMemberProp(id.m_UniformId, PROPS::PROP_ARRAY_STRIDE) * instanceId + offset));
 	*/
 	
-	GLubyte* dstPtr = m_UBOSourceBuffer.get() + m_UniformOffsets[id.m_UniformId] + m_ArrayStrides[id.m_UniformId] * instanceId;
+	GLubyte* dstPtr = m_UBOSourceBuffer.data() + GetMemberProp(id.m_UniformId, PROPS::PROP_OFFSET) + GetMemberProp(id.m_UniformId, PROPS::PROP_ARRAY_STRIDE) * instanceId;
+	m_UBODirtyBytes = std::max((size_t)m_UBODirtyBytes, (size_t)(GetMemberProp(id.m_UniformId, PROPS::PROP_OFFSET) + GetMemberProp(id.m_UniformId, PROPS::PROP_ARRAY_STRIDE) * (instanceId + 1)));
+	
+	if (m_UBOBlockSize < m_UBODirtyBytes)
+		IncreaseBufferSize(m_UBODirtyBytes);
+	
 	for (int i=0; i<4; ++i)
 	{
 		for (int j=0; j<4; ++j)
 			*(float*)(dstPtr + j * sizeof(GLfloat)) = matrix[i * 4 + j];
-		dstPtr += m_MatrixStrides[id.m_UniformId];
+		dstPtr += GetMemberProp(id.m_UniformId, PROPS::PROP_MATRIX_STRIDE);
 	}
-	
-	m_UBODirtyBytes = std::max((size_t)m_UBODirtyBytes, (size_t)(dstPtr - m_UBOSourceBuffer.get()));
-	/*ENSURE(m_UBOBlockSize >= m_UBODirtyBytes);
-	*/
 }
 
 

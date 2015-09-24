@@ -366,10 +366,7 @@ void ShaderModelRenderer::PrepareUniformBuffers(size_t startInstance, size_t max
 	
 	size_t idxTechStart = 0;
 	size_t instanceId = 0;
-	u64 materialUniformsSet = 0;
-	
-	UniformBinding materialIdBinding = uniformBlockManager.GetBinding(CStrIntern("ModelUBO"), CStrIntern("materialID[0]"), true);
-	
+	u64 materialUniformsSet = 0;	
 
 	while (idxTechStart < techBuckets.size())
 	{
@@ -402,23 +399,7 @@ void ShaderModelRenderer::PrepareUniformBuffers(size_t startInstance, size_t max
 				
 					if (instanceId >= startInstance)
 					{
-						int materialId = model->GetMaterial().GetId();
-						ENSURE(materialId != -1 && materialId < 64);
-						
 						uniformBlockManager.SetCurrentInstance<UniformBlockManager::MODEL_INSTANCED>(instanceId % maxInstancesPerDraw);
-						uniformBlockManager.SetUniform<UniformBlockManager::MODEL_INSTANCED>(materialIdBinding, (GLuint)materialId);
-						
-						
-						// Only set uniforms that have not already been set. Use a bitmask to keep track of already set uniforms
-						// efficiently.
-						// TODO: This should be taken out of the rendering loop.
-						u64 materialBit = 1 << materialId; 
-						if ((materialBit & materialUniformsSet) == 0)
-						{	
-							CShaderBlockUniforms& staticUniforms = model->GetMaterial().GetStaticBlockUniforms();
-							staticUniforms.SetUniforms<UniformBlockManager::MATERIAL_INSTANCED>(materialId);
-							materialUniformsSet |= materialBit;
-						}
 						
 						modifier->SetModelUniforms(model);
 						
@@ -767,6 +748,7 @@ void ShaderModelRenderer::Render(const RenderModifierPtr& modifier, const CShade
 				int streamflags = shader->GetStreamFlags();
 				
 				// TODO: Check the return value and force drawing if it's false
+				// TODO: There should be a smarter way to figure out if bindings are already set up correctly.
 				uniformBlockManager.EnsureBlockBinding(shader);
 
 				modifier->BeginPass(shader);
@@ -789,6 +771,7 @@ void ShaderModelRenderer::Render(const RenderModifierPtr& modifier, const CShade
 					size_t numModels = techBuckets[idx].numModels;
 					for (size_t i = 0; i < numModels; ++i)
 					{
+
 						CModel* model = models[i];
 						
 						// TODO: Instancing is completely useless currently because we only ever draw one instance
@@ -799,7 +782,7 @@ void ShaderModelRenderer::Render(const RenderModifierPtr& modifier, const CShade
 
 						const CMaterial::SamplersVector& samplers = model->GetMaterial().GetSamplers();
 						size_t samplersNum = samplers.size();
-						
+						ogl_WarnIfError();
 						// make sure the vectors are the right virtual sizes, and also
 						// reallocate if there are more samplers than expected.
 						if (currentTexs.size() != samplersNum)
@@ -814,6 +797,7 @@ void ShaderModelRenderer::Render(const RenderModifierPtr& modifier, const CShade
 							std::fill(texBindingNames.begin(), texBindingNames.end(), CStrIntern());
 						}
 						
+						ogl_WarnIfError();
 						// bind the samplers to the shader
 						for (size_t s = 0; s < samplersNum; ++s)
 						{
@@ -841,6 +825,7 @@ void ShaderModelRenderer::Render(const RenderModifierPtr& modifier, const CShade
 								currentTexs[s] = newTex;
 							}
 						}
+						ogl_WarnIfError();
 						
 						// Bind modeldef when it changes
 						CModelDef* newModeldef = model->GetModelDef().get();
@@ -849,7 +834,7 @@ void ShaderModelRenderer::Render(const RenderModifierPtr& modifier, const CShade
 							currentModeldef = newModeldef;
 							m->vertexRenderer->PrepareModelDef(shader, streamflags, *currentModeldef);
 						}
-						
+						ogl_WarnIfError();
 						//CShaderBlockUniforms& staticUniforms = model->GetMaterial().GetStaticBlockUniforms();
 						//staticUniforms.SetUniforms(uniformBlockManager);
 						/*
@@ -909,11 +894,11 @@ void ShaderModelRenderer::Render(const RenderModifierPtr& modifier, const CShade
 						}
 
 						modifier->PrepareModel(shader, model);
-						
-						// TODO: will not need to be done for each models in the future						
+			
+						// TODO: will not need to be done for each models in the future		
 						m->vertexRenderer->RenderModelsInstanced(1);
 						//m->vertexRenderer->RenderModel(shader, streamflags, model, rdata);
-						
+				
 						preparedModelUniformsLeft--;
 						if (preparedModelUniformsLeft == 0)
 						{

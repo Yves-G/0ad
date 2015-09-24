@@ -22,19 +22,61 @@
 
 void UniformBlockManager::RegisterUniformBlocks(const CShaderProgram& shader)
 {
-	const std::vector<UniformBlockIdentifier>& blockIdentifiers = shader.GetUniformBlockIdentifiers();
+	const std::vector<InterfaceBlockIdentifier>& blockIdentifiers = shader.GetUniformBlockIdentifiers();
 	
-	for (const UniformBlockIdentifier& blockIdentifier : blockIdentifiers)
+	for (const InterfaceBlockIdentifier& blockIdentifier : blockIdentifiers)
 	{
-		const auto& nameIndexLookup = m_UniformBufferIndices.find(blockIdentifier.Name);
-		if (nameIndexLookup != m_UniformBufferIndices.end())
+		const auto& nameIndexLookup = m_InterfaceBlockIndices.find(blockIdentifier.Name);
+		if (nameIndexLookup != m_InterfaceBlockIndices.end())
 			continue; // block already added
 		
 		// No such uniform block available so far, create one from the current shader program
-		m_UniformBuffers.emplace_back(shader.GetProgram(), blockIdentifier);
-		m_DirtyBuffers.resize(m_UniformBuffers.size());
-		m_UniformBufferIndices.emplace(blockIdentifier.Name, m_UniformBuffers.size() - 1);
+		m_InterfaceBlockBuffers.emplace_back(shader.GetProgram(), blockIdentifier, blockIdentifier.BlockType);
+		m_DirtyBuffers.resize(m_InterfaceBlockBuffers.size());
+		m_InterfaceBlockIndices.emplace(blockIdentifier.Name, m_InterfaceBlockBuffers.size() - 1);
+		InterfaceBlockAdded(blockIdentifier);
 	}
+}
+
+void UniformBlockManager::MaterialBound(const int materialID, CShaderBlockUniforms& shaderBlockUniforms)
+{
+	std::cout << "MaterialBound: " << materialID << std::endl;
+	for (CShaderBlockUniforms::BoundValueAssignment& boundValue : 
+		shaderBlockUniforms.m_BoundValueAssignments)
+	{
+		SetCurrentInstance<MATERIAL_INSTANCED>(materialID);
+		SetUniformF4<MATERIAL_INSTANCED>(boundValue.Binding, boundValue.Value.X, 
+			boundValue.Value.Y, boundValue.Value.Z, boundValue.Value.W);
+	}
+}
+
+void UniformBlockManager::InterfaceBlockAdded(const InterfaceBlockIdentifier& blockIdentifier)
+{
+	std::cout << "InterfaceBlock added: " << blockIdentifier.Name.c_str() << std::endl;
+	UpdateMaterialBinding();
+	
+	int flags = 0;
+	if (blockIdentifier.Name == m_PlayerColorBlockName)
+	{
+		flags |= PLAYER_COLOR;
+		m_PlayerColorBinding = GetBinding(m_PlayerColorBlockName, str_playerColor_0, true);
+	}
+	else if (blockIdentifier.Name == m_ShadingColorBlockName)
+	{
+		flags |= SHADING_COLOR;
+		m_ShadingColorBinding = GetBinding(m_ShadingColorBlockName, str_shadingColor_0, true);
+	}
+	else if (blockIdentifier.Name == m_MaterialIDBlockName)
+	{
+		flags |= MATERIAL_ID;
+		m_MaterialIDBinding = GetBinding(m_MaterialIDBlockName, CStrIntern("materialID[0]"), true);
+	}
+	
+	if(!flags)
+		return;
+	
+	m_AvailableBindingsFlag |= flags;
+	GenAllModelData(flags);
 }
 
 
@@ -43,15 +85,41 @@ bool UniformBlockManager::EnsureBlockBinding(const CShaderProgramPtr& shader)
 
 	// TODO: Check if there are enough free binding points
 	
-	const std::vector<UniformBlockIdentifier>& blockIdentifiers = shader->GetUniformBlockIdentifiers();
+	const std::vector<InterfaceBlockIdentifier>& blockIdentifiers = shader->GetUniformBlockIdentifiers();
 
-	for (const UniformBlockIdentifier& blockIdentifier : blockIdentifiers)
+	for (const InterfaceBlockIdentifier& blockIdentifier : blockIdentifiers)
 	{
-		const auto& pointBinding = m_PointBindings.find(blockIdentifier.Name);
-		if (pointBinding != m_PointBindings.end())
+		std::map<CStrIntern, PointBufferBinding>::iterator pointBinding;
+		std::map<CStrIntern, PointBufferBinding>::iterator endItr;
+		
+		// TODO: Maybe another define could be use that starts with 0 and then that could be
+		// used as index like this in an array of maps:
+		//
+		// Declaration:
+		// enum PS_INTERFACE_BLOCK_TYPES { PS_UNIFORM_BLOCK, PS_SHADER_STORAGE_BLOCK };
+		// std::map<CStrIntern, PointBufferBinding> m_PointBindings[2];
+		//
+		// Use:
+		// m_PointBindings[PS_UNIFORM_BLOCK].find(blockIdentifier.Name);
+		//
+		// This should make the code a bit cleaner and remove some branching
+
+		
+		if (blockIdentifier.BlockType == GL_UNIFORM_BLOCK)
+		{
+			pointBinding = m_UBOPointBindings.find(blockIdentifier.Name);
+			endItr = m_UBOPointBindings.end();
+		}
+		else if (blockIdentifier.BlockType == GL_SHADER_STORAGE_BLOCK)
+		{
+			pointBinding = m_SSBOPointBindings.find(blockIdentifier.Name);
+			endItr = m_SSBOPointBindings.end();
+		}
+		
+		if (pointBinding != endItr)
 		{
 			// check if the block in the shader is bound to the same point where the buffer is mapped
-			if (shader->GetUniformBlockBindingPoint(blockIdentifier.ID) == pointBinding->second.point)
+			if (shader->GetUniformBlockBindingPoint(blockIdentifier.BlockType, blockIdentifier.ID) == pointBinding->second.point)
 				continue; // this block is correctly bound
 			else // the binding point is mapped to the buffer, but the shader points to the wrong binding point
 			{
@@ -61,8 +129,8 @@ bool UniformBlockManager::EnsureBlockBinding(const CShaderProgramPtr& shader)
 		}
 		else	// currently there's no buffer for this block attached to any points
 		{
-			const auto& nameIndexLookup  = m_UniformBufferIndices.find(blockIdentifier.Name);
-			if (nameIndexLookup == m_UniformBufferIndices.end())
+			const auto& nameIndexLookup  = m_InterfaceBlockIndices.find(blockIdentifier.Name);
+			if (nameIndexLookup == m_InterfaceBlockIndices.end())
 			{
 				// All blocks of this shader should have been registered using RegisterUniformBlocks.
 				// This code path should never be reached, unless there's a code issue
@@ -71,9 +139,21 @@ bool UniformBlockManager::EnsureBlockBinding(const CShaderProgramPtr& shader)
 				return false;
 			}
 
-			pglBindBufferBase(GL_UNIFORM_BUFFER, m_NextFreeBindingPoint, m_UniformBuffers[nameIndexLookup->second].m_UBOBufferID);
-			m_PointBindings.emplace(blockIdentifier.Name, PointBufferBinding { m_NextFreeBindingPoint });
-			m_NextFreeBindingPoint++;
+			if (blockIdentifier.BlockType == GL_UNIFORM_BLOCK)
+			{
+				pglBindBufferBase(GL_UNIFORM_BUFFER, m_NextFreeUBOBindingPoint, m_InterfaceBlockBuffers[nameIndexLookup->second].m_UBOBufferID);
+				m_UBOPointBindings.emplace(blockIdentifier.Name, PointBufferBinding { m_NextFreeUBOBindingPoint });
+				shader->UniformBlockBinding(blockIdentifier, m_NextFreeUBOBindingPoint);
+				m_NextFreeUBOBindingPoint++;
+			} 
+			else if (blockIdentifier.BlockType == GL_SHADER_STORAGE_BLOCK)
+			{
+				std::cout << "pglBindBufferBase: BindingPoint: " << m_NextFreeSSBOBindingPoint << " BufferName: " << m_InterfaceBlockBuffers[nameIndexLookup->second].m_BlockName.c_str() << " BufferID: " << m_InterfaceBlockBuffers[nameIndexLookup->second].m_UBOBufferID << std::endl;
+				pglBindBufferBase(GL_SHADER_STORAGE_BUFFER, m_NextFreeSSBOBindingPoint, m_InterfaceBlockBuffers[nameIndexLookup->second].m_UBOBufferID);
+				m_SSBOPointBindings.emplace(blockIdentifier.Name, PointBufferBinding { m_NextFreeSSBOBindingPoint });
+				shader->UniformBlockBinding(blockIdentifier, m_NextFreeSSBOBindingPoint);
+				m_NextFreeSSBOBindingPoint++;
+			}
 		}
 	}
 }

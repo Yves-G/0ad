@@ -1,8 +1,10 @@
-#version 110
+#version 430
+
+out vec4 fragColor;
 
 uniform sampler2D baseTex;
 
-varying vec2 v_tex;
+in vec2 v_tex;
 
 void main()
 {
@@ -13,5 +15,5 @@ void main()
       discard;
   #endif
 
-  gl_FragColor = tex;
+  fragColor = tex;
 }

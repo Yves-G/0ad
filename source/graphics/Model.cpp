@@ -653,11 +653,6 @@ void CModel::RemoveShadowsRec()
 	}
 }
 
-void CModel::SetMaterial(const CMaterial &material)
-{
-	m_Material = material;
-}
-
 void CModel::SetPlayerID(player_id_t id)
 {
 	CModelAbstract::SetPlayerID(id);

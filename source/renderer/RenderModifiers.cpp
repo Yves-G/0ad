@@ -136,8 +136,7 @@ void ShaderRenderModifier::SetFrameUniforms()
 
 	// TODO: Bindings should probably be used differently now (with uniform blocks)
 	m_BindingInstancingTransform = uniformBlockManager.GetBinding(modelUBO, str_instancingTransform_0, true);
-	m_BindingShadingColor = uniformBlockManager.GetBinding(modelUBO, str_shadingColor_0, true);
-	m_BindingPlayerColor = uniformBlockManager.GetBinding(modelUBO, str_playerColor_0, true);
+	m_BindingModelID = uniformBlockManager.GetBinding(modelUBO, str_modelId_0, true);
 	/*
 	m_BindingInstancingTransform = shader->GetUniformBinding(str_instancingTransform);
 	m_BindingShadingColor = shader->GetUniformBinding(str_shadingColor);
@@ -164,18 +163,10 @@ void ShaderRenderModifier::SetModelUniforms(CModel* model)
 {
 	UniformBlockManager& uniformBlockManager = g_Renderer.GetUniformBlockManager();
 	if (m_BindingInstancingTransform.Active())
-	{
 		uniformBlockManager.SetUniform<UniformBlockManager::MODEL_INSTANCED>(m_BindingInstancingTransform, model->GetTransform());
-		//CMatrix3D mat;
-		//mat.SetIdentity();
-		//uniformBlockManager.SetUniform(m_BindingInstancingTransform, mat);
-	}
 
-	if (m_BindingShadingColor.Active())
-		uniformBlockManager.SetUniform<UniformBlockManager::MODEL_INSTANCED>(m_BindingShadingColor, model->GetShadingColor());
-
-	if (m_BindingPlayerColor.Active())
-		uniformBlockManager.SetUniform<UniformBlockManager::MODEL_INSTANCED>(m_BindingPlayerColor, g_Game->GetPlayerColor(model->GetPlayerID()));
+	if (m_BindingModelID.Active())
+		uniformBlockManager.SetUniform<UniformBlockManager::MODEL_INSTANCED>(m_BindingModelID, (GLuint)model->GetID());
 }
 
 void ShaderRenderModifier::PrepareModel(const CShaderProgramPtr& shader, CModel* model)

@@ -19,6 +19,7 @@
 
 #include "ShaderBlockUniforms.h"
 
+#include "graphics/UniformBlockManager.h"
 #include "graphics/ShaderProgram.h"
 #include "maths/Vector4D.h"
 #include "ps/ThreadUtil.h"
@@ -26,20 +27,25 @@
 
 #include <sstream>
 
-void CShaderBlockUniforms::GetBindings()
+bool CShaderBlockUniforms::GetBindings()
 {
 	//m_BoundValueAssignments.clear();
 	UniformBlockManager& uniformBlockManager = g_Renderer.GetUniformBlockManager();
+	std::vector<BoundValueAssignment> tmpBoundAssignments;
+	tmpBoundAssignments.reserve(m_UnboundValueAssignments.size());
 	for (const UnboundValueAssignment& unboundAssignment : m_UnboundValueAssignments)
 	{
 		UniformBinding binding = uniformBlockManager.GetBinding(unboundAssignment.BlockName, unboundAssignment.UniformName, unboundAssignment.IsInstanced);
 		if (!binding.Active())
-		{
-			// TODO: Uniforms can be disabled by a shader define, but also because of an error.
-			LOGERROR("Could not bind to uniform %s in block %s", unboundAssignment.UniformName.c_str(), unboundAssignment.BlockName.c_str());
-			continue;
-		}
-		m_BoundValueAssignments.emplace_back(BoundValueAssignment { binding, unboundAssignment.Value });
+			return false;
+		
+		tmpBoundAssignments.emplace_back(BoundValueAssignment { binding, unboundAssignment.Value });
 	}
+	
+	if (tmpBoundAssignments.size() == 0)
+		return false;
+	
+	m_BoundValueAssignments = tmpBoundAssignments;
 	m_UniformsBound = true;
+	return true;
 }

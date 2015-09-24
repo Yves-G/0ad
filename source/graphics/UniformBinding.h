@@ -24,13 +24,13 @@
 
 struct UniformBinding
 {
-	UniformBinding(int blockId, int uniformId, int type, bool isInstanced) : 
-		m_BlockId(blockId), m_UniformId(uniformId), m_Type(type), m_IsInstanced(isInstanced) { }
-	UniformBinding() : m_BlockId(-1), m_UniformId(-1), m_Type(-1), m_IsInstanced(false) { }
+	UniformBinding(int blockType, int blockId, int uniformId, int type, bool isInstanced) : 
+		m_BlockType(blockType), m_BlockId(blockId), m_UniformId(uniformId), m_Type(type), m_IsInstanced(isInstanced) { }
+	UniformBinding() : m_BlockType(-1), m_BlockId(-1), m_UniformId(-1), m_Type(-1), m_IsInstanced(false) { }
 
+	bool Active() { return m_BlockType != -1 && m_BlockId != -1 && m_UniformId != -1; }
 
-	bool Active() { return m_BlockId != -1 && m_UniformId != -1; }
-
+	int m_BlockType; // GL_UNIFORM_BLOCK or GL_SHADER_STORAGE_BLOCK
 	int m_BlockId;
 	int m_UniformId;
 	int m_Type;
@@ -41,8 +41,9 @@ struct UniformBinding
  * Identifies a uniform block by name and ID.
  * The ID is only valid for one specific shader and might be different for other shaders 
  */ 
-struct UniformBlockIdentifier
+struct InterfaceBlockIdentifier
 {
+	int BlockType; // GL_UNIFORM_BLOCK or GL_SHADER_STORAGE_BLOCK
 	GLuint ID;
 	CStrIntern Name;
 };

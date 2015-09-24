@@ -20,7 +20,10 @@
 
 #include "maths/BoundingBoxOriented.h"
 #include "graphics/RenderableObject.h"
+#include "graphics/Material.h"
+#include "ps/Game.h"
 #include "ps/Shapes.h"
+#include "renderer/Renderer.h"
 #include "simulation2/helpers/Player.h"
 
 class CModel;
@@ -60,15 +63,9 @@ public:
 
 public:
 	
-	CModelAbstract()
-		: m_Parent(NULL), m_PositionValid(false), m_ShadingColor(1, 1, 1, 1), m_PlayerID(INVALID_PLAYER), 
-		  m_SelectionBoxValid(false), m_CustomSelectionShape(NULL)
-	{ }
-
-	~CModelAbstract()
-	{
-		delete m_CustomSelectionShape; // allocated and set externally by CCmpVisualActor, but our responsibility to clean up
-	}
+	CModelAbstract();
+	
+	~CModelAbstract();
 
 	virtual CModelAbstract* Clone() const = 0;
 
@@ -149,16 +146,45 @@ public:
 	 */
 	virtual void InvalidatePosition() = 0;
 
-	virtual void SetPlayerID(player_id_t id) { m_PlayerID = id; }
+	virtual void SetPlayerID(player_id_t id);
+	
+		// set the model's material
+	virtual void SetMaterial(const CMaterial &material);
 
 	// get the model's player ID; initial default is INVALID_PLAYER
 	virtual player_id_t GetPlayerID() const { return m_PlayerID; }
+	int GetID() const { return m_ID; }
+	
+	// get the model's material
+	CMaterial& GetMaterial() { return m_Material; }
 
-	virtual void SetShadingColor(const CColor& color) { m_ShadingColor = color; }
+	virtual void SetShadingColor(const CColor& color);
 	virtual CColor GetShadingColor() const { return m_ShadingColor; }
 
 protected:
 	void CalcSelectionBox();
+	int AcquireID()
+	{
+		if (m_FreeIDs.empty())
+		{
+			for (int i=m_MaxID; i<m_MaxID+100; ++i)
+				m_FreeIDs.insert(i);
+			m_MaxID += 100;
+		}
+		int ret = *m_FreeIDs.begin();
+		m_FreeIDs.erase(m_FreeIDs.begin());
+		return ret;
+	}
+
+	void FreeID(int ID)
+	{
+		// The set could handle insertion of an ID which is alredy in the set, but
+		// this would still indicate a problem because it should not happen that an 
+		// already free ID gets freed again. 
+		ENSURE(m_FreeIDs.find(ID) == m_FreeIDs.end());
+
+		m_FreeIDs.insert(ID);
+	}
 
 public:
 	/// If non-null, points to the model that we are attached to.
@@ -168,7 +194,10 @@ public:
 	bool m_PositionValid;
 
 	player_id_t m_PlayerID;
-
+	
+	// model's material
+	CMaterial m_Material;
+	
 	/// Modulating color
 	CColor m_ShadingColor;
 
@@ -185,6 +214,10 @@ protected:
 	/// field will be used.
 	/// @see SetCustomSelectionShape
 	CustomSelectionShape* m_CustomSelectionShape;
+	
+	static std::set<int> m_FreeIDs;
+	static int m_MaxID;
+	int m_ID;
 
 };
 

@@ -78,7 +78,7 @@ public:
 	CShaderBlockUniforms& GetStaticBlockUniforms() { return m_StaticBlockUniforms; }
 	
 	// Requires UniformBlockManager to be initialized and all available blocks to be added
-	void GetBindings();
+	bool GetBindings();
 
 	void AddSampler(const TextureSampler& texture);
 	const SamplersVector& GetSamplers() const { return m_Samplers; }
@@ -92,7 +92,7 @@ public:
 	// Must be called after all AddShaderDefine and AddConditionalDefine
 	void RecomputeCombinedShaderDefines();
 	
-	int GetId() { return m_MaterialId; }
+	int GetId() const { return m_MaterialId; }
 	void SetId(int id) { m_MaterialId = id; } // TODO: Make this private and use fried classes?
 
 private:

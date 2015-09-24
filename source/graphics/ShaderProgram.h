@@ -175,32 +175,60 @@ public:
 	 */
 	void AssertPointersBound();
 	
-	void UniformBlockBinding(const UniformBlockIdentifier& uniformBlockIdentifier, GLuint bindingPoint)
+	void UniformBlockBinding(const InterfaceBlockIdentifier& uniformBlockIdentifier, GLuint bindingPoint)
 	{
-		pglUniformBlockBinding(m_Program, uniformBlockIdentifier.ID, bindingPoint);
-	}
-	
-	GLuint GetUniformBlockBindingPoint(GLuint blockID)
-	{
-		// TODO: replace with ENSURE?
-		if (blockID >= m_BlockBindings.size())
+		ENSURE(uniformBlockIdentifier.BlockType == GL_UNIFORM_BLOCK || uniformBlockIdentifier.BlockType == GL_SHADER_STORAGE_BLOCK);
+		
+		if (uniformBlockIdentifier.BlockType == GL_UNIFORM_BLOCK)
 		{
-			std::cerr << "Trying to query shader for non-existant uniform block index!" << std::endl;
-			return 0;
+			pglUniformBlockBinding(m_Program, uniformBlockIdentifier.ID, bindingPoint);
+			m_UBOBindings[uniformBlockIdentifier.ID] = bindingPoint;
 		}
-		return m_BlockBindings[blockID];
+		else if (uniformBlockIdentifier.BlockType == GL_SHADER_STORAGE_BLOCK)
+		{
+			std::cout << "pglShaderStorageBlockBinding: Name: " << uniformBlockIdentifier.Name.c_str() <<  " blockId:" << uniformBlockIdentifier.ID << " binding: " << bindingPoint << " Program: " << m_Program << std::endl;
+			pglShaderStorageBlockBinding(m_Program, uniformBlockIdentifier.ID, bindingPoint);
+			m_SSBOBindings[uniformBlockIdentifier.ID] = bindingPoint;
+		}
 	}
 	
-	const std::vector<UniformBlockIdentifier>& GetUniformBlockIdentifiers() const
+	GLuint GetUniformBlockBindingPoint(const int blockType, GLuint blockID)
 	{
-		return m_UniformBlockIdentifiers;
+		ENSURE(blockType == GL_UNIFORM_BLOCK || blockType == GL_SHADER_STORAGE_BLOCK);
+		
+		if (blockType == GL_UNIFORM_BLOCK)
+		{
+			// TODO: replace with ENSURE?
+			if (blockID >= m_UBOBindings.size())
+			{
+				std::cerr << "Trying to query shader for non-existant uniform block index!" << std::endl;
+				return 0;
+			}
+			return m_UBOBindings[blockID];
+		}
+		else if (blockType == GL_SHADER_STORAGE_BLOCK)
+		{
+			// TODO: replace with ENSURE?
+			if (blockID >= m_SSBOBindings.size())
+			{
+				std::cerr << "Trying to query shader for non-existant shader storage block index!" << std::endl;
+				return 0;
+			}
+			return m_SSBOBindings[blockID];
+		}
+	}
+	
+	const std::vector<InterfaceBlockIdentifier>& GetUniformBlockIdentifiers() const
+	{
+		return m_InterfaceBlockIdentifiers;
 	}
 
 protected:
 	CShaderProgram(int streamflags);
 	
-	std::vector<GLuint> m_BlockBindings; // which block (by ID) is bound to which binding point
-	std::vector<UniformBlockIdentifier> m_UniformBlockIdentifiers;
+	std::vector<GLuint> m_UBOBindings; // which block (by ID) is bound to which binding point
+	std::vector<GLuint> m_SSBOBindings;
+	std::vector<InterfaceBlockIdentifier> m_InterfaceBlockIdentifiers;
 	
 	GLuint m_Program;
 

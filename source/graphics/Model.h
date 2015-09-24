@@ -97,14 +97,10 @@ public:
 	// get the model's geometry data
 	const CModelDefPtr& GetModelDef() { return m_pModelDef; }
 
-	// set the model's material
-	void SetMaterial(const CMaterial &material);
 	// set the model's player ID, recursively through props
 	void SetPlayerID(player_id_t id);
 	// set the models mod color
 	virtual void SetShadingColor(const CColor& color);
-	// get the model's material
-	CMaterial& GetMaterial() { return m_Material; }
 
 	// set the given animation as the current animation on this model
 	bool SetAnimation(CSkeletonAnim* anim, bool once = false);
@@ -263,8 +259,7 @@ private:
 
 	// object flags
 	int m_Flags;
-	// model's material
-	CMaterial m_Material;
+
 	// pointer to the model's raw 3d data
 	CModelDefPtr m_pModelDef;
 	// object space bounds of model - accounts for bounds of all possible animations

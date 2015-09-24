@@ -92,11 +92,13 @@ public:
 			ENSURE(m_DrawCommands.size() >= modelsCount);
 			//pglDrawRangeElementsEXT(GL_TRIANGLES, 0, (GLuint)m->imodeldef->m_Array.GetNumVertices()-1,
 			//	(GLsizei)numFaces*3, GL_UNSIGNED_SHORT, m->imodeldefIndexBase);
+			ogl_WarnIfError();
 			pglMultiDrawElementsIndirect(GL_TRIANGLES,
 			GL_UNSIGNED_SHORT,
   			(void*)(m_CurrentDrawID * sizeof(DrawElementsIndirectCommand)),
   			modelsCount,
   			sizeof(DrawElementsIndirectCommand));
+  			ogl_WarnIfError();
   			m_CurrentDrawID += modelsCount;
 	}
 

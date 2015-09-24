@@ -19,7 +19,7 @@
 #define INCLUDED_SHADERBLOCKUNIFORMS
 
 #include "graphics/ShaderProgramPtr.h"
-#include "graphics/UniformBlockManager.h"
+#include "graphics/UniformBuffer.h"
 #include "ps/CStr.h"
 #include "ps/CStrIntern.h"
 #include "ps/CLogger.h"
@@ -61,47 +61,14 @@ public:
 		m_UnboundValueAssignments.emplace_back(UnboundValueAssignment { blockName, uniformName, isInstanced, value });
 	}
 	
-	void GetBindings();
+	bool GetBindings();
 
-	template<UniformBlockManager::InstancingMode M>
-	inline void SetUniforms(u32 instanceId);
+	std::vector<BoundValueAssignment> m_BoundValueAssignments;
 	
 private:
 	
 	bool m_UniformsBound;
-	std::vector<BoundValueAssignment> m_BoundValueAssignments;
 	std::vector<UnboundValueAssignment> m_UnboundValueAssignments;
 };
-
-template<UniformBlockManager::InstancingMode M>
-inline void CShaderBlockUniforms::SetUniforms(u32 instancId)
-{
-	UniformBlockManager& uniformBlockManager = g_Renderer.GetUniformBlockManager();
-	
-	// Loading of shaders and materials is quite dyncamic and does not always happen in the same order.
-	// We try to set up the bindings here because it this point they must be available in any case 
-	// (else it can be considered an error).
-	if (!m_UniformsBound)
-	{
-		GetBindings();
-	}
-		
-	uniformBlockManager.SetCurrentInstance<M>(instancId);
-	
-	for (BoundValueAssignment valueAssignment : m_BoundValueAssignments)
-	{
-		uniformBlockManager.SetUniformF4<M>(valueAssignment.Binding, valueAssignment.Value.X, 
-											valueAssignment.Value.Y, valueAssignment.Value.Z, valueAssignment.Value.W);
-		/*
-		switch (valueAssignment.Binding.m_Type)
-		{
-		case GL_FLOAT:
-			uniformBlockManager.SetUniform(valueAssignment.Binding, valueAssignment.Value.X);
-			break;
-		default:
-			LOGERROR("Missing definition how to convert this type from CVector4D!");			
-		}*/
-	}
-}
 
 #endif // INCLUDED_SHADERBLOCKUNIFORMS

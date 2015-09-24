@@ -342,6 +342,8 @@ FUNC2(void, glGetUniformuivEXT, glGetUniformuiv, "3.0", (GLuint program, GLint l
 FUNC2(void, glBindFragDataLocationEXT, glBindFragDataLocation, "3.0", (GLuint program, GLuint colorNumber, const char *name))
 FUNC2(GLint, glGetFragDataLocationEXT, glGetFragDataLocation, "3.0", (GLuint program, const char *name))
 FUNC2(void, glBindBufferBase, glBindBufferBase, "3.0", (GLenum target, GLuint index, GLuint buffer))
+FUNC2(void, glGenVertexArrays, glGenVertexArrays, "3.0", (GLsizei n, GLuint* arrays))
+FUNC2(void, glBindVertexArray, glBindVertexArray, "3.0", (GLuint array))
 
 // GL_ARB_occlusion_query / GL1.5:
 FUNC2(void, glGenQueriesARB, glGenQueries, "1.5", (GLsizei n, GLuint *ids))
@@ -362,6 +364,12 @@ FUNC2(void, glUniformBlockBinding, glUniformBlockBinding, "3.1", (GLuint program
 // GL4.3
 FUNC2(void, glVertexBindingDivisor, glVertexBindingDivisor, "4.3", (GLuint bindingindex, GLuint divisor))
 FUNC2(void, glMultiDrawElementsIndirect, glMultiDrawElementsIndirect, "4.3", (GLenum mode, GLenum type, const void* indirect, GLsizei drawcount, GLsizei stride))
+FUNC2(void, glGetProgramInterfaceiv, glGetProgramInterfaceiv, "4.3", (GLuint program, GLenum programInterface, GLenum pname, GLint* params))
+FUNC2(void, glGetProgramResourceiv, glGetProgramResourceiv, "4.3", (GLuint program, GLenum programInterface, GLuint index, GLsizei propCount, const GLenum* props, GLsizei buffSize, GLsizei* length, GLint* params))
+FUNC2(void, glGetProgramResourceName, glGetProgramResourceName, "4.3", (GLuint program, GLenum programInterface, GLuint index, GLsizei bufSize, GLsizei* length, char* name))
+FUNC2(void, glShaderStorageBlockBinding, glShaderStorageBlockBinding, "4.3", (GLuint program, GLuint storageBlockIndex,	GLuint storageBlockBinding))
+FUNC2(GLuint, glGetProgramResourceIndex, glGetProgramResourceIndex, "4.3", (GLuint program, GLenum programInterface, const char* name))
+
 
 // GL_ARB_sync / GL3.2:
 FUNC2(void, glGetInteger64v, glGetInteger64v, "3.2", (GLenum pname, GLint64 *params))
