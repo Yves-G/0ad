@@ -218,6 +218,15 @@ struct ShaderModelRendererInternals
 
 	/// List of submitted models for rendering in this frame
 	std::vector<CModel*> submissions[CRenderer::CULL_MAX];
+	
+	struct HeapCounters
+	{
+		HeapCounters() : pass(0), idx(0), idxTechStart(0), modelIx(0) {}
+		size_t pass;
+		size_t idx;
+		size_t idxTechStart;
+		size_t modelIx;
+	} heapCounters;
 };
 
 
@@ -356,91 +365,123 @@ struct SMRCompareTechBucket
 	}
 };
 
-void ShaderModelRenderer::PrepareUniformBuffers(size_t startInstance, size_t maxInstancesPerDraw, 
-												int flags, const std::vector<SMRTechBucket, TechBucketsAllocator>& techBuckets, 
+void ShaderModelRenderer::PrepareUniformBuffers(size_t maxInstancesPerDraw, int flags, 
+												const std::vector<SMRTechBucket, TechBucketsAllocator>& techBuckets, 
 												const RenderModifierPtr& modifier)
 {
 	PROFILE3("PrepareUniformBuffers");
 	UniformBlockManager& uniformBlockManager = g_Renderer.GetUniformBlockManager();
 	ENSURE(maxInstancesPerDraw != 0);
 	
-	size_t idxTechStart = 0;
 	size_t instanceId = 0;
 	u64 materialUniformsSet = 0;	
 
-	while (idxTechStart < techBuckets.size())
+	while (m->heapCounters.idxTechStart < techBuckets.size())
 	{
-		CShaderTechniquePtr currentTech = techBuckets[idxTechStart].tech;
+		CShaderTechniquePtr currentTech = techBuckets[m->heapCounters.idxTechStart].tech;
 
 		// Find runs [idxTechStart, idxTechEnd) in techBuckets of the same technique
 		size_t idxTechEnd;
-		for (idxTechEnd = idxTechStart + 1; idxTechEnd < techBuckets.size(); ++idxTechEnd)
+		for (idxTechEnd = m->heapCounters.idxTechStart + 1; idxTechEnd < techBuckets.size(); ++idxTechEnd)
 		{
 			if (techBuckets[idxTechEnd].tech != currentTech)
 				break;
 		}
 
 		// For each of the technique's passes, render all the models in this run
-		for (int pass = 0; pass < currentTech->GetNumPasses(); ++pass)
+		while (true)
 		{
-			const CShaderProgramPtr& shader = currentTech->GetShader(pass);
+			if (m->heapCounters.pass == currentTech->GetNumPasses())
+			{
+				m->heapCounters.pass = 0;
+				break;
+			}
+
+			const CShaderProgramPtr& shader = currentTech->GetShader(m->heapCounters.pass);
 			int streamflags = shader->GetStreamFlags();
 			
-			for (size_t idx = idxTechStart; idx < idxTechEnd; ++idx)
+			//for (size_t idx = idxTechStart; idx < idxTechEnd; ++idx)
+			
+			while (true)	
 			{
-				CModel** models = techBuckets[idx].models;
-				size_t numModels = techBuckets[idx].numModels;
-				for (size_t i = 0; i < numModels; ++i)
+				if (m->heapCounters.idx == idxTechEnd)
 				{
-					CModel* model = models[i];
+					m->heapCounters.idx = m->heapCounters.idxTechStart;
+					break;
+				}
+				
+				CModel** models = techBuckets[m->heapCounters.idx].models;
+				size_t numModels = techBuckets[m->heapCounters.idx].numModels;
+				//for (size_t modelIx = 0; modelIx < numModels; ++modelIx)
+				
+				while (true)
+				{
+					if (m->heapCounters.modelIx == numModels)
+					{
+						m->heapCounters.modelIx = 0;
+						break;
+					}
+					
+					CModel* model = models[m->heapCounters.modelIx];
 
 					if (flags && !(model->GetFlags() & flags))
-						continue;
-				
-					if (instanceId >= startInstance)
 					{
-						uniformBlockManager.SetCurrentInstance<UniformBlockManager::MODEL_INSTANCED>(instanceId % maxInstancesPerDraw);
-						
-						modifier->SetModelUniforms(model);
-						
-						m->vertexRenderer->PrepareModel(shader, model);
-						
-						//CModelRData* rdata = static_cast<CModelRData*>(model->GetRenderData());
-						//ENSURE(rdata->GetKey() == m->vertexRenderer.get());
-						CModelRData* rdata = NULL;
-												
-						//if (sameInstance)
-						//	m->vertexRenderer->AddInstance();
-						//else
-						//{
-
-							m->vertexRenderer->SetRenderModelInstanced(shader, streamflags, model, rdata);
-						//	sameInstance = true;
-						//}
-						
+						m->heapCounters.modelIx++;
+						continue;
 					}
+				
+					uniformBlockManager.SetCurrentInstance<UniformBlockManager::MODEL_INSTANCED>(instanceId);
+					
+					modifier->SetModelUniforms(model);
+					m->vertexRenderer->PrepareModel(shader, model);
+					
+					CModelRData* rdata = NULL;
+					m->vertexRenderer->SetRenderModelInstanced(shader, streamflags, model, rdata);
 					
 					instanceId++;
 					
-					if (instanceId - startInstance == maxInstancesPerDraw)
+					if (instanceId == maxInstancesPerDraw)
 					{
 						PROFILE3("upload uniforms (1)");
 						uniformBlockManager.Upload();
 						m->vertexRenderer->BindAndUpload();
+						
+						// Rare case. If the final batch matches the remaining number of draws to prepare exactly
+						// (we would have returned anyway). In this case we must make sure to reset the counters on the heap.
+						if (m->heapCounters.modelIx == numModels && m->heapCounters.pass == currentTech->GetNumPasses() && m->heapCounters.idx + 1 == techBuckets.size())
+						{
+							m->heapCounters.modelIx = 0;
+							m->heapCounters.idx = 0;
+							m->heapCounters.pass = 0;
+							m->heapCounters.idxTechStart = 0;
+						}
+						else
+						{
+							m->heapCounters.modelIx++;
+						}
+						
 						return;
 					}
+					
+					m->heapCounters.modelIx++;
 						
 				}
+				m->heapCounters.idx++;
 			}
+			m->heapCounters.pass++;
 		}
-
-		idxTechStart = idxTechEnd;
+		m->heapCounters.idx = m->heapCounters.idxTechStart = idxTechEnd;
 	}
 	
 	{
-	PROFILE3("upload uniforms (2)");
-	uniformBlockManager.Upload();
-	m->vertexRenderer->BindAndUpload();
+		PROFILE3("upload uniforms (2)");
+		uniformBlockManager.Upload();
+		m->vertexRenderer->BindAndUpload();
+		
+		m->heapCounters.modelIx = 0;
+		m->heapCounters.idx = 0;
+		m->heapCounters.pass = 0;
+		m->heapCounters.idxTechStart = 0;
 	}
 }
 
@@ -681,7 +722,6 @@ void ShaderModelRenderer::Render(const RenderModifierPtr& modifier, const CShade
 
 		size_t idxTechStart = 0;
 		
-		size_t startInstance = 0;
 		size_t preparedModelUniformsLeft = 2000;
 		const size_t maxInstancesPerDraw = 2000;
 		
@@ -701,7 +741,7 @@ void ShaderModelRenderer::Render(const RenderModifierPtr& modifier, const CShade
 		// prepare the first batch of uniforms.
 		// This causes an upload of all modified uniform buffers, and will also take care of uploading
 		// the per-frame uniforms
-		PrepareUniformBuffers(startInstance, maxInstancesPerDraw, flags, techBuckets, modifier);
+		PrepareUniformBuffers(maxInstancesPerDraw, flags, techBuckets, modifier);
 		
 		// This vector keeps track of texture changes during rendering. It is kept outside the
 		// loops to avoid excessive reallocations. The token allocation of 64 elements 
@@ -904,8 +944,7 @@ void ShaderModelRenderer::Render(const RenderModifierPtr& modifier, const CShade
 						{
 							m->vertexRenderer->ResetDrawID();
 							m->vertexRenderer->ResetCommands();
-							startInstance += maxInstancesPerDraw;
-							PrepareUniformBuffers(startInstance, maxInstancesPerDraw, flags, techBuckets, modifier);
+							PrepareUniformBuffers(maxInstancesPerDraw, flags, techBuckets, modifier);
 							
 							// technically not true when less models than maxInstancesPerDraw models are left, 
 							// but preparedModelUniformsLeft is only used to detect when PrepareUniformBuffers

@@ -291,7 +291,7 @@ private:
 	
 	typedef ProxyAllocator<SMRTechBucket, Allocators::DynamicArena> TechBucketsAllocator;
 	
-	void PrepareUniformBuffers(size_t startInstance, size_t maxInstancesPerDraw, int flags, 
+	void PrepareUniformBuffers(size_t maxInstancesPerDraw, int flags, 
 						const std::vector<SMRTechBucket, TechBucketsAllocator>& techBuckets,
 						const RenderModifierPtr& modifier);
 	
