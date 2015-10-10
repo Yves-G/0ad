@@ -80,7 +80,7 @@ layout(shared) buffer ShadingColorBlock
   vec3 shadingColor[];
 };
 
-layout(shared) uniform MaterialUBO
+layout(shared) buffer MaterialUBO
 {
 
 //#if USE_SPECULAR

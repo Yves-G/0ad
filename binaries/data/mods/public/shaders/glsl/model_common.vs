@@ -52,7 +52,7 @@ layout(shared) buffer MaterialIDBlock
   uint materialID[];
 };
 
-layout(shared) uniform MaterialUBO
+layout(shared) buffer MaterialUBO
 {
 
 //#if USE_SPECULAR
