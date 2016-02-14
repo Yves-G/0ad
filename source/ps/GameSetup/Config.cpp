@@ -32,6 +32,7 @@ CStrW g_CursorName = L"test";
 bool g_NoGLS3TC = false;
 bool g_NoGLAutoMipmap = false;
 bool g_NoGLVBO = false;
+bool g_UseGL4 = true;
 
 bool g_PauseOnFocusLoss = false;
 

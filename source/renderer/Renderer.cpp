@@ -737,6 +737,9 @@ void CRenderer::SetOptionBool(enum Option opt,bool value)
 		case OPT_DISPLAYFRUSTUM:
 			m_Options.m_DisplayFrustum = value;
 			break;
+		case OPT_USEGL4:
+			m_Options.m_UseGL4 = value;
+			break;
 		default:
 			debug_warn(L"CRenderer::SetOptionBool: unknown option");
 			break;
@@ -782,6 +785,8 @@ bool CRenderer::GetOptionBool(enum Option opt) const
 			return m_Options.m_Postproc;
 		case OPT_DISPLAYFRUSTUM:
 			return m_Options.m_DisplayFrustum;
+		case OPT_USEGL4:
+			return m_Options.m_UseGL4;
 		default:
 			debug_warn(L"CRenderer::GetOptionBool: unknown option");
 			break;

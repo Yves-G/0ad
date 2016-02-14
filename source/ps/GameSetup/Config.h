@@ -39,6 +39,9 @@ extern bool g_NoGLAutoMipmap;
 // don't use VBOs. (RC: that was necessary on laptop Radeon cards)
 extern bool g_NoGLVBO;
 
+// use features of OpenGL 4.x
+extern bool g_UseGL4;
+
 //-----------------------------------------------------------------------------
 
 // flag to pause the game on window focus loss

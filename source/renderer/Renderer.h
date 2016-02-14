@@ -92,6 +92,7 @@ public:
 		OPT_SMOOTHLOS,
 		OPT_POSTPROC,
 		OPT_DISPLAYFRUSTUM,
+		OPT_USEGL4,
 	};
 
 	enum CullGroup {
@@ -162,6 +163,7 @@ public:
 		bool m_ShowSky;
 		bool m_Postproc;
 		bool m_DisplayFrustum;
+		bool m_UseGL4;
 	} m_Options;
 
 	struct Caps {
