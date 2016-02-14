@@ -5,6 +5,6 @@
     <define name="USE_TRANSPARENT" value="1"/>
     <renderquery name="sim_time"/>
     <define name="USE_WIND" value="1"/>
-    <uniform instanced="1" blockName="MaterialUBO" name="windData[0]" value="1.0 1.0"/>
+    <uniform instanced="1" blockName="MaterialUBO" name="windData" value="1.0 1.0"/>
 	<required_texture name="baseTex"/>
 </material>

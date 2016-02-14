@@ -195,12 +195,13 @@ CMaterial CMaterialManager::LoadMaterial(const VfsPath& pathname)
 			CStr blockName = attrs.GetNamedItem(at_blockname);
 			if (!blockName.empty())
 			{
-							bool isInstanced = attrs.GetNamedItem(at_instanced).ToInt();
-			
-							material.AddStaticBlockUniform(CStrIntern(blockName),
-			                  CStrIntern(attrs.GetNamedItem(at_name).c_str()),
-							  isInstanced,
-			                  vec);
+				bool isInstanced = attrs.GetNamedItem(at_instanced).ToInt();
+
+				// For block uniforms, we automatically convert to array type
+				material.AddStaticBlockUniform(CStrIntern(blockName),
+				  CStrIntern(attrs.GetNamedItem(at_name).append("[0]").c_str()),
+				  isInstanced,
+				  vec);
 			}			                  
 		}
 		/*
