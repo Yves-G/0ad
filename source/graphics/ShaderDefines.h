@@ -26,35 +26,6 @@
 
 #include <boost/unordered_map.hpp>
 
-/**
- * Represents a uniform attribute or texture binding.
- * For uniforms:
- *  - ARB shaders store vertex location in 'first', fragment location in 'second'.
- *  - GLSL shaders store uniform location in 'first', data type in 'second'.
- *  - FFP shaders store -1 in 'first', index in 'second'.
- * For textures, all store texture target (e.g. GL_TEXTURE_2D) in 'first', texture unit in 'second'.
- * For uniform blocks:
- *  - Bindings are managed by the uniform manager. An ID for the block is stored in 'first', 
- *    an ID for the uniform within the block in 'second', data type in third.
- * Non-existent bindings must store -1 in both.
- */
-struct Binding
-{
-	Binding(int a, int b) : first(a), second(b), third(-1) { }
-	Binding(int a, int b, int c) : first(a), second(b), third(c) { }
-	Binding() : first(-1), second(-1), third(-1) { }
-
-	/**
-	 * Returns whether this uniform attribute is active in the shader.
-	 * If not then there's no point calling Uniform() to set its value.
-	 */
-	bool Active() { return first != -1 || second != -1 || third != -1; }
-
-	int first;
-	int second;
-	int third;
-};
-
 class CVector4D;
 
 /**

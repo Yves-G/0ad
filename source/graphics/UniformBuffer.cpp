@@ -22,6 +22,7 @@
 #include "ShaderProgram.h"
 #include "ShaderProgramPtr.h"
 
+#include "ps/CLogger.h"
 #include "ps/Profile.h"
 
 #include <fstream>

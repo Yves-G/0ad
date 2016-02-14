@@ -753,8 +753,8 @@ void ShaderModelRenderer::Render(const RenderModifierPtr& modifier, const CShade
 		// texBindings holds the identifier bindings in the shader, which can no longer be defined 
 		// statically in the ShaderRenderModifier class. texBindingNames uses interned strings to
 		// keep track of when bindings need to be reevaluated.
-		typedef ProxyAllocator<Binding, Allocators::DynamicArena> BindingListAllocator;
-		std::vector<Binding, BindingListAllocator> texBindings((BindingListAllocator(arena)));
+		typedef ProxyAllocator<CShaderProgram::Binding, Allocators::DynamicArena> BindingListAllocator;
+		std::vector<CShaderProgram::Binding, BindingListAllocator> texBindings((BindingListAllocator(arena)));
 		texBindings.reserve(64);
 
 		typedef ProxyAllocator<CStrIntern, Allocators::DynamicArena> BindingNamesListAllocator;
@@ -828,11 +828,11 @@ void ShaderModelRenderer::Render(const RenderModifierPtr& modifier, const CShade
 						if (currentTexs.size() != samplersNum)
 						{
 							currentTexs.resize(samplersNum, NULL);
-							texBindings.resize(samplersNum, Binding());
+							texBindings.resize(samplersNum, CShaderProgram::Binding());
 							texBindingNames.resize(samplersNum, CStrIntern());
 							
 							// ensure they are definitely empty
-							std::fill(texBindings.begin(), texBindings.end(), Binding());
+							std::fill(texBindings.begin(), texBindings.end(), CShaderProgram::Binding());
 							std::fill(currentTexs.begin(), currentTexs.end(), (CTexture*)NULL);
 							std::fill(texBindingNames.begin(), texBindingNames.end(), CStrIntern());
 						}
@@ -843,7 +843,7 @@ void ShaderModelRenderer::Render(const RenderModifierPtr& modifier, const CShade
 						{
 							const CMaterial::TextureSampler& samp = samplers[s];
 							
-							Binding bind = texBindings[s];
+							CShaderProgram::Binding bind = texBindings[s];
 							// check that the handles are current
 							// and reevaluate them if necessary
 							if (texBindingNames[s] == samp.Name && bind.Active())

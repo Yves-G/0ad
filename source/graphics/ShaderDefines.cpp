@@ -233,7 +233,7 @@ void CShaderUniforms::BindUniforms(const CShaderProgramPtr& shader) const
 	const std::vector<SItems::Item>& items = m_Items->items;
 	for (size_t i = 0; i < items.size(); ++i)
 	{
-		Binding binding = shader->GetUniformBinding(items[i].first);
+		CShaderProgram::Binding binding = shader->GetUniformBinding(items[i].first);
 		if (binding.Active())
 		{
 			CVector4D v = items[i].second;
