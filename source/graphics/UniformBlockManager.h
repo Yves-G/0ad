@@ -351,10 +351,7 @@ private:
 	
 	void SetMaterialID(CModelAbstract* model)
 	{
-		//std::cout << "Setting MaterialID: " << model->GetMaterial().GetId() << " for model: " << model->GetID() << std::endl;
-		ENSURE(model->GetID() < 20000); // TODO: Remove this hack
 		SetUniform(m_MaterialIDBinding, (GLuint)model->GetID(), (GLuint)model->GetMaterial().GetId());
-
 	}
 
 	void GenModelData(CModelAbstract* model, const int flags)
