@@ -30,30 +30,29 @@
 
 #define MAX_INSTANCING_DRAWIDS	2000
 
-// Absolute maximum (bytewise) size of each GL vertex buffer object.
-// Make it large enough for the maximum feasible mesh size (64K vertexes,
-// 64 bytes per vertex in InstancingModelRenderer).
-// Add 2048 because we need 2000 bytes for the instancing data in each VBO (and 
-// TODO: measure what influence this has on performance
-#define MAX_VB_SIZE_BYTES		(4*1024*1024+MAX_INSTANCING_DRAWIDS*4);
-
 CVertexBuffer::CVertexBuffer(size_t vertexSize, GLenum usage, GLenum target)
-	: m_VertexSize(vertexSize), m_Handle(0), m_SysMem(0), m_Usage(usage), m_Target(target), m_InstancingDataOffset(0)
+	: m_VertexSize(vertexSize), m_Handle(0), m_SysMem(0), m_Usage(usage), m_Target(target), m_VBContentOffset(0)
 {
-	// TODO: Handling of the max size is a bit strange now
-	size_t size = MAX_VB_SIZE_BYTES;
+	
+	if (target == GL_ARRAY_BUFFER && g_Renderer.GetOptionBool(CRenderer::OPT_USEGL4))
+		m_VBContentOffset = MAX_INSTANCING_DRAWIDS * sizeof(GLuint);
+		
+	// Absolute maximum (bytewise) size of each GL vertex buffer object.
+	// Make it large enough for the maximum feasible mesh size (64K vertexes,
+	// 64 bytes per vertex in InstancingModelRenderer).
+	// TODO: measure what influence this has on performance
+	size_t size = m_MaxVBSizeBytes = 4*1024*1024+m_VBContentOffset;
 
 	if (target == GL_ARRAY_BUFFER) // vertex data buffer
 	{
-		m_InstancingDataOffset = MAX_INSTANCING_DRAWIDS * sizeof(GLuint);
 		// We want to store 16-bit indices to any vertex in a buffer, so the
 		// buffer must never be bigger than vertexSize*64K bytes since we can 
 		// address at most 64K of them with 16-bit indices
-		size = std::min(size, vertexSize * 65536 + m_InstancingDataOffset);
+		size = std::min(size, vertexSize * 65536 + m_VBContentOffset);
 	}
 
 	// store max/free vertex counts
-	m_MaxVertices = m_FreeVertices = size / vertexSize;
+	m_MaxVertices = m_FreeVertices = (size - m_VBContentOffset) / vertexSize;
 
 	// allocate raw buffer
 	if (g_Renderer.m_Caps.m_VBO)
@@ -67,13 +66,12 @@ CVertexBuffer::CVertexBuffer(size_t vertexSize, GLenum usage, GLenum target)
 		// belongs to the objects we currently are drawing)
 		if (target == GL_ARRAY_BUFFER)
 		{
-			m_MaxVertices = m_FreeVertices = (size - m_InstancingDataOffset) / vertexSize;
-			pglBufferDataARB(m_Target, m_InstancingDataOffset + m_MaxVertices * m_VertexSize, 0, m_Usage);
+			pglBufferDataARB(m_Target, m_VBContentOffset + m_MaxVertices * m_VertexSize, 0, m_Usage);
 			
 			std::vector<GLuint> drawIDs(MAX_INSTANCING_DRAWIDS);
 			for (int i=0; i<MAX_INSTANCING_DRAWIDS; ++i)
 				drawIDs[i] = i;
-			pglBufferSubDataARB(GL_ARRAY_BUFFER, 0, m_InstancingDataOffset, &drawIDs[0]);
+			pglBufferSubDataARB(GL_ARRAY_BUFFER, 0, m_VBContentOffset, &drawIDs[0]);
 		}
 		else
 		{
@@ -236,7 +234,7 @@ void CVertexBuffer::UpdateChunkVertices(VBChunk* chunk, void* data)
 		else
 		{
 			pglBindBufferARB(m_Target, m_Handle);
-			pglBufferSubDataARB(m_Target, m_InstancingDataOffset + chunk->m_Index * m_VertexSize, chunk->m_Count * m_VertexSize, data);
+			pglBufferSubDataARB(m_Target, m_VBContentOffset + chunk->m_Index * m_VertexSize, chunk->m_Count * m_VertexSize, data);
 			/*
 			// TODO: That's a hack...
 			if (m_Target == GL_ARRAY_BUFFER)
@@ -245,7 +243,7 @@ void CVertexBuffer::UpdateChunkVertices(VBChunk* chunk, void* data)
 				std::vector<GLuint> drawIDs(MAX_INSTANCING_DRAWIDS);
 				for (int i=0; i<MAX_INSTANCING_DRAWIDS; ++i)
 					drawIDs[i] = i;
-				pglBufferSubDataARB(GL_ARRAY_BUFFER, 0, m_InstancingDataOffset, &drawIDs[0]);
+				pglBufferSubDataARB(GL_ARRAY_BUFFER, 0, m_VBContentOffset, &drawIDs[0]);
 			}*/
 			pglBindBufferARB(m_Target, 0);
 		}
@@ -284,7 +282,7 @@ u8* CVertexBuffer::Bind()
 		if (needUpload)
 		{
 			// Tell the driver that it can reallocate the whole VBO
-			pglBufferDataARB(m_Target, m_InstancingDataOffset + m_MaxVertices * m_VertexSize, NULL, m_Usage);
+			pglBufferDataARB(m_Target, m_VBContentOffset + m_MaxVertices * m_VertexSize, NULL, m_Usage);
 
 			// HACK:
 			// TODO: Which models use streaming?
@@ -294,7 +292,7 @@ u8* CVertexBuffer::Bind()
 				std::vector<GLuint> drawIDs(MAX_INSTANCING_DRAWIDS);
 				for (int i=0; i<MAX_INSTANCING_DRAWIDS; ++i)
 					drawIDs[i] = i;
-				pglBufferSubDataARB(GL_ARRAY_BUFFER, 0, m_InstancingDataOffset, &drawIDs[0]);
+				pglBufferSubDataARB(GL_ARRAY_BUFFER, 0, m_VBContentOffset, &drawIDs[0]);
 			}
 
 			// (In theory, glMapBufferRange with GL_MAP_INVALIDATE_BUFFER_BIT could be used
@@ -313,7 +311,7 @@ u8* CVertexBuffer::Bind()
 				}
 				
 				// Modify per-vertex data and skip static instancing data
-				p = (void*)((u8*)p + m_InstancingDataOffset);
+				p = (void*)((u8*)p + m_VBContentOffset);
 
 #ifndef NDEBUG
 				// To help detect bugs where PrepareForRendering() was not called,
@@ -354,13 +352,13 @@ u8* CVertexBuffer::Bind()
 			chunk->m_Needed = false;
 	}
 
-	return (u8*)m_InstancingDataOffset;
+	return (u8*)m_VBContentOffset;
 }
 
 u8* CVertexBuffer::GetBindAddress()
 {
 	if (g_Renderer.m_Caps.m_VBO)
-		return (u8*)m_InstancingDataOffset;
+		return (u8*)m_VBContentOffset;
 	else
 		return m_SysMem;
 }
@@ -376,7 +374,7 @@ void CVertexBuffer::Unbind()
 
 size_t CVertexBuffer::GetBytesReserved() const
 {
-	return MAX_VB_SIZE_BYTES;
+	return m_MaxVBSizeBytes;
 }
 
 // TODO: The size for instancing data should probably be added

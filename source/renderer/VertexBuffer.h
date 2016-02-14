@@ -146,6 +146,13 @@ private:
 	size_t m_VertexSize;
 	/// Number of vertices of above size in this buffer
 	size_t m_MaxVertices;
+	/// For instancing we need to pass a buffer containing consecutive numbers 
+	/// (a workaround because GL_ARB_shader_draw_parameters isn't widely supported by drivers)
+	/// This is the offset in bytes when the vertex buffer content starts after this instancing data.
+	/// It may be 0 if the workaround is not used.
+	size_t m_VBContentOffset;
+	/// Absolute maximum (bytewise) size of each GL vertex buffer object. 
+	size_t m_MaxVBSizeBytes;
 	/// List of free chunks in this buffer
 	std::list<VBChunk*> m_FreeList;
 	/// List of allocated chunks
