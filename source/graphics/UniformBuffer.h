@@ -116,7 +116,7 @@ private:
 	std::vector<int> m_UniformTypes;
 	std::vector<GLuint> m_UniformIndices;
 	
-	static constexpr GLenum MemberProps[] { GL_OFFSET, GL_ARRAY_STRIDE, GL_MATRIX_STRIDE };
+	static const GLenum MemberProps[];
 	enum PROPS { PROP_OFFSET, PROP_ARRAY_STRIDE, PROP_MATRIX_STRIDE, COUNT };
 	std::vector<GLint> m_MemberProps;
 	

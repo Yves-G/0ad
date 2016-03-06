@@ -27,7 +27,7 @@
 
 #include <fstream>
 
-constexpr GLenum InterfaceBlock::MemberProps[];
+const GLenum InterfaceBlock::MemberProps[] = { GL_OFFSET, GL_ARRAY_STRIDE, GL_MATRIX_STRIDE };
 
 InterfaceBlock::InterfaceBlock(GLuint program, const InterfaceBlockIdentifier& blockIdentifier, const int interfaceBlockType) :
 	m_UBOSourceBuffer(),
