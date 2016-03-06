@@ -52,7 +52,8 @@ public:
 	
 	// A uniform buffer owns memory. It can be moved but not copied.
 	InterfaceBlock(const InterfaceBlock&) = delete;
-	InterfaceBlock(InterfaceBlock&&) = default;
+	// TODO: Use "= default" for this move constructor when all supported Visual Studio versions support it
+	InterfaceBlock(InterfaceBlock&&);
 	
 	//template <int BLOCKTYPE>
 	//static void GetBlockIdentifiers(GLuint program, std::vector<InterfaceBlockIdentifier>& out);

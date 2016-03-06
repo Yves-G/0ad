@@ -103,6 +103,23 @@ InterfaceBlock::InterfaceBlock(GLuint program, const InterfaceBlockIdentifier& b
 	std::cout << "GenBuffer - Name: " << m_BlockName.c_str() << " ID: " << m_UBOBufferID << " size: " << m_UBOBlockSize << std::endl;
 }
 
+InterfaceBlock::InterfaceBlock(InterfaceBlock&& other)
+{
+	m_BlockName = std::move(other.m_BlockName);
+	m_BufferResized = std::move(other.m_BufferResized);
+	m_InterfaceBlockType = std::move(other.m_InterfaceBlockType);
+	m_MemberBufferType = std::move(other.m_MemberBufferType);
+	m_MemberProps = std::move(other.m_MemberProps);
+	m_MemberType = std::move(other.m_MemberType);
+	m_UBOBlockSize = std::move(other.m_UBOBlockSize);
+	m_UBOBufferID = std::move(other.m_UBOBufferID);
+	m_UBODirtyBytes = std::move(other.m_UBODirtyBytes);
+	m_UBOSourceBuffer = std::move(other.m_UBOSourceBuffer);
+	m_UniformIndices = std::move(other.m_UniformIndices);
+	m_UniformNames = std::move(other.m_UniformNames);
+	m_UniformTypes = std::move(other.m_UniformTypes);
+}
+
 void InterfaceBlock::GetBlockIdentifiers(GLuint program, std::vector<InterfaceBlockIdentifier>& out, 
 	int& numUBOBlocks, int& numSSBOBlocks)
 {
