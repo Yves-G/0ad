@@ -91,12 +91,6 @@ CMaterial CMaterialManager::LoadMaterial(const VfsPath& pathname)
 	
 	CPreprocessorWrapper preprocessor;
 	preprocessor.AddDefine("CFG_FORCE_ALPHATEST", g_Renderer.m_Options.m_ForceAlphaTest ? "1" : "0");
-	
-	//CVector4D vec(qualityLevel,0,0,0);
-	//material.AddStaticUniform("qualityLevel", vec);
-	
-	//CVector4D vec(qualityLevel,0,0,0);
-	//material.AddStaticUniform(CStrIntern("UnusedBlock"), CStrIntern("qualityLevel"), false, vec);
 
 	XERO_ITER_EL(root, node)
 	{
