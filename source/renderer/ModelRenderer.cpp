@@ -39,6 +39,7 @@
 
 #include "renderer/MikktspaceWrap.h"
 #include "renderer/ModelRenderer.h"
+#include "renderer/ModelRendererSharedImpl.h"
 #include "renderer/ModelVertexRenderer.h"
 #include "renderer/Renderer.h"
 #include "renderer/RenderModifiers.h"
@@ -289,81 +290,6 @@ void ShaderModelRenderer::EndFrame()
 		m->submissions[cullGroup].clear();
 }
 
-
-// Helper structs for ShaderModelRenderer::Render():
-
-struct SMRSortByDistItem
-{
-	size_t techIdx;
-	CModel* model;
-	float dist;
-};
-
-struct SMRBatchModel
-{
-	bool operator()(CModel* a, CModel* b)
-	{
-		if (a->GetModelDef() < b->GetModelDef())
-			return true;
-		if (b->GetModelDef() < a->GetModelDef())
-			return false;
-
-		if (a->GetMaterial().GetDiffuseTexture() < b->GetMaterial().GetDiffuseTexture())
-			return true;
-		if (b->GetMaterial().GetDiffuseTexture() < a->GetMaterial().GetDiffuseTexture())
-			return false;
-
-		return a->GetMaterial().GetStaticUniforms() < b->GetMaterial().GetStaticUniforms();
-	}
-};
-
-struct SMRCompareSortByDistItem
-{
-	bool operator()(const SMRSortByDistItem& a, const SMRSortByDistItem& b)
-	{
-		// Prefer items with greater distance, so we draw back-to-front
-		return (a.dist > b.dist);
-
-		// (Distances will almost always be distinct, so we don't need to bother
-		// tie-breaking on modeldef/texture/etc)
-	}
-};
-
-struct SMRMaterialBucketKey
-{
-	SMRMaterialBucketKey(CStrIntern effect, const CShaderDefines& defines)
-		: effect(effect), defines(defines) { }
-
-	CStrIntern effect;
-	CShaderDefines defines;
-
-	bool operator==(const SMRMaterialBucketKey& b) const
-	{
-		return (effect == b.effect && defines == b.defines);
-	}
-
-private:
-	SMRMaterialBucketKey& operator=(const SMRMaterialBucketKey&);
-};
-
-struct SMRMaterialBucketKeyHash
-{
-	size_t operator()(const SMRMaterialBucketKey& key) const
-	{
-		size_t hash = 0;
-		boost::hash_combine(hash, key.effect.GetHash());
-		boost::hash_combine(hash, key.defines.GetHash());
-		return hash;
-	}
-};
-
-struct SMRCompareTechBucket
-{
-	bool operator()(const SMRTechBucket& a, const SMRTechBucket& b)
-	{
-		return a.tech < b.tech;
-	}
-};
 
 void ShaderModelRenderer::PrepareUniformBuffers(size_t maxInstancesPerDraw, int flags, 
 												const std::vector<SMRTechBucket, TechBucketsAllocator>& techBuckets, 

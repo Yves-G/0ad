@@ -33,55 +33,13 @@
 #include "graphics/RenderableObject.h"
 #include "graphics/SColor.h"
 #include "graphics/ShaderManager.h"
+#include "renderer/ModelRendererShared.h"
 #include "renderer/VertexArray.h"
 #include "graphics/MultiDrawIndirectCommands.h"
-
-class RenderModifier;
-typedef shared_ptr<RenderModifier> RenderModifierPtr;
-
-class LitRenderModifier;
-typedef shared_ptr<LitRenderModifier> LitRenderModifierPtr;
-
-class ModelVertexRenderer;
-typedef shared_ptr<ModelVertexRenderer> ModelVertexRendererPtr;
-
-class ModelRenderer;
-typedef shared_ptr<ModelRenderer> ModelRendererPtr;
 
 class CModel;
 class CShaderDefines;
 class MultiDrawIndirectCommands;
-
-/**
- * Class CModelRData: Render data that is maintained per CModel.
- * ModelRenderer implementations may derive from this class to store
- * per-CModel data.
- *
- * The main purpose of this class over CRenderData is to track which
- * ModelRenderer the render data belongs to (via the key that is passed
- * to the constructor). When a model changes the renderer it uses
- * (e.g. via run-time modification of the renderpath configuration),
- * the old ModelRenderer's render data is supposed to be replaced by
- * the new data.
- */
-class CModelRData : public CRenderData
-{
-public:
-	CModelRData(const void* key) : m_Key(key) { }
-
-	/**
-	 * GetKey: Retrieve the key that can be used to identify the
-	 * ModelRenderer that created this data.
-	 *
-	 * @return The opaque key that was passed to the constructor.
-	 */
-	const void* GetKey() const { return m_Key; }
-
-private:
-	/// The key for model renderer identification
-	const void* m_Key;
-};
-
 
 /**
  * Class ModelRenderer: Abstract base class for all model renders.
@@ -250,18 +208,6 @@ public:
 	 */
 	static void GenTangents(const CModelDefPtr& mdef, std::vector<float>& newVertices, bool gpuSkinning);
 };
-
-// TODO: Make this a class member?
-struct SMRTechBucket
-{
-	CShaderTechniquePtr tech;
-	CModel** models;
-	size_t numModels;
-
-	// Model list is stored as pointers, not as a std::vector,
-	// so that sorting lists of this struct is fast
-};
-	
 
 
 struct ShaderModelRendererInternals;
