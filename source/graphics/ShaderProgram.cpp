@@ -656,7 +656,7 @@ private:
 	CShaderDefines m_Defines;
 	std::map<CStrIntern, int> m_VertexAttribs;
 
-	//GLhandleARB m_Program;
+	//GLuint m_Program; // TODO: Currently stored in the base class, check the comment there.
 	GLhandleARB m_VertexShader;
 	GLhandleARB m_FragmentShader;
 

@@ -254,6 +254,10 @@ protected:
 	std::vector<GLuint> m_SSBOBindings;
 	std::vector<InterfaceBlockIdentifier> m_InterfaceBlockIdentifiers;
 	
+	// TODO: This should actually be a member of CShaderProgramGLSL, but we are passing a 
+	// base class pointer in the GL4 renderer and need access to it from that pointer. 
+	// Since the GL4 renderer only supports GLSL shaders anyway, it should probably work 
+	// with CShaderProgramGLSL directly or cast the pointer somewhere.
 	GLuint m_Program;
 
 	bool m_IsValid;
