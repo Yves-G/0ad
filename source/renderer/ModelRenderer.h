@@ -26,23 +26,18 @@
 
 #include <memory>
 
-#include "lib/allocators/allocator_adapters.h"
-#include "lib/allocators/arena.h"
-
+#include "ModelRendererShared.h"
 #include "graphics/MeshManager.h"
-#include "graphics/RenderableObject.h"
 #include "graphics/SColor.h"
-#include "graphics/ShaderManager.h"
+#include "renderer/Renderer.h"
 #include "renderer/ModelRendererShared.h"
 #include "renderer/VertexArray.h"
-#include "graphics/MultiDrawIndirectCommands.h"
 
 class CModel;
 class CShaderDefines;
-class MultiDrawIndirectCommands;
 
 /**
- * Class ModelRenderer: Abstract base class for all model renders.
+ * Class ModelRenderer: Abstract base class for all model renderers.
  *
  * A ModelRenderer manages a per-frame list of models.
  *
@@ -121,7 +116,7 @@ public:
 	 * If flags is non-zero, only models that contain flags in their
 	 * CModel::GetFlags() are rendered.
 	 */
-	virtual void Render(const RenderModifierPtr& modifier, const CShaderDefines& context, int cullGroup, int flags) = 0;
+	virtual void Render(const CShaderDefines& context, int cullGroup, int flags) = 0;
 
 	/**
 	 * CopyPositionAndNormals: Copy unanimated object-space vertices and
@@ -210,8 +205,6 @@ public:
 };
 
 
-struct ShaderModelRendererInternals;
-
 /**
  * Implementation of ModelRenderer that loads the appropriate shaders for
  * rendering each model, and that batches by shader (and by mesh and texture).
@@ -219,30 +212,41 @@ struct ShaderModelRendererInternals;
  * Note that the term "Shader" is somewhat misleading, as this handled
  * fixed-function rendering using the same API as real GLSL/ARB shaders.
  */
+template <typename VertexRendererT, typename RenderModifierT>
 class ShaderModelRenderer : public ModelRenderer
 {
-	friend struct ShaderModelRendererInternals;
 
 public:
-	ShaderModelRenderer(ModelVertexRendererPtr vertexrender);
+	// Note: Cosider using the function CreateShaderModelRenderer instead of calling the constructor directly
+	ShaderModelRenderer(VertexRendererT vertexRenderer, RenderModifierT renderModifier):
+		m_VertexRenderer(vertexRenderer),
+		m_RenderModifier(renderModifier)
+	{	
+	}
+
 	virtual ~ShaderModelRenderer();
 
 	// Batching implementations
 	virtual void Submit(int cullGroup, CModel* model);
 	virtual void PrepareModels();
 	virtual void EndFrame();
-	virtual void Render(const RenderModifierPtr& modifier, const CShaderDefines& context, int cullGroup, int flags);
+	virtual void Render(const CShaderDefines& context, int cullGroup, int flags);
 
 private:
 	
-	typedef ProxyAllocator<SMRTechBucket, Allocators::DynamicArena> TechBucketsAllocator;
+	RenderModifierT m_RenderModifier;
+	VertexRendererT m_VertexRenderer;
 	
-	void PrepareUniformBuffers(size_t maxInstancesPerDraw, int flags, 
-						const std::vector<SMRTechBucket, TechBucketsAllocator>& techBuckets,
-						const RenderModifierPtr& modifier);
-	
-	ShaderModelRendererInternals* m;
-	MultiDrawIndirectCommands m_MultiDrawIndirectCommands;
+	/// List of submitted models for rendering in this frame
+	std::vector<CModel*> m_Submissions[CRenderer::CULL_MAX];
 };
+
+// This function is for convenience. Template arguments can be deduced by the function arguments (which is not possible
+// when the constructor is called directly)
+template <typename T0, typename T1>
+ModelRendererPtr CreateShaderModelRenderer(T0 vertexRenderer, T1 renderModifier)
+{
+	return ModelRendererPtr(new ShaderModelRenderer<T0, T1>(vertexRenderer, renderModifier));
+}
 
 #endif // INCLUDED_MODELRENDERER

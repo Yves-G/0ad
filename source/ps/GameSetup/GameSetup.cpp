@@ -80,6 +80,7 @@
 #include "renderer/Renderer.h"
 #include "renderer/VertexBufferManager.h"
 #include "renderer/ModelRenderer.h"
+#include "renderer/GL4ModelRenderer.h"
 #include "scriptinterface/DebuggingServer.h"
 #include "scriptinterface/ScriptInterface.h"
 #include "scriptinterface/ScriptStats.h"

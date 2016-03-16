@@ -18,6 +18,9 @@
 #ifndef INCLUDED_MODELRENDERERSHARED
 #define INCLUDED_MODELRENDERERSHARED
 
+#include "graphics/RenderableObject.h"
+#include "graphics/ShaderTechnique.h"
+
 class CModel;
 
 class RenderModifier;
@@ -31,6 +34,15 @@ typedef shared_ptr<ModelVertexRenderer> ModelVertexRendererPtr;
 
 class ModelRenderer;
 typedef shared_ptr<ModelRenderer> ModelRendererPtr;
+
+class BaseShaderRenderModifier;
+typedef shared_ptr<BaseShaderRenderModifier> BaseShaderRenderModifierPtr;
+
+class ShaderRenderModifier;
+typedef shared_ptr<ShaderRenderModifier> ShaderRenderModifierPtr;
+
+class GL4ShaderRenderModifier;
+typedef shared_ptr<GL4ShaderRenderModifier> GL4ShaderRenderModifierPtr;
 
 struct SMRTechBucket
 {

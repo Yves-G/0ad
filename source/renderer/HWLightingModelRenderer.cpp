@@ -29,6 +29,7 @@
 #include "graphics/ShaderProgram.h"
 
 #include "renderer/HWLightingModelRenderer.h"
+#include "renderer/ModelRenderer.h"
 #include "renderer/Renderer.h"
 #include "renderer/RenderModifiers.h"
 #include "renderer/VertexArray.h"

@@ -60,7 +60,9 @@
 #include "graphics/TextureManager.h"
 #include "graphics/UniformBlockManager.h"
 #include "renderer/HWLightingModelRenderer.h"
+#include "renderer/GL4InstancingModelRenderer.h"
 #include "renderer/InstancingModelRenderer.h"
+#include "renderer/GL4ModelRenderer.h"
 #include "renderer/ModelRenderer.h"
 #include "renderer/OverlayRenderer.h"
 #include "renderer/ParticleRenderer.h"
@@ -334,8 +336,8 @@ public:
 		ModelVertexRendererPtr VertexRendererShader;
 		ModelVertexRendererPtr VertexInstancingShader;
 		ModelVertexRendererPtr VertexGPUSkinningShader;
-
-		LitRenderModifierPtr ModShader;
+		
+		BaseShaderRenderModifierPtr ModShader;
 	} Model;
 
 	CShaderDefines globalContext;
@@ -379,13 +381,13 @@ public:
 			contextSkinned.Add(str_USE_INSTANCING, str_1);
 			contextSkinned.Add(str_USE_GPU_SKINNING, str_1);
 		}
-		Model.NormalSkinned->Render(Model.ModShader, contextSkinned, cullGroup, flags);
+		Model.NormalSkinned->Render(contextSkinned, cullGroup, flags);
 
 		if (Model.NormalUnskinned != Model.NormalSkinned)
 		{
 			CShaderDefines contextUnskinned = context;
 			contextUnskinned.Add(str_USE_INSTANCING, str_1);
-			Model.NormalUnskinned->Render(Model.ModShader, contextUnskinned, cullGroup, flags);
+			Model.NormalUnskinned->Render(contextUnskinned, cullGroup, flags);
 		}
 	}
 
@@ -400,13 +402,13 @@ public:
 			contextSkinned.Add(str_USE_INSTANCING, str_1);
 			contextSkinned.Add(str_USE_GPU_SKINNING, str_1);
 		}
-		Model.TranspSkinned->Render(Model.ModShader, contextSkinned, cullGroup, flags);
+		Model.TranspSkinned->Render(contextSkinned, cullGroup, flags);
 
 		if (Model.TranspUnskinned != Model.TranspSkinned)
 		{
 			CShaderDefines contextUnskinned = context;
 			contextUnskinned.Add(str_USE_INSTANCING, str_1);
-			Model.TranspUnskinned->Render(Model.ModShader, contextUnskinned, cullGroup, flags);
+			Model.TranspUnskinned->Render(contextUnskinned, cullGroup, flags);
 		}
 	}
 };
@@ -581,35 +583,51 @@ void CRenderer::ReloadShaders()
 	if (m_LightEnv)
 		m->globalContext.Add(CStrIntern("LIGHTING_MODEL_" + m_LightEnv->GetLightingModel()), str_1);
 
-	m->Model.ModShader = LitRenderModifierPtr(new ShaderRenderModifier());
-
 	bool cpuLighting = (GetRenderPath() == RP_FIXED);
-	m->Model.VertexRendererShader = ModelVertexRendererPtr(new ShaderModelVertexRenderer(cpuLighting));
-	m->Model.VertexInstancingShader = ModelVertexRendererPtr(new InstancingModelRenderer(false, m_Options.m_GenTangents));
-
-	if (GetRenderPath() == RP_SHADER && m_Options.m_GPUSkinning) // TODO: should check caps and GLSL etc too
+	
+	if (g_Renderer.GetOptionBool(CRenderer::OPT_USEGL4))
 	{
-		m->Model.VertexGPUSkinningShader = ModelVertexRendererPtr(new InstancingModelRenderer(true, m_Options.m_GenTangents));
-		m->Model.NormalSkinned = ModelRendererPtr(new ShaderModelRenderer(m->Model.VertexGPUSkinningShader));
-		m->Model.TranspSkinned = ModelRendererPtr(new ShaderModelRenderer(m->Model.VertexGPUSkinningShader));
+		GL4ShaderRenderModifierPtr gL4ModShader = GL4ShaderRenderModifierPtr(new GL4ShaderRenderModifier());
+		m->Model.ModShader = gL4ModShader;
+
+		shared_ptr<GL4InstancingModelRenderer<false> > vertexInstancingShader(new GL4InstancingModelRenderer<false>(m_Options.m_GenTangents));
+		shared_ptr<GL4InstancingModelRenderer<true> > vertexGPUSkinningShader(new GL4InstancingModelRenderer<true>(m_Options.m_GenTangents));
+		
+		m->Model.NormalSkinned = CreateGL4ModelRenderer(vertexGPUSkinningShader, gL4ModShader);
+		m->Model.TranspSkinned = CreateGL4ModelRenderer(vertexGPUSkinningShader, gL4ModShader);
+		m->Model.NormalUnskinned = CreateGL4ModelRenderer(vertexInstancingShader, gL4ModShader);
+		m->Model.TranspUnskinned = CreateGL4ModelRenderer(vertexInstancingShader, gL4ModShader);
 	}
 	else
 	{
-		m->Model.VertexGPUSkinningShader.reset();
-		m->Model.NormalSkinned = ModelRendererPtr(new ShaderModelRenderer(m->Model.VertexRendererShader));
-		m->Model.TranspSkinned = ModelRendererPtr(new ShaderModelRenderer(m->Model.VertexRendererShader));
-	}
+		ShaderRenderModifierPtr gL3ModShader =  ShaderRenderModifierPtr(new ShaderRenderModifier());
+		m->Model.ModShader = gL3ModShader;
+		shared_ptr<InstancingModelRenderer> vertexInstancingShader(new InstancingModelRenderer(false, m_Options.m_GenTangents));
+		shared_ptr<ShaderModelVertexRenderer> vertexRendererShader(new ShaderModelVertexRenderer(cpuLighting));
 
-	// Use instancing renderers in shader mode
-	if (GetRenderPath() == RP_SHADER)
-	{
-		m->Model.NormalUnskinned = ModelRendererPtr(new ShaderModelRenderer(m->Model.VertexInstancingShader));
-		m->Model.TranspUnskinned = ModelRendererPtr(new ShaderModelRenderer(m->Model.VertexInstancingShader));
-	}
-	else
-	{
-		m->Model.NormalUnskinned = m->Model.NormalSkinned;
-		m->Model.TranspUnskinned = m->Model.TranspSkinned;
+		if (GetRenderPath() == RP_SHADER && m_Options.m_GPUSkinning) // TODO: should check caps and GLSL etc too
+		{
+			shared_ptr<InstancingModelRenderer> vertexGPUSkinningShader(new InstancingModelRenderer(true, m_Options.m_GenTangents));
+			m->Model.NormalSkinned = CreateShaderModelRenderer(vertexGPUSkinningShader, gL3ModShader);
+			m->Model.TranspSkinned = CreateShaderModelRenderer(vertexGPUSkinningShader, gL3ModShader);
+		}
+		else
+		{
+			m->Model.NormalSkinned = CreateShaderModelRenderer(vertexRendererShader, gL3ModShader);
+			m->Model.TranspSkinned = CreateShaderModelRenderer(vertexRendererShader, gL3ModShader);
+		}
+
+		// Use instancing renderers in shader mode
+		if (GetRenderPath() == RP_SHADER)
+		{
+			m->Model.NormalUnskinned = CreateShaderModelRenderer(vertexInstancingShader, gL3ModShader);
+			m->Model.TranspUnskinned = CreateShaderModelRenderer(vertexInstancingShader, gL3ModShader);
+		}
+		else
+		{
+			m->Model.NormalUnskinned = m->Model.NormalSkinned;
+			m->Model.TranspUnskinned = m->Model.TranspSkinned;
+		}
 	}
 
 	m->ShadersDirty = false;
@@ -654,8 +672,11 @@ bool CRenderer::Open(int width, int height)
 	// Let component renderers perform one-time initialization after graphics capabilities and
 	// the shader path have been determined.
 	m->overlayRenderer.Initialize();
-	
-	m->uniformBlockManager.Initialize();
+		
+	if (g_Renderer.GetOptionBool(CRenderer::OPT_USEGL4))
+	{
+		m->uniformBlockManager.Initialize();
+	}
 	
 	if (m_Options.m_Postproc)
 		m->postprocManager.Initialize();

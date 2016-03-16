@@ -28,7 +28,7 @@
 #ifndef INCLUDED_RENDERMODIFIERS
 #define INCLUDED_RENDERMODIFIERS
 
-#include "ModelRenderer.h"
+#include "graphics/UniformBlockManager.h"
 #include "graphics/ShaderProgram.h"
 #include "graphics/ShaderTechnique.h"
 #include "graphics/Texture.h"
@@ -104,7 +104,7 @@ public:
 	 */
 	void SetShadowMap(const ShadowMap* shadow);
 	
-	virtual void SetModelUniforms(CModel* model) { debug_warn("not implemented!"); }
+	virtual void SetModelUniforms(CModel*) { debug_warn("not implemented!"); }
 
 	/**
 	 * SetLightEnv: Set the light environment that will be used for rendering.
@@ -125,21 +125,59 @@ private:
 /**
  * A RenderModifier that sets uniforms and textures appropriately for rendering models.
  */
-class ShaderRenderModifier : public LitRenderModifier
+class BaseShaderRenderModifier
 {
 public:
-	ShaderRenderModifier();
+	BaseShaderRenderModifier();
 
 	// Implementation
-	void SetFrameUniforms();
-	void SetModelUniforms(CModel* model);
+	void SetShadowMap(const ShadowMap* shadow) { m_Shadow = shadow; };
+	void SetLightEnv(const CLightEnv* lightenv) { m_LightEnv = lightenv; };
+		
+	const ShadowMap* GetShadowMap() const { return m_Shadow; }
+	const CLightEnv* GetLightEnv() const { return m_LightEnv; }
+
+protected:
+	
+	const ShadowMap* m_Shadow;
+	const CLightEnv* m_LightEnv;
+};
+
+
+class ShaderRenderModifier : public BaseShaderRenderModifier
+{
+public:
 	void BeginPass(const CShaderProgramPtr& shader);
 	void PrepareModel(const CShaderProgramPtr& shader, CModel* model);
 
+private:
+	CShaderProgram::Binding m_BindingInstancingTransform;
+	CShaderProgram::Binding m_BindingShadingColor;
+	CShaderProgram::Binding m_BindingPlayerColor;
+};
+
+class GL4ShaderRenderModifier : public BaseShaderRenderModifier
+{
+public:
+	void BeginPass(const CShaderProgramPtr& shader);
+	void SetFrameUniforms();
+	inline void SetModelUniforms(CModel* model);
+	
 private:
 	UniformBinding m_BindingInstancingTransform;
 	UniformBinding m_BindingShadingColor;
 	UniformBinding m_BindingModelID;
 };
+
+void GL4ShaderRenderModifier::SetModelUniforms(CModel* model)
+{
+	UniformBlockManager& uniformBlockManager = g_Renderer.GetUniformBlockManager();
+	if (m_BindingInstancingTransform.Active())
+		uniformBlockManager.SetUniform<UniformBlockManager::MODEL_INSTANCED>(m_BindingInstancingTransform, model->GetTransform());
+
+	if (m_BindingModelID.Active())
+		uniformBlockManager.SetUniform<UniformBlockManager::MODEL_INSTANCED>(m_BindingModelID, (GLuint)model->GetID());
+}
+
 
 #endif // INCLUDED_RENDERMODIFIERS

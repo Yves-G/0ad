@@ -160,9 +160,7 @@ public:
 	virtual void ResetDrawID() { debug_warn("not implemented"); }
 	virtual void ResetCommands() { debug_warn("not implemented"); }
 	virtual void AddInstance() { debug_warn("not implemented"); }
-	virtual void SetRenderModelInstanced(const CShaderProgramPtr& shader, int UNUSED(streamflags), CModel* model, CModelRData* UNUSED(data)) {}
-	virtual void RenderModelsInstanced(u32 modelsCount) { debug_warn("not implemented"); }
-	virtual void PrepareModel(const CShaderProgramPtr& shader, CModel* model) { debug_warn("not implemented"); }
+	virtual void PrepareModel(const CShaderProgramPtr&, CModel*) { debug_warn("not implemented"); }
 	virtual void BindAndUpload() { debug_warn("not implemented"); }
 };
 

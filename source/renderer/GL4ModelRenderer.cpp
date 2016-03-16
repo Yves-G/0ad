@@ -1,4 +1,4 @@
-/* Copyright (C) 2015 Wildfire Games.
+/* Copyright (C) 2016 Wildfire Games.
  * This file is part of 0 A.D.
  *
  * 0 A.D. is free software: you can redistribute it and/or modify
@@ -31,13 +31,14 @@
 #include "graphics/Material.h"
 #include "graphics/Model.h"
 #include "graphics/ModelDef.h"
+#include "graphics/MultiDrawIndirectCommands.h"
 #include "graphics/ShaderManager.h"
 #include "graphics/TextureManager.h"
+#include "graphics/UniformBlockManager.h"
+#include "graphics/ShaderBlockUniforms.h"
 
-#include "renderer/HWLightingModelRenderer.h"
-#include "renderer/InstancingModelRenderer.h"
 #include "renderer/MikktspaceWrap.h"
-#include "renderer/ModelRenderer.h"
+#include "renderer/GL4ModelRenderer.h"
 #include "renderer/ModelRendererSharedImpl.h"
 #include "renderer/ModelVertexRenderer.h"
 #include "renderer/Renderer.h"
@@ -57,156 +58,22 @@
 static bool g_EnableSSE = false;
 #endif
 
+/*
 void ModelRenderer::Init()
 {
 #if ARCH_X86_X64
 	if (x86_x64::Cap(x86_x64::CAP_SSE))
 		g_EnableSSE = true;
 #endif
-}
-
-// Helper function to copy object-space position and normal vectors into arrays.
-void ModelRenderer::CopyPositionAndNormals(
-		const CModelDefPtr& mdef,
-		const VertexArrayIterator<CVector3D>& Position,
-		const VertexArrayIterator<CVector3D>& Normal)
-{
-	size_t numVertices = mdef->GetNumVertices();
-	SModelVertex* vertices = mdef->GetVertices();
-
-	for(size_t j = 0; j < numVertices; ++j)
-	{
-		Position[j] = vertices[j].m_Coords;
-		Normal[j] = vertices[j].m_Norm;
-	}
-}
-
-// Helper function to transform position and normal vectors into world-space.
-void ModelRenderer::BuildPositionAndNormals(
-		CModel* model,
-		const VertexArrayIterator<CVector3D>& Position,
-		const VertexArrayIterator<CVector3D>& Normal)
-{
-	CModelDefPtr mdef = model->GetModelDef();
-	size_t numVertices = mdef->GetNumVertices();
-	SModelVertex* vertices=mdef->GetVertices();
-
-	if (model->IsSkinned())
-	{
-		// boned model - calculate skinned vertex positions/normals
-
-		// Avoid the noisy warnings that occur inside SkinPoint/SkinNormal in
-		// some broken situations
-		if (numVertices && vertices[0].m_Blend.m_Bone[0] == 0xff)
-		{
-			LOGERROR("Model %s is boned with unboned animation", mdef->GetName().string8());
-			return;
-		}
-
-#if HAVE_SSE
-		if (g_EnableSSE)
-		{
-			CModelDef::SkinPointsAndNormals_SSE(numVertices, Position, Normal, vertices, mdef->GetBlendIndices(), model->GetAnimatedBoneMatrices());
-		}
-		else
-#endif
-		{
-			CModelDef::SkinPointsAndNormals(numVertices, Position, Normal, vertices, mdef->GetBlendIndices(), model->GetAnimatedBoneMatrices());
-		}
-	}
-	else
-	{
-		PROFILE( "software transform" );
-		// just copy regular positions, transform normals to world space
-		const CMatrix3D& transform = model->GetTransform();
-		const CMatrix3D& invtransform = model->GetInvTransform();
-		for (size_t j=0; j<numVertices; j++)
-		{
-			transform.Transform(vertices[j].m_Coords,Position[j]);
-			invtransform.RotateTransposed(vertices[j].m_Norm,Normal[j]);
-		}
-	}
-}
-
-
-// Helper function for lighting
-void ModelRenderer::BuildColor4ub(
-		CModel* model,
-		const VertexArrayIterator<CVector3D>& Normal,
-		const VertexArrayIterator<SColor4ub>& Color)
-{
-	PROFILE( "lighting vertices" );
-
-	CModelDefPtr mdef = model->GetModelDef();
-	size_t numVertices = mdef->GetNumVertices();
-	const CLightEnv& lightEnv = g_Renderer.GetLightEnv();
-	CColor shadingColor = model->GetShadingColor();
-
-	for (size_t j=0; j<numVertices; j++)
-	{
-		RGBColor tempcolor = lightEnv.EvaluateUnitScaled(Normal[j]);
-		tempcolor.X *= shadingColor.r;
-		tempcolor.Y *= shadingColor.g;
-		tempcolor.Z *= shadingColor.b;
-		Color[j] = ConvertRGBColorTo4ub(tempcolor);
-	}
-}
-
-
-void ModelRenderer::GenTangents(const CModelDefPtr& mdef, std::vector<float>& newVertices, bool gpuSkinning)
-{
-	MikkTSpace ms(mdef, newVertices, gpuSkinning);
-
-	ms.generate();
-}
-
-
-// Copy UV coordinates
-void ModelRenderer::BuildUV(
-		const CModelDefPtr& mdef,
-		const VertexArrayIterator<float[2]>& UV,
-		int UVset)
-{
-	size_t numVertices = mdef->GetNumVertices();
-	SModelVertex* vertices = mdef->GetVertices();
-
-	for (size_t j=0; j < numVertices; ++j)
-	{
-		UV[j][0] = vertices[j].m_UVs[UVset * 2];
-		UV[j][1] = 1.0-vertices[j].m_UVs[UVset * 2 + 1];
-	}
-}
-
-
-// Build default indices array.
-void ModelRenderer::BuildIndices(
-		const CModelDefPtr& mdef,
-		const VertexArrayIterator<u16>& Indices)
-{
-	size_t idxidx = 0;
-	SModelFace* faces = mdef->GetFaces();
-
-	for (size_t j = 0; j < mdef->GetNumFaces(); ++j) {
-		SModelFace& face=faces[j];
-		Indices[idxidx++]=face.m_Verts[0];
-		Indices[idxidx++]=face.m_Verts[1];
-		Indices[idxidx++]=face.m_Verts[2];
-	}
-}
-
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////
-// ShaderModelRenderer implementation
-
-template <typename VertexRendererT, typename RenderModifierT>
-ShaderModelRenderer<VertexRendererT, RenderModifierT>::~ShaderModelRenderer()
-{
-}
+}*/
 
 // Submit one model.
-template <typename VertexRendererT, typename RenderModifierT>
-void ShaderModelRenderer<VertexRendererT, RenderModifierT>::Submit(int cullGroup, CModel* model)
+// TODO: Currenty we have some duplicated code here because it's the same function as in ShaderModelRenderer.
+// It can't be implemented in the base class because m_VertexRenderer isn't available there.
+// Maybe this function will have to be different than the one in ShaderModelRenderer in the end anyway, otherwise it might
+// make sense to add an additional base class for this kind of functions between ModelRenderer and these two class templates.
+template <bool TGpuSkinning, typename RenderModifierT>
+void GL4ModelRenderer<TGpuSkinning, RenderModifierT>::Submit(int cullGroup, CModel* model)
 {
 	CModelDefPtr mdef = model->GetModelDef();
 	CModelRData* rdata = (CModelRData*)model->GetRenderData();
@@ -220,24 +87,23 @@ void ShaderModelRenderer<VertexRendererT, RenderModifierT>::Submit(int cullGroup
 		model->SetDirty(~0u);
 	}
 
-	m_Submissions[cullGroup].push_back(model);
+	m->submissions[cullGroup].push_back(model);
 }
 
-
 // Call update for all submitted models and enter the rendering phase
-template <typename VertexRendererT, typename RenderModifierT>
-void ShaderModelRenderer<VertexRendererT, RenderModifierT>::PrepareModels()
+template <bool TGpuSkinning, typename RenderModifierT>
+void GL4ModelRenderer<TGpuSkinning, RenderModifierT>::PrepareModels()
 {
 	for (int cullGroup = 0; cullGroup < CRenderer::CULL_MAX; ++cullGroup)
 	{
-		for (size_t i = 0; i < m_Submissions[cullGroup].size(); ++i)
+		for (size_t i = 0; i < m->submissions[cullGroup].size(); ++i)
 		{
-			CModel* model = m_Submissions[cullGroup][i];
+			CModel* model = m->submissions[cullGroup][i];
 
 			model->ValidatePosition();
 
 			CModelRData* rdata = static_cast<CModelRData*>(model->GetRenderData());
-			ENSURE(rdata->GetKey() == m_VertexRenderer.get());
+			ENSURE(rdata->GetKey() == m_VertexRenderer.get()); // TODO: Careful! Check if this is valid!
 
 			m_VertexRenderer->UpdateModelData(model, rdata, rdata->m_UpdateFlags);
 			rdata->m_UpdateFlags = 0;
@@ -245,20 +111,137 @@ void ShaderModelRenderer<VertexRendererT, RenderModifierT>::PrepareModels()
 	}
 }
 
-
 // Clear the submissions list
-template <typename VertexRendererT, typename RenderModifierT>
-void ShaderModelRenderer<VertexRendererT, RenderModifierT>::EndFrame()
+template <bool TGpuSkinning, typename RenderModifierT>
+void GL4ModelRenderer<TGpuSkinning, RenderModifierT>::EndFrame()
 {
 	for (int cullGroup = 0; cullGroup < CRenderer::CULL_MAX; ++cullGroup)
-		m_Submissions[cullGroup].clear();
+		m->submissions[cullGroup].clear();
 }
 
-
-template <typename VertexRendererT, typename RenderModifierT>
-void ShaderModelRenderer<VertexRendererT, RenderModifierT>::Render(const CShaderDefines& context, int cullGroup, int flags)
+template <bool TGpuSkinning, typename RenderModifierT>
+void GL4ModelRenderer<TGpuSkinning, RenderModifierT>::PrepareUniformBuffers(size_t maxInstancesPerDraw, int flags, 
+												const std::vector<SMRTechBucket, TechBucketsAllocator>& techBuckets)
 {
-	if (m_Submissions[cullGroup].empty())
+	PROFILE3("PrepareUniformBuffers");
+	UniformBlockManager& uniformBlockManager = g_Renderer.GetUniformBlockManager();
+	ENSURE(maxInstancesPerDraw != 0);
+	
+	size_t instanceId = 0;
+	u64 materialUniformsSet = 0;	
+
+	while (m->heapCounters.idxTechStart < techBuckets.size())
+	{
+		CShaderTechniquePtr currentTech = techBuckets[m->heapCounters.idxTechStart].tech;
+
+		// Find runs [idxTechStart, idxTechEnd) in techBuckets of the same technique
+		size_t idxTechEnd;
+		for (idxTechEnd = m->heapCounters.idxTechStart + 1; idxTechEnd < techBuckets.size(); ++idxTechEnd)
+		{
+			if (techBuckets[idxTechEnd].tech != currentTech)
+				break;
+		}
+
+		// For each of the technique's passes, render all the models in this run
+		while (true)
+		{
+			if (m->heapCounters.pass == currentTech->GetNumPasses())
+			{
+				m->heapCounters.pass = 0;
+				break;
+			}
+
+			const CShaderProgramPtr& shader = currentTech->GetShader(m->heapCounters.pass);
+			int streamflags = shader->GetStreamFlags();
+			
+			//for (size_t idx = idxTechStart; idx < idxTechEnd; ++idx)
+			
+			while (true)	
+			{
+				if (m->heapCounters.idx == idxTechEnd)
+				{
+					m->heapCounters.idx = m->heapCounters.idxTechStart;
+					break;
+				}
+				
+				CModel** models = techBuckets[m->heapCounters.idx].models;
+				size_t numModels = techBuckets[m->heapCounters.idx].numModels;
+				//for (size_t modelIx = 0; modelIx < numModels; ++modelIx)
+				
+				while (true)
+				{
+					if (m->heapCounters.modelIx == numModels)
+					{
+						m->heapCounters.modelIx = 0;
+						break;
+					}
+					
+					CModel* model = models[m->heapCounters.modelIx];
+
+					if (flags && !(model->GetFlags() & flags))
+					{
+						m->heapCounters.modelIx++;
+						continue;
+					}
+				
+					uniformBlockManager.SetCurrentInstance<UniformBlockManager::MODEL_INSTANCED>(instanceId);
+					
+					m_RenderModifier->SetModelUniforms(model);
+					m_VertexRenderer->PrepareModel(shader, model);
+					
+					m_VertexRenderer->SetRenderModelInstanced(model);
+					
+					instanceId++;
+					
+					if (instanceId == maxInstancesPerDraw)
+					{
+						PROFILE3("upload uniforms (1)");
+						uniformBlockManager.Upload();
+						m_VertexRenderer->BindAndUpload();
+						
+						// Rare case. If the final batch matches the remaining number of draws to prepare exactly
+						// (we would have returned anyway). In this case we must make sure to reset the counters on the heap.
+						if (m->heapCounters.modelIx == numModels && m->heapCounters.pass == currentTech->GetNumPasses() && m->heapCounters.idx + 1 == techBuckets.size())
+						{
+							m->heapCounters.modelIx = 0;
+							m->heapCounters.idx = 0;
+							m->heapCounters.pass = 0;
+							m->heapCounters.idxTechStart = 0;
+						}
+						else
+						{
+							m->heapCounters.modelIx++;
+						}
+						
+						return;
+					}
+					
+					m->heapCounters.modelIx++;
+						
+				}
+				m->heapCounters.idx++;
+			}
+			m->heapCounters.pass++;
+		}
+		m->heapCounters.idx = m->heapCounters.idxTechStart = idxTechEnd;
+	}
+	
+	{
+		PROFILE3("upload uniforms (2)");
+		uniformBlockManager.Upload();
+		m_VertexRenderer->BindAndUpload();
+		
+		m->heapCounters.modelIx = 0;
+		m->heapCounters.idx = 0;
+		m->heapCounters.pass = 0;
+		m->heapCounters.idxTechStart = 0;
+	}
+}
+
+template <bool TGpuSkinning, typename RenderModifierT>
+void GL4ModelRenderer<TGpuSkinning, RenderModifierT>::Render(const CShaderDefines& context, int cullGroup, int flags)
+{
+	if (m->submissions[cullGroup].empty())
 		return;
 
 	CMatrix3D worldToCam;
@@ -267,7 +250,7 @@ void ShaderModelRenderer<VertexRendererT, RenderModifierT>::Render(const CShader
 	/*
 	 * Rendering approach:
 	 * 
-	 * m_Submissions contains the list of CModels to render.
+	 * m->submissions contains the list of CModels to render.
 	 * 
 	 * The data we need to render a model is:
 	 *  - CShaderTechnique
@@ -329,9 +312,9 @@ void ShaderModelRenderer<VertexRendererT, RenderModifierT>::Render(const CShader
 	{
 		PROFILE3("bucketing by material");
 
-		for (size_t i = 0; i < m_Submissions[cullGroup].size(); ++i)
+		for (size_t i = 0; i < m->submissions[cullGroup].size(); ++i)
 		{
-			CModel* model = m_Submissions[cullGroup][i];
+			CModel* model = m->submissions[cullGroup][i];
 
 			uint32_t condFlags = 0;
 
@@ -387,7 +370,6 @@ void ShaderModelRenderer<VertexRendererT, RenderModifierT>::Render(const CShader
 		// if we just stored raw CShaderTechnique* and assumed the shader manager
 		// will keep it alive long enough)
 
-	typedef ProxyAllocator<SMRTechBucket, Allocators::DynamicArena> TechBucketsAllocator;
 	std::vector<SMRTechBucket, TechBucketsAllocator> techBuckets((TechBucketsAllocator(arena)));
 
 	{
@@ -449,7 +431,6 @@ void ShaderModelRenderer<VertexRendererT, RenderModifierT>::Render(const CShader
 	// we could avoid the cost of copying into this list by adding
 	// a stride length into techBuckets and not requiring contiguous CModel*s)
 	std::vector<CModel*, ModelListAllocator> sortByDistModels((ModelListAllocator(arena)));
-
 	if (!sortByDistItems.empty())
 	{
 		{
@@ -494,6 +475,27 @@ void ShaderModelRenderer<VertexRendererT, RenderModifierT>::Render(const CShader
 
 		size_t idxTechStart = 0;
 		
+		size_t preparedModelUniformsLeft = 2000;
+		const size_t maxInstancesPerDraw = 2000;
+		
+		UniformBlockManager& uniformBlockManager = g_Renderer.GetUniformBlockManager();
+		
+		// Set all per-frame uniforms
+		UniformBinding binding = uniformBlockManager.GetBinding(CStrIntern("FrameUBO"), CStrIntern("sim_time"), false);
+		if (binding.Active())
+		{
+			double time = g_Renderer.GetTimeManager().GetGlobalTime();
+			// TODO: Why don't we just use a single float instead of vec4?
+			uniformBlockManager.SetUniform<UniformBlockManager::NOT_INSTANCED>(binding, CVector4D(time, 0, 0, 0));
+		}
+		
+		m_RenderModifier->SetFrameUniforms();
+		
+		// prepare the first batch of uniforms.
+		// This causes an upload of all modified uniform buffers, and will also take care of uploading
+		// the per-frame uniforms
+		PrepareUniformBuffers(maxInstancesPerDraw, flags, techBuckets);
+		
 		// This vector keeps track of texture changes during rendering. It is kept outside the
 		// loops to avoid excessive reallocations. The token allocation of 64 elements 
 		// should be plenty, though it is reallocated below (at a cost) if necessary.
@@ -516,6 +518,12 @@ void ShaderModelRenderer<VertexRendererT, RenderModifierT>::Render(const CShader
 		{
 			CShaderTechniquePtr currentTech = techBuckets[idxTechStart].tech;
 			
+			// Set to true when a new instanced draw command gets added.
+			// Everytime we do a state-change that requires adding a new DrawElementsIndirectCommand,
+			// we have to set this to false
+			// TODO: Completely useless currently because we only ever draw one instance
+			bool sameInstance = false;
+
 			// Find runs [idxTechStart, idxTechEnd) in techBuckets of the same technique
 			size_t idxTechEnd;
 			for (idxTechEnd = idxTechStart + 1; idxTechEnd < techBuckets.size(); ++idxTechEnd)
@@ -532,6 +540,10 @@ void ShaderModelRenderer<VertexRendererT, RenderModifierT>::Render(const CShader
 				const CShaderProgramPtr& shader = currentTech->GetShader(pass);
 				int streamflags = shader->GetStreamFlags();
 				
+				// TODO: Check the return value and force drawing if it's false
+				// TODO: There should be a smarter way to figure out if bindings are already set up correctly.
+				uniformBlockManager.EnsureBlockBinding(shader);
+
 				m_RenderModifier->BeginPass(shader);
 
 				m_VertexRenderer->BeginPass(streamflags);
@@ -554,13 +566,16 @@ void ShaderModelRenderer<VertexRendererT, RenderModifierT>::Render(const CShader
 					{
 
 						CModel* model = models[i];
+						
+						// TODO: Instancing is completely useless currently because we only ever draw one instance
+						sameInstance = false;
 
 						if (flags && !(model->GetFlags() & flags))
 							continue;
 
 						const CMaterial::SamplersVector& samplers = model->GetMaterial().GetSamplers();
 						size_t samplersNum = samplers.size();
-						
+						ogl_WarnIfError();
 						// make sure the vectors are the right virtual sizes, and also
 						// reallocate if there are more samplers than expected.
 						if (currentTexs.size() != samplersNum)
@@ -575,6 +590,7 @@ void ShaderModelRenderer<VertexRendererT, RenderModifierT>::Render(const CShader
 							std::fill(texBindingNames.begin(), texBindingNames.end(), CStrIntern());
 						}
 						
+						ogl_WarnIfError();
 						// bind the samplers to the shader
 						for (size_t s = 0; s < samplersNum; ++s)
 						{
@@ -602,6 +618,7 @@ void ShaderModelRenderer<VertexRendererT, RenderModifierT>::Render(const CShader
 								currentTexs[s] = newTex;
 							}
 						}
+						ogl_WarnIfError();
 						
 						// Bind modeldef when it changes
 						CModelDef* newModeldef = model->GetModelDef().get();
@@ -611,32 +628,23 @@ void ShaderModelRenderer<VertexRendererT, RenderModifierT>::Render(const CShader
 							m_VertexRenderer->PrepareModelDef(shader, streamflags, *currentModeldef);
 						}
 						ogl_WarnIfError();
-
+						//CShaderBlockUniforms& staticUniforms = model->GetMaterial().GetStaticBlockUniforms();
+						//staticUniforms.SetUniforms(uniformBlockManager);
+						/*
 						// Bind all uniforms when any change
 						CShaderUniforms newStaticUniforms = model->GetMaterial().GetStaticUniforms();
 						if (newStaticUniforms != currentStaticUniforms)
 						{
 							currentStaticUniforms = newStaticUniforms;
 							currentStaticUniforms.BindUniforms(shader);
-						}
+						}*/
 						
 						const CShaderRenderQueries& renderQueries = model->GetMaterial().GetRenderQueries();
 						
 						for (size_t q = 0; q < renderQueries.GetSize(); q++)
 						{
 							CShaderRenderQueries::RenderQuery rq = renderQueries.GetItem(q);
-							if (rq.first == RQUERY_TIME)
-							{
-								CShaderProgram::Binding binding = shader->GetUniformBinding(rq.second);
-								if (binding.Active())
-								{
-									double time = g_Renderer.GetTimeManager().GetGlobalTime();
-									shader->Uniform(binding, time, 0,0,0);
-								}
-								
-								
-							}
-							else if (rq.first == RQUERY_WATER_TEX)
+							if (rq.first == RQUERY_WATER_TEX)
 							{
 								WaterManager* WaterMgr = g_Renderer.GetWaterManager();
 								double time = WaterMgr->m_WaterTexTimer;
@@ -652,13 +660,28 @@ void ShaderModelRenderer<VertexRendererT, RenderModifierT>::Render(const CShader
 							{
 								shader->BindTexture(str_skyCube, g_Renderer.GetSkyManager()->GetSkyCube());
 							}
+						}
+
+						//modifier->PrepareModel(shader, model);
+			
+						// TODO: will not need to be done for each models in the future		
+						m_VertexRenderer->RenderModelsInstanced(1);
+						//m_VertexRenderer->RenderModel(shader, streamflags, model, rdata);
+				
+						preparedModelUniformsLeft--;
+						if (preparedModelUniformsLeft == 0)
+						{
+							m_VertexRenderer->ResetDrawID();
+							m_VertexRenderer->ResetCommands();
+							PrepareUniformBuffers(maxInstancesPerDraw, flags, techBuckets);
 							
-							m_RenderModifier->PrepareModel(shader, model);
-
-							CModelRData* rdata = static_cast<CModelRData*>(model->GetRenderData());
-							ENSURE(rdata->GetKey() == m_VertexRenderer.get());
-
-							m_VertexRenderer->RenderModel(shader, streamflags, model, rdata);
+							// technically not true when less models than maxInstancesPerDraw models are left, 
+							// but preparedModelUniformsLeft is only used to detect when PrepareUniformBuffers
+							// needs to be called, so it does not matter.
+							preparedModelUniformsLeft = maxInstancesPerDraw;
+							
+							// TODO: Force drawing (currently we draw always anyway, so it is already "forced",
+							// but this will change when instancing works properly)
 						}
 					}
 				}
@@ -671,7 +694,10 @@ void ShaderModelRenderer<VertexRendererT, RenderModifierT>::Render(const CShader
 			idxTechStart = idxTechEnd;
 		}
 	}
+	
+	m_VertexRenderer->ResetDrawID();
+	m_VertexRenderer->ResetCommands();
 }
 
-template class ShaderModelRenderer<shared_ptr<ShaderModelVertexRenderer>, ShaderRenderModifierPtr>;
-template class ShaderModelRenderer<shared_ptr<InstancingModelRenderer>, ShaderRenderModifierPtr>;
+template class GL4ModelRenderer<true, GL4ShaderRenderModifierPtr>;
+template class GL4ModelRenderer<false, GL4ShaderRenderModifierPtr>;

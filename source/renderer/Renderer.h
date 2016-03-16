@@ -352,6 +352,8 @@ protected:
 	friend class RenderPathVertexShader;
 	friend class HWLightingModelRenderer;
 	friend class ShaderModelVertexRenderer;
+	template <bool TGpuSkinning>
+	friend class GL4InstancingModelRenderer;
 	friend class InstancingModelRenderer;
 	friend class ShaderInstancingModelRenderer;
 	friend class TerrainRenderer;
