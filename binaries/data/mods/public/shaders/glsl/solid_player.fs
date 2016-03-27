@@ -51,11 +51,6 @@ layout(shared) buffer PlayerColorBlock
   vec4 playerColor[];
 };
 
-layout(shared) buffer MaterialIDBlock
-{
-  uint materialID[];
-};
-
 vec3 get_fog(vec3 color)
 {
 	float density = frame.fogParams.x;
@@ -74,6 +69,6 @@ vec3 get_fog(vec3 color)
 
 void main()
 {
-	const uint materialIDVal = materialID[model.modelId[fs_in.drawID]];
-	fragColor = vec4(get_fog(playerColor[materialIDVal].rgb), playerColor[materialIDVal].a);
+	const uint modelId = model.modelId[fs_in.drawID];
+	fragColor = vec4(get_fog(playerColor[modelId].rgb), playerColor[modelId].a);
 }
