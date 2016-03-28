@@ -148,6 +148,8 @@ bool CObjectEntry::BuildVariation(const std::vector<std::set<CStr> >& selections
 		texture->Prefetch(); 
 		model->GetMaterial().AddSampler(CMaterial::TextureSampler(samp.m_SamplerName, texture));
 	}
+	
+	model->GetMaterial().Seal();
 
 	const std::vector<CStrIntern>& requiredSamplers = model->GetMaterial().GetRequiredSampler();
 	for (const auto& requSampName : requiredSamplers)

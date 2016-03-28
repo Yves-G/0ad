@@ -26,7 +26,8 @@ static CColor BrokenColor(0.3f, 0.3f, 0.3f, 1.0f);
 
 CMaterial::CMaterial() :
 	m_AlphaBlending(false),
-	m_MaterialId(-1)
+	m_MaterialId(-1),
+	m_Sealed(false)
 {
 }
 
@@ -55,15 +56,7 @@ void CMaterial::AddStaticUniform(const char* key, const CVector4D& value)
 void CMaterial::AddStaticBlockUniform(CStrIntern blockName, CStrIntern name, bool isInstanced, const CVector4D& value)
 {
 	m_StaticBlockUniforms.Add(blockName, name, isInstanced, value);
-	
-	if (m_MaterialId == -1)
-		return;
-	
-
-	UniformBlockManager& uniformBlockManager = g_Renderer.GetUniformBlockManager();
-	uniformBlockManager.MaterialModified(m_StaticBlockUniforms, m_MaterialId);
-
-	// TODO: Do this when all uniforms are added?
+	m_Sealed = false;
 }
 
 bool CMaterial::GetBindings()
@@ -116,4 +109,12 @@ void CMaterial::RecomputeCombinedShaderDefines()
 		}
 		m_CombinedShaderDefines.push_back(defs);
 	}
+}
+
+void CMaterial::Seal()
+{
+	ENSURE(!m_Sealed); // Make sure we don't do unnecessary work
+	UniformBlockManager& uniformBlockManager = g_Renderer.GetUniformBlockManager();
+	uniformBlockManager.MaterialSealed(*this);
+	m_Sealed = true;
 }

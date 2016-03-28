@@ -227,7 +227,5 @@ CMaterial CMaterialManager::LoadMaterial(const VfsPath& pathname)
 
 	std::cout << "MaterialLoaded: " << pathname.string8().c_str() << "   ID: " << material.GetId() << std::endl;
 	m_Materials[pathname] = material;
-	UniformBlockManager& uniformBlockManager = g_Renderer.GetUniformBlockManager();
-	uniformBlockManager.MaterialAdded(material.GetStaticBlockUniforms(), material.GetId());
 	return material;
 }

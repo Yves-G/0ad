@@ -282,25 +282,21 @@ public:
 
 		m_Models.erase(model);
 	}
-
-	void MaterialAdded(CShaderBlockUniforms& shaderBlockUniforms, int MaterialID)
-	{
-		m_UnboundStaticBlockUniforms.insert({ MaterialID, shaderBlockUniforms});
-		//m_UnboundMaterials.insert(material);
-		UpdateMaterialBinding();
-	}
 	
-	void MaterialModified(CShaderBlockUniforms& shaderBlockUniforms, int MaterialID)
+	void MaterialSealed(const CMaterial& material)
 	{
-		auto itr = m_UnboundStaticBlockUniforms.find(MaterialID);
+		// If the same material already has data in m_UnboundStaticBlockUniforms, that means it's
+		// not yet loaded because that uniform block has not been seen in any loaded shader yet.
+		// In this case it's pointless to call UpdateMaterialBinding (which is a bit expensive).
+		auto itr = m_UnboundStaticBlockUniforms.find(material.GetId());
+		
+		// Updating the data is required no matter if there's already data stored here or not.
+		// (Values of the material could have changed)
+		m_UnboundStaticBlockUniforms[material.GetId()] = material.GetStaticBlockUniforms();
+		
 		if (itr != m_UnboundStaticBlockUniforms.end())
-		{
-			itr->second = shaderBlockUniforms;
 			return;
-		}
-			
-		m_UnboundStaticBlockUniforms.insert({ MaterialID, shaderBlockUniforms});
-		//m_UnboundMaterials.insert(material);
+
 		UpdateMaterialBinding();
 	}
 

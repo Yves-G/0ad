@@ -75,7 +75,7 @@ public:
 
 	// uniforms in blocks
 	void AddStaticBlockUniform(CStrIntern blockName, CStrIntern name, bool isInstanced, const CVector4D& value);
-	CShaderBlockUniforms& GetStaticBlockUniforms() { return m_StaticBlockUniforms; }
+	const CShaderBlockUniforms& GetStaticBlockUniforms() const { return m_StaticBlockUniforms; }
 	
 	// Requires UniformBlockManager to be initialized and all available blocks to be added
 	bool GetBindings();
@@ -92,6 +92,10 @@ public:
 	// Must be called after all AddShaderDefine and AddConditionalDefine
 	void RecomputeCombinedShaderDefines();
 	
+	// Must be called when static block uniforms or samplers are changed to trigger an update of the
+	// associated data. If you are making multiple changes, one call after all changes is sufficient.
+	void Seal();
+	
 	int GetId() const { return m_MaterialId; }
 	void SetId(int id) { m_MaterialId = id; } // TODO: Make this private and use fried classes?
 
@@ -101,6 +105,7 @@ private:
 	// access the only texture it's interested in.
 	CTexturePtr m_DiffuseTexture;
 	
+	bool m_Sealed;
 	SamplersVector m_Samplers;
 	std::vector<CStrIntern> m_RequiredSamplers;
 	

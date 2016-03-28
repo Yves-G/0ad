@@ -144,7 +144,13 @@ CTerrainTextureEntry::CTerrainTextureEntry(CTerrainPropertiesPtr properties, con
 	}
 
 	if (CRenderer::IsInitialised())
+	{
 		LoadAlphaMaps(alphamap);
+		// TODO: For terrain, there's a large number of different textures using the same material.
+		// This means that "Seal" will be called multiple times on the same material when it would
+		// be sufficient to call it once after all the changes to the material are made.
+		m_Material.Seal();
+	}
 
 	float texAngle = 0.f;
 	float texSize = 1.f;
