@@ -35,7 +35,6 @@
 #include "graphics/ShaderManager.h"
 #include "graphics/TextureManager.h"
 #include "graphics/UniformBlockManager.h"
-#include "graphics/ShaderBlockUniforms.h"
 
 #include "renderer/MikktspaceWrap.h"
 #include "renderer/GL4ModelRenderer.h"
@@ -628,7 +627,7 @@ void GL4ModelRenderer<TGpuSkinning, RenderModifierT>::Render(const CShaderDefine
 							m_VertexRenderer->PrepareModelDef(shader, streamflags, *currentModeldef);
 						}
 						ogl_WarnIfError();
-						//CShaderBlockUniforms& staticUniforms = model->GetMaterial().GetStaticBlockUniforms();
+
 						//staticUniforms.SetUniforms(uniformBlockManager);
 						/*
 						// Bind all uniforms when any change

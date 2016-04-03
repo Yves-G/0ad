@@ -20,13 +20,12 @@
 
 #include "graphics/ShaderDefines.h"
 #include "graphics/Texture.h"
+#include "maths/Vector4D.h"
 #include "ps/CStr.h"
 #include "ps/CStrIntern.h"
 #include "ps/Shapes.h"
 #include "simulation2/helpers/Player.h"
-#include "graphics/ShaderBlockUniforms.h"
 
-//class CShaderBlockUniforms;
 
 class CMaterial
 {
@@ -39,6 +38,13 @@ public:
 		
 		CStrIntern Name;
 		CTexturePtr Sampler;
+	};
+	
+	struct BlockValueAssignment
+	{
+		CStrIntern BlockName;
+		CStrIntern UniformName;
+		CVector4D Value;
 	};
 	
 	typedef std::vector<TextureSampler> SamplersVector;
@@ -74,8 +80,8 @@ public:
 	const CShaderUniforms& GetStaticUniforms() const { return m_StaticUniforms; }
 
 	// uniforms in blocks
-	void AddStaticBlockUniform(CStrIntern blockName, CStrIntern name, bool isInstanced, const CVector4D& value);
-	const CShaderBlockUniforms& GetStaticBlockUniforms() const { return m_StaticBlockUniforms; }
+	void AddBlockValueAssignment(CStrIntern blockName, CStrIntern name, const CVector4D& value);
+	const std::vector<BlockValueAssignment>& GetBlockValueAssignments() const { return m_BlockValueAssignments; }
 	
 	// Requires UniformBlockManager to be initialized and all available blocks to be added
 	bool GetBindings();
@@ -113,8 +119,9 @@ private:
 	CShaderDefines m_ShaderDefines;
 	CShaderConditionalDefines m_ConditionalDefines;
 	std::vector<CShaderDefines> m_CombinedShaderDefines;
-	// TODO: try to reduce compile time when CShaderBlockUniforms changes using the pimpl idom or similar
-	CShaderBlockUniforms m_StaticBlockUniforms;
+	
+	std::vector<BlockValueAssignment> m_BlockValueAssignments;
+	
 	CShaderUniforms m_StaticUniforms;
 	CShaderRenderQueries m_RenderQueries;
 

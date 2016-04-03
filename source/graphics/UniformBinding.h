@@ -28,7 +28,7 @@ struct UniformBinding
 		m_BlockType(blockType), m_BlockId(blockId), m_UniformId(uniformId), m_Type(type), m_IsInstanced(isInstanced) { }
 	UniformBinding() : m_BlockType(-1), m_BlockId(-1), m_UniformId(-1), m_Type(-1), m_IsInstanced(false) { }
 
-	bool Active() { return m_BlockType != -1 && m_BlockId != -1 && m_UniformId != -1; }
+	bool Active() const { return m_BlockType != -1 && m_BlockId != -1 && m_UniformId != -1; }
 
 	int m_BlockType; // GL_UNIFORM_BLOCK or GL_SHADER_STORAGE_BLOCK
 	int m_BlockId;

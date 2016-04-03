@@ -27,6 +27,7 @@ class CMaterialManager
 public:
 	CMaterialManager();
 	CMaterial LoadMaterial(const VfsPath& pathname);
+	const std::map<VfsPath, CMaterial>& GetAllMaterials() { return m_Materials; }
 
 private:
 	std::map<VfsPath, CMaterial> m_Materials;

@@ -18,6 +18,8 @@
 #include "precompiled.h"
 
 #include "UniformBlockManager.h"
+
+#include "graphics/MaterialManager.h"
 #include "graphics/ShaderProgram.h"
 
 void UniformBlockManager::RegisterUniformBlocks(const CShaderProgram& shader)
@@ -38,22 +40,16 @@ void UniformBlockManager::RegisterUniformBlocks(const CShaderProgram& shader)
 	}
 }
 
-void UniformBlockManager::MaterialBound(const int materialID, CShaderBlockUniforms& shaderBlockUniforms)
-{
-	std::cout << "MaterialBound: " << materialID << std::endl;
-	for (CShaderBlockUniforms::BoundValueAssignment& boundValue : 
-		shaderBlockUniforms.m_BoundValueAssignments)
-	{
-		SetCurrentInstance<MATERIAL_INSTANCED>(materialID);
-		SetUniformF4<MATERIAL_INSTANCED>(boundValue.Binding, boundValue.Value.X, 
-			boundValue.Value.Y, boundValue.Value.Z, boundValue.Value.W);
-	}
-}
-
 void UniformBlockManager::InterfaceBlockAdded(const InterfaceBlockIdentifier& blockIdentifier)
 {
 	std::cout << "InterfaceBlock added: " << blockIdentifier.Name.c_str() << std::endl;
-	UpdateMaterialBinding();
+	
+	// TODO: It is not optimal to loop through all materials each time a block is added when there
+	// are probably just one or two blocks which contain material data. On the other hand, this 
+	// function should not run very often.
+	const std::map<VfsPath, CMaterial>& materials = g_Renderer.GetMaterialManager().GetAllMaterials();
+	for (const auto& pathMatPair : materials)
+		WriteMaterialValues(pathMatPair.second);
 	
 	int flags = 0;
 	if (blockIdentifier.Name == m_PlayerColorBlockName)

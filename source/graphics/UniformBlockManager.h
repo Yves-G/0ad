@@ -24,7 +24,6 @@
 #include "graphics/UniformBinding.h"
 #include "graphics/UniformBuffer.h"
 #include "graphics/ShaderProgramPtr.h"
-#include "graphics/ShaderBlockUniforms.h"
 
 
 /**
@@ -285,19 +284,7 @@ public:
 	
 	void MaterialSealed(const CMaterial& material)
 	{
-		// If the same material already has data in m_UnboundStaticBlockUniforms, that means it's
-		// not yet loaded because that uniform block has not been seen in any loaded shader yet.
-		// In this case it's pointless to call UpdateMaterialBinding (which is a bit expensive).
-		auto itr = m_UnboundStaticBlockUniforms.find(material.GetId());
-		
-		// Updating the data is required no matter if there's already data stored here or not.
-		// (Values of the material could have changed)
-		m_UnboundStaticBlockUniforms[material.GetId()] = material.GetStaticBlockUniforms();
-		
-		if (itr != m_UnboundStaticBlockUniforms.end())
-			return;
-
-		UpdateMaterialBinding();
+		WriteMaterialValues(material);
 	}
 
 	void PlayerIDChanged(CModelAbstract* model)
@@ -320,18 +307,10 @@ public:
 	// void PlayerIDColorChanged(...); // a color of a player probably can't change in-game
 
 private:
-	
-	struct PairIDBlockUniform
-	{
-		int m_MaterialID;
-		CShaderBlockUniforms m_BlockUniforms;
-	};
 
 	/// Events that might trigger changes to model data
 	
 	void InterfaceBlockAdded(const InterfaceBlockIdentifier& blockIdentifier);
-	
-	void MaterialBound(const int materialID, CShaderBlockUniforms& shaderBlockUniforms);
 	
 	/// Functions
 	
@@ -348,6 +327,19 @@ private:
 	void SetMaterialID(CModelAbstract* model)
 	{
 		SetUniform(m_MaterialIDBinding, (GLuint)model->GetID(), (GLuint)model->GetMaterial().GetId());
+	}
+	
+	void WriteMaterialValues(const CMaterial& material)
+	{
+		// Store the values of this material to all blocks that are available
+		const auto& blkVals = material.GetBlockValueAssignments();
+		
+		for (const CMaterial::BlockValueAssignment& blkVal : blkVals)
+		{
+			const UniformBinding& binding = GetBinding(blkVal.BlockName, blkVal.UniformName, true);
+			if (binding.Active())
+				SetUniform(binding, material.GetId(), blkVal.Value);
+		}
 	}
 
 	void GenModelData(CModelAbstract* model, const int flags)
@@ -366,22 +358,6 @@ private:
 			GenModelData(model, flags);
 	}
 	
-	void UpdateMaterialBinding()
-	{
-		for (std::map<int, CShaderBlockUniforms>::iterator itr = m_UnboundStaticBlockUniforms.begin(); 
-			itr != m_UnboundStaticBlockUniforms.end();)
-		{
-			if (!itr->second.GetBindings())
-			{
-				++itr;
-				continue;
-			}
-			
-			MaterialBound(itr->first, itr->second);
-			itr = m_UnboundStaticBlockUniforms.erase(itr);
-		}
-	}
-	
 	/// data members
 	enum DATA_FLAGS { PLAYER_COLOR = 1, SHADING_COLOR = 2, MATERIAL_ID = 4 };
 	int m_AvailableBindingsFlag;
@@ -394,9 +370,7 @@ private:
 	UniformBinding m_PlayerColorBinding;
 	UniformBinding m_ShadingColorBinding;
 	UniformBinding m_MaterialIDBinding;
-	
-	//std::list<PairIDBlockUniform> m_UnboundStaticBlockUniforms;
-	std::map<int, CShaderBlockUniforms> m_UnboundStaticBlockUniforms;
+
 	//std::set<CMaterial*> m_UnboundMaterials;
 	//std::set<CMaterial*> m_BoundMaterials;
 };

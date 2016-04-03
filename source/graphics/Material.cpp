@@ -19,7 +19,6 @@
 
 #include "Material.h"
 
-#include "graphics/ShaderBlockUniforms.h"
 #include "UniformBlockManager.h"
 
 static CColor BrokenColor(0.3f, 0.3f, 0.3f, 1.0f);
@@ -53,17 +52,11 @@ void CMaterial::AddStaticUniform(const char* key, const CVector4D& value)
 	m_StaticUniforms.Add(key, value);
 }
 
-void CMaterial::AddStaticBlockUniform(CStrIntern blockName, CStrIntern name, bool isInstanced, const CVector4D& value)
+void CMaterial::AddBlockValueAssignment(CStrIntern blockName, CStrIntern name, const CVector4D& value)
 {
-	m_StaticBlockUniforms.Add(blockName, name, isInstanced, value);
+	m_BlockValueAssignments.emplace_back(BlockValueAssignment{ blockName, name, value });
 	m_Sealed = false;
 }
-
-bool CMaterial::GetBindings()
-{
-	return m_StaticBlockUniforms.GetBindings();
-}
-
 
 void CMaterial::AddSampler(const TextureSampler& texture)
 {
