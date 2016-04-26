@@ -86,12 +86,12 @@ struct SMRBatchModel
 		if (b->GetModelDef() < a->GetModelDef())
 			return false;
 
-		if (a->GetMaterial().GetDiffuseTexture() < b->GetMaterial().GetDiffuseTexture())
+		if (a->GetMaterial()->GetDiffuseTexture() < b->GetMaterial()->GetDiffuseTexture())
 			return true;
-		if (b->GetMaterial().GetDiffuseTexture() < a->GetMaterial().GetDiffuseTexture())
+		if (b->GetMaterial()->GetDiffuseTexture() < a->GetMaterial()->GetDiffuseTexture())
 			return false;
 
-		return a->GetMaterial().GetStaticUniforms() < b->GetMaterial().GetStaticUniforms();
+		return a->GetMaterial()->GetStaticUniforms() < b->GetMaterial()->GetStaticUniforms();
 	}
 };
 

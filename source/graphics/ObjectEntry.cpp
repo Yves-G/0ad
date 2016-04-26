@@ -80,7 +80,7 @@ bool CObjectEntry::BuildVariation(const std::vector<std::set<CStr> >& selections
 
 	if (variation.decal.m_SizeX && variation.decal.m_SizeZ)
 	{
-		CMaterial material = g_Renderer.GetMaterialManager().LoadMaterial(m_Base->m_Material);
+		CTemporaryMaterialRef tmpMatRef = g_Renderer.GetMaterialManager().CreateMaterialFromTemplate(m_Base->m_Material);
 		
 		std::vector<CObjectBase::Samp>::iterator samp;
 		for (samp = m_Samplers.begin(); samp != m_Samplers.end(); ++samp)
@@ -90,14 +90,14 @@ bool CObjectEntry::BuildVariation(const std::vector<std::set<CStr> >& selections
 			CTexturePtr texture = g_Renderer.GetTextureManager().CreateTexture(textureProps);
 			// TODO: Should check which renderpath is selected and only preload the necessary textures.
 			texture->Prefetch(); 
-			material.AddSampler(CMaterial::TextureSampler(samp->m_SamplerName, texture));
+			tmpMatRef->AddSampler(CMaterial::TextureSampler(samp->m_SamplerName, texture));
 		}
 
-		SDecal decal(material,
-			variation.decal.m_SizeX, variation.decal.m_SizeZ,
+		CMaterialRef material = g_Renderer.GetMaterialManager().CommitMaterial(m_Base->m_Material, tmpMatRef);
+		SDecal decal(variation.decal.m_SizeX, variation.decal.m_SizeZ,
 			variation.decal.m_Angle, variation.decal.m_OffsetX, variation.decal.m_OffsetZ,
 			m_Base->m_Properties.m_FloatOnWater);
-		m_Model = new CModelDecal(objectManager.GetTerrain(), decal);
+		m_Model = new CModelDecal(objectManager.GetTerrain(), decal, material);
 
 		return true;
 	}
@@ -127,9 +127,9 @@ bool CObjectEntry::BuildVariation(const std::vector<std::set<CStr> >& selections
 	CModel* model = new CModel(objectManager.GetSkeletonAnimManager(), m_Simulation);
 	delete m_Model;
 	m_Model = model;
-	model->SetMaterial(g_Renderer.GetMaterialManager().LoadMaterial(m_Base->m_Material));
-	model->GetMaterial().AddStaticUniform("objectColor", CVector4D(m_Color.r, m_Color.g, m_Color.b, m_Color.a));
-	model->GetMaterial().AddBlockValueAssignment(CStrIntern("MaterialUBO"), CStrIntern("objectColor[0]"), CVector4D(m_Color.r, m_Color.g, m_Color.b, m_Color.a));
+	CTemporaryMaterialRef tmpMatRef = g_Renderer.GetMaterialManager().CreateMaterialFromTemplate(m_Base->m_Material);
+	tmpMatRef->AddStaticUniform("objectColor", CVector4D(m_Color.r, m_Color.g, m_Color.b, m_Color.a));
+	tmpMatRef->AddBlockValueAssignment(CStrIntern("MaterialUBO"), CStrIntern("objectColor"), CVector4D(m_Color.r, m_Color.g, m_Color.b, m_Color.a));
 	model->InitModel(modeldef);
 	
 	if (m_Samplers.size() == 0)
@@ -146,12 +146,13 @@ bool CObjectEntry::BuildVariation(const std::vector<std::set<CStr> >& selections
 		// All textures are prefetched even in the fixed pipeline, including the normal maps etc.
 		// TODO: Should check which renderpath is selected and only preload the necessary textures.
 		texture->Prefetch(); 
-		model->GetMaterial().AddSampler(CMaterial::TextureSampler(samp.m_SamplerName, texture));
+		tmpMatRef->AddSampler(CMaterial::TextureSampler(samp.m_SamplerName, texture));
 	}
 	
-	model->GetMaterial().Seal();
+	CMaterialRef matRef = g_Renderer.GetMaterialManager().CommitMaterial(m_Base->m_Material, tmpMatRef);
+	model->SetMaterial(matRef);
 
-	const std::vector<CStrIntern>& requiredSamplers = model->GetMaterial().GetRequiredSampler();
+	const std::vector<CStrIntern>& requiredSamplers = matRef->GetRequiredSampler();
 	for (const auto& requSampName : requiredSamplers)
 	{
 		if (std::find_if(m_Samplers.begin(), m_Samplers.end(),

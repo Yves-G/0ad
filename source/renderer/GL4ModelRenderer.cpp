@@ -317,7 +317,7 @@ void GL4ModelRenderer<TGpuSkinning, RenderModifierT>::Render(const CShaderDefine
 
 			uint32_t condFlags = 0;
 
-			const CShaderConditionalDefines& condefs = model->GetMaterial().GetConditionalDefines();
+			const CShaderConditionalDefines& condefs = model->GetMaterial()->GetConditionalDefines();
 			for (size_t j = 0; j < condefs.GetSize(); ++j)
 			{
 				const CShaderConditionalDefines::CondDefine& item = condefs.GetItem(j);
@@ -340,8 +340,8 @@ void GL4ModelRenderer<TGpuSkinning, RenderModifierT>::Render(const CShaderDefine
 				}
 			}
 
-			CShaderDefines defs = model->GetMaterial().GetShaderDefines(condFlags);
-			SMRMaterialBucketKey key(model->GetMaterial().GetShaderEffect(), defs);
+			CShaderDefines defs = model->GetMaterial()->GetShaderDefines(condFlags);
+			SMRMaterialBucketKey key(model->GetMaterial()->GetShaderEffect(), defs);
 
 			MaterialBuckets_t::iterator it = materialBuckets.find(key);
 			if (it == materialBuckets.end())
@@ -572,7 +572,7 @@ void GL4ModelRenderer<TGpuSkinning, RenderModifierT>::Render(const CShaderDefine
 						if (flags && !(model->GetFlags() & flags))
 							continue;
 
-						const CMaterial::SamplersVector& samplers = model->GetMaterial().GetSamplers();
+						const CMaterial::SamplersVector& samplers = model->GetMaterial()->GetSamplers();
 						size_t samplersNum = samplers.size();
 						ogl_WarnIfError();
 						// make sure the vectors are the right virtual sizes, and also
@@ -638,7 +638,7 @@ void GL4ModelRenderer<TGpuSkinning, RenderModifierT>::Render(const CShaderDefine
 							currentStaticUniforms.BindUniforms(shader);
 						}*/
 						
-						const CShaderRenderQueries& renderQueries = model->GetMaterial().GetRenderQueries();
+						const CShaderRenderQueries& renderQueries = model->GetMaterial()->GetRenderQueries();
 						
 						for (size_t q = 0; q < renderQueries.GetSize(); q++)
 						{

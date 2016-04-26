@@ -1820,7 +1820,7 @@ void CRenderer::SubmitNonRecursive(CModel* model)
 
 	bool requiresSkinning = (model->GetModelDef()->GetNumBones() != 0);
 
-	if (model->GetMaterial().UsesAlphaBlending())
+	if (model->GetMaterial()->UsesAlphaBlending())
 	{
 		if (requiresSkinning)
 			m->Model.TranspSkinned->Submit(m_CurrentCullGroup, model);

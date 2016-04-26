@@ -84,9 +84,9 @@ void CDecalRData::RenderDecals(std::vector<CDecalRData*>& decals, const CShaderD
 	{
 		CDecalRData *decal = decals[i];
 		
-		CMaterial &material = decal->m_Decal->m_Decal.m_Material;
+		CMaterialRef& material = decal->m_Decal->GetMaterial();
 		
-		if (material.GetShaderEffect().length() == 0)
+		if (material->GetShaderEffect().length() == 0)
 		{
 			LOGERROR("Terrain renderer failed to load shader effect.\n");
 			continue;
@@ -98,12 +98,12 @@ void CDecalRData::RenderDecals(std::vector<CDecalRData*>& decals, const CShaderD
 		if (!isDummyShader)
 		{
 			techBase = g_Renderer.GetShaderManager().LoadEffect(
-				material.GetShaderEffect(), contextDecal, material.GetShaderDefines(0));
+				material->GetShaderEffect(), contextDecal, material->GetShaderDefines(0));
 			
 			if (!techBase)
 			{
 				LOGERROR("Terrain renderer failed to load shader effect (%s)\n", 			
-						material.GetShaderEffect().string().c_str());
+						material->GetShaderEffect().string().c_str());
 				continue;
 			}
 			
@@ -123,9 +123,9 @@ void CDecalRData::RenderDecals(std::vector<CDecalRData*>& decals, const CShaderD
 			
 			const CShaderProgramPtr& shader = isDummyShader ? dummy : techBase->GetShader(pass);
 				
-			if (material.GetSamplers().size() != 0)
+			if (material->GetSamplers().size() != 0)
 			{
-				const CMaterial::SamplersVector& samplers = material.GetSamplers();
+				const CMaterial::SamplersVector& samplers = material->GetSamplers();
 				size_t samplersNum = samplers.size();
 				
 				for (size_t s = 0; s < samplersNum; ++s)
@@ -134,7 +134,7 @@ void CDecalRData::RenderDecals(std::vector<CDecalRData*>& decals, const CShaderD
 					shader->BindTexture(samp.Name, samp.Sampler);
 				}
 				
-				material.GetStaticUniforms().BindUniforms(shader);
+				material->GetStaticUniforms().BindUniforms(shader);
 
 				// TODO: Need to handle floating decals correctly. In particular, we need
 				// to render non-floating before water and floating after water (to get

@@ -1,7 +1,7 @@
 #version 430
 
-const int MAX_INSTANCES = 2000;
-const int MAX_MATERIALS = 64;
+// TODO: hardcoded maximum buffer sizes are bad
+const int MAX_MATERIAL_TEMPLATES = 2000;
 
 in VS_OUT
 {
@@ -77,23 +77,32 @@ layout(shared) buffer ShadingColorBlock
   vec3 shadingColor[];
 };
 
+struct MaterialStruct
+{
+  uint templateMatId;
+  vec3 objectColor;
+};
+
 layout(shared) buffer MaterialUBO
+{
+  MaterialStruct material[];
+};
+
+layout(shared) buffer MatTemplBlock
 {
 
 //#if USE_SPECULAR
-  float specularPower[MAX_MATERIALS];
-  vec3 specularColor[MAX_MATERIALS];
+  float specularPower[MAX_MATERIAL_TEMPLATES];
+  vec3 specularColor[MAX_MATERIAL_TEMPLATES];
 //#endif
 
 //#if USE_NORMAL_MAP || USE_SPECULAR_MAP || USE_PARALLAX || USE_AO
-  vec4 effectSettings[MAX_MATERIALS];
+  vec4 effectSettings[MAX_MATERIAL_TEMPLATES];
 //#endif
 
-  vec3 objectColor[MAX_MATERIALS];
+  vec4 windData[MAX_MATERIAL_TEMPLATES];
 
-  vec4 windData[MAX_MATERIALS];
-
-} material;
+};
 
 in vec4 v_lighting;
 in vec2 v_tex;
@@ -164,6 +173,7 @@ vec3 get_fog(vec3 color)
 void main()
 {
   const uint materialIDVal = materialID[model[fs_in.drawID].modelId];
+  const uint matTemplIdVal = material[materialIDVal].templateMatId;
 
   vec2 coord = v_tex;
 
@@ -181,7 +191,7 @@ void main()
 
     vec2 move;
     float height = 1.0;
-    float scale = material.effectSettings[materialIDVal].z;
+    float scale = effectSettings[matTemplIdVal].z;
 	  
     int iter = int(min(20, 25.0 - dist/10.0));
 	
@@ -227,12 +237,13 @@ void main()
 
   // Apply-coloring based on texture alpha
   #if USE_OBJECTCOLOR
-    texdiffuse *= mix(material.objectColor[materialIDVal], vec3(1.0, 1.0, 1.0), tex.a);
+    texdiffuse *= mix(material[materialIDVal].objectColor, vec3(1.0, 1.0, 1.0), tex.a);
   #else
   #if USE_PLAYERCOLOR
     texdiffuse *= mix(playerColor[model[fs_in.drawID].modelId].rgb, vec3(1.0, 1.0, 1.0), tex.a);
   #endif
   #endif
+
 
   #if USE_SPECULAR || USE_SPECULAR_MAP || USE_NORMAL_MAP
     vec3 normal = v_normal.xyz;
@@ -243,7 +254,7 @@ void main()
     ntex.y = -ntex.y;
     normal = normalize(tbn * ntex);
     vec3 bumplight = max(dot(-frame.sunDir, normal), 0.0) * frame.sunColor;
-    vec3 sundiffuse = (bumplight - v_lighting.rgb) * material.effectSettings[materialIDVal].x + v_lighting.rgb;
+    vec3 sundiffuse = (bumplight - v_lighting.rgb) * effectSettings[matTemplIdVal].x + v_lighting.rgb;
   #else
     vec3 sundiffuse = v_lighting.rgb;
   #endif
@@ -256,10 +267,10 @@ void main()
       vec4 s = texture2D(specTex, coord);
       specCol = s.rgb;
       specular.a = s.a;
-      specPow = material.effectSettings[materialIDVal].y;
+      specPow = effectSettings[matTemplIdVal].y;
     #else
-      specCol = material.specularColor[materialIDVal];
-      specPow = material.specularPower[materialIDVal];
+      specCol = specularColor[matTemplIdVal];
+      specPow = specularPower[matTemplIdVal];
     #endif
     specular.rgb = frame.sunColor * specCol * pow(max(0.0, dot(normalize(normal), v_half)), specPow);
   #endif
@@ -269,7 +280,7 @@ void main()
 
   #if (USE_INSTANCING || USE_GPU_SKINNING) && USE_AO
     vec3 ao = texture2D(aoTex, v_tex2).rrr;
-    ao = mix(vec3(1.0), ao * 2.0, material.effectSettings[materialIDVal].w);
+    ao = mix(vec3(1.0), ao * 2.0, effectSettings[matTemplIdVal].w);
     ambColor *= ao;
   #endif
 

@@ -33,6 +33,7 @@
 #include <sstream>
 
 int CMaterialManager::m_NextFreeMaterialID = 0;
+int CMaterialManager::m_NextFreeTemplateID = 0;
 
 CMaterialManager::CMaterialManager()
 {
@@ -44,18 +45,73 @@ CMaterialManager::CMaterialManager()
 		LOGERROR("CMaterialManager: failed to load grammar file 'art/materials/material.rng'");
 }
 
-CMaterial CMaterialManager::LoadMaterial(const VfsPath& pathname)
+CTemporaryMaterialRef CMaterialManager::CreateMaterialFromTemplate(const VfsPath& path)
 {
-	if (pathname.empty())
-		return CMaterial();
+	CMaterialTemplate* matTempl = LoadMaterialTemplate(path);
+	CMaterial material;
+	material.Init(matTempl);
+	m_TemporaryMaterials.push_back(material);
+	auto itr = m_TemporaryMaterials.end();
+	itr--;
+	return CTemporaryMaterialRef(itr);
+}
 
-	std::map<VfsPath, CMaterial>::iterator iter = m_Materials.find(pathname);
-	if (iter != m_Materials.end())
-		return iter->second;
+CTemporaryMaterialRef CMaterialManager::CheckoutMaterial(CMaterialRef matRef)
+{
+	m_TemporaryMaterials.push_back(*matRef.m_pMaterial);
+	auto itr = m_TemporaryMaterials.end();
+	itr--;
+	return CTemporaryMaterialRef(itr);
+}
+
+CMaterialRef CMaterialManager::CommitMaterial(const VfsPath& path, CTemporaryMaterialRef materialRef)
+{
+	std::map<size_t, CMaterial>& matMap = m_Materials[path];
+	materialRef->ComputeHash();
+	std::map<size_t, CMaterial>::iterator itr = matMap.find(materialRef->GetHash());
+	if (itr == matMap.end())
+	{
+		itr = matMap.insert(std::make_pair(materialRef->GetHash(), materialRef.Get())).first;
+	}
+	m_TemporaryMaterials.erase(materialRef.m_Itr);
+	itr->second.m_Id = m_NextFreeMaterialID++;
+	
+	#if 0 // Just temporarily for debugging to get an idea
+	// how many templates and materials are used.
+	struct MaterialDebugInformaton
+	{
+		int nbrTempls;
+		int nbrMats;
+	} matDbgInfo;
+	
+	matDbgInfo.nbrTempls = m_MaterialTemplates.size();
+	for (auto& itr  : m_Materials)
+		matDbgInfo.nbrMats += itr.second.size();
+	
+	#endif // 1
+	
+	UniformBlockManager& uniformBlockManager = g_Renderer.GetUniformBlockManager();
+	uniformBlockManager.MaterialCommitted(itr->second);
+	
+	return &itr->second;
+}
+
+//CMaterial CMaterialManager::LoadMaterial(const VfsPath& pathname)
+CMaterialTemplate* CMaterialManager::LoadMaterialTemplate(const VfsPath& pathname)
+{
+	// TODO: ...
+	if (pathname.empty())
+		debug_warn("Empty pathname!");
+		//return CMaterial();
+
+	std::map<VfsPath, CMaterialTemplate>::iterator iter = m_MaterialTemplates.find(pathname);
+	if (iter != m_MaterialTemplates.end())
+		return &iter->second;
 
 	CXeromyces xeroFile;
 	if (xeroFile.Load(g_VFS, pathname, "material") != PSRETURN_OK)
-		return CMaterial();
+		debug_warn("Error loading material template file!"); // TODO: ...
+		//return CMaterial();
 
 	#define EL(x) int el_##x = xeroFile.GetElementID(#x)
 	#define AT(x) int at_##x = xeroFile.GetAttributeID(#x)
@@ -84,8 +140,9 @@ CMaterial CMaterialManager::LoadMaterial(const VfsPath& pathname)
 	#undef AT
 	#undef EL
 
-	CMaterial material;
-	material.SetId(m_NextFreeMaterialID++);
+	CMaterialTemplate matTempl;
+	matTempl.SetPath(pathname);
+	matTempl.m_Id = m_NextFreeTemplateID++;
 
 	XMBElement root = xeroFile.GetRoot();
 	
@@ -110,21 +167,21 @@ CMaterial CMaterialManager::LoadMaterial(const VfsPath& pathname)
 						continue;
 				}
 			}
-				
-			material = LoadMaterial(VfsPath("art/materials") / attrs.GetNamedItem(at_material).FromUTF8());
-			break;
+			
+			m_NextFreeTemplateID--; // We ditch the matTempl we already initialized and can free its ID
+			return LoadMaterialTemplate(VfsPath("art/materials") / attrs.GetNamedItem(at_material).FromUTF8());
 		}
 		else if (token == el_alpha_blending)
 		{
-			material.SetUsesAlphaBlending(true);
+			matTempl.SetUsesAlphaBlending(true);
 		}
 		else if (token == el_shader)
 		{
-			material.SetShaderEffect(attrs.GetNamedItem(at_effect));
+			matTempl.SetShaderEffect(attrs.GetNamedItem(at_effect));
 		}
 		else if (token == el_define)
 		{
-			material.AddShaderDefine(CStrIntern(attrs.GetNamedItem(at_name)), CStrIntern(attrs.GetNamedItem(at_value)));
+			matTempl.AddShaderDefine(CStrIntern(attrs.GetNamedItem(at_name)), CStrIntern(attrs.GetNamedItem(at_value)));
 		}
 		else if (token == el_conditional_define)
 		{
@@ -164,18 +221,18 @@ CMaterial CMaterialManager::LoadMaterial(const VfsPath& pathname)
 				{
 					std::stringstream sstr;
 					sstr << valmin;
-					material.AddShaderDefine(CStrIntern(conf + "_MIN"), CStrIntern(sstr.str()));
+					matTempl.AddShaderDefine(CStrIntern(conf + "_MIN"), CStrIntern(sstr.str()));
 				}
 				
 				if (valmax >= 0.0f)
 				{	
 					std::stringstream sstr;
 					sstr << valmax;
-					material.AddShaderDefine(CStrIntern(conf + "_MAX"), CStrIntern(sstr.str()));
+					matTempl.AddShaderDefine(CStrIntern(conf + "_MAX"), CStrIntern(sstr.str()));
 				}
 			}
 			
-			material.AddConditionalDefine(attrs.GetNamedItem(at_name).c_str(), 
+			matTempl.AddConditionalDefine(attrs.GetNamedItem(at_name).c_str(), 
 						      attrs.GetNamedItem(at_value).c_str(), 
 						      typeID, args);
 		}		
@@ -184,7 +241,7 @@ CMaterial CMaterialManager::LoadMaterial(const VfsPath& pathname)
 			std::stringstream str(attrs.GetNamedItem(at_value));
 			CVector4D vec;
 			str >> vec.X >> vec.Y >> vec.Z >> vec.W;
-			material.AddStaticUniform(attrs.GetNamedItem(at_name).c_str(), vec);
+			matTempl.AddStaticUniform(attrs.GetNamedItem(at_name).c_str(), vec);
 			
 			CStr blockName = attrs.GetNamedItem(at_blockname);
 			if (!blockName.empty())
@@ -193,7 +250,7 @@ CMaterial CMaterialManager::LoadMaterial(const VfsPath& pathname)
 
 				// For block uniforms, we automatically convert to array type
 				// TODO: Remove "isInstanced?"
-				material.AddBlockValueAssignment(CStrIntern(blockName),
+				matTempl.AddBlockValueAssignment(CStrIntern(blockName),
 				  CStrIntern(attrs.GetNamedItem(at_name).append("[0]").c_str()),
 				  vec);
 			}			                  
@@ -213,19 +270,46 @@ CMaterial CMaterialManager::LoadMaterial(const VfsPath& pathname)
 		}*/
 		else if (token == el_renderquery)
 		{
-			material.AddRenderQuery(attrs.GetNamedItem(at_name).c_str());
+			matTempl.AddRenderQuery(attrs.GetNamedItem(at_name).c_str());
 		}
 		else if (token == el_required_texture)
 		{
-			material.AddRequiredSampler(attrs.GetNamedItem(at_name));
+			matTempl.AddRequiredSampler(attrs.GetNamedItem(at_name));
 			if (!attrs.GetNamedItem(at_define).empty())
-				material.AddShaderDefine(CStrIntern(attrs.GetNamedItem(at_define)), str_1);
+				matTempl.AddShaderDefine(CStrIntern(attrs.GetNamedItem(at_define)), str_1);
 		}
 	}
 
-	material.RecomputeCombinedShaderDefines();
+	std::cout << "MaterialTemplate loaded: " << pathname.string8().c_str() << "   ID: " << matTempl.GetId() << std::endl;
+	m_MaterialTemplates[pathname] = matTempl;
+	
+	UniformBlockManager& uniformBlockManager = g_Renderer.GetUniformBlockManager();
+	uniformBlockManager.MaterialTemplateAdded(m_MaterialTemplates[pathname]);
+	return &m_MaterialTemplates[pathname];
+}
 
-	std::cout << "MaterialLoaded: " << pathname.string8().c_str() << "   ID: " << material.GetId() << std::endl;
-	m_Materials[pathname] = material;
-	return material;
+void CMaterialManager::RegisterMaterialRef(const CMaterialRef& matRef)
+{
+	const size_t h = matRef->GetHash();
+	auto itr = m_MatRefCount.find(h);
+	if (itr != m_MatRefCount.end())
+		itr->second++;
+	else
+		m_MatRefCount[h] = 1;
+}
+
+void CMaterialManager::UnRegisterMaterialRef(const CMaterialRef& matRef)
+{
+	const size_t h = matRef->GetHash();
+	auto itr = m_MatRefCount.find(h);
+	ENSURE(itr != m_MatRefCount.end());
+	if (itr->second == 1)
+	{
+		m_MatRefCount.erase(itr);
+		// TODO: Check if it might be worth to keep the material for a while even though the reference
+		// count reached 0.
+		m_Materials[matRef->GetPath()].erase(h);
+	}
+	else
+		itr->second--;
 }

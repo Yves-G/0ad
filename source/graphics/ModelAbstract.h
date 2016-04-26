@@ -149,14 +149,14 @@ public:
 	virtual void SetPlayerID(player_id_t id);
 	
 		// set the model's material
-	virtual void SetMaterial(const CMaterial &material);
+	virtual void SetMaterial(const CMaterialRef &material);
 
 	// get the model's player ID; initial default is INVALID_PLAYER
 	virtual player_id_t GetPlayerID() const { return m_PlayerID; }
 	int GetID() const { return m_ID; }
 	
 	// get the model's material
-	CMaterial& GetMaterial() { return m_Material; }
+	CMaterialRef& GetMaterial() { return m_Material; }
 
 	virtual void SetShadingColor(const CColor& color);
 	virtual CColor GetShadingColor() const { return m_ShadingColor; }
@@ -196,7 +196,7 @@ public:
 	player_id_t m_PlayerID;
 	
 	// model's material
-	CMaterial m_Material;
+	CMaterialRef m_Material;
 	
 	/// Modulating color
 	CColor m_ShadingColor;

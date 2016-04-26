@@ -47,9 +47,14 @@ void UniformBlockManager::InterfaceBlockAdded(const InterfaceBlockIdentifier& bl
 	// TODO: It is not optimal to loop through all materials each time a block is added when there
 	// are probably just one or two blocks which contain material data. On the other hand, this 
 	// function should not run very often.
-	const std::map<VfsPath, CMaterial>& materials = g_Renderer.GetMaterialManager().GetAllMaterials();
-	for (const auto& pathMatPair : materials)
-		WriteMaterialValues(pathMatPair.second);
+	const MaterialStoreT& materials = g_Renderer.GetMaterialManager().GetAllMaterials();
+	for (const auto& pathMatMapPair : materials)
+		for (std::pair<size_t, CMaterial> hashMatPair : pathMatMapPair.second)
+			WriteMaterialValues(hashMatPair.second);
+	
+	const std::map<VfsPath, CMaterialTemplate>& matTempls = g_Renderer.GetMaterialManager().GetAllMaterialTemplates();
+	for (const auto& pathMatTemplPair : matTempls)
+			WriteMaterialTemplateValues(pathMatTemplPair.second);
 	
 	int flags = 0;
 	if (blockIdentifier.Name == m_PlayerColorBlockName)

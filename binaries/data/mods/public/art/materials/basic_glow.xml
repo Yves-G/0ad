@@ -7,5 +7,5 @@
 	<alternative material="alphatest_ao_parallax_spec.xml" if="CFG_FORCE_ALPHATEST"/>
 	<define name="USE_SPECULAR_MAP" value="1"/>
 	<define name="USE_SELF_LIGHT" value="1"/>
-	<uniform blockName="MaterialUBO" name="effectSettings" instanced="1"  value="1.0 50.0 0.0075 0.85"/>
+	<uniform blockName="MatTemplBlock" name="effectSettings" instanced="1"  value="1.0 50.0 0.0075 0.85"/>
 </material>

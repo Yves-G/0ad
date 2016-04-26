@@ -2,7 +2,7 @@
 <material>
     <shader effect="terrain_base"/>
     
-    <uniform blockName="MaterialUBO" name="effectSettings" instanced="1" value="1.0 15.0 0.0 0.0"/>
+    <uniform blockName="MatTemplBlock" name="effectSettings" instanced="1" value="1.0 15.0 0.0 0.0"/>
 	<required_texture name="baseTex"/>
 	<required_texture name="normTex" define="USE_NORMAL_MAP"/>
 	<required_texture name="specTex" define="USE_SPECULAR_MAP"/>

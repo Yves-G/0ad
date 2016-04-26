@@ -269,6 +269,25 @@ void CShaderConditionalDefines::Add(const char* defname, const char* defvalue, i
 	m_Defines.push_back(cd);
 }
 
+void CShaderConditionalDefines::AddMany(const CShaderConditionalDefines& source)
+{
+	m_Defines.insert(m_Defines.end(), source.m_Defines.begin(), source.m_Defines.end());
+}
+
+size_t CShaderConditionalDefines::GetHash()
+{
+	size_t h = 0;
+	for (const CondDefine& def : m_Defines)
+	{
+		boost::hash_combine(h, def.m_DefName);
+		boost::hash_combine(h, def.m_DefValue);
+		boost::hash_combine(h, def.m_CondType);
+		for (float condArg : def.m_CondArgs)
+			boost::hash_combine(h, condArg);
+	}
+	return h;
+}
+
 
 // Explicit instantiations:
 

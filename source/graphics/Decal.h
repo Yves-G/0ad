@@ -31,14 +31,13 @@ class CTerrain;
  */
 struct SDecal
 {
-	SDecal(const CMaterial& material, float sizeX, float sizeZ, float angle,
+	SDecal(float sizeX, float sizeZ, float angle,
 			float offsetX, float offsetZ, bool floating)
-		: m_Material(material), m_SizeX(sizeX), m_SizeZ(sizeZ), m_Angle(angle),
+		: m_SizeX(sizeX), m_SizeZ(sizeZ), m_Angle(angle),
 		  m_OffsetX(offsetX), m_OffsetZ(offsetZ), m_Floating(floating)
 	{
 	}
 
-	CMaterial m_Material;
 	float m_SizeX;
 	float m_SizeZ;
 	float m_Angle;
@@ -50,10 +49,11 @@ struct SDecal
 class CModelDecal : public CModelAbstract
 {
 public:
-	CModelDecal(CTerrain* terrain, const SDecal& decal)
+	CModelDecal(CTerrain* terrain, const SDecal& decal, const CMaterialRef& matRef)
 		: m_Terrain(terrain), m_Decal(decal)
 	{
 		ENSURE(terrain != NULL);
+		SetMaterial(matRef);
 	}
 
 	/// Dynamic cast

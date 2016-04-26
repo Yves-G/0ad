@@ -1,7 +1,8 @@
 #version 430
 
+// TODO: hardcoded maximum buffer sizes are bad
 const int MAX_INSTANCES = 2000;
-const int MAX_MATERIALS = 64;
+const int MAX_MATERIAL_TEMPLATES = 2000;
 layout (location = 15) in uint drawID;
 
 out VS_OUT
@@ -49,23 +50,32 @@ layout(shared) buffer MaterialIDBlock
   uint materialID[];
 };
 
+struct MaterialStruct
+{
+  uint templateMatId;
+  vec3 objectColor;
+};
+
 layout(shared) buffer MaterialUBO
+{
+  MaterialStruct material[];
+};
+
+layout(shared) buffer MatTemplBlock
 {
 
 //#if USE_SPECULAR
-  float specularPower[MAX_MATERIALS];
-  vec3 specularColor[MAX_MATERIALS];
+  float specularPower[MAX_MATERIAL_TEMPLATES];
+  vec3 specularColor[MAX_MATERIAL_TEMPLATES];
 //#endif
 
 //#if USE_NORMAL_MAP || USE_SPECULAR_MAP || USE_PARALLAX || USE_AO
-  vec4 effectSettings[MAX_MATERIALS];
+  vec4 effectSettings[MAX_MATERIAL_TEMPLATES];
 //#endif
 
-  vec3 objectColor[MAX_MATERIALS];
+  vec4 windData[MAX_MATERIAL_TEMPLATES];
 
-  vec4 windData[MAX_MATERIALS];
-
-} material;
+};
 
 
 out vec4 v_lighting;
@@ -127,6 +137,7 @@ vec4 fakeCos(vec4 x)
 void main()
 {
   const uint materialIDVal = materialID[model[drawID].modelId];
+  const uint matTemplIdVal = material[materialIDVal].templateMatId;
 
 //mat4 model[drawID].instancingTransform = mat4(1.0, 0,   0,   0,
 //                        0  , 1.0, 0,   0,
@@ -136,7 +147,7 @@ void main()
   vs_out.drawID = drawID;
 
 #if 0
-  if (vec2(1.0, 1.0) != material.windData[materialIDVal].xy)
+  if (vec2(1.0, 1.0) != windData[matTemplIdVal].xy)
   {
 	const vec4 vertices[] = vec4[](vec4( 0.25+materialIDVal*0.05, -0.25, 0.5, 1.0),
                                        vec4( 0.25+materialIDVal*0.05,  0.25, 0.5, 1.0),
@@ -185,7 +196,7 @@ void main()
 
 
   #if USE_WIND
-    vec2 wind = material.windData[materialIDVal].xy;
+    vec2 wind = windData[matTemplIdVal].xy;
 
     // fractional part of model position, clamped to >.4
     vec4 modelPos = model[drawID].instancingTransform[3];

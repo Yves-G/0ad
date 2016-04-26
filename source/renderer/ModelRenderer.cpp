@@ -335,7 +335,7 @@ void ShaderModelRenderer<VertexRendererT, RenderModifierT>::Render(const CShader
 
 			uint32_t condFlags = 0;
 
-			const CShaderConditionalDefines& condefs = model->GetMaterial().GetConditionalDefines();
+			const CShaderConditionalDefines& condefs = model->GetMaterial()->GetConditionalDefines();
 			for (size_t j = 0; j < condefs.GetSize(); ++j)
 			{
 				const CShaderConditionalDefines::CondDefine& item = condefs.GetItem(j);
@@ -358,8 +358,8 @@ void ShaderModelRenderer<VertexRendererT, RenderModifierT>::Render(const CShader
 				}
 			}
 
-			CShaderDefines defs = model->GetMaterial().GetShaderDefines(condFlags);
-			SMRMaterialBucketKey key(model->GetMaterial().GetShaderEffect(), defs);
+			CShaderDefines defs = model->GetMaterial()->GetShaderDefines(condFlags);
+			SMRMaterialBucketKey key(model->GetMaterial()->GetShaderEffect(), defs);
 
 			MaterialBuckets_t::iterator it = materialBuckets.find(key);
 			if (it == materialBuckets.end())
@@ -558,7 +558,7 @@ void ShaderModelRenderer<VertexRendererT, RenderModifierT>::Render(const CShader
 						if (flags && !(model->GetFlags() & flags))
 							continue;
 
-						const CMaterial::SamplersVector& samplers = model->GetMaterial().GetSamplers();
+						const CMaterial::SamplersVector& samplers = model->GetMaterial()->GetSamplers();
 						size_t samplersNum = samplers.size();
 						
 						// make sure the vectors are the right virtual sizes, and also
@@ -613,14 +613,14 @@ void ShaderModelRenderer<VertexRendererT, RenderModifierT>::Render(const CShader
 						ogl_WarnIfError();
 
 						// Bind all uniforms when any change
-						CShaderUniforms newStaticUniforms = model->GetMaterial().GetStaticUniforms();
+						CShaderUniforms newStaticUniforms = model->GetMaterial()->GetStaticUniforms();
 						if (newStaticUniforms != currentStaticUniforms)
 						{
 							currentStaticUniforms = newStaticUniforms;
 							currentStaticUniforms.BindUniforms(shader);
 						}
 						
-						const CShaderRenderQueries& renderQueries = model->GetMaterial().GetRenderQueries();
+						const CShaderRenderQueries& renderQueries = model->GetMaterial()->GetRenderQueries();
 						
 						for (size_t q = 0; q < renderQueries.GetSize(); q++)
 						{

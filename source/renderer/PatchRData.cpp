@@ -764,14 +764,14 @@ void CPatchRData::RenderBases(const std::vector<CPatchRData*>& patches, const CS
 		
 		if (!isDummyShader)
 		{
-			if (itt->first->GetMaterial().GetShaderEffect().length() == 0)
+			if (itt->first->GetMaterial()->GetShaderEffect().length() == 0)
 			{
 				LOGERROR("Terrain renderer failed to load shader effect.\n");
 				continue;
 			}
 						
-			techBase = g_Renderer.GetShaderManager().LoadEffect(itt->first->GetMaterial().GetShaderEffect(),
-						context, itt->first->GetMaterial().GetShaderDefines(0));
+			techBase = g_Renderer.GetShaderManager().LoadEffect(itt->first->GetMaterial()->GetShaderEffect(),
+						context, itt->first->GetMaterial()->GetShaderDefines(0));
 			
 			numPasses = techBase->GetNumPasses();
 		}
@@ -786,9 +786,9 @@ void CPatchRData::RenderBases(const std::vector<CPatchRData*>& patches, const CS
 			
 			const CShaderProgramPtr& shader = isDummyShader ? dummy : techBase->GetShader(pass);
 			
-			if (itt->first->GetMaterial().GetSamplers().size() != 0)
+			if (itt->first->GetMaterial()->GetSamplers().size() != 0)
 			{
-				const CMaterial::SamplersVector& samplers = itt->first->GetMaterial().GetSamplers();
+				const CMaterial::SamplersVector& samplers = itt->first->GetMaterial()->GetSamplers();
 				size_t samplersNum = samplers.size();
 				
 				for (size_t s = 0; s < samplersNum; ++s)
@@ -797,7 +797,7 @@ void CPatchRData::RenderBases(const std::vector<CPatchRData*>& patches, const CS
 					shader->BindTexture(samp.Name, samp.Sampler);
 				}
 				
-				itt->first->GetMaterial().GetStaticUniforms().BindUniforms(shader);
+				itt->first->GetMaterial()->GetStaticUniforms().BindUniforms(shader);
 
 #if !CONFIG2_GLES
 				if (isDummyShader)
@@ -989,7 +989,7 @@ void CPatchRData::RenderBlends(const std::vector<CPatchRData*>& patches, const C
 
  	for (BatchesStack::iterator itt = batches.begin(); itt != batches.end(); ++itt)
 	{		
-		if (itt->m_Texture->GetMaterial().GetSamplers().size() == 0)
+		if (itt->m_Texture->GetMaterial()->GetSamplers().size() == 0)
 			continue;
 		
 		int numPasses = 1;
@@ -997,7 +997,7 @@ void CPatchRData::RenderBlends(const std::vector<CPatchRData*>& patches, const C
 		
 		if (!isDummyShader)
 		{
-			techBase = g_Renderer.GetShaderManager().LoadEffect(itt->m_Texture->GetMaterial().GetShaderEffect(), contextBlend, itt->m_Texture->GetMaterial().GetShaderDefines(0));
+			techBase = g_Renderer.GetShaderManager().LoadEffect(itt->m_Texture->GetMaterial()->GetShaderEffect(), contextBlend, itt->m_Texture->GetMaterial()->GetShaderDefines(0));
 			
 			numPasses = techBase->GetNumPasses();
 		}
@@ -1018,7 +1018,7 @@ void CPatchRData::RenderBlends(const std::vector<CPatchRData*>& patches, const C
 				
 			if (itt->m_Texture)
 			{
-				const CMaterial::SamplersVector& samplers = itt->m_Texture->GetMaterial().GetSamplers();
+				const CMaterial::SamplersVector& samplers = itt->m_Texture->GetMaterial()->GetSamplers();
 				size_t samplersNum = samplers.size();
 				
 				for (size_t s = 0; s < samplersNum; ++s)
@@ -1029,7 +1029,7 @@ void CPatchRData::RenderBlends(const std::vector<CPatchRData*>& patches, const C
 
 				shader->BindTexture(str_blendTex, itt->m_Texture->m_TerrainAlpha->second.m_hCompositeAlphaMap);
 
-				itt->m_Texture->GetMaterial().GetStaticUniforms().BindUniforms(shader);
+				itt->m_Texture->GetMaterial()->GetStaticUniforms().BindUniforms(shader);
 				
 #if !CONFIG2_GLES
 				if (isDummyShader)

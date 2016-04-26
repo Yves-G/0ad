@@ -18,33 +18,117 @@
 #include "precompiled.h"
 
 #include "Material.h"
+#include "graphics/MaterialManager.h"
 
 #include "UniformBlockManager.h"
 
 static CColor BrokenColor(0.3f, 0.3f, 0.3f, 1.0f);
 
-CMaterial::CMaterial() :
+CMaterialRef:: CMaterialRef(CMaterial* material) :
+	m_pMaterial(material)
+{
+	g_Renderer.GetMaterialManager().RegisterMaterialRef(*this);
+}
+
+CMaterialRef::CMaterialRef(const CMaterialRef& other) :
+	m_pMaterial(other.m_pMaterial)
+{
+	g_Renderer.GetMaterialManager().RegisterMaterialRef(*this);
+}
+
+CMaterialRef& CMaterialRef::operator=(const CMaterialRef& other)
+{
+	if (m_pMaterial != nullptr)
+		g_Renderer.GetMaterialManager().UnRegisterMaterialRef(*this);
+	m_pMaterial = other.m_pMaterial;
+	g_Renderer.GetMaterialManager().RegisterMaterialRef(*this);
+	return *this;
+}
+
+CMaterialRef::~CMaterialRef()
+{
+	if (m_pMaterial != nullptr)
+		g_Renderer.GetMaterialManager().UnRegisterMaterialRef(*this);
+}
+
+CMaterialTemplate::CMaterialTemplate() :
 	m_AlphaBlending(false),
-	m_MaterialId(-1),
-	m_Sealed(false)
+	m_Id(-1)
 {
 }
 
-void CMaterial::SetShaderEffect(const CStr& effect)
+void CMaterialTemplate::AddRenderQuery(const char* key)
+{
+	m_RenderQueries.Add(key);
+}
+
+void CMaterialTemplate::AddShaderDefine(CStrIntern key, CStrIntern value)
+{
+	m_ShaderDefines.Add(key, value);
+}
+
+void CMaterialTemplate::AddRequiredSampler(const CStr& samplerName)
+{
+	CStrIntern string(samplerName);
+	m_RequiredSamplers.push_back(string);
+}
+
+void CMaterialTemplate::AddConditionalDefine(const char* defname, const char* defvalue, int type, std::vector<float> &args)
+{
+	m_ConditionalDefines.Add(defname, defvalue, type, args);
+}
+
+void CMaterialTemplate::AddBlockValueAssignment(CStrIntern blockName, CStrIntern name, const CVector4D& value)
+{
+	m_BlockValueAssignments.emplace_back(BlockValueAssignment{ blockName, name, value });
+}
+
+void CMaterialTemplate::AddStaticUniform(const char* key, const CVector4D& value)
+{
+	m_StaticUniforms.Add(key, value);
+}
+
+void CMaterialTemplate::SetShaderEffect(const CStr& effect)
 {
 	m_ShaderEffect = CStrIntern(effect);
+}
+
+CMaterial::CMaterial() :
+	m_pTemplate(nullptr),
+	m_Id(-1)
+{
+}
+
+void CMaterial::Init(CMaterialTemplate* materialTempl)
+{
+	m_pTemplate = materialTempl;
+	m_StaticUniforms.SetMany(m_pTemplate->m_StaticUniforms);
+	RecomputeCombinedShaderDefines();
+}
+
+void CMaterial::ComputeHash()
+{
+	m_Hash = 0;
+	boost::hash_combine(m_Hash, m_pTemplate);
+	boost::hash_combine(m_Hash, m_ShaderDefines.GetHash());
+	for (BlockValueAssignment& blkVal : m_BlockValueAssignments)
+		boost::hash_combine(m_Hash, blkVal.GetHash());
+	boost::hash_combine(m_Hash, m_ConditionalDefines.GetHash());
+	boost::hash_combine(m_Hash, m_StaticUniforms.GetHash());
+	for (TextureSampler samp : m_Samplers)
+		boost::hash_combine(m_Hash, samp.GetHash());
 }
 
 void CMaterial::AddShaderDefine(CStrIntern key, CStrIntern value)
 {
 	m_ShaderDefines.Add(key, value);
-	m_CombinedShaderDefines.clear();
+	m_CombinedShaderDefinesLookup.clear();
 }
 
 void CMaterial::AddConditionalDefine(const char* defname, const char* defvalue, int type, std::vector<float> &args)
 {
 	m_ConditionalDefines.Add(defname, defvalue, type, args);
-	m_CombinedShaderDefines.clear();
+	m_CombinedShaderDefinesLookup.clear();
 }
 
 void CMaterial::AddStaticUniform(const char* key, const CVector4D& value)
@@ -55,7 +139,6 @@ void CMaterial::AddStaticUniform(const char* key, const CVector4D& value)
 void CMaterial::AddBlockValueAssignment(CStrIntern blockName, CStrIntern name, const CVector4D& value)
 {
 	m_BlockValueAssignments.emplace_back(BlockValueAssignment{ blockName, name, value });
-	m_Sealed = false;
 }
 
 void CMaterial::AddSampler(const TextureSampler& texture)
@@ -65,19 +148,10 @@ void CMaterial::AddSampler(const TextureSampler& texture)
 		m_DiffuseTexture = texture.Sampler;
 }
 
-void CMaterial::AddRenderQuery(const char* key)
-{
-	m_RenderQueries.Add(key);
-}
-
-void CMaterial::AddRequiredSampler(const CStr& samplerName)
-{
-	CStrIntern string(samplerName);
-	m_RequiredSamplers.push_back(string);
-}
-
-
-// Set up m_CombinedShaderDefines so that index i contains m_ShaderDefines, plus
+// First, update m_CombinedConditionalDefines to contain both the conditional defines
+// from the MaterialTemplate and those from the Material.
+//
+// Set up m_CombinedShaderDefinesLookup so that index i contains m_ShaderDefines, plus
 // the extra defines from m_ConditionalDefines[j] for all j where bit j is set in i.
 // This lets GetShaderDefines() cheaply return the defines for any combination of conditions.
 //
@@ -85,29 +159,28 @@ void CMaterial::AddRequiredSampler(const CStr& samplerName)
 // but currently we don't expect to have many.)
 void CMaterial::RecomputeCombinedShaderDefines()
 {
-	m_CombinedShaderDefines.clear();
-	int size = m_ConditionalDefines.GetSize();
+	m_CombinedShaderDefinesLookup.clear();
+	m_CombinedConditionalDefines = CShaderConditionalDefines();
+	m_CombinedConditionalDefines.AddMany(m_pTemplate->m_ConditionalDefines);
+	m_CombinedConditionalDefines.AddMany(m_ConditionalDefines);
 
+	int size = m_CombinedConditionalDefines.GetSize();
+
+	CShaderDefines combinedShaderDefines = m_pTemplate->m_ShaderDefines;
+	combinedShaderDefines.SetMany(m_ShaderDefines);
+	
 	// Loop over all 2^n combinations of flags
 	for (int i = 0; i < (1 << size); i++)
 	{
-		CShaderDefines defs = m_ShaderDefines;
+		CShaderDefines defs = combinedShaderDefines;
 		for (int j = 0; j < size; j++)
 		{
 			if (i & (1 << j))
 			{
-				const CShaderConditionalDefines::CondDefine& def = m_ConditionalDefines.GetItem(j);
+				const CShaderConditionalDefines::CondDefine& def = m_CombinedConditionalDefines.GetItem(j);
 				defs.Add(def.m_DefName, def.m_DefValue);
 			}
 		}
-		m_CombinedShaderDefines.push_back(defs);
+		m_CombinedShaderDefinesLookup.push_back(defs);
 	}
-}
-
-void CMaterial::Seal()
-{
-	ENSURE(!m_Sealed); // Make sure we don't do unnecessary work
-	UniformBlockManager& uniformBlockManager = g_Renderer.GetUniformBlockManager();
-	uniformBlockManager.MaterialSealed(*this);
-	m_Sealed = true;
 }

@@ -24,6 +24,7 @@
 #include "Model.h"
 
 #include "Decal.h"
+#include "MaterialManager.h"
 #include "ModelDef.h"
 #include "maths/Quaternion.h"
 #include "maths/BoundingBoxAligned.h"
@@ -628,8 +629,10 @@ void CModel::AddFlagsRec(int flags)
 
 	if (flags & MODELFLAG_IGNORE_LOS)
 	{
-		m_Material.AddShaderDefine(str_IGNORE_LOS, str_1);
-		m_Material.RecomputeCombinedShaderDefines();
+		CTemporaryMaterialRef tmpMatRef = g_Renderer.GetMaterialManager().CheckoutMaterial(m_Material);
+		tmpMatRef->AddShaderDefine(str_IGNORE_LOS, str_1);
+		tmpMatRef->RecomputeCombinedShaderDefines();
+		SetMaterial(g_Renderer.GetMaterialManager().CommitMaterial(tmpMatRef->GetPath(), tmpMatRef));
 	}
 
 	for (size_t i = 0; i < m_Props.size(); ++i)
@@ -641,8 +644,10 @@ void CModel::RemoveShadowsRec()
 {
 	m_Flags &= ~MODELFLAG_CASTSHADOWS;
 
-	m_Material.AddShaderDefine(str_DISABLE_RECEIVE_SHADOWS, str_1);
-	m_Material.RecomputeCombinedShaderDefines();
+	CTemporaryMaterialRef tmpMatRef = g_Renderer.GetMaterialManager().CheckoutMaterial(m_Material);
+	tmpMatRef->AddShaderDefine(str_DISABLE_RECEIVE_SHADOWS, str_1);
+	tmpMatRef->RecomputeCombinedShaderDefines();
+	SetMaterial(g_Renderer.GetMaterialManager().CommitMaterial(tmpMatRef->GetPath(), tmpMatRef));
 
 	for (size_t i = 0; i < m_Props.size(); ++i)
 	{

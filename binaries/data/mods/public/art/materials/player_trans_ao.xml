@@ -19,7 +19,7 @@
 	 Third value: Parallax scale.
 	 Fourth value: AO amount. -->
     <!-- <uniform name="effectSettings" value="1.0 50.0 0.0075 0.6"/> -->
-    <uniform blockName="MaterialUBO" name="effectSettings" instanced="1" value="1.0 50.0 0.0075 0.6"/>
+    <uniform blockName="MatTemplBlock" name="effectSettings" instanced="1" value="1.0 50.0 0.0075 0.6"/>
 
 	
 	<required_texture name="baseTex"/>

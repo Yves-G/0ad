@@ -19,22 +19,43 @@
 #define INCLUDED_MATERIALMANAGER
 
 #include <map>
+#include <set>
+#include <list>
+#include <memory>
 #include "Material.h"
 #include "lib/file/vfs/vfs_path.h"
+
+typedef std::map<VfsPath, std::map<size_t, CMaterial> > MaterialStoreT;
 
 class CMaterialManager
 {
 public:
 	CMaterialManager();
-	CMaterial LoadMaterial(const VfsPath& pathname);
-	const std::map<VfsPath, CMaterial>& GetAllMaterials() { return m_Materials; }
+	CTemporaryMaterialRef CheckoutMaterial(CMaterialRef matRef);
+	CMaterialRef CommitMaterial(const VfsPath& path, CTemporaryMaterialRef materialRef);
+	CTemporaryMaterialRef CreateMaterialFromTemplate(const VfsPath& path);
+	const MaterialStoreT& GetAllMaterials() { return m_Materials; }
+	const std::map<VfsPath, CMaterialTemplate>& GetAllMaterialTemplates() { return m_MaterialTemplates; }
+	
+	void RegisterMaterialRef(const CMaterialRef& matRef);
+	void UnRegisterMaterialRef(const CMaterialRef& matRef);
 
 private:
-	std::map<VfsPath, CMaterial> m_Materials;
+	
+	CMaterialTemplate* LoadMaterialTemplate(const VfsPath& path);
+	
+	std::map<VfsPath, CMaterialTemplate> m_MaterialTemplates;
+	MaterialStoreT m_Materials;
+	// Materials still being modified by some external class and not committed yet
+	std::list<CMaterial> m_TemporaryMaterials;
+	
+	std::map<size_t, int> m_MatRefCount;
+	
 	float qualityLevel;
 	
 	// TODO: We might want to reuse IDs in cases when we reload materials or stop using them
 	static int m_NextFreeMaterialID;
+	static int m_NextFreeTemplateID;
 };
 
 #endif // INCLUDED_MATERIALMANAGER

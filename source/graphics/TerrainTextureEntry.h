@@ -47,7 +47,7 @@ private:
 	// The property sheet used by this texture
 	CTerrainPropertiesPtr m_pProperties;
 	
-	CMaterial m_Material;
+	CMaterialRef m_Material;
 
 	CMatrix3D m_TextureMatrix;
 	
@@ -79,10 +79,10 @@ public:
 	
 	// Get texture handle, load texture if not loaded.
 	const CTexturePtr& GetTexture() {
-		return m_Material.GetDiffuseTexture();
+		return m_Material->GetDiffuseTexture();
 	}
 	
-	const CMaterial& GetMaterial() {
+	const CMaterialRef& GetMaterial() {
 		return m_Material;
 	}
 

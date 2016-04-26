@@ -1,8 +1,5 @@
 #version 430
 
-const int MAX_INSTANCES = 2000;
-const int MAX_MATERIALS = 64;
-
 in VS_OUT
 {
   flat uint drawID;

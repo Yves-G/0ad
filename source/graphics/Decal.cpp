@@ -20,11 +20,12 @@
 #include "Decal.h"
 
 #include "graphics/Terrain.h"
+#include "graphics/MaterialManager.h"
 #include "maths/MathUtil.h"
 
 CModelAbstract* CModelDecal::Clone() const
 {
-	CModelDecal* clone = new CModelDecal(m_Terrain, m_Decal);
+	CModelDecal* clone = new CModelDecal(m_Terrain, m_Decal, m_Material);
 	return clone;
 }
 
@@ -110,6 +111,8 @@ void CModelDecal::SetTransform(const CMatrix3D& transform)
 
 void CModelDecal::RemoveShadows()
 {
-	m_Decal.m_Material.AddShaderDefine(str_DISABLE_RECEIVE_SHADOWS, str_1);
-	m_Decal.m_Material.RecomputeCombinedShaderDefines();
+	CTemporaryMaterialRef tmpMatRef = g_Renderer.GetMaterialManager().CheckoutMaterial(m_Material);
+	tmpMatRef->AddShaderDefine(str_DISABLE_RECEIVE_SHADOWS, str_1);
+	tmpMatRef->RecomputeCombinedShaderDefines();
+	SetMaterial(g_Renderer.GetMaterialManager().CommitMaterial(tmpMatRef->GetPath(), tmpMatRef));
 }

@@ -4,11 +4,11 @@
     <alpha_blending/>
     <define name="USE_TRANSPARENT" value="1"/>
     <define name="USE_PARALLAX" value="1"/>
-    <uniform blockName="MaterialUBO" name="effectSettings" instanced="1" value="1.0 50.0 0.0075 0.85"/>
+    <uniform blockName="MatTemplBlock" name="effectSettings" instanced="1" value="1.0 50.0 0.0075 0.85"/>
 	
     <renderquery name="sim_time"/>
     <define name="USE_WIND" value="1"/>
-    <uniform instanced="1" blockName="MaterialUBO" name="windData" value="1.0 1.0"/>
+    <uniform instanced="1" blockName="MatTemplBlock" name="windData" value="1.0 1.0"/>
 
 	<required_texture name="baseTex"/>
 	<required_texture name="specTex" define="USE_SPECULAR_MAP"/>

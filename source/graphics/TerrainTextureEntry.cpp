@@ -79,6 +79,8 @@ CTerrainTextureEntry::CTerrainTextureEntry(CTerrainPropertiesPtr properties, con
 	VfsPath alphamap("standard");
 	m_Tag = utf8_from_wstring(path.Basename().string());
 	
+	VfsPath matPath;
+	CTemporaryMaterialRef tmpMatRef;
 	
 	XERO_ITER_EL(root, child)
 	{
@@ -105,9 +107,9 @@ CTerrainTextureEntry::CTerrainTextureEntry(CTerrainPropertiesPtr properties, con
 		}
 		else if (child_name == el_material)
 		{
-			VfsPath mat = VfsPath("art/materials") / child.GetText().FromUTF8();
+			matPath = VfsPath("art/materials") / child.GetText().FromUTF8();
 			if (CRenderer::IsInitialised())
-				m_Material = g_Renderer.GetMaterialManager().LoadMaterial(mat);
+				tmpMatRef = g_Renderer.GetMaterialManager().CreateMaterialFromTemplate(matPath);
 		}
 		else if (child_name == el_alphamap)
 		{
@@ -139,7 +141,7 @@ CTerrainTextureEntry::CTerrainTextureEntry(CTerrainPropertiesPtr properties, con
 		if (CRenderer::IsInitialised())
 		{
 			CTexturePtr texptr = g_Renderer.GetTextureManager().CreateTexture(texture);
-			m_Material.AddSampler(CMaterial::TextureSampler(samplers[i].first, texptr));
+			tmpMatRef->AddSampler(CMaterial::TextureSampler(samplers[i].first, texptr));
 		}
 	}
 
@@ -149,7 +151,7 @@ CTerrainTextureEntry::CTerrainTextureEntry(CTerrainPropertiesPtr properties, con
 		// TODO: For terrain, there's a large number of different textures using the same material.
 		// This means that "Seal" will be called multiple times on the same material when it would
 		// be sufficient to call it once after all the changes to the material are made.
-		m_Material.Seal();
+		m_Material = g_Renderer.GetMaterialManager().CommitMaterial(matPath, tmpMatRef);
 	}
 
 	float texAngle = 0.f;

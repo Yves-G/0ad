@@ -216,8 +216,10 @@ public:
 	};
 	
 	void Add(const char* defname, const char* defvalue, int type, std::vector<float> &args);
+	void AddMany(const CShaderConditionalDefines& source);
 	size_t GetSize() const { return m_Defines.size(); }
 	const CondDefine& GetItem(size_t i) const { return m_Defines[i]; }
+	size_t GetHash();
 	
 private:
 	std::vector<CondDefine> m_Defines;

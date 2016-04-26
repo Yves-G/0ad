@@ -282,7 +282,12 @@ public:
 		m_Models.erase(model);
 	}
 	
-	void MaterialSealed(const CMaterial& material)
+	void MaterialTemplateAdded(const CMaterialTemplate& matTempl)
+	{
+		WriteMaterialTemplateValues(matTempl);
+	}
+	
+	void MaterialCommitted(const CMaterial& material)
 	{
 		WriteMaterialValues(material);
 	}
@@ -326,19 +331,38 @@ private:
 	
 	void SetMaterialID(CModelAbstract* model)
 	{
-		SetUniform(m_MaterialIDBinding, (GLuint)model->GetID(), (GLuint)model->GetMaterial().GetId());
+		const CMaterialRef& matRef = model->GetMaterial();
+		if (!matRef.isNull())
+			SetUniform(m_MaterialIDBinding, (GLuint)model->GetID(), (GLuint)model->GetMaterial()->GetId());
 	}
 	
 	void WriteMaterialValues(const CMaterial& material)
-	{
+	{		
 		// Store the values of this material to all blocks that are available
 		const auto& blkVals = material.GetBlockValueAssignments();
 		
-		for (const CMaterial::BlockValueAssignment& blkVal : blkVals)
+		for (const BlockValueAssignment& blkVal : blkVals)
 		{
 			const UniformBinding& binding = GetBinding(blkVal.BlockName, blkVal.UniformName, true);
 			if (binding.Active())
 				SetUniform(binding, material.GetId(), blkVal.Value);
+		}
+		
+		const UniformBinding& binding = GetBinding(CStrIntern("MaterialUBO"), CStrIntern("templateMatId"), true);
+		if (binding.Active())
+			SetUniform(binding, material.GetId(), (GLuint)material.GetTemplateId());
+	}
+	
+	void WriteMaterialTemplateValues(const CMaterialTemplate& matTempl)
+	{
+		// Store the values of this material to all blocks that are available
+		const auto& blkVals = matTempl.GetBlockValueAssignments();
+
+		for (const BlockValueAssignment& blkVal : blkVals)
+		{
+			const UniformBinding& binding = GetBinding(blkVal.BlockName, blkVal.UniformName, true);
+			if (binding.Active())
+				SetUniform(binding, matTempl.GetId(), blkVal.Value);
 		}
 	}
 

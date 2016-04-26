@@ -42,8 +42,12 @@ CModelAbstract::~CModelAbstract()
 	delete m_CustomSelectionShape; // allocated and set externally by CCmpVisualActor, but our responsibility to clean up
 }
 
-void CModelAbstract::SetMaterial(const CMaterial &material)
+void CModelAbstract::SetMaterial(const CMaterialRef &material)
 {
+	// TODO: When a new model gets created, this triggers a ModelAdded event in
+	// UniformBlockManager and then shortly after that a MaterialChanged event. 
+	// It would be better to have the correct material with the ModelAdded event
+	// already.
 	m_Material = material;
 	UniformBlockManager& uniformBlockManager = g_Renderer.GetUniformBlockManager();
 	uniformBlockManager.MaterialChanged(this);

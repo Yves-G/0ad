@@ -3,6 +3,6 @@
     <shader effect="model"/>
     <renderquery name="sim_time"/>
     <define name="USE_WIND" value="1"/>
-    <uniform instanced="1" blockName="MaterialUBO" name="windData" value="1.0 1.0"/>
+    <uniform instanced="1" blockName="MatTemplBlock" name="windData" value="1.0 1.0"/>
 	<required_texture name="baseTex"/>
 </material>
