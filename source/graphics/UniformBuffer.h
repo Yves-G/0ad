@@ -200,18 +200,17 @@ inline void InterfaceBlock::SetUniform(const UniformBinding& id, CMatrix3D matri
 	
 	m_UBODirtyBytes = std::max((size_t)m_UBODirtyBytes, (size_t)(GetMemberProp(id.m_UniformId, PROPS::PROP_ARRAY_STRIDE) * instanceId + offset));
 	*/
-	
-	GLubyte* dstPtr = m_UBOSourceBuffer.data() + GetMemberProp(id.m_UniformId, PROPS::PROP_OFFSET) + GetMemberProp(id.m_UniformId, PROPS::PROP_ARRAY_STRIDE) * instanceId;
+	GLuint offset = GetMemberProp(id.m_UniformId, PROPS::PROP_OFFSET) + GetMemberProp(id.m_UniformId, PROPS::PROP_ARRAY_STRIDE) * instanceId;
 	m_UBODirtyBytes = std::max((size_t)m_UBODirtyBytes, (size_t)(GetMemberProp(id.m_UniformId, PROPS::PROP_OFFSET) + GetMemberProp(id.m_UniformId, PROPS::PROP_ARRAY_STRIDE) * (instanceId + 1)));
 	
 	if (m_UBOBlockSize < m_UBODirtyBytes)
 		IncreaseBufferSize(m_UBODirtyBytes);
-	
+
 	for (int i=0; i<4; ++i)
 	{
 		for (int j=0; j<4; ++j)
-			*(float*)(dstPtr + j * sizeof(GLfloat)) = matrix[i * 4 + j];
-		dstPtr += GetMemberProp(id.m_UniformId, PROPS::PROP_MATRIX_STRIDE);
+			*(float*)(m_UBOSourceBuffer.data() + offset + j * sizeof(GLfloat)) = matrix[i * 4 + j];
+		offset += GetMemberProp(id.m_UniformId, PROPS::PROP_MATRIX_STRIDE);
 	}
 }
 
