@@ -31,21 +31,18 @@ layout(shared) uniform FrameUBO
 
 } frame;
 
-// TODO: make these conditional again (in some way...)
-layout(shared) buffer ModelUBO
+// TODO: make block members conditional again
+struct ModelStruct
 {
-  uint modelId[MAX_INSTANCES];
-  //uint materialID[MAX_INSTANCES];
-  mat4 instancingTransform[MAX_INSTANCES];
-  //#if USE_OBJECTCOLOR
-  //  vec3 objectColor[MAX_INSTANCES];
-  //#else
-  //#if USE_PLAYERCOLOR
-  //  vec4 playerColor[MAX_INSTANCES];
-  //#endif
-  //#endif
-  //vec3 shadingColor[MAX_INSTANCES];
-} model;
+  uint modelId;
+  mat4 instancingTransform;
+};
+
+layout(shared) buffer ModelBlock
+{
+  ModelStruct model[];
+};
+
 
 layout(shared) buffer MaterialIDBlock
 {
@@ -129,9 +126,9 @@ vec4 fakeCos(vec4 x)
 
 void main()
 {
-  const uint materialIDVal = materialID[model.modelId[drawID]];
+  const uint materialIDVal = materialID[model[drawID].modelId];
 
-//mat4 model.instancingTransform[drawID] = mat4(1.0, 0,   0,   0,
+//mat4 model[drawID].instancingTransform = mat4(1.0, 0,   0,   0,
 //                        0  , 1.0, 0,   0,
 //                        0  , 0,   1.0, 0,
 //                        200, 200, 300, 1.0);
@@ -149,7 +146,7 @@ void main()
         //                               vec4(-0.25, -0.25, 0.1, 1.0));
 	if (gl_VertexID < 3)
 	{
-        	gl_Position = vertices[gl_VertexID] * mat4(1.0); //model.instancingTransform[drawID];
+        	gl_Position = vertices[gl_VertexID] * mat4(1.0); //model[drawID].instancingTransform;
 	}
 	return;
   }
@@ -166,16 +163,16 @@ void main()
         n += vec3(m * vec4(a_normal, 0.0)) * a_skinWeights[i];
       }
     }
-    vec4 position = model.instancingTransform[drawID] * vec4(p, 1.0);
-    mat3 normalMatrix = mat3(model.instancingTransform[drawID][0].xyz, model.instancingTransform[drawID][1].xyz, model.instancingTransform[drawID][2].xyz);
+    vec4 position = model[drawID].instancingTransform * vec4(p, 1.0);
+    mat3 normalMatrix = mat3(model[drawID].instancingTransform[0].xyz, model[drawID].instancingTransform[1].xyz, model[drawID].instancingTransform[2].xyz);
     vec3 normal = normalMatrix * normalize(n);
     #if (USE_NORMAL_MAP || USE_PARALLAX)
       vec3 tangent = normalMatrix * a_tangent.xyz;
     #endif
   #else
   #if (USE_INSTANCING)
-    vec4 position = model.instancingTransform[drawID] * vec4(a_vertex, 1.0);
-    mat3 normalMatrix = mat3(model.instancingTransform[drawID][0].xyz, model.instancingTransform[drawID][1].xyz, model.instancingTransform[drawID][2].xyz);
+    vec4 position = model[drawID].instancingTransform * vec4(a_vertex, 1.0);
+    mat3 normalMatrix = mat3(model[drawID].instancingTransform[0].xyz, model[drawID].instancingTransform[1].xyz, model[drawID].instancingTransform[2].xyz);
     vec3 normal = normalMatrix * a_normal;
     #if (USE_NORMAL_MAP || USE_PARALLAX)
       vec3 tangent = normalMatrix * a_tangent.xyz;
@@ -191,7 +188,7 @@ void main()
     vec2 wind = material.windData[materialIDVal].xy;
 
     // fractional part of model position, clamped to >.4
-    vec4 modelPos = model.instancingTransform[drawID][3];
+    vec4 modelPos = model[drawID].instancingTransform[3];
     modelPos = fract(modelPos);
     modelPos = clamp(modelPos, 0.4, 1.0);
 
@@ -202,7 +199,7 @@ void main()
     // these determine the speed of the wind's "cosine" waves.
     cosVec.w = 0.0;
     cosVec.x = frame.sim_time.x * modelPos[0] + position.x;
-    cosVec.y = frame.sim_time.x * modelPos[2] / 3.0 + model.instancingTransform[drawID][3][0];
+    cosVec.y = frame.sim_time.x * modelPos[2] / 3.0 + model[drawID].instancingTransform[3][0];
     cosVec.z = frame.sim_time.x * abswind / 4.0 + position.z;
 
     // calculate "cosines" in parallel, using a smoothed triangle wave

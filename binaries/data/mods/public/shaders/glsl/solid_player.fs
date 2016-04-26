@@ -31,20 +31,18 @@ uniform FrameUBO
 
 } frame;
 
-layout(shared) buffer ModelUBO
+
+// TODO: make block members conditional again
+struct ModelStruct
 {
-  uint modelId[MAX_INSTANCES];
-  //uint materialID[MAX_INSTANCES];
-  mat4 instancingTransform[MAX_INSTANCES];
-  //#if USE_OBJECTCOLOR
-  //  vec3 objectColor[MAX_INSTANCES];
-  //#else
-  //#if USE_PLAYERCOLOR
-  //  vec4 playerColor[MAX_INSTANCES];
-  //#endif
-  //#endif
-  //vec3 shadingColor[MAX_INSTANCES];
-} model;
+  uint modelId;
+  mat4 instancingTransform;
+};
+
+layout(shared) buffer ModelBlock
+{
+  ModelStruct model[];
+};
 
 layout(shared) buffer PlayerColorBlock
 {
@@ -69,6 +67,6 @@ vec3 get_fog(vec3 color)
 
 void main()
 {
-	const uint modelId = model.modelId[fs_in.drawID];
+	const uint modelId = model[fs_in.drawID].modelId;
 	fragColor = vec4(get_fog(playerColor[modelId].rgb), playerColor[modelId].a);
 }

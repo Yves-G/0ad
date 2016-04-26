@@ -49,21 +49,18 @@ uniform sampler2D specTex;
   #endif
 #endif
 
-// TODO: make these conditional again (in some way...)
-layout(shared) buffer ModelUBO
+// TODO: make block members conditional again
+struct ModelStruct
 {
-  uint modelId[MAX_INSTANCES];
-  //uint materialID[MAX_INSTANCES];
-  mat4 instancingTransform[MAX_INSTANCES];
-  //#if USE_OBJECTCOLOR
-  //  vec3 objectColor[MAX_INSTANCES];
-  //#else
-  //#if USE_PLAYERCOLOR
-  //  vec4 playerColor[MAX_INSTANCES];
-  //#endif
-  //#endif
-  //vec3 shadingColor[MAX_INSTANCES];
-} model;
+  uint modelId;
+  mat4 instancingTransform;
+};
+
+layout(shared) buffer ModelBlock
+{
+  ModelStruct model[];
+};
+
 
 layout(shared) buffer MaterialIDBlock
 {
@@ -166,7 +163,7 @@ vec3 get_fog(vec3 color)
 
 void main()
 {
-  const uint materialIDVal = materialID[model.modelId[fs_in.drawID]];
+  const uint materialIDVal = materialID[model[fs_in.drawID].modelId];
 
   vec2 coord = v_tex;
 
@@ -233,7 +230,7 @@ void main()
     texdiffuse *= mix(material.objectColor[materialIDVal], vec3(1.0, 1.0, 1.0), tex.a);
   #else
   #if USE_PLAYERCOLOR
-    texdiffuse *= mix(playerColor[model.modelId[fs_in.drawID]].rgb, vec3(1.0, 1.0, 1.0), tex.a);
+    texdiffuse *= mix(playerColor[model[fs_in.drawID].modelId].rgb, vec3(1.0, 1.0, 1.0), tex.a);
   #endif
   #endif
 
@@ -290,7 +287,7 @@ void main()
     color *= los;
   #endif
 
-  color *= shadingColor[model.modelId[fs_in.drawID]];
+  color *= shadingColor[model[fs_in.drawID].modelId];
 
   fragColor.rgb = color;
 }

@@ -27,7 +27,8 @@
 
 #include <fstream>
 
-const GLenum InterfaceBlock::MemberProps[] = { GL_OFFSET, GL_ARRAY_STRIDE, GL_MATRIX_STRIDE };
+const GLenum InterfaceBlock::MemberPropsUBO[] = { GL_OFFSET, GL_ARRAY_STRIDE, GL_MATRIX_STRIDE };
+const GLenum InterfaceBlock::MemberPropsSSBO[] = { GL_OFFSET, GL_TOP_LEVEL_ARRAY_STRIDE, GL_MATRIX_STRIDE };
 
 InterfaceBlock::InterfaceBlock(GLuint program, const InterfaceBlockIdentifier& blockIdentifier, const int interfaceBlockType) :
 	m_UBOSourceBuffer(),
@@ -36,15 +37,18 @@ InterfaceBlock::InterfaceBlock(GLuint program, const InterfaceBlockIdentifier& b
 	m_InterfaceBlockType(interfaceBlockType),
 	m_BufferResized(false)
 {
+	const GLenum* memberProps;
 	if (interfaceBlockType == GL_UNIFORM_BLOCK)
 	{
 		m_MemberBufferType = GL_UNIFORM_BUFFER;
 		m_MemberType = GL_UNIFORM;
+		memberProps = &MemberPropsUBO[0];
 	}
 	else if (interfaceBlockType == GL_SHADER_STORAGE_BLOCK)
 	{
 		m_MemberBufferType = GL_SHADER_STORAGE_BUFFER;
 		m_MemberType = GL_BUFFER_VARIABLE;
+		memberProps = &MemberPropsSSBO[0];
 	}
 	
 	
@@ -68,7 +72,7 @@ InterfaceBlock::InterfaceBlock(GLuint program, const InterfaceBlockIdentifier& b
 	{
 		pglGetProgramResourceiv(program, m_MemberType,
 			m_UniformIndices[unifIx], PROPS::COUNT,
-			MemberProps, PROPS::COUNT,
+			memberProps, PROPS::COUNT,
 			NULL, &m_MemberProps[unifIx * PROPS::COUNT]);
 		
 		pglGetProgramResourceiv(program, m_MemberType,
@@ -79,8 +83,8 @@ InterfaceBlock::InterfaceBlock(GLuint program, const InterfaceBlockIdentifier& b
 		m_UniformTypes.emplace_back(tmpMemberValues[1]);
 		
 		std::vector<char> nameData(tmpMemberValues[0]);
-		pglGetProgramResourceName(program, m_MemberType, m_UniformIndices[unifIx], nameData.size(), NULL, &nameData[0]);
 		
+		pglGetProgramResourceName(program, m_MemberType, m_UniformIndices[unifIx], nameData.size(), NULL, &nameData[0]);
 		// uniform names have the form blockName.uniformName, but we just want the uniformName part
 		auto it = std::find(nameData.begin(), nameData.end(), '.');
 		if (it == nameData.end())
@@ -304,7 +308,7 @@ void InterfaceBlock::Upload()
 {
 	ENSURE(m_UBOBlockSize >= m_UBODirtyBytes);
 	/*
-	if (m_BlockName.string() == "ModelUBO")
+	if (m_BlockName.string() == "ModelBlock")
 	{
 		std::ofstream myfile;
 		myfile.open ("dumpfile.txt", std::fstream::out | std::fstream::app);

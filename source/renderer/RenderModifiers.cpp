@@ -78,7 +78,7 @@ void GL4ShaderRenderModifier::SetFrameUniforms()
 {
 	UniformBlockManager& uniformBlockManager = g_Renderer.GetUniformBlockManager();
 	CStrIntern frameUBO("FrameUBO");
-	CStrIntern modelUBO("ModelUBO");
+	CStrIntern modelBlock("ModelBlock");
 	UniformBinding transformBinding = uniformBlockManager.GetBinding(frameUBO, str_transform, false);
 	UniformBinding cameraPosBinding = uniformBlockManager.GetBinding(frameUBO, str_cameraPos, false);
 	
@@ -123,8 +123,8 @@ void GL4ShaderRenderModifier::SetFrameUniforms()
 	//}
 
 	// TODO: Bindings should probably be used differently now (with uniform blocks)
-	m_BindingInstancingTransform = uniformBlockManager.GetBinding(modelUBO, str_instancingTransform_0, true);
-	m_BindingModelID = uniformBlockManager.GetBinding(modelUBO, str_modelId_0, true);
+	m_BindingInstancingTransform = uniformBlockManager.GetBinding(modelBlock, str_instancingTransform, true);
+	m_BindingModelID = uniformBlockManager.GetBinding(modelBlock, str_modelId, true);
 }
 
 void GL4ShaderRenderModifier::BeginPass(const CShaderProgramPtr& shader)

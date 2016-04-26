@@ -44,6 +44,28 @@ class CShaderProgram;
  * The buffer gets prepared in RAM by a series of calls to SetUniform and then the whole buffer data is uploaded 
  * to the uniform buffer on the GPU.
  *
+ * This supports two possible approaches for instancing in shaders:
+ * 
+ * 1. Use a single array, where the index is the instance id
+ *     layout(shared) buffer MaterialIDBlock
+ *     {
+ *         uint materialID[];
+ *     };
+ *
+ * 2. Use an array of structs where the array index is the instance id
+ *     struct A
+ *     {
+ *         uint x;
+ *         uint y;
+ *     }
+ *
+ *     layout(shared) buffer MaterialBlock
+ *     {
+ *         A material[];
+ *     };
+ *
+ * The specification would support more complex blocks with arrays of structs containing arrays and more.
+ * This is not supported by this code.
  */
 class InterfaceBlock
 {
@@ -116,7 +138,11 @@ private:
 	std::vector<int> m_UniformTypes;
 	std::vector<GLuint> m_UniformIndices;
 	
-	static const GLenum MemberProps[];
+	// We just use GL_TOP_LEVEL_ARRAY_STRIDE instead of GL_ARRAY_STRIDE for SSBOs to
+	// support arrays of structs.
+	static const GLenum MemberPropsUBO[];
+	static const GLenum MemberPropsSSBO[];
+	
 	enum PROPS { PROP_OFFSET, PROP_ARRAY_STRIDE, PROP_MATRIX_STRIDE, COUNT };
 	std::vector<GLint> m_MemberProps;
 	
