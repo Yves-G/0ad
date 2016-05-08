@@ -72,9 +72,11 @@ CMaterialRef CMaterialManager::CommitMaterial(const VfsPath& path, CTemporaryMat
 	if (itr == matMap.end())
 	{
 		itr = matMap.insert(std::make_pair(materialRef->GetHash(), materialRef.Get())).first;
+		itr->second.m_Id = m_NextFreeMaterialID++;
+		UniformBlockManager& uniformBlockManager = g_Renderer.GetUniformBlockManager();
+		uniformBlockManager.MaterialCommitted(itr->second);
 	}
 	m_TemporaryMaterials.erase(materialRef.m_Itr);
-	itr->second.m_Id = m_NextFreeMaterialID++;
 	
 	#if 0 // Just temporarily for debugging to get an idea
 	// how many templates and materials are used.
@@ -89,11 +91,8 @@ CMaterialRef CMaterialManager::CommitMaterial(const VfsPath& path, CTemporaryMat
 		matDbgInfo.nbrMats += itr.second.size();
 	
 	#endif // 1
-	
-	UniformBlockManager& uniformBlockManager = g_Renderer.GetUniformBlockManager();
-	uniformBlockManager.MaterialCommitted(itr->second);
-	
-	return &itr->second;
+
+	return CMaterialRef(&itr->second);
 }
 
 //CMaterial CMaterialManager::LoadMaterial(const VfsPath& pathname)
