@@ -24,6 +24,7 @@
 #include <boost/unordered_set.hpp>
 #include <iomanip>
 
+#include "graphics/MaterialManager.h"
 #include "graphics/TextureConverter.h"
 #include "lib/allocators/shared_ptr.h"
 #include "lib/res/h_mgr.h"
@@ -35,6 +36,7 @@
 #include "ps/CLogger.h"
 #include "ps/Filesystem.h"
 #include "ps/Profile.h"
+#include "renderer/Renderer.h"
 
 struct TPhash
 	 : std::unary_function<CTextureProperties, std::size_t>,
@@ -359,6 +361,7 @@ public:
 					texture->SetHandle(m_ErrorHandle);
 				}
 				texture->m_State = CTexture::LOADED;
+				g_Renderer.GetMaterialManager().OnTextureUpdated(texture.get());
 				return true;
 			}
 		}
@@ -392,6 +395,7 @@ public:
 				if (TryLoadingCached(*it))
 				{
 					(*it)->m_State = CTexture::LOADED;
+					g_Renderer.GetMaterialManager().OnTextureUpdated((*it).get());
 				}
 				else
 				{
@@ -556,6 +560,14 @@ Handle CTexture::GetHandle()
 	return m_Handle;
 }
 
+GLuint64 CTexture::GetBindlessHandle()
+{
+	// TODO: Error handling and make sure the texture is in the right state currently (uploaded).
+	GLuint64 bindlessHandle = 0;
+	ogl_tex_get_bindless_handle(GetHandle(), bindlessHandle);
+	return bindlessHandle;
+}
+
 bool CTexture::TryLoad()
 {
 	// If we haven't started loading, then try loading, and if that fails then request conversion.
@@ -565,7 +577,10 @@ bool CTexture::TryLoad()
 		if (std::shared_ptr<CTexture> self = m_Self.lock())
 		{
 			if (m_State != PREFETCH_NEEDS_CONVERTING && m_TextureManager->TryLoadingCached(self))
+			{
 				m_State = LOADED;
+				g_Renderer.GetMaterialManager().OnTextureUpdated(this);
+			}
 			else
 				m_State = HIGH_NEEDS_CONVERTING;
 		}

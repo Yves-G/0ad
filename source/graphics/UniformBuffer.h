@@ -101,6 +101,7 @@ public:
 	void SetUniform(const UniformBinding& id, CVector2D v, GLuint instanceId);
 	void SetUniform(const UniformBinding& id, float v, GLuint instanceId);
 	inline void SetUniform(const UniformBinding& id, GLuint v, GLuint instanceId);
+	inline void SetUniform(const UniformBinding& id, GLuint64 v, GLuint instanceId);
 	
 	/**
 	 * Sets an instanced array of matrices (array of array of matrices).
@@ -203,6 +204,24 @@ inline void InterfaceBlock::SetUniform(const UniformBinding& id, GLuint v, GLuin
 		ENSURE(*(m_UBOSourceBuffer.data() + offset + k) == 0xFD);
 #endif // DEBUG_UNIFORM_BUFFER
 	*((GLuint*)(m_UBOSourceBuffer.data() + offset)) = v;
+}
+
+// TODO: This is exactly the same code as for GLuint
+inline void InterfaceBlock::SetUniform(const UniformBinding& id, GLuint64 v, GLuint instanceId)
+{
+	//PROFILE3("SetUniform (GLuint)");
+	GLuint offset = GetMemberProp(id.m_UniformId, PROPS::PROP_OFFSET) + GetMemberProp(id.m_UniformId, PROPS::PROP_ARRAY_STRIDE) * instanceId;
+	
+	m_UBODirtyBytes = std::max((size_t)m_UBODirtyBytes, (size_t)(offset + 1 * sizeof(GLuint64)));
+
+	if (m_UBOBlockSize < m_UBODirtyBytes)
+		IncreaseBufferSize(m_UBODirtyBytes);
+
+#if DEBUG_UNIFORM_BUFFER
+	for (int k = 0; k < sizeof(GLuint); ++k)
+		ENSURE(*(m_UBOSourceBuffer.data() + offset + k) == 0xFD);
+#endif // DEBUG_UNIFORM_BUFFER
+	*((GLuint64*)(m_UBOSourceBuffer.data() + offset)) = v;
 }
 
 inline void InterfaceBlock::SetUniform(const UniformBinding& id, CMatrix3D matrix, GLuint instanceId)

@@ -53,6 +53,8 @@ struct ShadowMapInternals
 	GLuint Framebuffer;
 	// handle of shadow map
 	GLuint Texture;
+	// bindless texture handle for shadow map
+	GLuint64 TextureBindless;
 	// width, height of shadow map
 	int Width, Height;
 	// used width, height of shadow map
@@ -361,6 +363,7 @@ void ShadowMapInternals::CreateTexture()
 	{
 		glDeleteTextures(1, &Texture);
 		Texture = 0;
+		TextureBindless = 0;
 	}
 	if (DummyTexture)
 	{
@@ -460,6 +463,9 @@ void ShadowMapInternals::CreateTexture()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 #endif
+
+	TextureBindless = pglGetTextureHandleARB(Texture);
+	pglMakeTextureHandleResidentARB(TextureBindless);
 
 	ogl_WarnIfError();
 
@@ -578,6 +584,11 @@ void ShadowMap::EndRender()
 GLuint ShadowMap::GetTexture() const
 {
 	return m->Texture;
+}
+
+GLuint64 ShadowMap::GetBindlessTexture() const
+{
+	return m->TextureBindless;
 }
 
 const CMatrix3D& ShadowMap::GetTextureMatrix() const

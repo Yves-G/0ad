@@ -1,4 +1,5 @@
 #version 430
+#extension GL_ARB_bindless_texture : require
 
 // TODO: hardcoded maximum buffer sizes are bad
 const int MAX_INSTANCES = 2000;
@@ -11,7 +12,7 @@ out VS_OUT
 } vs_out;
 
  
-layout(shared) uniform FrameUBO
+layout(shared) buffer FrameUBO
 {
 	vec4 sim_time;
 
@@ -29,6 +30,16 @@ layout(shared) uniform FrameUBO
 	vec2 fogParams;	// only used in fragment shader
 
 	vec2 losTransform;
+  	layout (bindless_sampler) sampler2D losTex;
+
+// TODO: It has to be ensured that all blocks in all shaders are the same
+// (they must not have different defines that cause a difference)
+
+  #if USE_SHADOW_SAMPLER
+    layout (bindless_sampler) sampler2DShadow shadowTex;
+  #else
+    layout (bindless_sampler) sampler2D shadowTex;
+  #endif
 
 } frame;
 
@@ -54,6 +65,10 @@ struct MaterialStruct
 {
   uint templateMatId;
   vec3 objectColor;
+  layout (bindless_sampler) sampler2D baseTex;
+  layout (bindless_sampler) sampler2D aoTex;
+  layout (bindless_sampler) sampler2D normTex;
+  layout (bindless_sampler) sampler2D specTex;
 };
 
 layout(shared) buffer MaterialUBO

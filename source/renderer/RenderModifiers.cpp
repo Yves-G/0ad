@@ -129,15 +129,20 @@ void GL4ShaderRenderModifier::SetFrameUniforms()
 
 void GL4ShaderRenderModifier::BeginPass(const CShaderProgramPtr& shader)
 {
-	if (GetShadowMap() && shader->GetTextureBinding(str_shadowTex).Active())
+	UniformBlockManager& uniformBlockManager = g_Renderer.GetUniformBlockManager();
+	CStrIntern frameUBO("FrameUBO");
+	
+	UniformBinding shadowTexBinding = uniformBlockManager.GetBinding(frameUBO, str_shadowTex, false);
+	if (GetShadowMap() && shadowTexBinding.Active())
 	{
-		shader->BindTexture(str_shadowTex, GetShadowMap()->GetTexture());
-	}
+		uniformBlockManager.SetUniform<UniformBlockManager::NOT_INSTANCED>(shadowTexBinding, GetShadowMap()->GetBindlessTexture());
+	}	
 
-	if (shader->GetTextureBinding(str_losTex).Active())
+	UniformBinding losTexBinding = uniformBlockManager.GetBinding(frameUBO, str_losTex, false);
+	if (losTexBinding.Active())
 	{
 		CLOSTexture& los = g_Renderer.GetScene().GetLOSTexture();
-		shader->BindTexture(str_losTex, los.GetTextureSmooth());
+		uniformBlockManager.SetUniform<UniformBlockManager::NOT_INSTANCED>(losTexBinding, los.GetTextureSmoothBindlessHandle());
 	}
 }
 

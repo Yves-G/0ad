@@ -381,6 +381,9 @@ extern Status ogl_tex_get_size(Handle ht, size_t* w, size_t* h, size_t* bpp);
 */
 extern Status ogl_tex_get_format(Handle ht, size_t* flags, GLenum* fmt);
 
+// TODO: Documentation of the function in a comment
+extern Status ogl_tex_get_bindless_handle(Handle ht, GLuint64& bindless_handle);
+
 /**
 * Retrieve pixel data of the texture.
 *

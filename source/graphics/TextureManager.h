@@ -68,6 +68,10 @@ class CTextureManagerImpl;
  * if no archive cache is available then the source file will be converted and stored
  * as a loose cache file on the user's disk.
  */
+ // TODO: For the GL4 renderer, we don't have to bind the textures every time before they
+ // are rendered, so we can't use that as a trigger for on-demand loading. The consequence
+ // is that loading happens for elements that have never been on screen yet.
+ 
 class CTextureManager
 {
 	NONCOPYABLE(CTextureManager);
@@ -257,6 +261,13 @@ public:
 	 * Returns a ogl_tex handle, for later binding. See comments from Bind().
 	 */
 	Handle GetHandle();
+	
+	/** 
+	 * Returns a bindless handle to the texture (ARB_bindless_texture), that can
+	 * be passed to GLSL shaders and used to reference the texture without binding it
+	 * to a texture unit.
+	 */
+	GLuint64 GetBindlessHandle();
 
 	/**
 	 * Attempt to load the texture data quickly, as with Bind().

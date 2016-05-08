@@ -58,9 +58,12 @@ public:
 	 * The texture is in 8-bit ALPHA format.
 	 */
 	GLuint GetTexture();
+	
+	GLuint64 GetTextureBindlessHandle();
 
 	void InterpolateLOS();
 	GLuint GetTextureSmooth();
+	GLuint64 GetTextureSmoothBindlessHandle();
 
 	/**
 	 * Returns a matrix to map (x,y,z) world coordinates onto (u,v) LOS texture
@@ -93,6 +96,8 @@ private:
 
 	GLuint m_Texture;
 	GLuint m_TextureSmooth1, m_TextureSmooth2;
+	GLuint64 m_TextureBindlessHandle;
+	GLuint64 m_TextureSmooth1BindlessHandle, m_TextureSmooth2BindlessHandle;
 	
 	bool whichTex;
 	

@@ -57,6 +57,24 @@
 static bool g_EnableSSE = false;
 #endif
 
+struct SMRBatchModel
+{
+	bool operator()(CModel* a, CModel* b)
+	{
+		if (a->GetModelDef() < b->GetModelDef())
+			return true;
+		if (b->GetModelDef() < a->GetModelDef())
+			return false;
+
+		if (a->GetMaterial()->GetDiffuseTexture() < b->GetMaterial()->GetDiffuseTexture())
+			return true;
+		if (b->GetMaterial()->GetDiffuseTexture() < a->GetMaterial()->GetDiffuseTexture())
+			return false;
+
+		return a->GetMaterial()->GetStaticUniforms() < b->GetMaterial()->GetStaticUniforms();
+	}
+};
+
 void ModelRenderer::Init()
 {
 #if ARCH_X86_X64

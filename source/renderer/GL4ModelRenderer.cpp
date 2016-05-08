@@ -57,6 +57,16 @@
 static bool g_EnableSSE = false;
 #endif
 
+struct SMRBatchModel
+{
+	bool operator()(CModel* a, CModel* b)
+	{
+		if (a->GetModelDef() < b->GetModelDef())
+			return true;
+		return false;
+	}
+};
+
 /*
 void ModelRenderer::Init()
 {
@@ -495,13 +505,6 @@ void GL4ModelRenderer<TGpuSkinning, RenderModifierT>::Render(const CShaderDefine
 		// the per-frame uniforms
 		PrepareUniformBuffers(maxInstancesPerDraw, flags, techBuckets);
 		
-		// This vector keeps track of texture changes during rendering. It is kept outside the
-		// loops to avoid excessive reallocations. The token allocation of 64 elements 
-		// should be plenty, though it is reallocated below (at a cost) if necessary.
-		typedef ProxyAllocator<CTexture*, Allocators::DynamicArena> TextureListAllocator;
-		std::vector<CTexture*, TextureListAllocator> currentTexs((TextureListAllocator(arena)));
-		currentTexs.reserve(64);
-		
 		// texBindings holds the identifier bindings in the shader, which can no longer be defined 
 		// statically in the ShaderRenderModifier class. texBindingNames uses interned strings to
 		// keep track of when bindings need to be reevaluated.
@@ -547,13 +550,6 @@ void GL4ModelRenderer<TGpuSkinning, RenderModifierT>::Render(const CShaderDefine
 
 				m_VertexRenderer->BeginPass(streamflags);
 				
-				// When the shader technique changes, textures need to be
-				// rebound, so ensure there are no remnants from the last pass.
-				// (the vector size is set to 0, but memory is not freed)
-				currentTexs.clear();
-				texBindings.clear();
-				texBindingNames.clear();
-				
 				CModelDef* currentModeldef = NULL;
 				CShaderUniforms currentStaticUniforms;
 
@@ -571,53 +567,6 @@ void GL4ModelRenderer<TGpuSkinning, RenderModifierT>::Render(const CShaderDefine
 
 						if (flags && !(model->GetFlags() & flags))
 							continue;
-
-						const CMaterial::SamplersVector& samplers = model->GetMaterial()->GetSamplers();
-						size_t samplersNum = samplers.size();
-						ogl_WarnIfError();
-						// make sure the vectors are the right virtual sizes, and also
-						// reallocate if there are more samplers than expected.
-						if (currentTexs.size() != samplersNum)
-						{
-							currentTexs.resize(samplersNum, NULL);
-							texBindings.resize(samplersNum, CShaderProgram::Binding());
-							texBindingNames.resize(samplersNum, CStrIntern());
-							
-							// ensure they are definitely empty
-							std::fill(texBindings.begin(), texBindings.end(), CShaderProgram::Binding());
-							std::fill(currentTexs.begin(), currentTexs.end(), (CTexture*)NULL);
-							std::fill(texBindingNames.begin(), texBindingNames.end(), CStrIntern());
-						}
-						
-						ogl_WarnIfError();
-						// bind the samplers to the shader
-						for (size_t s = 0; s < samplersNum; ++s)
-						{
-							const CMaterial::TextureSampler& samp = samplers[s];
-							
-							CShaderProgram::Binding bind = texBindings[s];
-							// check that the handles are current
-							// and reevaluate them if necessary
-							if (texBindingNames[s] == samp.Name && bind.Active())
-							{
-								bind = texBindings[s];
-							}
-							else
-							{
-								bind = shader->GetTextureBinding(samp.Name);
-								texBindings[s] = bind;
-								texBindingNames[s] = samp.Name;
-							}
-
-							// same with the actual sampler bindings
-							CTexture* newTex = samp.Sampler.get();
-							if (bind.Active() && newTex != currentTexs[s])
-							{
-								shader->BindTexture(bind, samp.Sampler->GetHandle());
-								currentTexs[s] = newTex;
-							}
-						}
-						ogl_WarnIfError();
 						
 						// Bind modeldef when it changes
 						CModelDef* newModeldef = model->GetModelDef().get();
@@ -627,17 +576,7 @@ void GL4ModelRenderer<TGpuSkinning, RenderModifierT>::Render(const CShaderDefine
 							m_VertexRenderer->PrepareModelDef(shader, streamflags, *currentModeldef);
 						}
 						ogl_WarnIfError();
-
-						//staticUniforms.SetUniforms(uniformBlockManager);
-						/*
-						// Bind all uniforms when any change
-						CShaderUniforms newStaticUniforms = model->GetMaterial().GetStaticUniforms();
-						if (newStaticUniforms != currentStaticUniforms)
-						{
-							currentStaticUniforms = newStaticUniforms;
-							currentStaticUniforms.BindUniforms(shader);
-						}*/
-						
+	
 						const CShaderRenderQueries& renderQueries = model->GetMaterial()->GetRenderQueries();
 						
 						for (size_t q = 0; q < renderQueries.GetSize(); q++)

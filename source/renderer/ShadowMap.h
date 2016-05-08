@@ -134,6 +134,8 @@ public:
 	 * @return the texture name of the shadow map texture
 	 */
 	GLuint GetTexture() const;
+	
+	GLuint64 GetBindlessTexture() const;
 
 	/**
 	 * GetTextureMatrix: Retrieve the world-space to shadow map texture coordinates

@@ -426,6 +426,9 @@ struct OglTex
 	u16 flags;
 
 	u32 uploaded_size;
+	
+	// handle used with bindless textures
+	GLuint64 tex_handle;
 };
 
 H_TYPE_DEFINE(OglTex);
@@ -443,6 +446,7 @@ static void OglTex_init(OglTex* ot, va_list args)
 
 	state_set_to_defaults(&ot->state);
 	ot->q_flags = default_q_flags;
+	ot->tex_handle = 0;
 }
 
 static void OglTex_dtor(OglTex* ot)
@@ -958,6 +962,11 @@ Status ogl_tex_upload(const Handle ht, GLenum fmt_ovr, int q_flags_ovr, GLint in
 			// otherwise, replays all state changes)
 			state_latch(&ot->state);
 			upload_impl(t, ot->fmt, ot->int_fmt, levels_to_skip, &ot->uploaded_size);
+			
+			// TODO: check for "not set" state of handle?
+			// TODO: what if bindless textures are not supported on the hardware/driver?
+			ot->tex_handle = pglGetTextureHandleARB(ot->id);
+			pglMakeTextureHandleResidentARB(ot->tex_handle);
 		}
 		ogl_WarnIfError();
 
@@ -1012,6 +1021,20 @@ Status ogl_tex_get_format(Handle ht, size_t* flags, GLenum* fmt)
 		ENSURE(ot->flags & OT_IS_UPLOADED);
 		*fmt = ot->fmt;
 	}
+	return INFO::OK;
+}
+
+// retrieve TexFlags and the corresponding OpenGL format.
+// the latter is determined during ogl_tex_upload and is 0 before that.
+// all params are optional and filled if non-NULL.
+Status ogl_tex_get_bindless_handle(Handle ht, GLuint64& bindless_handle)
+{
+	// TODO: think more about error handling
+	H_DEREF(ht, OglTex, ot);
+	ENSURE(ot->flags & OT_IS_UPLOADED);
+	bindless_handle = ot->tex_handle;
+	ENSURE(bindless_handle != 0);
+	
 	return INFO::OK;
 }
 
@@ -1094,6 +1117,7 @@ Status ogl_tex_bind(Handle ht, size_t unit)
 	glEnable(GL_TEXTURE_2D);
 #endif
 	glBindTexture(GL_TEXTURE_2D, ot->id);
+	
 	return INFO::OK;
 }
 

@@ -19,6 +19,8 @@
 #define INCLUDED_MATERIALMANAGER
 
 #include <map>
+#include <boost/bimap/bimap.hpp>
+#include <boost/bimap/multiset_of.hpp>
 #include <set>
 #include <list>
 #include <memory>
@@ -39,6 +41,12 @@ public:
 	
 	void RegisterMaterialRef(const CMaterialRef& matRef);
 	void UnRegisterMaterialRef(const CMaterialRef& matRef);
+	
+	// This function finds all materials using the texture specified by tex and calls the
+	// MaterialTextureChange function/event on them.
+	//
+	// TODO: when this works, think if it would be better to put this into UniformBlockManager.
+	void OnTextureUpdated(CTexture* tex);
 
 private:
 	
@@ -49,6 +57,16 @@ private:
 	// Materials still being modified by some external class and not committed yet
 	std::list<CMaterial> m_TemporaryMaterials;
 	
+	// Textures aren't necessarily loaded when the material is committed. This stores the
+	// mapping between materials and textures for two purposes.
+	// 1. When a texture gets loaded, trigger an event for all materials using that texture
+	// to update the texture handles in the storage block (data for shaders).
+	// 2. When a material gets deleted, efficiently find and delete all associated entries
+	// in m_MatTexLookup.
+	typedef boost::bimaps::bimap<boost::bimaps::multiset_of<CMaterial*>, 
+		boost::bimaps::multiset_of<CTexture*> > MatTexLookupT;
+	MatTexLookupT m_MatTexLookup;
+
 	std::map<size_t, int> m_MatRefCount;
 	
 	float qualityLevel;

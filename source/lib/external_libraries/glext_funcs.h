@@ -370,6 +370,9 @@ FUNC2(void, glGetProgramResourceName, glGetProgramResourceName, "4.3", (GLuint p
 FUNC2(void, glShaderStorageBlockBinding, glShaderStorageBlockBinding, "4.3", (GLuint program, GLuint storageBlockIndex,	GLuint storageBlockBinding))
 FUNC2(GLuint, glGetProgramResourceIndex, glGetProgramResourceIndex, "4.3", (GLuint program, GLenum programInterface, const char* name))
 
+// ARB_bindless_texture / GL4.0
+FUNC(GLuint64, glGetTextureHandleARB, (GLuint texture))
+FUNC(void, glMakeTextureHandleResidentARB, (GLuint64 handle))
 
 // GL_ARB_sync / GL3.2:
 FUNC2(void, glGetInteger64v, glGetInteger64v, "3.2", (GLenum pname, GLint64 *params))

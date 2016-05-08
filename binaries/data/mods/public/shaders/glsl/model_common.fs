@@ -1,5 +1,7 @@
 #version 430
 
+#extension GL_ARB_bindless_texture : require
+
 // TODO: hardcoded maximum buffer sizes are bad
 const int MAX_MATERIAL_TEMPLATES = 2000;
 
@@ -10,7 +12,7 @@ in VS_OUT
 
 out vec4 fragColor;
 
-layout(shared) uniform FrameUBO
+layout(shared) buffer FrameUBO
 {
 	vec4 sim_time;
 
@@ -28,25 +30,21 @@ layout(shared) uniform FrameUBO
 	vec2 fogParams;	// only used in fragment shader
 
 	vec2 losTransform;
+  	layout (bindless_sampler) sampler2D losTex;
+
+// TODO: It has to be ensured that all blocks in all shaders are the same
+// (they must not have different defines that cause a difference)
+
+  #if USE_SHADOW_SAMPLER
+    layout (bindless_sampler) sampler2DShadow shadowTex;
+  #else
+    layout (bindless_sampler) sampler2D shadowTex;
+  #endif
 
 } frame;
 
-uniform sampler2D baseTex;
-uniform sampler2D losTex;
-uniform sampler2D aoTex;
-uniform sampler2D normTex;
-uniform sampler2D specTex;
-
 #if USE_SHADOW
   in vec4 v_shadow;
-  #if USE_SHADOW_SAMPLER
-    uniform sampler2DShadow shadowTex;
-//    #if USE_SHADOW_PCF
-//      uniform vec4 shadowScale;
-//    #endif
-  #else
-    uniform sampler2D shadowTex;
-  #endif
 #endif
 
 // TODO: make block members conditional again
@@ -81,6 +79,10 @@ struct MaterialStruct
 {
   uint templateMatId;
   vec3 objectColor;
+  layout (bindless_sampler) sampler2D baseTex;
+  layout (bindless_sampler) sampler2D aoTex;
+  layout (bindless_sampler) sampler2D normTex;
+  layout (bindless_sampler) sampler2D specTex;
 };
 
 layout(shared) buffer MaterialUBO
@@ -137,17 +139,17 @@ float get_shadow()
         vec4 size = vec4(offset + 1.0, 2.0 - offset);
         vec4 weight = (vec4(1.0, 1.0, -0.5, -0.5) + (v_shadow.xy - 0.5*offset).xyxy) * frame.shadowScale.zwzw;
         return (1.0/9.0)*dot(size.zxzx*size.wwyy,
-          vec4(texture(shadowTex, vec3(weight.zw, biasedShdwZ)).r,
-               texture(shadowTex, vec3(weight.xw, biasedShdwZ)).r,
-               texture(shadowTex, vec3(weight.zy, biasedShdwZ)).r,
-               texture(shadowTex, vec3(weight.xy, biasedShdwZ)).r));
+          vec4(texture(frame.shadowTex, vec3(weight.zw, biasedShdwZ)).r,
+               texture(frame.shadowTex, vec3(weight.xw, biasedShdwZ)).r,
+               texture(frame.shadowTex, vec3(weight.zy, biasedShdwZ)).r,
+               texture(frame.shadowTex, vec3(weight.xy, biasedShdwZ)).r));
       #else
-        return texture(shadowTex, vec3(v_shadow.xy, biasedShdwZ)).r;
+        return texture(frame.shadowTex, vec3(v_shadow.xy, biasedShdwZ)).r;
       #endif
     //#else
     //  if (biasedShdwZ >= 1.0)
     //    return 1.0;
-    //  return (biasedShdwZ < texture2D(shadowTex, v_shadow.xy).x ? 1.0 : 0.0);
+    //  return (biasedShdwZ < texture(frame.shadowTex, v_shadow.xy).x ? 1.0 : 0.0);
     //#endif
   #else
     return 1.0;
@@ -184,7 +186,7 @@ void main()
 
   #if (USE_INSTANCING || USE_GPU_SKINNING) && USE_PARALLAX
   {
-    float h = texture2D(normTex, coord).a;
+    float h = texture(material[materialIDVal].normTex, coord).a;
 
     vec3 eyeDir = normalize(v_eyeVec * tbn);
     float dist = length(v_eyeVec);
@@ -207,19 +209,19 @@ void main()
 		  t = (h < height) ? s : 0.0;
 		  vec2 temp = (h < height) ? move : nil;
 		  coord += temp;
-		  h = texture2D(normTex, coord).a;
+		  h = texture(material[materialIDVal].normTex, coord).a;
 		}
 		  
 		// Move back to where we collided with the surface.  
 		// This assumes the surface is linear between the sample point before we 
 		// intersect the surface and after we intersect the surface
-		float hp = texture2D(normTex, coord - move).a;
+		float hp = texture(material[materialIDVal].normTex, coord - move).a;
 		coord -= move * ((h - height) / (s + h - hp));
 	}
   }
   #endif
 
-  vec4 tex = texture2D(baseTex, coord);
+  vec4 tex = texture(material[materialIDVal].baseTex, coord);
 
   // Alpha-test as early as possible
   #ifdef REQUIRE_ALPHA_GEQUAL
@@ -250,7 +252,7 @@ void main()
   #endif
 
   #if (USE_INSTANCING || USE_GPU_SKINNING) && USE_NORMAL_MAP
-    vec3 ntex = texture2D(normTex, coord).rgb * 2.0 - 1.0;
+    vec3 ntex = texture(material[materialIDVal].normTex, coord).rgb * 2.0 - 1.0;
     ntex.y = -ntex.y;
     normal = normalize(tbn * ntex);
     vec3 bumplight = max(dot(-frame.sunDir, normal), 0.0) * frame.sunColor;
@@ -264,7 +266,7 @@ void main()
     vec3 specCol;
     float specPow;
     #if USE_SPECULAR_MAP
-      vec4 s = texture2D(specTex, coord);
+      vec4 s = texture(material[materialIDVal].specTex, coord);
       specCol = s.rgb;
       specular.a = s.a;
       specPow = effectSettings[matTemplIdVal].y;
@@ -279,7 +281,7 @@ void main()
   vec3 ambColor = texdiffuse * frame.ambient;
 
   #if (USE_INSTANCING || USE_GPU_SKINNING) && USE_AO
-    vec3 ao = texture2D(aoTex, v_tex2).rrr;
+    vec3 ao = texture(material[materialIDVal].aoTex, v_tex2).rrr;
     ao = mix(vec3(1.0), ao * 2.0, effectSettings[matTemplIdVal].w);
     ambColor *= ao;
   #endif
@@ -293,7 +295,7 @@ void main()
   color = get_fog(color);
 
   #if !IGNORE_LOS
-    float los = texture2D(losTex, v_los).a;
+    float los = texture(frame.losTex, v_los).a;
     los = los < 0.03 ? 0.0 : los;
     color *= los;
   #endif

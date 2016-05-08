@@ -60,7 +60,8 @@ static const size_t g_SubTextureAlignment = 4;
 CLOSTexture::CLOSTexture(CSimulation2& simulation)
 	: m_Simulation(simulation), m_Dirty(true), m_ShaderInitialized(false),
 	m_Texture(0), m_TextureSmooth1(0), m_TextureSmooth2(0),  m_smoothFbo(0),
-	m_MapSize(0), m_TextureSize(0), whichTex(true)
+	m_MapSize(0), m_TextureSize(0), whichTex(true), m_TextureBindlessHandle(0),
+	m_TextureSmooth1BindlessHandle(0), m_TextureSmooth2BindlessHandle(0)
 {
 	if (CRenderer::IsInitialised() && g_Renderer.m_Options.m_SmoothLOS)
 		CreateShader();
@@ -128,6 +129,14 @@ GLuint CLOSTexture::GetTextureSmooth()
 		return GetTexture();
 	else
 		return whichTex ? m_TextureSmooth1 : m_TextureSmooth2;
+}
+
+GLuint64 CLOSTexture::GetTextureSmoothBindlessHandle()
+{
+	if (CRenderer::IsInitialised() && !g_Renderer.m_Options.m_SmoothLOS)
+		return GetTextureBindlessHandle();
+	else
+		return whichTex ? m_TextureSmooth1BindlessHandle : m_TextureSmooth2BindlessHandle;
 }
 
 void CLOSTexture::InterpolateLOS()
@@ -229,6 +238,17 @@ GLuint CLOSTexture::GetTexture()
 	return m_Texture;
 }
 
+GLuint64 CLOSTexture::GetTextureBindlessHandle()
+{
+	if (m_Dirty)
+	{
+		RecomputeTexture(0);
+		m_Dirty = false;
+	}
+
+	return m_TextureBindlessHandle;
+}
+
 const CMatrix3D& CLOSTexture::GetTextureMatrix()
 {
 	ENSURE(!m_Dirty);
@@ -269,6 +289,8 @@ void CLOSTexture::ConstructTexture(int unit)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		m_TextureSmooth1BindlessHandle = pglGetTextureHandleARB(m_TextureSmooth1);
+		pglMakeTextureHandleResidentARB(m_TextureSmooth1BindlessHandle);
 
 		g_Renderer.BindTexture(unit, m_TextureSmooth2);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_TextureSize, m_TextureSize, 0, GL_ALPHA, GL_UNSIGNED_BYTE, texData);
@@ -276,6 +298,8 @@ void CLOSTexture::ConstructTexture(int unit)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		m_TextureSmooth2BindlessHandle = pglGetTextureHandleARB(m_TextureSmooth2);
+		pglMakeTextureHandleResidentARB(m_TextureSmooth2BindlessHandle);
 	}
 	
 	g_Renderer.BindTexture(unit, m_Texture);
@@ -284,6 +308,8 @@ void CLOSTexture::ConstructTexture(int unit)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	m_TextureBindlessHandle = pglGetTextureHandleARB(m_Texture);
+	pglMakeTextureHandleResidentARB(m_TextureBindlessHandle);
 	
 	delete[] texData;	
 	

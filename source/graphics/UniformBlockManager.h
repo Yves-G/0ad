@@ -24,6 +24,7 @@
 #include "graphics/UniformBinding.h"
 #include "graphics/UniformBuffer.h"
 #include "graphics/ShaderProgramPtr.h"
+#include "graphics/TextureManager.h"
 
 
 /**
@@ -310,6 +311,11 @@ public:
 			SetMaterialID(model);
 	}
 	// void PlayerIDColorChanged(...); // a color of a player probably can't change in-game
+	
+	void MaterialTextureChanged(const CMaterial& mat)
+	{
+		WriteMaterialTextureData(mat);
+	}
 
 private:
 
@@ -348,9 +354,22 @@ private:
 				SetUniform(binding, material.GetId(), blkVal.Value);
 		}
 		
-		const UniformBinding& binding = GetBinding(CStrIntern("MaterialUBO"), CStrIntern("templateMatId"), true);
+		const UniformBinding& binding = GetBinding(str_MaterialUBO, CStrIntern("templateMatId"), true);
 		if (binding.Active())
 			SetUniform(binding, material.GetId(), (GLuint)material.GetTemplateId());
+
+		WriteMaterialTextureData(material);
+	}
+	
+	void WriteMaterialTextureData(const CMaterial& mat)
+	{
+		const CMaterial::SamplersVector& samplers = mat.GetSamplers();
+		for (const CMaterial::TextureSampler& sampler : samplers)
+		{
+			const UniformBinding& samplerBinding = GetBinding(str_MaterialUBO, sampler.Name, true);
+			if (samplerBinding.Active())
+				SetUniform(samplerBinding, mat.GetId(), sampler.Sampler->GetBindlessHandle());
+		}
 	}
 	
 	void WriteMaterialTemplateValues(const CMaterialTemplate& matTempl)
@@ -381,7 +400,7 @@ private:
 		for (auto* model : m_Models)
 			GenModelData(model, flags);
 	}
-	
+
 	/// data members
 	enum DATA_FLAGS { PLAYER_COLOR = 1, SHADING_COLOR = 2, MATERIAL_ID = 4 };
 	int m_AvailableBindingsFlag;

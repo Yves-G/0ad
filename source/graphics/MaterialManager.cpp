@@ -73,6 +73,10 @@ CMaterialRef CMaterialManager::CommitMaterial(const VfsPath& path, CTemporaryMat
 	{
 		itr = matMap.insert(std::make_pair(materialRef->GetHash(), materialRef.Get())).first;
 		itr->second.m_Id = m_NextFreeMaterialID++;
+		
+		for (const CMaterial::TextureSampler& sampler : itr->second.GetSamplers())
+			m_MatTexLookup.insert(MatTexLookupT::value_type(&itr->second, sampler.Sampler.get()));
+
 		UniformBlockManager& uniformBlockManager = g_Renderer.GetUniformBlockManager();
 		uniformBlockManager.MaterialCommitted(itr->second);
 	}
@@ -307,8 +311,18 @@ void CMaterialManager::UnRegisterMaterialRef(const CMaterialRef& matRef)
 		m_MatRefCount.erase(itr);
 		// TODO: Check if it might be worth to keep the material for a while even though the reference
 		// count reached 0.
+		m_MatTexLookup.left.erase(matRef.m_pMaterial);
 		m_Materials[matRef->GetPath()].erase(h);
 	}
 	else
 		itr->second--;
+}
+
+void CMaterialManager::OnTextureUpdated(CTexture* tex)
+{
+	UniformBlockManager& uniformBlockManager = g_Renderer.GetUniformBlockManager();
+	auto iterPair = m_MatTexLookup.right.equal_range(tex);
+
+	for (auto itr = iterPair.first; itr != iterPair.second; ++itr)
+		uniformBlockManager.MaterialTextureChanged(*itr->second);
 }
