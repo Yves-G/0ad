@@ -204,7 +204,7 @@ public:
 			return binding;
 		}	
 		
-		std::cerr << "GetBinding: not found block name: " << blockName.c_str() << std::endl;
+//		std::cerr << "GetBinding: not found block name: " << blockName.c_str() << std::endl;
 		return binding;
 	}
 	
