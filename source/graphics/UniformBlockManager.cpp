@@ -57,20 +57,13 @@ void UniformBlockManager::InterfaceBlockAdded(const InterfaceBlockIdentifier& bl
 			WriteMaterialTemplateValues(pathMatTemplPair.second);
 	
 	int flags = 0;
-	if (blockIdentifier.Name == m_PlayerColorBlockName)
+
+	if (blockIdentifier.Name == m_ModelBlockName)
 	{
-		flags |= PLAYER_COLOR;
-		m_PlayerColorBinding = GetBinding(m_PlayerColorBlockName, str_playerColor_0, true);
-	}
-	else if (blockIdentifier.Name == m_ShadingColorBlockName)
-	{
-		flags |= SHADING_COLOR;
-		m_ShadingColorBinding = GetBinding(m_ShadingColorBlockName, str_shadingColor_0, true);
-	}
-	else if (blockIdentifier.Name == m_MaterialIDBlockName)
-	{
-		flags |= MATERIAL_ID;
-		m_MaterialIDBinding = GetBinding(m_MaterialIDBlockName, CStrIntern("materialID[0]"), true);
+		flags |= MATERIAL_ID | PLAYER_COLOR | SHADING_COLOR;
+		m_MaterialIDBinding = GetBinding(m_ModelBlockName, CStrIntern("matId"), true);
+		m_PlayerColorBinding = GetBinding(m_ModelBlockName, str_playerColor, true);
+		m_ShadingColorBinding = GetBinding(m_ModelBlockName, str_shadingColor, true);
 	}
 	
 	if(!flags)

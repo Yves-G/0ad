@@ -45,23 +45,30 @@ class CShaderProgram;
  * to the uniform buffer on the GPU.
  *
  * This supports two possible approaches for instancing in shaders:
+ 
+ // TODO:
+ // Actually the first version only works on AMD drivers. Nvidia drivers return a stride of 0 
+ // for GL_TOP_LEVEL_ARRAY_STRIDE if the array is on the top level itself (not packed in a struct).
+ // That's probably a bug in the driver. As a workaround you can pack single members into a struct
+ // too as with the second approach.
+ 
  * 
  * 1. Use a single array, where the index is the instance id
- *     layout(shared) buffer MaterialIDBlock
+ *     layout(shared) buffer ExampleBlock
  *     {
- *         uint materialID[];
+ *         uint valueX[];
  *     };
  *
  * 2. Use an array of structs where the array index is the instance id
- *     struct A
+ *     struct ExampleStruct
  *     {
- *         uint x;
- *         uint y;
+ *         uint valueX;
+ *         uint valueY;
  *     }
  *
- *     layout(shared) buffer MaterialBlock
+ *     layout(shared) buffer ExampleBlock
  *     {
- *         A material[];
+ *         ExampleStruct example[];
  *     };
  *
  * The specification would support more complex blocks with arrays of structs containing arrays and more.

@@ -87,7 +87,7 @@ void GL4InstancingModelRenderer<TGpuSkinning>::PrepareModel(const CShaderProgram
 		UniformBlockManager& uniformBlockManager = g_Renderer.GetUniformBlockManager();
 		CModelDefPtr mdldef = model->GetModelDef();
 		
-		UniformBinding binding = uniformBlockManager.GetBinding(CStrIntern("GPUSkinningUBO"), str_skinBlendMatrices_0, true);
+		UniformBinding binding = uniformBlockManager.GetBinding(CStrIntern("GPUSkinningBlock"), str_skinBlendMatrices, true);
 		uniformBlockManager.SetUniform<UniformBlockManager::MODEL_INSTANCED>(binding, mdldef->GetNumBones() + 1, model->GetAnimatedBoneMatrices());
 	}
 }

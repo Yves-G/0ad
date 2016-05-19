@@ -9,15 +9,15 @@ in VS_OUT
 } fs_in;
 
 // TODO: make block members conditional again
-struct ModelStruct
+struct DrawStruct
 {
   uint modelId;
   mat4 instancingTransform;
 };
 
-layout(shared) buffer ModelBlock
+layout(shared) buffer DrawBlock
 {
-  ModelStruct model[];
+  DrawStruct draws[];
 };
 
 struct MaterialStruct
@@ -35,16 +35,24 @@ layout(shared) buffer MaterialUBO
   MaterialStruct material[];
 };
 
-layout(shared) buffer MaterialIDBlock
+struct ModelStruct
 {
-  uint materialID[];
+  uint matId;
+  vec4 playerColor;
+  vec3 shadingColor;
+};
+
+layout(shared) buffer ModelBlock
+{
+  ModelStruct models[];
 };
 
 in vec2 v_tex;
 
 void main()
 {
-  const uint materialIDVal = materialID[model[fs_in.drawID].modelId];
+  const uint modelIdVal = draws[fs_in.drawID].modelId;
+  const uint materialIDVal = models[modelIdVal].matId;
   vec4 tex = texture2D(material[materialIDVal].baseTex, v_tex);
 
   #ifdef REQUIRE_ALPHA_GEQUAL

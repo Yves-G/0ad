@@ -48,31 +48,27 @@ layout(shared) buffer FrameUBO
 #endif
 
 // TODO: make block members conditional again
-struct ModelStruct
+struct DrawStruct
 {
   uint modelId;
   mat4 instancingTransform;
 };
 
+layout(shared) buffer DrawBlock
+{
+  DrawStruct draws[];
+};
+
+struct ModelStruct
+{
+  uint matId;
+  vec4 playerColor;
+  vec3 shadingColor;
+};
+
 layout(shared) buffer ModelBlock
 {
-  ModelStruct model[];
-};
-
-
-layout(shared) buffer MaterialIDBlock
-{
-  uint materialID[];
-};
-
-layout(shared) buffer PlayerColorBlock
-{
-  vec4 playerColor[];
-};
-
-layout(shared) buffer ShadingColorBlock
-{
-  vec3 shadingColor[];
+  ModelStruct models[];
 };
 
 struct MaterialStruct
@@ -90,20 +86,23 @@ layout(shared) buffer MaterialUBO
   MaterialStruct material[];
 };
 
-layout(shared) buffer MatTemplBlock
+struct MatTemplStruct
 {
-
 //#if USE_SPECULAR
-  float specularPower[MAX_MATERIAL_TEMPLATES];
-  vec3 specularColor[MAX_MATERIAL_TEMPLATES];
+  float specularPower;
+  vec3 specularColor;
 //#endif
 
 //#if USE_NORMAL_MAP || USE_SPECULAR_MAP || USE_PARALLAX || USE_AO
-  vec4 effectSettings[MAX_MATERIAL_TEMPLATES];
+  vec4 effectSettings;
 //#endif
 
-  vec4 windData[MAX_MATERIAL_TEMPLATES];
+  vec4 windData;
+};
 
+layout(shared) buffer MatTemplBlock
+{
+  MatTemplStruct matTempl[];
 };
 
 in vec4 v_lighting;
@@ -174,7 +173,8 @@ vec3 get_fog(vec3 color)
 
 void main()
 {
-  const uint materialIDVal = materialID[model[fs_in.drawID].modelId];
+  const uint modelIdVal = draws[fs_in.drawID].modelId;
+  const uint materialIDVal = models[modelIdVal].matId;
   const uint matTemplIdVal = material[materialIDVal].templateMatId;
 
   vec2 coord = v_tex;
@@ -193,7 +193,7 @@ void main()
 
     vec2 move;
     float height = 1.0;
-    float scale = effectSettings[matTemplIdVal].z;
+    float scale = matTempl[matTemplIdVal].effectSettings.z;
 	  
     int iter = int(min(20, 25.0 - dist/10.0));
 	
@@ -242,7 +242,7 @@ void main()
     texdiffuse *= mix(material[materialIDVal].objectColor, vec3(1.0, 1.0, 1.0), tex.a);
   #else
   #if USE_PLAYERCOLOR
-    texdiffuse *= mix(playerColor[model[fs_in.drawID].modelId].rgb, vec3(1.0, 1.0, 1.0), tex.a);
+    texdiffuse *= mix(models[modelIdVal].playerColor.rgb, vec3(1.0, 1.0, 1.0), tex.a);
   #endif
   #endif
 
@@ -256,7 +256,7 @@ void main()
     ntex.y = -ntex.y;
     normal = normalize(tbn * ntex);
     vec3 bumplight = max(dot(-frame.sunDir, normal), 0.0) * frame.sunColor;
-    vec3 sundiffuse = (bumplight - v_lighting.rgb) * effectSettings[matTemplIdVal].x + v_lighting.rgb;
+    vec3 sundiffuse = (bumplight - v_lighting.rgb) * matTempl[matTemplIdVal].effectSettings.x + v_lighting.rgb;
   #else
     vec3 sundiffuse = v_lighting.rgb;
   #endif
@@ -269,10 +269,10 @@ void main()
       vec4 s = texture(material[materialIDVal].specTex, coord);
       specCol = s.rgb;
       specular.a = s.a;
-      specPow = effectSettings[matTemplIdVal].y;
+      specPow = matTempl[matTemplIdVal].effectSettings.y;
     #else
-      specCol = specularColor[matTemplIdVal];
-      specPow = specularPower[matTemplIdVal];
+      specCol = matTempl[matTemplIdVal].specularColor;
+      specPow = matTempl[matTemplIdVal].specularPower;
     #endif
     specular.rgb = frame.sunColor * specCol * pow(max(0.0, dot(normalize(normal), v_half)), specPow);
   #endif
@@ -282,7 +282,7 @@ void main()
 
   #if (USE_INSTANCING || USE_GPU_SKINNING) && USE_AO
     vec3 ao = texture(material[materialIDVal].aoTex, v_tex2).rrr;
-    ao = mix(vec3(1.0), ao * 2.0, effectSettings[matTemplIdVal].w);
+    ao = mix(vec3(1.0), ao * 2.0, matTempl[matTemplIdVal].effectSettings.w);
     ambColor *= ao;
   #endif
 
@@ -300,7 +300,7 @@ void main()
     color *= los;
   #endif
 
-  color *= shadingColor[model[fs_in.drawID].modelId];
+  color *= models[modelIdVal].shadingColor;
 
   fragColor.rgb = color;
 }

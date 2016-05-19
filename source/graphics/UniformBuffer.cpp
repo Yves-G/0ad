@@ -308,7 +308,7 @@ void InterfaceBlock::Upload()
 {
 	ENSURE(m_UBOBlockSize >= m_UBODirtyBytes);
 	/*
-	if (m_BlockName.string() == "ModelBlock")
+	if (m_BlockName.string() == "DrawBlock")
 	{
 		std::ofstream myfile;
 		myfile.open ("dumpfile.txt", std::fstream::out | std::fstream::app);

@@ -41,21 +41,29 @@ layout(shared) buffer FrameUBO
 
 
 // TODO: make block members conditional again
-struct ModelStruct
+struct DrawStruct
 {
   uint modelId;
   mat4 instancingTransform;
 };
 
-layout(shared) buffer ModelBlock
+layout(shared) buffer DrawBlock
 {
-  ModelStruct model[];
+  DrawStruct draws[];
 };
 
-layout(shared) buffer PlayerColorBlock
+struct ModelStruct
 {
-  vec4 playerColor[];
+  uint matId;
+  vec4 playerColor;
+  vec3 shadingColor;
 };
+
+layout(shared) buffer ModelBlock
+{
+  ModelStruct models[];
+};
+
 
 vec3 get_fog(vec3 color)
 {
@@ -75,6 +83,6 @@ vec3 get_fog(vec3 color)
 
 void main()
 {
-	const uint modelId = model[fs_in.drawID].modelId;
-	fragColor = vec4(get_fog(playerColor[modelId].rgb), playerColor[modelId].a);
+	const uint modelIdVal = draws[fs_in.drawID].modelId;
+	fragColor = vec4(get_fog(models[modelIdVal].playerColor.rgb), models[modelIdVal].playerColor.a);
 }

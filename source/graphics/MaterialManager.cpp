@@ -251,10 +251,9 @@ CMaterialTemplate* CMaterialManager::LoadMaterialTemplate(const VfsPath& pathnam
 			{
 				bool isInstanced = attrs.GetNamedItem(at_instanced).ToInt();
 
-				// For block uniforms, we automatically convert to array type
 				// TODO: Remove "isInstanced?"
 				matTempl.AddBlockValueAssignment(CStrIntern(blockName),
-				  CStrIntern(attrs.GetNamedItem(at_name).append("[0]").c_str()),
+				  CStrIntern(attrs.GetNamedItem(at_name).c_str()),
 				  vec);
 			}			                  
 		}

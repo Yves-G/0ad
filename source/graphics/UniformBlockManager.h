@@ -46,9 +46,7 @@ public:
 		m_MaxSSBOBindings(0),
 		m_CurrentInstance(0),
 		m_AvailableBindingsFlag(0),
-		m_PlayerColorBlockName("PlayerColorBlock"),
-		m_ShadingColorBlockName("ShadingColorBlock"),
-		m_MaterialIDBlockName("MaterialIDBlock")
+		m_ModelBlockName("ModelBlock")
 	{
 	}
 	
@@ -407,9 +405,7 @@ private:
 	std::set<CModelAbstract*> m_Models;
 
 	// TODO: Add this to where the other static CStrIntern are defined
-	const CStrIntern m_PlayerColorBlockName;
-	const CStrIntern m_ShadingColorBlockName;
-	const CStrIntern m_MaterialIDBlockName;
+	const CStrIntern m_ModelBlockName;
 	UniformBinding m_PlayerColorBinding;
 	UniformBinding m_ShadingColorBinding;
 	UniformBinding m_MaterialIDBinding;

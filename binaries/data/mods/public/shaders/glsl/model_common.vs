@@ -44,21 +44,27 @@ layout(shared) buffer FrameUBO
 } frame;
 
 // TODO: make block members conditional again
-struct ModelStruct
+struct DrawStruct
 {
   uint modelId;
   mat4 instancingTransform;
 };
 
-layout(shared) buffer ModelBlock
+layout(shared) buffer DrawBlock
 {
-  ModelStruct model[];
+  DrawStruct draws[];
 };
 
-
-layout(shared) buffer MaterialIDBlock
+struct ModelStruct
 {
-  uint materialID[];
+  uint matId;
+  vec4 playerColor;
+  vec3 shadingColor;
+};
+
+layout(shared) buffer ModelBlock
+{
+  ModelStruct models[];
 };
 
 struct MaterialStruct
@@ -76,20 +82,23 @@ layout(shared) buffer MaterialUBO
   MaterialStruct material[];
 };
 
-layout(shared) buffer MatTemplBlock
+struct MatTemplStruct
 {
-
 //#if USE_SPECULAR
-  float specularPower[MAX_MATERIAL_TEMPLATES];
-  vec3 specularColor[MAX_MATERIAL_TEMPLATES];
+  float specularPower;
+  vec3 specularColor;
 //#endif
 
 //#if USE_NORMAL_MAP || USE_SPECULAR_MAP || USE_PARALLAX || USE_AO
-  vec4 effectSettings[MAX_MATERIAL_TEMPLATES];
+  vec4 effectSettings;
 //#endif
 
-  vec4 windData[MAX_MATERIAL_TEMPLATES];
+  vec4 windData;
+};
 
+layout(shared) buffer MatTemplBlock
+{
+  MatTemplStruct matTempl[];
 };
 
 
@@ -127,16 +136,23 @@ in vec3 a_normal;
 in vec2 a_uv0;
 in vec2 a_uv1;
 
+struct GPUSkinningStruct
+{
+  mat4 skinBlendMatrices;
+};
+
 #if USE_GPU_SKINNING
   const int MAX_INFLUENCES = 4;
   const int MAX_BONES = 64;
 
-  // skindBlendMatrices could be set to a fixed size (MAX_INSTANCES * MAX_BONES), but the Nvidia drivers have a bug
+  // TODO: skindBlendMatrices could be set to a fixed size (MAX_INSTANCES * MAX_BONES), but the Nvidia drivers have a bug
   // that causes terribly long (tens of minutes) linking times when large fixed size SSBOs are used.
-  buffer GPUSkinningUBO 
+  // TODO: Nvidia drivers return a stride of 0 with GL_TOP_LEVEL_ARRAY_STRIDE if the array is on the top level
+  // itself (not packed in a struct). That's probably wrong, but we pack it in a struct as a workaround.
+  buffer GPUSkinningBlock 
   {
-    mat4 skinBlendMatrices[]; 
-  } gpuSkinning;
+    GPUSkinningStruct gpuSkinning[]; 
+  };
   in vec4 a_skinJoints;
   in vec4 a_skinWeights;
 #endif
@@ -151,10 +167,11 @@ vec4 fakeCos(vec4 x)
 
 void main()
 {
-  const uint materialIDVal = materialID[model[drawID].modelId];
+  const uint modelIdVal = draws[drawID].modelId;
+  const uint materialIDVal = models[modelIdVal].matId;
   const uint matTemplIdVal = material[materialIDVal].templateMatId;
 
-//mat4 model[drawID].instancingTransform = mat4(1.0, 0,   0,   0,
+//mat4 draws[drawID].instancingTransform = mat4(1.0, 0,   0,   0,
 //                        0  , 1.0, 0,   0,
 //                        0  , 0,   1.0, 0,
 //                        200, 200, 300, 1.0);
@@ -162,7 +179,7 @@ void main()
   vs_out.drawID = drawID;
 
 #if 0
-  if (vec2(1.0, 1.0) != windData[matTemplIdVal].xy)
+  if (vec2(1.0, 1.0) != matTempl[matTemplIdVal].windData.xy)
   {
 	const vec4 vertices[] = vec4[](vec4( 0.25+materialIDVal*0.05, -0.25, 0.5, 1.0),
                                        vec4( 0.25+materialIDVal*0.05,  0.25, 0.5, 1.0),
@@ -172,7 +189,7 @@ void main()
         //                               vec4(-0.25, -0.25, 0.1, 1.0));
 	if (gl_VertexID < 3)
 	{
-        	gl_Position = vertices[gl_VertexID] * mat4(1.0); //model[drawID].instancingTransform;
+        	gl_Position = vertices[gl_VertexID] * mat4(1.0); //draws[drawID].instancingTransform;
 	}
 	return;
   }
@@ -184,21 +201,21 @@ void main()
     for (int i = 0; i < MAX_INFLUENCES; ++i) {
       int joint = int(a_skinJoints[i]);
       if (joint != 0xff) {
-        mat4 m = gpuSkinning.skinBlendMatrices[drawID * MAX_BONES + joint];
+        mat4 m = gpuSkinning[drawID * MAX_BONES + joint].skinBlendMatrices;
         p += vec3(m * vec4(a_vertex, 1.0)) * a_skinWeights[i];
         n += vec3(m * vec4(a_normal, 0.0)) * a_skinWeights[i];
       }
     }
-    vec4 position = model[drawID].instancingTransform * vec4(p, 1.0);
-    mat3 normalMatrix = mat3(model[drawID].instancingTransform[0].xyz, model[drawID].instancingTransform[1].xyz, model[drawID].instancingTransform[2].xyz);
+    vec4 position = draws[drawID].instancingTransform * vec4(p, 1.0);
+    mat3 normalMatrix = mat3(draws[drawID].instancingTransform[0].xyz, draws[drawID].instancingTransform[1].xyz, draws[drawID].instancingTransform[2].xyz);
     vec3 normal = normalMatrix * normalize(n);
     #if (USE_NORMAL_MAP || USE_PARALLAX)
       vec3 tangent = normalMatrix * a_tangent.xyz;
     #endif
   #else
   #if (USE_INSTANCING)
-    vec4 position = model[drawID].instancingTransform * vec4(a_vertex, 1.0);
-    mat3 normalMatrix = mat3(model[drawID].instancingTransform[0].xyz, model[drawID].instancingTransform[1].xyz, model[drawID].instancingTransform[2].xyz);
+    vec4 position = draws[drawID].instancingTransform * vec4(a_vertex, 1.0);
+    mat3 normalMatrix = mat3(draws[drawID].instancingTransform[0].xyz, draws[drawID].instancingTransform[1].xyz, draws[drawID].instancingTransform[2].xyz);
     vec3 normal = normalMatrix * a_normal;
     #if (USE_NORMAL_MAP || USE_PARALLAX)
       vec3 tangent = normalMatrix * a_tangent.xyz;
@@ -211,10 +228,10 @@ void main()
 
 
   #if USE_WIND
-    vec2 wind = windData[matTemplIdVal].xy;
+    vec2 wind = matTempl[matTemplIdVal].windData.xy;
 
     // fractional part of model position, clamped to >.4
-    vec4 modelPos = model[drawID].instancingTransform[3];
+    vec4 modelPos = draws[drawID].instancingTransform[3];
     modelPos = fract(modelPos);
     modelPos = clamp(modelPos, 0.4, 1.0);
 
@@ -225,7 +242,7 @@ void main()
     // these determine the speed of the wind's "cosine" waves.
     cosVec.w = 0.0;
     cosVec.x = frame.sim_time.x * modelPos[0] + position.x;
-    cosVec.y = frame.sim_time.x * modelPos[2] / 3.0 + model[drawID].instancingTransform[3][0];
+    cosVec.y = frame.sim_time.x * modelPos[2] / 3.0 + draws[drawID].instancingTransform[3][0];
     cosVec.z = frame.sim_time.x * abswind / 4.0 + position.z;
 
     // calculate "cosines" in parallel, using a smoothed triangle wave
