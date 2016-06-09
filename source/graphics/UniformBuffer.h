@@ -45,13 +45,6 @@ class CShaderProgram;
  * to the uniform buffer on the GPU.
  *
  * This supports two possible approaches for instancing in shaders:
- 
- // TODO:
- // Actually the first version only works on AMD drivers. Nvidia drivers return a stride of 0 
- // for GL_TOP_LEVEL_ARRAY_STRIDE if the array is on the top level itself (not packed in a struct).
- // That's probably a bug in the driver. As a workaround you can pack single members into a struct
- // too as with the second approach.
- 
  * 
  * 1. Use a single array, where the index is the instance id
  *     layout(shared) buffer ExampleBlock
@@ -70,6 +63,9 @@ class CShaderProgram;
  *     {
  *         ExampleStruct example[];
  *     };
+ *
+ * Using the overload with a CMatrix3D* type is a special case. It uses the first approach, but leaves
+ * space for up to 64 matrices for each instance.
  *
  * The specification would support more complex blocks with arrays of structs containing arrays and more.
  * This is not supported by this code.
@@ -146,17 +142,13 @@ private:
 	std::vector<int> m_UniformTypes;
 	std::vector<GLuint> m_UniformIndices;
 	
-	// We just use GL_TOP_LEVEL_ARRAY_STRIDE instead of GL_ARRAY_STRIDE for SSBOs to
-	// support arrays of structs.
-	static const GLenum MemberPropsUBO[];
-	static const GLenum MemberPropsSSBO[];
-	
 	enum PROPS { PROP_OFFSET, PROP_ARRAY_STRIDE, PROP_MATRIX_STRIDE, COUNT };
 	std::vector<GLint> m_MemberProps;
 	
 	// The data is laid out so that data for one member are stored together.
 	// This might theoretically improve caching
 	inline GLint GetMemberProp(int memberIx, PROPS prop) { return m_MemberProps[memberIx * PROPS::COUNT + prop]; }
+	inline void SetMemberProp(int memberIx, PROPS prop, GLint value) { m_MemberProps[memberIx * PROPS::COUNT + prop] = value; }
 	
 	void IncreaseBufferSize(GLint minRequiredBlockSize)
 	{

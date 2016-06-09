@@ -136,23 +136,16 @@ in vec3 a_normal;
 in vec2 a_uv0;
 in vec2 a_uv1;
 
-struct GPUSkinningStruct
-{
-  mat4 skinBlendMatrices;
-};
-
 #if USE_GPU_SKINNING
   const int MAX_INFLUENCES = 4;
   const int MAX_BONES = 64;
 
   // TODO: skindBlendMatrices could be set to a fixed size (MAX_INSTANCES * MAX_BONES), but the Nvidia drivers have a bug
   // that causes terribly long (tens of minutes) linking times when large fixed size SSBOs are used.
-  // TODO: Nvidia drivers return a stride of 0 with GL_TOP_LEVEL_ARRAY_STRIDE if the array is on the top level
-  // itself (not packed in a struct). That's probably wrong, but we pack it in a struct as a workaround.
   buffer GPUSkinningBlock 
   {
-    GPUSkinningStruct gpuSkinning[]; 
-  };
+    mat4 skinBlendMatrices[];
+  } gpuSkinning;
   in vec4 a_skinJoints;
   in vec4 a_skinWeights;
 #endif
@@ -201,7 +194,7 @@ void main()
     for (int i = 0; i < MAX_INFLUENCES; ++i) {
       int joint = int(a_skinJoints[i]);
       if (joint != 0xff) {
-        mat4 m = gpuSkinning[drawID * MAX_BONES + joint].skinBlendMatrices;
+        mat4 m = gpuSkinning.skinBlendMatrices[drawID * MAX_BONES + joint];
         p += vec3(m * vec4(a_vertex, 1.0)) * a_skinWeights[i];
         n += vec3(m * vec4(a_normal, 0.0)) * a_skinWeights[i];
       }

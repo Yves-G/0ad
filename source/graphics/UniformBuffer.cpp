@@ -27,9 +27,6 @@
 
 #include <fstream>
 
-const GLenum InterfaceBlock::MemberPropsUBO[] = { GL_OFFSET, GL_ARRAY_STRIDE, GL_MATRIX_STRIDE };
-const GLenum InterfaceBlock::MemberPropsSSBO[] = { GL_OFFSET, GL_TOP_LEVEL_ARRAY_STRIDE, GL_MATRIX_STRIDE };
-
 InterfaceBlock::InterfaceBlock(GLuint program, const InterfaceBlockIdentifier& blockIdentifier, const int interfaceBlockType) :
 	m_UBOSourceBuffer(),
 	m_BlockName(blockIdentifier.Name),
@@ -37,25 +34,20 @@ InterfaceBlock::InterfaceBlock(GLuint program, const InterfaceBlockIdentifier& b
 	m_InterfaceBlockType(interfaceBlockType),
 	m_BufferResized(false)
 {
-	const GLenum* memberProps;
 	if (interfaceBlockType == GL_UNIFORM_BLOCK)
 	{
 		m_MemberBufferType = GL_UNIFORM_BUFFER;
 		m_MemberType = GL_UNIFORM;
-		memberProps = &MemberPropsUBO[0];
 	}
 	else if (interfaceBlockType == GL_SHADER_STORAGE_BLOCK)
 	{
 		m_MemberBufferType = GL_SHADER_STORAGE_BUFFER;
 		m_MemberType = GL_BUFFER_VARIABLE;
-		memberProps = &MemberPropsSSBO[0];
 	}
 	
 	
 	const GLenum blockProperties[1] = { GL_NUM_ACTIVE_VARIABLES };
 	const GLenum activeUnifProp[1] = { GL_ACTIVE_VARIABLES };
-	const int numTempMembers = 2;
-	const GLenum tmpMemberProps[numTempMembers] { GL_NAME_LENGTH, GL_TYPE };
 	GLint numActiveUnifs = 0;
 	
 	pglGetProgramResourceiv(program, interfaceBlockType, blockIdentifier.ID, 1, blockProperties, 1, NULL, &numActiveUnifs);
@@ -67,23 +59,62 @@ InterfaceBlock::InterfaceBlock(GLuint program, const InterfaceBlockIdentifier& b
 	pglGetProgramResourceiv(program, interfaceBlockType, blockIdentifier.ID, 1, activeUnifProp, numActiveUnifs, NULL, (GLint*)&m_UniformIndices[0]);
 	
 	m_MemberProps.resize(numActiveUnifs * PROPS::COUNT);
+
+	enum TmpProp
+	{
+		TMP_PROP_NAME_LENGTH,
+		TMP_PROP_TYPE,
+		TMP_PROP_OFFSET,
+		TMP_PROP_ARRAY_STRIDE,
+		TMP_PROP_MATRIX_STRIDE,
+		TMP_PROP_TOP_LEVEL_ARRAY_STRIDE
+	};
+	std::vector<GLenum> tmpMemberProps = { GL_NAME_LENGTH, GL_TYPE, GL_OFFSET, GL_ARRAY_STRIDE, GL_MATRIX_STRIDE };
+	int numTempMembers = 5;
+	if (interfaceBlockType == GL_SHADER_STORAGE_BLOCK)
+	{
+		numTempMembers++;
+		tmpMemberProps.push_back(GL_TOP_LEVEL_ARRAY_STRIDE);
+	}
+
 	std::vector<GLint> tmpMemberValues(numTempMembers);
+
 	for(int unifIx = 0; unifIx < numActiveUnifs; ++unifIx)
 	{
 		pglGetProgramResourceiv(program, m_MemberType,
-			m_UniformIndices[unifIx], PROPS::COUNT,
-			memberProps, PROPS::COUNT,
-			NULL, &m_MemberProps[unifIx * PROPS::COUNT]);
-		
-		pglGetProgramResourceiv(program, m_MemberType,
 			m_UniformIndices[unifIx], numTempMembers,
-			tmpMemberProps, numTempMembers,
+			&tmpMemberProps[0], numTempMembers,
 			NULL, &tmpMemberValues[0]);
-			
-		m_UniformTypes.emplace_back(tmpMemberValues[1]);
 		
-		std::vector<char> nameData(tmpMemberValues[0]);
+		SetMemberProp(unifIx, PROPS::PROP_OFFSET, tmpMemberValues[TMP_PROP_OFFSET]);
+		SetMemberProp(unifIx, PROPS::PROP_MATRIX_STRIDE, tmpMemberValues[TMP_PROP_MATRIX_STRIDE]);
 		
+		if (interfaceBlockType == GL_SHADER_STORAGE_BLOCK)
+		{
+			// Nvidia drivers return a stride of 0 for GL_TOP_LEVEL_ARRAY_STRIDE if the array is on the top level 
+			// itself (not packed in a struct). That's probably a bug in the driver.
+			// To make it work regardless of the driver, the following approach is used:
+			//   - We don't allow nested arrays for simplicity reasons anyway, so we only really need 
+			//     the TOP_LEVEL_ARRAY_STRIDE.
+			//   - However, if TOP_LEVEL_ARRAY_STRIDE is 0 and ARRAY_STRIDE is greater than 0, we use
+			//     ARRAY_STRIDE instead (that's the Nvidia case).
+			// TODO: Check again in the future if this got fixed in Nvidia drivers.
+
+			// TODO: Error handling if someone uses nested arrays
+
+			if (tmpMemberValues[TMP_PROP_ARRAY_STRIDE] > 0 && tmpMemberValues[TMP_PROP_TOP_LEVEL_ARRAY_STRIDE] == 0)
+				SetMemberProp(unifIx, PROPS::PROP_ARRAY_STRIDE, tmpMemberValues[TMP_PROP_ARRAY_STRIDE]);
+			else
+				SetMemberProp(unifIx, PROPS::PROP_ARRAY_STRIDE, tmpMemberValues[TMP_PROP_TOP_LEVEL_ARRAY_STRIDE]);
+
+		}
+		else if(interfaceBlockType == GL_UNIFORM_BLOCK)
+		{
+			SetMemberProp(unifIx, PROPS::PROP_ARRAY_STRIDE, tmpMemberValues[TMP_PROP_ARRAY_STRIDE]);
+		}
+
+		m_UniformTypes.emplace_back(tmpMemberValues[TMP_PROP_TYPE]);
+		std::vector<char> nameData(tmpMemberValues[TMP_PROP_NAME_LENGTH]);
 		pglGetProgramResourceName(program, m_MemberType, m_UniformIndices[unifIx], nameData.size(), NULL, &nameData[0]);
 		// uniform names have the form blockName.uniformName, but we just want the uniformName part
 		auto it = std::find(nameData.begin(), nameData.end(), '.');
