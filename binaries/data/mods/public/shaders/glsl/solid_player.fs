@@ -37,7 +37,7 @@ layout(shared) buffer FrameUBO
     layout (bindless_sampler) sampler2D shadowTex;
   #endif
 
-} frame;
+};
 
 
 // TODO: make block members conditional again
@@ -67,8 +67,8 @@ layout(shared) buffer ModelBlock
 
 vec3 get_fog(vec3 color)
 {
-	float density = frame.fogParams.x;
-	float maxFog = frame.fogParams.y;
+	float density = fogParams.x;
+	float maxFog = fogParams.y;
 	
 	const float LOG2 = 1.442695;
 	float z = gl_FragCoord.z / gl_FragCoord.w;
@@ -78,7 +78,7 @@ vec3 get_fog(vec3 color)
 	
 	fogFactor = clamp(fogFactor, 0.0, 1.0);
 	
-	return mix(frame.fogColor, color, fogFactor);
+	return mix(fogColor, color, fogFactor);
 }
 
 void main()

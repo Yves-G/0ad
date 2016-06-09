@@ -41,7 +41,7 @@ layout(shared) buffer FrameUBO
     layout (bindless_sampler) sampler2D shadowTex;
   #endif
 
-} frame;
+};
 
 // TODO: make block members conditional again
 struct DrawStruct
@@ -241,9 +241,9 @@ void main()
     vec4 cosVec;
     // these determine the speed of the wind's "cosine" waves.
     cosVec.w = 0.0;
-    cosVec.x = frame.sim_time.x * modelPos[0] + position.x;
-    cosVec.y = frame.sim_time.x * modelPos[2] / 3.0 + draws[drawID].instancingTransform[3][0];
-    cosVec.z = frame.sim_time.x * abswind / 4.0 + position.z;
+    cosVec.x = sim_time.x * modelPos[0] + position.x;
+    cosVec.y = sim_time.x * modelPos[2] / 3.0 + draws[drawID].instancingTransform[3][0];
+    cosVec.z = sim_time.x * abswind / 4.0 + position.z;
 
     // calculate "cosines" in parallel, using a smoothed triangle wave
     cosVec = fakeCos(cosVec);
@@ -261,7 +261,7 @@ void main()
   #endif
 
 
-  gl_Position = frame.transform * position;
+  gl_Position = transform * position;
 
   #if USE_SPECULAR || USE_NORMAL_MAP || USE_SPECULAR_MAP || USE_PARALLAX
     v_normal.xyz = normal;
@@ -275,9 +275,9 @@ void main()
     #endif
 
     #if USE_SPECULAR || USE_SPECULAR_MAP || USE_PARALLAX
-      vec3 eyeVec = frame.cameraPos.xyz - position.xyz;
+      vec3 eyeVec = cameraPos.xyz - position.xyz;
       #if USE_SPECULAR || USE_SPECULAR_MAP     
-        vec3 sunVec = -frame.sunDir;
+        vec3 sunVec = -sunDir;
         v_half = normalize(sunVec + normalize(eyeVec));
       #endif
       #if (USE_INSTANCING || USE_GPU_SKINNING) && USE_PARALLAX
@@ -286,7 +286,7 @@ void main()
     #endif
   #endif
   
-  v_lighting.xyz = max(0.0, dot(normal, -frame.sunDir)) * frame.sunColor;
+  v_lighting.xyz = max(0.0, dot(normal, -sunDir)) * sunColor;
 
   v_tex = a_uv0;
 
@@ -295,12 +295,12 @@ void main()
   #endif
 
   #if USE_SHADOW
-    v_shadow = frame.shadowTransform * position;
+    v_shadow = shadowTransform * position;
     #if USE_SHADOW_SAMPLER && USE_SHADOW_PCF
-      v_shadow.xy *= frame.shadowScale.xy;
+      v_shadow.xy *= shadowScale.xy;
     #endif  
   #endif
 
-  v_los = position.xz * frame.losTransform.x + frame.losTransform.y;
+  v_los = position.xz * losTransform.x + losTransform.y;
 
 }

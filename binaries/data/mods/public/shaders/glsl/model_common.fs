@@ -41,7 +41,7 @@ layout(shared) buffer FrameUBO
     layout (bindless_sampler) sampler2D shadowTex;
   #endif
 
-} frame;
+};
 
 #if USE_SHADOW
   in vec4 v_shadow;
@@ -136,19 +136,19 @@ float get_shadow()
       #if USE_SHADOW_PCF
         vec2 offset = fract(v_shadow.xy - 0.5);
         vec4 size = vec4(offset + 1.0, 2.0 - offset);
-        vec4 weight = (vec4(1.0, 1.0, -0.5, -0.5) + (v_shadow.xy - 0.5*offset).xyxy) * frame.shadowScale.zwzw;
+        vec4 weight = (vec4(1.0, 1.0, -0.5, -0.5) + (v_shadow.xy - 0.5*offset).xyxy) * shadowScale.zwzw;
         return (1.0/9.0)*dot(size.zxzx*size.wwyy,
-          vec4(texture(frame.shadowTex, vec3(weight.zw, biasedShdwZ)).r,
-               texture(frame.shadowTex, vec3(weight.xw, biasedShdwZ)).r,
-               texture(frame.shadowTex, vec3(weight.zy, biasedShdwZ)).r,
-               texture(frame.shadowTex, vec3(weight.xy, biasedShdwZ)).r));
+          vec4(texture(shadowTex, vec3(weight.zw, biasedShdwZ)).r,
+               texture(shadowTex, vec3(weight.xw, biasedShdwZ)).r,
+               texture(shadowTex, vec3(weight.zy, biasedShdwZ)).r,
+               texture(shadowTex, vec3(weight.xy, biasedShdwZ)).r));
       #else
-        return texture(frame.shadowTex, vec3(v_shadow.xy, biasedShdwZ)).r;
+        return texture(shadowTex, vec3(v_shadow.xy, biasedShdwZ)).r;
       #endif
     //#else
     //  if (biasedShdwZ >= 1.0)
     //    return 1.0;
-    //  return (biasedShdwZ < texture(frame.shadowTex, v_shadow.xy).x ? 1.0 : 0.0);
+    //  return (biasedShdwZ < texture(shadowTex, v_shadow.xy).x ? 1.0 : 0.0);
     //#endif
   #else
     return 1.0;
@@ -157,8 +157,8 @@ float get_shadow()
 
 vec3 get_fog(vec3 color)
 {
-  float density = frame.fogParams.x;
-  float maxFog = frame.fogParams.y;
+  float density = fogParams.x;
+  float maxFog = fogParams.y;
 
   const float LOG2 = 1.442695;
   float z = gl_FragCoord.z / gl_FragCoord.w;
@@ -168,7 +168,7 @@ vec3 get_fog(vec3 color)
 
   fogFactor = clamp(fogFactor, 0.0, 1.0);
 
-  return mix(frame.fogColor, color, fogFactor);
+  return mix(fogColor, color, fogFactor);
 }
 
 void main()
@@ -255,7 +255,7 @@ void main()
     vec3 ntex = texture(material[materialIDVal].normTex, coord).rgb * 2.0 - 1.0;
     ntex.y = -ntex.y;
     normal = normalize(tbn * ntex);
-    vec3 bumplight = max(dot(-frame.sunDir, normal), 0.0) * frame.sunColor;
+    vec3 bumplight = max(dot(-sunDir, normal), 0.0) * sunColor;
     vec3 sundiffuse = (bumplight - v_lighting.rgb) * matTempl[matTemplIdVal].effectSettings.x + v_lighting.rgb;
   #else
     vec3 sundiffuse = v_lighting.rgb;
@@ -274,11 +274,11 @@ void main()
       specCol = matTempl[matTemplIdVal].specularColor;
       specPow = matTempl[matTemplIdVal].specularPower;
     #endif
-    specular.rgb = frame.sunColor * specCol * pow(max(0.0, dot(normalize(normal), v_half)), specPow);
+    specular.rgb = sunColor * specCol * pow(max(0.0, dot(normalize(normal), v_half)), specPow);
   #endif
 
   vec3 color = (texdiffuse * sundiffuse + specular.rgb) * get_shadow();
-  vec3 ambColor = texdiffuse * frame.ambient;
+  vec3 ambColor = texdiffuse * ambient;
 
   #if (USE_INSTANCING || USE_GPU_SKINNING) && USE_AO
     vec3 ao = texture(material[materialIDVal].aoTex, v_tex2).rrr;
@@ -295,7 +295,7 @@ void main()
   color = get_fog(color);
 
   #if !IGNORE_LOS
-    float los = texture(frame.losTex, v_los).a;
+    float los = texture(losTex, v_los).a;
     los = los < 0.03 ? 0.0 : los;
     color *= los;
   #endif
