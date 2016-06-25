@@ -145,6 +145,18 @@ CMaterialTemplate* CMaterialManager::LoadMaterialTemplate(const VfsPath& pathnam
 
 	CMaterialTemplate matTempl;
 	matTempl.SetPath(pathname);
+
+	// Template IDs are used to uniquely identify an element (usually a struct with
+	// mutliple members) in a block. Material templates can define elements of multiple
+	// different blocks, so this ID has to be unique across all blocks.
+	// The downside is that this results in unused space (wasted memory) if more than one
+	// blocks are used and if not all blocks are used by all materials. This is the normal
+	// case and not an exception.
+	// It should be fine because there should only be a relatively small number of material
+	// templates (around 50) and a smaller number of different material storage blocks (not
+	// more than 10 probably). The alternatives are storing separate IDs, which wastes
+	// memory too, or imposing a restriction of 1 block per material, which seems too
+	// restrictive.
 	matTempl.m_Id = m_NextFreeTemplateID++;
 
 	XMBElement root = xeroFile.GetRoot();
