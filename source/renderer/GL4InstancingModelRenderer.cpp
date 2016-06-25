@@ -108,11 +108,9 @@ void GL4InstancingModelRenderer<TGpuSkinning>::PrepareModelDef(const CShaderProg
 	u8* base = m->imodeldef->m_Array.Bind();
 	GLsizei stride = (GLsizei)m->imodeldef->m_Array.GetStride();
 	
-	// HACK: Hardcode the vertex attribute to 15 (gl_MultiTexCoord7) because that doesn't seem to be
-	// used anywhere currently
 	u8* instancingDataBasePtr = m->imodeldef->m_Array.GetInstancingDataBasePtr();
-	pglVertexAttribIPointerEXT(15, 1, GL_UNSIGNED_INT, 0, (const GLvoid*)instancingDataBasePtr);
-	pglVertexBindingDivisor(15, 1);
+	shader->VertexAttribIPointer(str_a_drawId, 1, GL_UNSIGNED_INT, 0, (void*)instancingDataBasePtr);
+	shader->VertexBindingDivisor(str_a_drawId, 1);
 
 	m->imodeldefIndexBase = m->imodeldef->m_IndexArray.Bind();
 

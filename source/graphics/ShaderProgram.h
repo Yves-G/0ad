@@ -192,6 +192,7 @@ public:
 	virtual void TexCoordPointer(GLenum texture, GLint size, GLenum type, GLsizei stride, void* pointer);
 	virtual void VertexAttribPointer(attrib_id_t id, GLint size, GLenum type, GLboolean normalized, GLsizei stride, void* pointer);
 	virtual void VertexAttribIPointer(attrib_id_t id, GLint size, GLenum type, GLsizei stride, void* pointer);
+	virtual void VertexBindingDivisor(attrib_id_t id, GLuint divisor);
 
 	/**
 	 * Checks that all the required vertex attributes have been set.

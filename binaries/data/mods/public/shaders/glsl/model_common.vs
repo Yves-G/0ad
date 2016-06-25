@@ -4,7 +4,7 @@
 // TODO: hardcoded maximum buffer sizes are bad
 const int MAX_INSTANCES = 2000;
 const int MAX_MATERIAL_TEMPLATES = 2000;
-layout (location = 15) in uint drawID;
+in uint a_drawId;
 
 out VS_OUT
 {
@@ -160,16 +160,16 @@ vec4 fakeCos(vec4 x)
 
 void main()
 {
-  const uint modelIdVal = draws[drawID].modelId;
+  const uint modelIdVal = draws[a_drawId].modelId;
   const uint materialIDVal = models[modelIdVal].matId;
   const uint matTemplIdVal = material[materialIDVal].templateMatId;
 
-//mat4 draws[drawID].instancingTransform = mat4(1.0, 0,   0,   0,
+//mat4 draws[a_drawId].instancingTransform = mat4(1.0, 0,   0,   0,
 //                        0  , 1.0, 0,   0,
 //                        0  , 0,   1.0, 0,
 //                        200, 200, 300, 1.0);
 
-  vs_out.drawID = drawID;
+  vs_out.drawID = a_drawId;
 
 #if 0
   if (vec2(1.0, 1.0) != matTempl[matTemplIdVal].windData.xy)
@@ -182,7 +182,7 @@ void main()
         //                               vec4(-0.25, -0.25, 0.1, 1.0));
 	if (gl_VertexID < 3)
 	{
-        	gl_Position = vertices[gl_VertexID] * mat4(1.0); //draws[drawID].instancingTransform;
+        	gl_Position = vertices[gl_VertexID] * mat4(1.0); //draws[a_drawId].instancingTransform;
 	}
 	return;
   }
@@ -194,21 +194,21 @@ void main()
     for (int i = 0; i < MAX_INFLUENCES; ++i) {
       int joint = int(a_skinJoints[i]);
       if (joint != 0xff) {
-        mat4 m = gpuSkinning.skinBlendMatrices[drawID * MAX_BONES + joint];
+        mat4 m = gpuSkinning.skinBlendMatrices[a_drawId * MAX_BONES + joint];
         p += vec3(m * vec4(a_vertex, 1.0)) * a_skinWeights[i];
         n += vec3(m * vec4(a_normal, 0.0)) * a_skinWeights[i];
       }
     }
-    vec4 position = draws[drawID].instancingTransform * vec4(p, 1.0);
-    mat3 normalMatrix = mat3(draws[drawID].instancingTransform[0].xyz, draws[drawID].instancingTransform[1].xyz, draws[drawID].instancingTransform[2].xyz);
+    vec4 position = draws[a_drawId].instancingTransform * vec4(p, 1.0);
+    mat3 normalMatrix = mat3(draws[a_drawId].instancingTransform[0].xyz, draws[a_drawId].instancingTransform[1].xyz, draws[a_drawId].instancingTransform[2].xyz);
     vec3 normal = normalMatrix * normalize(n);
     #if (USE_NORMAL_MAP || USE_PARALLAX)
       vec3 tangent = normalMatrix * a_tangent.xyz;
     #endif
   #else
   #if (USE_INSTANCING)
-    vec4 position = draws[drawID].instancingTransform * vec4(a_vertex, 1.0);
-    mat3 normalMatrix = mat3(draws[drawID].instancingTransform[0].xyz, draws[drawID].instancingTransform[1].xyz, draws[drawID].instancingTransform[2].xyz);
+    vec4 position = draws[a_drawId].instancingTransform * vec4(a_vertex, 1.0);
+    mat3 normalMatrix = mat3(draws[a_drawId].instancingTransform[0].xyz, draws[a_drawId].instancingTransform[1].xyz, draws[a_drawId].instancingTransform[2].xyz);
     vec3 normal = normalMatrix * a_normal;
     #if (USE_NORMAL_MAP || USE_PARALLAX)
       vec3 tangent = normalMatrix * a_tangent.xyz;
@@ -224,7 +224,7 @@ void main()
     vec2 wind = matTempl[matTemplIdVal].windData.xy;
 
     // fractional part of model position, clamped to >.4
-    vec4 modelPos = draws[drawID].instancingTransform[3];
+    vec4 modelPos = draws[a_drawId].instancingTransform[3];
     modelPos = fract(modelPos);
     modelPos = clamp(modelPos, 0.4, 1.0);
 
@@ -235,7 +235,7 @@ void main()
     // these determine the speed of the wind's "cosine" waves.
     cosVec.w = 0.0;
     cosVec.x = sim_time.x * modelPos[0] + position.x;
-    cosVec.y = sim_time.x * modelPos[2] / 3.0 + draws[drawID].instancingTransform[3][0];
+    cosVec.y = sim_time.x * modelPos[2] / 3.0 + draws[a_drawId].instancingTransform[3][0];
     cosVec.z = sim_time.x * abswind / 4.0 + position.z;
 
     // calculate "cosines" in parallel, using a smoothed triangle wave

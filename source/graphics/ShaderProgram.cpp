@@ -650,6 +650,13 @@ public:
 		}
 	}
 
+	virtual void VertexBindingDivisor(attrib_id_t id, GLuint divisor)
+	{
+		std::map<CStrIntern, int>::iterator it = m_VertexAttribs.find(id);
+		if (it != m_VertexAttribs.end())
+			pglVertexBindingDivisor(it->second, divisor);
+	}
+
 private:
 	VfsPath m_VertexFile;
 	VfsPath m_FragmentFile;
@@ -793,6 +800,11 @@ void CShaderProgram::VertexAttribIPointer(attrib_id_t UNUSED(id), GLint UNUSED(s
 	GLsizei UNUSED(stride), void* UNUSED(pointer))
 {
 	debug_warn("Shader type doesn't support VertexAttribIPointer");
+}
+
+void CShaderProgram::VertexBindingDivisor(attrib_id_t UNUSED(id), GLuint UNUSED(divisor))
+{
+	debug_warn("Shader type doesn't support VertexBindingDivisor");
 }
 
 #if CONFIG2_GLES
