@@ -497,6 +497,11 @@ void GL4ModelRenderer<TGpuSkinning, RenderModifierT>::Render(const CShaderDefine
 			// TODO: Why don't we just use a single float instead of vec4?
 			uniformBlockManager.SetUniform<UniformBlockManager::NOT_INSTANCED>(binding, CVector4D(time, 0, 0, 0));
 		}
+
+		binding = UniformBinding();
+		binding = uniformBlockManager.GetBinding(CStrIntern("FrameUBO"), str_skyCube, false);
+		if (binding.Active())
+			uniformBlockManager.SetUniform<UniformBlockManager::NOT_INSTANCED>(binding, g_Renderer.GetSkyManager()->GetBindlessSkyCube());
 		
 		m_RenderModifier->SetFrameUniforms();
 		
@@ -593,10 +598,6 @@ void GL4ModelRenderer<TGpuSkinning, RenderModifierT>::Render(const CShaderDefine
 									shader->BindTexture(str_waterTex, WaterMgr->m_NormalMap[curTex]);
 								else
 									shader->BindTexture(str_waterTex, g_Renderer.GetTextureManager().GetErrorTexture());
-							}
-							else if (rq.first == RQUERY_SKY_CUBE)
-							{
-								shader->BindTexture(str_skyCube, g_Renderer.GetSkyManager()->GetSkyCube());
 							}
 						}
 

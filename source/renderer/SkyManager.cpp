@@ -71,6 +71,7 @@ SkyManager::SkyManager()
 	m_HorizonHeight = -150.0f;
 	
 	m_SkyCubeMap = 0;
+	m_BindlessSkyCubeMap = 0;
 }
 
 
@@ -172,6 +173,8 @@ void SkyManager::LoadSkyTextures()
 #else
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 #endif
+	m_BindlessSkyCubeMap = pglGetTextureHandleARB(m_SkyCubeMap);
+	pglMakeTextureHandleResidentARB(m_BindlessSkyCubeMap);
 	glBindTexture(GL_TEXTURE_2D, 0);
 	///////////////////////////////////////////////////////////////////////////
 }
@@ -188,6 +191,7 @@ void SkyManager::SetSkySet( const CStrW& newSet )
 	{
 		glDeleteTextures(1, &m_SkyCubeMap);
 		m_SkyCubeMap = 0;
+		m_BindlessSkyCubeMap = 0;
 	}
 	
 	m_SkySet = newSet;

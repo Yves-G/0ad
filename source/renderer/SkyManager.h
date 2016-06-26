@@ -52,6 +52,10 @@ public:
 		return m_SkyCubeMap;
 	}
 
+	GLuint64 GetBindlessSkyCube() {
+		return m_BindlessSkyCubeMap;
+	}
+
 	/**
 	 * GetSkySet(): Set the sky set name, potentially loading the textures.
 	 */
@@ -84,6 +88,7 @@ private:
 	CTexturePtr m_SkyTexture[numTextures];
 	
 	GLuint m_SkyCubeMap;
+	GLuint64 m_BindlessSkyCubeMap;
 
 	// Array of image names (defined in SkyManager.cpp), in the order of the IMG_ id's
 	static const wchar_t* s_imageNames[numTextures];

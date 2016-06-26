@@ -28,6 +28,7 @@ layout(shared) buffer FrameUBO
 
 	vec2 losTransform;
 	layout (bindless_sampler) sampler2D losTex;
+	layout (bindless_sampler) samplerCube skyCube;
 
 // TODO: It has to be ensured that all blocks in all shaders are the same
 // (they must not have different defines that cause a difference)
@@ -98,7 +99,6 @@ layout(shared) buffer MatTemplWaterBlock
 };
 
 uniform sampler2D waterTex;
-uniform samplerCube skyCube;
 
 float waterDepth = 4.0;		
 float fullDepth = 5.0;		// Depth at which to use full murkiness (shallower water will be clearer)
