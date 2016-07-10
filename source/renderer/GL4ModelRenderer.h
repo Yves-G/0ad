@@ -129,10 +129,23 @@ public:
 private:
 	typedef ProxyAllocator<SMRTechBucket, Allocators::DynamicArena> TechBucketsAllocator;
 	
+	struct RenderCmd
+	{
+		RenderCmd() : tech(nullptr), pass(0), mdldef(nullptr), numInst(0) {}
+
+		// We're not using CShaderTechniquePtr o CModelDefPtr to avoid overhead.
+		// RenderCmd should really just be used temporarily during the render loop.
+		CShaderTechnique* tech;
+		int pass;
+		CModelDef* mdldef;
+		int numInst;
+	};
+
 	/// private member functions
 	
-	void PrepareUniformBuffers(size_t maxInstancesPerDraw, int flags, 
-						const std::vector<SMRTechBucket, TechBucketsAllocator>& techBuckets);
+	bool PrepareUniformBuffers(size_t maxInstancesPerDraw, int flags,
+						const std::vector<SMRTechBucket, TechBucketsAllocator>& techBuckets,
+						std::vector<RenderCmd>& renderCmds);
 	
 	/// private data members
 	

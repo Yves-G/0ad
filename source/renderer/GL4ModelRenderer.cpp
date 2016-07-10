@@ -128,16 +128,26 @@ void GL4ModelRenderer<TGpuSkinning, RenderModifierT>::EndFrame()
 		m->submissions[cullGroup].clear();
 }
 
+// TODO: move comment to a better place:
+// Returns true when maxInstancesPerDraw was enough to prepare all draws
 template <bool TGpuSkinning, typename RenderModifierT>
-void GL4ModelRenderer<TGpuSkinning, RenderModifierT>::PrepareUniformBuffers(size_t maxInstancesPerDraw, int flags, 
-												const std::vector<SMRTechBucket, TechBucketsAllocator>& techBuckets)
+bool GL4ModelRenderer<TGpuSkinning, RenderModifierT>::PrepareUniformBuffers(size_t maxInstancesPerDraw, int flags,
+												const std::vector<SMRTechBucket, TechBucketsAllocator>& techBuckets,
+												std::vector<RenderCmd>& renderCmds)
 {
 	PROFILE3("PrepareUniformBuffers");
 	UniformBlockManager& uniformBlockManager = g_Renderer.GetUniformBlockManager();
 	ENSURE(maxInstancesPerDraw != 0);
 	
+	m_VertexRenderer->ResetDrawID();
+	m_VertexRenderer->ResetCommands();
+
+	CModelDef* currentModeldef = nullptr;
+
+	bool firstDraw = true;
+	renderCmds.clear();
+	bool renderCmdChange = false;
 	size_t instanceId = 0;
-	u64 materialUniformsSet = 0;	
 
 	while (m->heapCounters.idxTechStart < techBuckets.size())
 	{
@@ -169,6 +179,7 @@ void GL4ModelRenderer<TGpuSkinning, RenderModifierT>::PrepareUniformBuffers(size
 			{
 				if (m->heapCounters.idx == idxTechEnd)
 				{
+					// Go back to check if there are more passes for this technique
 					m->heapCounters.idx = m->heapCounters.idxTechStart;
 					break;
 				}
@@ -192,16 +203,48 @@ void GL4ModelRenderer<TGpuSkinning, RenderModifierT>::PrepareUniformBuffers(size
 						m->heapCounters.modelIx++;
 						continue;
 					}
-				
+
+					CModelDef* newModeldef = model->GetModelDef().get();
+					if (newModeldef != currentModeldef)
+					{
+						currentModeldef = newModeldef;
+						renderCmdChange = true; // new render command because a different model needs to be bound
+					}
+
 					uniformBlockManager.SetCurrentInstance<UniformBlockManager::MODEL_INSTANCED>(instanceId);
 					
 					m_RenderModifier->SetModelUniforms(model);
 					m_VertexRenderer->PrepareModel(shader, model);
 					
-					m_VertexRenderer->SetRenderModelInstanced(model);
-					
 					instanceId++;
 					
+					// Write the previous command and create a new one for the current model.
+					// This has to be done when changes between draws require binding a different
+					// shader or modelDef.
+					//
+					// In addition, there are two special cases:
+					//  1. Initialization of the first render command
+					//  2. Writing of the last render command before returning from this function.
+
+					if (renderCmdChange || instanceId == maxInstancesPerDraw || firstDraw)
+					{
+						RenderCmd cmd;
+						cmd.tech = currentTech.get();
+						cmd.pass = m->heapCounters.pass;
+						cmd.mdldef = newModeldef;
+						cmd.numInst  = 1;
+						renderCmds.push_back(cmd);
+						renderCmdChange = false;
+						firstDraw = false;
+
+						m_VertexRenderer->SetRenderModelInstanced(model);
+					}
+					else
+					{
+						renderCmds.back().numInst++;
+						m_VertexRenderer->AddInstance();
+					}
+
 					if (instanceId == maxInstancesPerDraw)
 					{
 						PROFILE3("upload uniforms (1)");
@@ -216,13 +259,13 @@ void GL4ModelRenderer<TGpuSkinning, RenderModifierT>::PrepareUniformBuffers(size
 							m->heapCounters.idx = 0;
 							m->heapCounters.pass = 0;
 							m->heapCounters.idxTechStart = 0;
+							return true;
 						}
 						else
 						{
 							m->heapCounters.modelIx++;
+							return false;
 						}
-						
-						return;
 					}
 					
 					m->heapCounters.modelIx++;
@@ -231,6 +274,7 @@ void GL4ModelRenderer<TGpuSkinning, RenderModifierT>::PrepareUniformBuffers(size
 				m->heapCounters.idx++;
 			}
 			m->heapCounters.pass++;
+			renderCmdChange = true; // new render command because a different pass is used
 		}
 		m->heapCounters.idx = m->heapCounters.idxTechStart = idxTechEnd;
 	}
@@ -245,6 +289,7 @@ void GL4ModelRenderer<TGpuSkinning, RenderModifierT>::PrepareUniformBuffers(size
 		m->heapCounters.pass = 0;
 		m->heapCounters.idxTechStart = 0;
 	}
+	return true;
 }
 
 template <bool TGpuSkinning, typename RenderModifierT>
@@ -483,6 +528,7 @@ void GL4ModelRenderer<TGpuSkinning, RenderModifierT>::Render(const CShaderDefine
 		PROFILE3("rendering bucketed submissions");
 
 		size_t idxTechStart = 0;
+		std::vector<RenderCmd> renderCmds;
 		
 		size_t preparedModelUniformsLeft = 2000;
 		const size_t maxInstancesPerDraw = 2000;
@@ -518,121 +564,63 @@ void GL4ModelRenderer<TGpuSkinning, RenderModifierT>::Render(const CShaderDefine
 			else
 				uniformBlockManager.SetUniform<UniformBlockManager::NOT_INSTANCED>(binding, g_Renderer.GetTextureManager().GetErrorTexture()->GetBindlessHandle());
 		}
-
+		
+		// Frame uniforms will be uploaded when PrepareUniformBuffers is called the first time.
 		m_RenderModifier->SetFrameUniforms();
 		
-		// prepare the first batch of uniforms.
-		// This causes an upload of all modified uniform buffers, and will also take care of uploading
-		// the per-frame uniforms
-		PrepareUniformBuffers(maxInstancesPerDraw, flags, techBuckets);
-		
-		// texBindings holds the identifier bindings in the shader, which can no longer be defined 
-		// statically in the ShaderRenderModifier class. texBindingNames uses interned strings to
-		// keep track of when bindings need to be reevaluated.
-		typedef ProxyAllocator<CShaderProgram::Binding, Allocators::DynamicArena> BindingListAllocator;
-		std::vector<CShaderProgram::Binding, BindingListAllocator> texBindings((BindingListAllocator(arena)));
-		texBindings.reserve(64);
-
-		typedef ProxyAllocator<CStrIntern, Allocators::DynamicArena> BindingNamesListAllocator;
-		std::vector<CStrIntern, BindingNamesListAllocator> texBindingNames((BindingNamesListAllocator(arena)));
-		texBindingNames.reserve(64);
-
-		while (idxTechStart < techBuckets.size())
+		bool exit = false;
+		do
 		{
-			CShaderTechniquePtr currentTech = techBuckets[idxTechStart].tech;
-			
-			// Set to true when a new instanced draw command gets added.
-			// Everytime we do a state-change that requires adding a new DrawElementsIndirectCommand,
-			// we have to set this to false
-			// TODO: Completely useless currently because we only ever draw one instance
-			bool sameInstance = false;
+			RenderCmd* prevCmd = nullptr;
+			int streamflags = 0;
+			int prevStreamFlags = 0;
 
-			// Find runs [idxTechStart, idxTechEnd) in techBuckets of the same technique
-			size_t idxTechEnd;
-			for (idxTechEnd = idxTechStart + 1; idxTechEnd < techBuckets.size(); ++idxTechEnd)
+			exit = PrepareUniformBuffers(maxInstancesPerDraw, flags, techBuckets, renderCmds);
+
+			for (RenderCmd& cmd : renderCmds)
 			{
-				if (techBuckets[idxTechEnd].tech != currentTech)
-					break;
-			}
-
-			// For each of the technique's passes, render all the models in this run
-			for (int pass = 0; pass < currentTech->GetNumPasses(); ++pass)
-			{
-				currentTech->BeginPass(pass);
-
-				const CShaderProgramPtr& shader = currentTech->GetShader(pass);
-				int streamflags = shader->GetStreamFlags();
+				const CShaderProgramPtr& shader = cmd.tech->GetShader(cmd.pass);
+				prevStreamFlags = streamflags;
+				streamflags = shader->GetStreamFlags();
 				
-				// TODO: Check the return value and force drawing if it's false
-				// TODO: There should be a smarter way to figure out if bindings are already set up correctly.
-				uniformBlockManager.EnsureBlockBinding(shader);
-
-				m_RenderModifier->BeginPass(shader);
-
-				m_VertexRenderer->BeginPass(streamflags);
-				
-				CModelDef* currentModeldef = NULL;
-				CShaderUniforms currentStaticUniforms;
-
-				for (size_t idx = idxTechStart; idx < idxTechEnd; ++idx)
+				if (!prevCmd || cmd.tech != prevCmd->tech || cmd.pass != prevCmd->pass)
 				{
-					CModel** models = techBuckets[idx].models;
-					size_t numModels = techBuckets[idx].numModels;
-					for (size_t i = 0; i < numModels; ++i)
+					if (prevCmd)
 					{
-
-						CModel* model = models[i];
-						
-						// TODO: Instancing is completely useless currently because we only ever draw one instance
-						sameInstance = false;
-
-						if (flags && !(model->GetFlags() & flags))
-							continue;
-						
-						// Bind modeldef when it changes
-						CModelDef* newModeldef = model->GetModelDef().get();
-						if (newModeldef != currentModeldef)
-						{
-							currentModeldef = newModeldef;
-							m_VertexRenderer->PrepareModelDef(shader, streamflags, *currentModeldef);
-						}
-						ogl_WarnIfError();
-
-						//modifier->PrepareModel(shader, model);
-			
-						// TODO: will not need to be done for each models in the future		
-						m_VertexRenderer->RenderModelsInstanced(1);
-						//m_VertexRenderer->RenderModel(shader, streamflags, model, rdata);
-				
-						preparedModelUniformsLeft--;
-						if (preparedModelUniformsLeft == 0)
-						{
-							m_VertexRenderer->ResetDrawID();
-							m_VertexRenderer->ResetCommands();
-							PrepareUniformBuffers(maxInstancesPerDraw, flags, techBuckets);
-							
-							// technically not true when less models than maxInstancesPerDraw models are left, 
-							// but preparedModelUniformsLeft is only used to detect when PrepareUniformBuffers
-							// needs to be called, so it does not matter.
-							preparedModelUniformsLeft = maxInstancesPerDraw;
-							
-							// TODO: Force drawing (currently we draw always anyway, so it is already "forced",
-							// but this will change when instancing works properly)
-						}
+						m_VertexRenderer->EndPass(prevStreamFlags);
+						prevCmd->tech->EndPass(prevCmd->pass);
 					}
+					cmd.tech->BeginPass(cmd.pass);
+
+					// TODO: Check the return value and force drawing if it's false
+					// TODO: There should be a smarter way to figure out if bindings are already set up correctly.
+					uniformBlockManager.EnsureBlockBinding(shader);
+					m_RenderModifier->BeginPass(shader);
+					m_VertexRenderer->BeginPass(streamflags);
+
+					m_VertexRenderer->PrepareModelDef(shader, streamflags, *cmd.mdldef);
+				}
+				else if (!prevCmd || cmd.mdldef != prevCmd->mdldef)
+				{
+					m_VertexRenderer->PrepareModelDef(shader, streamflags, *cmd.mdldef);
 				}
 
-				m_VertexRenderer->EndPass(streamflags);
+				m_VertexRenderer->RenderModelsInstanced(1);
 
-				currentTech->EndPass(pass);
+				prevCmd = &cmd;
 			}
 
-			idxTechStart = idxTechEnd;
-		}
+			if (prevCmd)
+			{
+				m_VertexRenderer->EndPass(streamflags);
+				prevCmd->tech->EndPass(prevCmd->pass);
+			}
+
+		} while (exit == false);
+
+		m_VertexRenderer->ResetDrawID();
+		m_VertexRenderer->ResetCommands();
 	}
-	
-	m_VertexRenderer->ResetDrawID();
-	m_VertexRenderer->ResetCommands();
 }
 
 template class GL4ModelRenderer<true, GL4ShaderRenderModifierPtr>;

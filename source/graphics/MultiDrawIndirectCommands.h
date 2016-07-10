@@ -90,6 +90,10 @@ public:
 	void Draw(u32 modelsCount)
 	{
 			ENSURE(m_DrawCommands.size() >= modelsCount);
+			ENSURE(m_DrawCommands.size() > m_CurrentDrawID);
+			ENSURE(m_DrawCommands[m_CurrentDrawID].instanceCount != 0);
+			ENSURE(m_DrawCommands[m_CurrentDrawID].count > 3);
+
 			//pglDrawRangeElementsEXT(GL_TRIANGLES, 0, (GLuint)m->imodeldef->m_Array.GetNumVertices()-1,
 			//	(GLsizei)numFaces*3, GL_UNSIGNED_SHORT, m->imodeldefIndexBase);
 			ogl_WarnIfError();
