@@ -502,7 +502,23 @@ void GL4ModelRenderer<TGpuSkinning, RenderModifierT>::Render(const CShaderDefine
 		binding = uniformBlockManager.GetBinding(CStrIntern("FrameUBO"), str_skyCube, false);
 		if (binding.Active())
 			uniformBlockManager.SetUniform<UniformBlockManager::NOT_INSTANCED>(binding, g_Renderer.GetSkyManager()->GetBindlessSkyCube());
-		
+
+
+		binding = UniformBinding();
+		binding = uniformBlockManager.GetBinding(CStrIntern("FrameUBO"), str_waterTex, false);
+		if (binding.Active())
+		{
+			WaterManager* WaterMgr = g_Renderer.GetWaterManager();
+			double time = WaterMgr->m_WaterTexTimer;
+			double period = 1.6;
+			int curTex = (int)(time*60/period) % 60;
+
+			if (WaterMgr->m_RenderWater && WaterMgr->WillRenderFancyWater())
+				uniformBlockManager.SetUniform<UniformBlockManager::NOT_INSTANCED>(binding, WaterMgr->m_NormalMap[curTex]->GetBindlessHandle());
+			else
+				uniformBlockManager.SetUniform<UniformBlockManager::NOT_INSTANCED>(binding, g_Renderer.GetTextureManager().GetErrorTexture()->GetBindlessHandle());
+		}
+
 		m_RenderModifier->SetFrameUniforms();
 		
 		// prepare the first batch of uniforms.
@@ -581,25 +597,6 @@ void GL4ModelRenderer<TGpuSkinning, RenderModifierT>::Render(const CShaderDefine
 							m_VertexRenderer->PrepareModelDef(shader, streamflags, *currentModeldef);
 						}
 						ogl_WarnIfError();
-	
-						const CShaderRenderQueries& renderQueries = model->GetMaterial()->GetRenderQueries();
-						
-						for (size_t q = 0; q < renderQueries.GetSize(); q++)
-						{
-							CShaderRenderQueries::RenderQuery rq = renderQueries.GetItem(q);
-							if (rq.first == RQUERY_WATER_TEX)
-							{
-								WaterManager* WaterMgr = g_Renderer.GetWaterManager();
-								double time = WaterMgr->m_WaterTexTimer;
-								double period = 1.6;
-								int curTex = (int)(time*60/period) % 60;
-								
-								if (WaterMgr->m_RenderWater && WaterMgr->WillRenderFancyWater())
-									shader->BindTexture(str_waterTex, WaterMgr->m_NormalMap[curTex]);
-								else
-									shader->BindTexture(str_waterTex, g_Renderer.GetTextureManager().GetErrorTexture());
-							}
-						}
 
 						//modifier->PrepareModel(shader, model);
 			
