@@ -632,6 +632,14 @@ ProductionQueue.prototype.SpawnUnits = function(templateName, count, metadata)
 
 		cmpNewOwnership.SetOwner(cmpOwnership.GetOwner());
 
+		// TODO: Garrisoning and stuff...
+		let cmpNewBattalion = Engine.QueryInterface(ent, IID_Battalion);
+		if (cmpNewBattalion)
+		{
+			cmpNewBattalion.SpawnUnits();
+			warn("cmpNewBattalion.SpawnUnits()");
+		}
+
 		let cmpPlayerStatisticsTracker = QueryOwnerInterface(this.entity, IID_StatisticsTracker);
 		if (cmpPlayerStatisticsTracker)
 			cmpPlayerStatisticsTracker.IncreaseTrainedUnitsCounter(ent);

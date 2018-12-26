@@ -966,7 +966,26 @@ function handleInputAfterGui(ev)
 
 				var ents = [];
 				if (ev.clicks == 1)
-					ents = [clickedEntity];
+				{
+					let battalion = false;
+					let entityState = GetEntityState(clickedEntity);
+
+					if (entityState.battalionMember)
+					{
+						let leader = entityState.battalionMember.leader;
+						battalion = GetEntityState(leader).battalion;
+					}
+					else if (entityState.battalion)
+						battalion = entityState.battalion;
+					else
+						ents = [clickedEntity];
+
+					if (battalion)
+					{
+						ents = [battalion.leader];
+						ents.push(...battalion.members);
+					}
+				}
 				else
 				{
 					// Double click or triple click has occurred

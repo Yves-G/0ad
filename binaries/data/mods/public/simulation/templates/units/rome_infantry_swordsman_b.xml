@@ -22,4 +22,5 @@
   <VisualActor>
     <Actor>units/romans/infantry_swordsman_b.xml</Actor>
   </VisualActor>
+  <BattalionMember/>
 </Entity>

@@ -328,6 +328,25 @@ GuiInterface.prototype.GetEntityState = function(player, ent)
 	if (cmpRallyPoint)
 		ret.rallyPoint = { "position": cmpRallyPoint.GetPositions()[0] }; // undefined or {x,z} object
 
+	let cmpBattalionMember = Engine.QueryInterface(ent, IID_BattalionMember);
+	if (cmpBattalionMember) {
+		let leader = cmpBattalionMember.GetLeader()
+		if (leader != INVALID_ENTITY)
+			ret.battalionMember = { "leader": leader };
+	}
+
+	let cmpBattalion = Engine.QueryInterface(ent, IID_Battalion);
+	if (cmpBattalion) {
+		let leader = cmpBattalion.GetLeader();
+		let members = cmpBattalion.GetMembers();
+		if (leader != INVALID_ENTITY)
+			ret.battalion = {
+				"leader": leader,
+				"members": members
+			};
+	}
+
+
 	let cmpGarrisonHolder = Engine.QueryInterface(ent, IID_GarrisonHolder);
 	if (cmpGarrisonHolder)
 		ret.garrisonHolder = {
