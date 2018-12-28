@@ -23,4 +23,7 @@
     <Actor>units/romans/infantry_swordsman_b.xml</Actor>
   </VisualActor>
   <BattalionMember/>
+  <Cost>
+    <Population>0</Population>
+  </Cost>
 </Entity>

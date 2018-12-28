@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Entity parent="units/rome_infantry_swordsman_a">
+  <Identity>
+    <Rank>Elite</Rank>
+  </Identity>
+  <Promotion disable=""/>
+  <VisualActor>
+    <Actor>units/romans/infantry_swordsman_e.xml</Actor>
+  </VisualActor>
+  <Health>
+    <DefaultInvincible>true</DefaultInvincible>
+  </Health>
+  <Battalion>
+	<SpawnFormationTemplate>special/formations/box</SpawnFormationTemplate>
+	<NumberOfUnits>12</NumberOfUnits>
+	<TemplateName>units/rome_infantry_swordsman_b</TemplateName>
+  </Battalion>
+  <Cost>
+    <Population>12</Population>
+  </Cost>
+</Entity>

@@ -19,7 +19,7 @@
       units/{civ}_infantry_swordsman_b
       units/{civ}_infantry_javelinist_b
       units/{civ}_cavalry_spearman_b
-      units/{civ}_battalion_infantry_swordsman_b
+      units/{civ}_battalion_infantry_swordsman_e
     </Entities>
   </ProductionQueue>
   <VisualActor>

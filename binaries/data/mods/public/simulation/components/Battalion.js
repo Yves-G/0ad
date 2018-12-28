@@ -10,9 +10,6 @@ Battalion.prototype.Schema =
 	"</element>" +
 	"<element name='TemplateName' a:help='Entity template name of the units in this battalion. The special string \"{civ}\" will be automatically replaced by the civ code of the entity&apos;s owner, while the string \"{native}\" will be automatically replaced by the entity&apos;s civ code.'>" +
 		"<text/>" +
-	"</element>" +
-	"<element name='LeaderTemplateName' a:help='Entity template name of the unit leading the battalion. The special string \"{civ}\" will be automatically replaced by the civ code of the entity&apos;s owner, while the string \"{native}\" will be automatically replaced by the entity&apos;s civ code.'>" +
-		"<text/>" +
 	"</element>";
 
 Battalion.prototype.Init = function()
@@ -20,7 +17,6 @@ Battalion.prototype.Init = function()
 	this.numberOfUnits = this.template.NumberOfUnits;
 	this.spawnFormationTemplate = this.template.SpawnFormationTemplate;
 	this.templateName = this.template.TemplateName;
-	this.leaderTemplateName = this.template.LeaderTemplateName
 	this.entities = [];
 
 	//this.SpawnUnits();
@@ -28,10 +24,7 @@ Battalion.prototype.Init = function()
 
 
 /**
- * Take damage according to the entity's armor.
- * @param {Object} strengths - { "hack": number, "pierce": number, "crush": number } or something like that.
- * @param {number} multiplier - the damage multiplier.
- * Returns object of the form { "killed": false, "change": -12 }.
+ * Spawn all member units of the formation.
  */
 Battalion.prototype.SpawnUnits = function()
 {
@@ -74,8 +67,8 @@ Battalion.prototype.CreateFormation = function()
 
 	cmpFormation.SetMembers(this.entities);
 	
-	var cmpOwnership= Engine.QueryInterface(this.entity, IID_Ownership);
-	var newCmpOwnership= Engine.QueryInterface(formationEnt, IID_Ownership);
+	var cmpOwnership = Engine.QueryInterface(this.entity, IID_Ownership);
+	var newCmpOwnership = Engine.QueryInterface(formationEnt, IID_Ownership);
 	cmpOwnership.SetOwner(cmpOwnership.GetOwner());
 
 	cmpFormation.AddMembers([this.entity]);
@@ -89,6 +82,19 @@ Battalion.prototype.GetMembers = function()
 Battalion.prototype.GetLeader = function()
 {
 	return this.entity;
+}
+
+Battalion.prototype.RemoveMember = function(ent)
+{
+	let index = this.entities.indexOf(ent);
+	if (index !== -1) this.entities.splice(index, 1);
+
+	// The leader is invincible as long as there are other units in the battalion
+	if (this.entities.length == 0)
+	{
+		let cmpHealth = Engine.QueryInterface(this.entity, IID_Health);
+		cmpHealth.SetInvincible(false);
+	}
 }
 
 

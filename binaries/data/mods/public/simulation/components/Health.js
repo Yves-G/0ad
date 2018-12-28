@@ -49,7 +49,12 @@ Health.prototype.Schema =
 	"</optional>" +
 	"<element name='Unhealable' a:help='Indicates that the entity can not be healed by healer units'>" +
 		"<data type='boolean'/>" +
-	"</element>";
+	"</element>" +
+	"<optional>" +
+		"<element name='DefaultInvincible' a:help='Indicates that the entity can&apos;t loose health. This can be changed later by calling the SetInvincible function.'>" +
+			"<data type='boolean'/>" +
+		"</element>" +
+	"</optional>";
 
 Health.prototype.Init = function()
 {
@@ -62,6 +67,7 @@ Health.prototype.Init = function()
 	this.idleRegenRate = ApplyValueModificationsToEntity("Health/IdleRegenRate", +this.template.IdleRegenRate, this.entity);
 	this.CheckRegenTimer();
 	this.UpdateActor();
+	this.isInvincible = (this.template.DefaultInvincible || false)
 };
 
 //// Interface functions ////
@@ -105,6 +111,11 @@ Health.prototype.SetHitpoints = function(value)
 
 	this.RegisterHealthChanged(old);
 };
+
+Health.prototype.SetInvincible = function (isInvincible)
+{
+	this.isInvincible = isInvincible;
+}
 
 Health.prototype.IsRepairable = function()
 {
@@ -188,7 +199,11 @@ Health.prototype.Reduce = function(amount)
 	if (cmpFogging)
 		cmpFogging.Activate();
 
-	var state = { "killed": false };
+	var state = { "killed": false, "change": 0 };
+
+	if (this.isInvincible)
+		return state;
+
 	if (amount >= 0 && this.hitpoints == this.GetMaxHitpoints())
 	{
 		var cmpRangeManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_RangeManager);

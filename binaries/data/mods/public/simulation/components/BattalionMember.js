@@ -22,4 +22,18 @@ BattalionMember.prototype.SetLeader = function(ent)
 	this.leader = ent;
 }
 
+BattalionMember.prototype.OnOwnershipChanged = function(msg)
+{
+	if (msg.from == INVALID_PLAYER)
+		return;
+
+	// When an entity is captured or destroyed, it should no longer be
+	// controlled by this battalion
+	let cmpBattalion = Engine.QueryInterface(this.leader, IID_Battalion);
+	if (!cmpBattalion)
+		return;
+
+	cmpBattalion.RemoveMember(msg.entity);
+}
+
 Engine.RegisterComponentType(IID_BattalionMember, "BattalionMember", BattalionMember);
