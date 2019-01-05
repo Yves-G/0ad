@@ -13,7 +13,7 @@
   <Battalion>
 	<SpawnFormationTemplate>special/formations/box</SpawnFormationTemplate>
 	<NumberOfUnits>12</NumberOfUnits>
-	<TemplateName>units/rome_infantry_swordsman_b</TemplateName>
+	<TemplateName>units/rome_battalion_infantry_swordsman_b</TemplateName>
   </Battalion>
   <Cost>
     <Population>12</Population>

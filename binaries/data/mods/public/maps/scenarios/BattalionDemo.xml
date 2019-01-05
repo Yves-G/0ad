@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Scenario version="6">
+	<Environment>
+		<SkySet>default</SkySet>
+		<SunColor r="0.74902" g="0.74902" b="0.74902"/>
+		<SunElevation angle="0.785398"/>
+		<SunRotation angle="5.49779"/>
+		<TerrainAmbientColor r="0.501961" g="0.501961" b="0.501961"/>
+		<UnitsAmbientColor r="0.501961" g="0.501961" b="0.501961"/>
+		<Fog>
+			<FogFactor>0</FogFactor>
+			<FogThickness>0.5</FogThickness>
+			<FogColor r="0.8" g="0.8" b="0.898039"/>
+		</Fog>
+		<Water>
+			<WaterBody>
+				<Type>ocean</Type>
+				<Color r="0.3" g="0.35" b="0.7"/>
+				<Tint r="0.28" g="0.3" b="0.59"/>
+				<Height>5</Height>
+				<Waviness>4</Waviness>
+				<Murkiness>0.45</Murkiness>
+				<WindAngle>0</WindAngle>
+			</WaterBody>
+		</Water>
+		<Postproc>
+			<Brightness>0</Brightness>
+			<Contrast>1</Contrast>
+			<Saturation>0.99</Saturation>
+			<Bloom>0.1999</Bloom>
+			<PostEffect>default</PostEffect>
+		</Postproc>
+	</Environment>
+	<Camera>
+		<Position x="532.107" y="292.691" z="237.492"/>
+		<Rotation angle="0"/>
+		<Declination angle="0.610865"/>
+	</Camera>
+	<ScriptSettings><![CDATA[
+{
+  "AISeed": 0,
+  "CircularMap": true,
+  "Description": "Give an interesting description of your map.",
+  "Keywords": [
+    "demo"
+  ],
+  "LockTeams": false,
+  "Name": "Battalion Demo",
+  "PlayerData": [
+    {
+      "Civ": "rome",
+      "StartingCamera": {
+        "Position": {
+          "x": 532.107,
+          "y": 178.087,
+          "z": 401.163
+        },
+        "Rotation": {
+          "x": 35,
+          "y": 0,
+          "z": 0
+        }
+      }
+    },
+    {
+      "Civ": "rome",
+      "StartingCamera": {
+        "Position": {
+          "x": 532.107,
+          "y": 178.087,
+          "z": 401.163
+        },
+        "Rotation": {
+          "x": 35,
+          "y": 0,
+          "z": 0
+        }
+      }
+    }
+  ],
+  "Preview": "",
+  "RevealMap": false,
+  "VictoryConditions": [
+    "conquest"
+  ]
+}
+]]></ScriptSettings>
+	<Entities>
+		<Entity uid="11">
+			<Template>units/rome_battalion_infantry_swordsman_e</Template>
+			<Player>1</Player>
+			<Battalion>
+				<Member eid="12"/>
+				<Member eid="13"/>
+				<Member eid="14"/>
+				<Member eid="15"/>
+				<Member eid="16"/>
+				<Member eid="17"/>
+				<Member eid="18"/>
+				<Member eid="19"/>
+				<Member eid="20"/>
+				<Member eid="21"/>
+				<Member eid="22"/>
+				<Member eid="23"/>
+				<FormationEntity eid="24"/>
+			</Battalion>
+			<Position x="481.2378" z="426.64866"/>
+			<Orientation y="2.35621"/>
+			<Obstruction group="24"/>
+			<Actor seed="58231"/>
+		</Entity>
+		<Entity uid="12">
+			<Template>units/rome_battalion_infantry_swordsman_b</Template>
+			<Player>1</Player>
+			<Position x="483.14783" z="424.73868"/>
+			<Orientation y="2.3562"/>
+			<Obstruction group="24"/>
+		</Entity>
+		<Entity uid="13">
+			<Template>units/rome_battalion_infantry_swordsman_b</Template>
+			<Player>1</Player>
+			<Position x="484.84563" z="423.04096"/>
+			<Orientation y="2.35618"/>
+			<Obstruction group="24"/>
+		</Entity>
+		<Entity uid="14">
+			<Template>units/rome_battalion_infantry_swordsman_b</Template>
+			<Player>1</Player>
+			<Position x="486.54343" z="421.34324"/>
+			<Orientation y="2.35618"/>
+			<Obstruction group="24"/>
+		</Entity>
+		<Entity uid="15">
+			<Template>units/rome_battalion_infantry_swordsman_b</Template>
+			<Player>1</Player>
+			<Position x="480.53824" z="424.03852"/>
+			<Orientation y="-2.87974"/>
+			<Obstruction group="24"/>
+		</Entity>
+		<Entity uid="16">
+			<Template>units/rome_battalion_infantry_swordsman_b</Template>
+			<Player>1</Player>
+			<Position x="482.55947" z="421.71851"/>
+			<Orientation y="2.87967"/>
+			<Obstruction group="24"/>
+		</Entity>
+		<Entity uid="17">
+			<Template>units/rome_battalion_infantry_swordsman_b</Template>
+			<Player>1</Player>
+			<Position x="484.41028" z="419.84682"/>
+			<Orientation y="2.70517"/>
+			<Obstruction group="24"/>
+		</Entity>
+		<Entity uid="18">
+			<Template>units/rome_battalion_infantry_swordsman_b</Template>
+			<Player>1</Player>
+			<Position x="483.8478" z="427.34841"/>
+			<Orientation y="1.30886"/>
+			<Obstruction group="24"/>
+		</Entity>
+		<Entity uid="19">
+			<Template>units/rome_battalion_infantry_swordsman_b</Template>
+			<Player>1</Player>
+			<Position x="486.16793" z="425.3272"/>
+			<Orientation y="1.83268"/>
+			<Obstruction group="24"/>
+		</Entity>
+		<Entity uid="20">
+			<Template>units/rome_battalion_infantry_swordsman_b</Template>
+			<Player>1</Player>
+			<Position x="488.03985" z="423.47651"/>
+			<Orientation y="2.00718"/>
+			<Obstruction group="24"/>
+		</Entity>
+		<Entity uid="21">
+			<Template>units/rome_battalion_infantry_swordsman_b</Template>
+			<Player>1</Player>
+			<Position x="478.62766" z="425.94889"/>
+			<Orientation y="-1.83274"/>
+			<Obstruction group="24"/>
+		</Entity>
+		<Entity uid="22">
+			<Template>units/rome_battalion_infantry_swordsman_b</Template>
+			<Player>1</Player>
+			<Position x="479.91642" z="421.71842"/>
+			<Orientation y="-2.87974"/>
+			<Obstruction group="24"/>
+		</Entity>
+		<Entity uid="23">
+			<Template>units/rome_battalion_infantry_swordsman_b</Template>
+			<Player>1</Player>
+			<Position x="481.8925" z="419.17093"/>
+			<Orientation y="3.05427"/>
+			<Obstruction group="24"/>
+		</Entity>
+		<Entity uid="24">
+			<Template>special/formations/box</Template>
+			<Player>-1</Player>
+			<Position x="483.21344" z="423.41276"/>
+			<Orientation y="0"/>
+		</Entity>
+		<Entity uid="25">
+			<Template>units/rome_battalion_infantry_swordsman_e</Template>
+			<Player>2</Player>
+			<Battalion>
+				<Member eid="26"/>
+				<Member eid="27"/>
+				<Member eid="28"/>
+				<Member eid="29"/>
+				<Member eid="30"/>
+				<Member eid="31"/>
+				<Member eid="32"/>
+				<Member eid="33"/>
+				<Member eid="34"/>
+				<Member eid="35"/>
+				<Member eid="36"/>
+				<Member eid="37"/>
+				<FormationEntity eid="38"/>
+			</Battalion>
+			<Position x="529.38563" z="378.5532"/>
+			<Orientation y="2.35621"/>
+			<Obstruction group="38"/>
+			<Actor seed="26472"/>
+		</Entity>
+		<Entity uid="26">
+			<Template>units/rome_battalion_infantry_swordsman_b</Template>
+			<Player>2</Player>
+			<Position x="531.29566" z="376.64322"/>
+			<Orientation y="2.3562"/>
+			<Obstruction group="38"/>
+		</Entity>
+		<Entity uid="27">
+			<Template>units/rome_battalion_infantry_swordsman_b</Template>
+			<Player>2</Player>
+			<Position x="532.99346" z="374.9455"/>
+			<Orientation y="2.35618"/>
+			<Obstruction group="38"/>
+		</Entity>
+		<Entity uid="28">
+			<Template>units/rome_battalion_infantry_swordsman_b</Template>
+			<Player>2</Player>
+			<Position x="534.69126" z="373.24778"/>
+			<Orientation y="2.35618"/>
+			<Obstruction group="38"/>
+		</Entity>
+		<Entity uid="29">
+			<Template>units/rome_battalion_infantry_swordsman_b</Template>
+			<Player>2</Player>
+			<Position x="528.68607" z="375.94306"/>
+			<Orientation y="-2.87974"/>
+			<Obstruction group="38"/>
+		</Entity>
+		<Entity uid="30">
+			<Template>units/rome_battalion_infantry_swordsman_b</Template>
+			<Player>2</Player>
+			<Position x="530.7073" z="373.62305"/>
+			<Orientation y="2.87967"/>
+			<Obstruction group="38"/>
+		</Entity>
+		<Entity uid="31">
+			<Template>units/rome_battalion_infantry_swordsman_b</Template>
+			<Player>2</Player>
+			<Position x="532.55811" z="371.75136"/>
+			<Orientation y="2.70517"/>
+			<Obstruction group="38"/>
+		</Entity>
+		<Entity uid="32">
+			<Template>units/rome_battalion_infantry_swordsman_b</Template>
+			<Player>2</Player>
+			<Position x="531.99563" z="379.25295"/>
+			<Orientation y="1.30886"/>
+			<Obstruction group="38"/>
+		</Entity>
+		<Entity uid="33">
+			<Template>units/rome_battalion_infantry_swordsman_b</Template>
+			<Player>2</Player>
+			<Position x="534.31576" z="377.23174"/>
+			<Orientation y="1.83268"/>
+			<Obstruction group="38"/>
+		</Entity>
+		<Entity uid="34">
+			<Template>units/rome_battalion_infantry_swordsman_b</Template>
+			<Player>2</Player>
+			<Position x="536.18767" z="375.38105"/>
+			<Orientation y="2.00718"/>
+			<Obstruction group="38"/>
+		</Entity>
+		<Entity uid="35">
+			<Template>units/rome_battalion_infantry_swordsman_b</Template>
+			<Player>2</Player>
+			<Position x="526.77549" z="377.85343"/>
+			<Orientation y="-1.83274"/>
+			<Obstruction group="38"/>
+		</Entity>
+		<Entity uid="36">
+			<Template>units/rome_battalion_infantry_swordsman_b</Template>
+			<Player>2</Player>
+			<Position x="528.06424" z="373.62296"/>
+			<Orientation y="-2.87974"/>
+			<Obstruction group="38"/>
+		</Entity>
+		<Entity uid="37">
+			<Template>units/rome_battalion_infantry_swordsman_b</Template>
+			<Player>2</Player>
+			<Position x="530.04032" z="371.07547"/>
+			<Orientation y="3.05427"/>
+			<Obstruction group="38"/>
+		</Entity>
+		<Entity uid="38">
+			<Template>special/formations/box</Template>
+			<Player>-1</Player>
+			<Position x="531.36127" z="375.3173"/>
+			<Orientation y="0"/>
+		</Entity>
+	</Entities>
+	<Paths/>
+</Scenario>

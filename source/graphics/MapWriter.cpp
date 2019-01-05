@@ -38,6 +38,7 @@
 #include "renderer/SkyManager.h"
 #include "renderer/WaterManager.h"
 #include "simulation2/Simulation2.h"
+#include "simulation2/components/ICmpBattalion.h"
 #include "simulation2/components/ICmpCinemaManager.h"
 #include "simulation2/components/ICmpObstruction.h"
 #include "simulation2/components/ICmpOwnership.h"
@@ -344,6 +345,26 @@ void CMapWriter::WriteXML(const VfsPath& filename,
 				CmpPtr<ICmpOwnership> cmpOwnership(sim, ent);
 				if (cmpOwnership)
 					XML_Setting("Player", (int)cmpOwnership->GetOwner());
+
+				CmpPtr<ICmpBattalion> cmpBattalion(sim, ent);
+				if (cmpBattalion)
+				{
+					XML_Element("Battalion");
+					{
+
+						const std::vector<entity_id_t>& entities = cmpBattalion->GetMembers();
+
+						for (entity_id_t memberEnt : entities)
+						{
+							XML_Element("Member");
+							XML_Attribute("eid", memberEnt);
+						}
+
+						entity_id_t formationEntity = cmpBattalion->GetFormationEntity();
+						XML_Element("FormationEntity");
+						XML_Attribute("eid", formationEntity);
+					}
+				}
 
 				CmpPtr<ICmpPosition> cmpPosition(sim, ent);
 				if (cmpPosition)

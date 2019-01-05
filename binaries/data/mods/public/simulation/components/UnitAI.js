@@ -1288,6 +1288,7 @@ UnitAI.prototype.UnitFsmSpec = {
 	// States for entities moving as part of a formation:
 	"FORMATIONMEMBER": {
 		"FormationLeave": function(msg) {
+			warn("leaving formation");
 			// We're not in a formation anymore, so no need to track this.
 			this.finishedOrder = false;
 
@@ -1797,8 +1798,10 @@ UnitAI.prototype.UnitFsmSpec = {
 						this.FinishOrder();
 
 						// Return to our original position
-						if (this.GetStance().respondHoldGround)
+						if (this.GetStance().respondHoldGround && !this.formationController) {
+							warn("WalkToHeldPosition 1");
 							this.WalkToHeldPosition();
+						}
 					}
 				},
 
@@ -2009,8 +2012,10 @@ UnitAI.prototype.UnitFsmSpec = {
 					}
 
 					// Return to our original position
-					if (this.GetStance().respondHoldGround)
+					if (this.GetStance().respondHoldGround && !this.formationController) {
+						warn("WalkToHeldPosition 2");
 						this.WalkToHeldPosition();
+					}
 				},
 
 				// TODO: respond to target deaths immediately, rather than waiting
@@ -2064,8 +2069,10 @@ UnitAI.prototype.UnitFsmSpec = {
 						this.FinishOrder();
 
 						// Return to our original position
-						if (this.GetStance().respondHoldGround)
+						if (this.GetStance().respondHoldGround) {
+							warn("WalkToHeldPosition 3");
 							this.WalkToHeldPosition();
+						}
 					}
 				},
 
@@ -2481,8 +2488,10 @@ UnitAI.prototype.UnitFsmSpec = {
 						this.FinishOrder();
 
 						// Return to our original position
-						if (this.GetStance().respondHoldGround)
+						if (this.GetStance().respondHoldGround) {
+							warn("WalkToHeldPosition 4");
 							this.WalkToHeldPosition();
+						}
 					}
 				},
 
@@ -2566,8 +2575,10 @@ UnitAI.prototype.UnitFsmSpec = {
 						return;
 
 					// Return to our original position
-					if (this.GetStance().respondHoldGround)
+					if (this.GetStance().respondHoldGround) {
+						warn("WalkToHeldPosition 5");
 						this.WalkToHeldPosition();
+					}
 				},
 			},
 			"CHASING": {
@@ -2586,8 +2597,10 @@ UnitAI.prototype.UnitFsmSpec = {
 						this.FinishOrder();
 
 						// Return to our original position
-						if (this.GetStance().respondHoldGround)
+						if (this.GetStance().respondHoldGround) {
+							warn("WalkToHeldPosition 6");
 							this.WalkToHeldPosition();
+						}
 					}
 				},
 				"MoveCompleted": function() {
@@ -4519,8 +4532,35 @@ UnitAI.prototype.CheckTargetDistanceFromHeldPosition = function(target, iid, typ
 	if (heldPosition === undefined)
 		heldPosition = { "x": pos.x, "z": pos.z };
 
+	warn("heldPosition: " + uneval(heldPosition) + " halfvision: " + halfvision);
 	return Math.euclidDistance2D(pos.x, pos.z, heldPosition.x, heldPosition.z) < halfvision + range.max;
 };
+
+UnitAI.prototype.CheckTargetDistanceFromFormationPosition = function(target, iid, type)
+{
+
+	var cmpFormation = Engine.QueryInterface(this.formationController, IID_Formation);
+	if (!cmpFormation)
+		return;
+
+	var cmpRanged = Engine.QueryInterface(this.entity, iid);
+	var range = iid !== IID_Attack ? cmpRanged.GetRange() : cmpRanged.GetRange(type);
+
+	var cmpPosition = Engine.QueryInterface(target, IID_Position);
+	if (!cmpPosition || !cmpPosition.IsInWorld())
+		return false;
+
+	var cmpVision = Engine.QueryInterface(this.entity, IID_Vision);
+	if (!cmpVision)
+		return false;
+	var halfvision = cmpVision.GetRange() / 2;
+
+	var pos = cmpPosition.GetPosition();
+	var formationPos = cmpFormation.GetAvgPos();
+	//warn("formationPos: " + uneval(formationPos) + " halfvision: " + halfvision);
+
+	return Math.euclidDistance2D(pos.x, pos.z, formationPos.x, formationPos.y) < 5 + range.max;
+}
 
 UnitAI.prototype.CheckTargetIsInVisionRange = function(target)
 {
@@ -4564,11 +4604,23 @@ UnitAI.prototype.AttackVisibleEntity = function(ents)
  */
 UnitAI.prototype.AttackEntityInZone = function(ents)
 {
-	var target = ents.find(target =>
-		this.CanAttack(target)
-		&& this.CheckTargetDistanceFromHeldPosition(target, IID_Attack, this.GetBestAttackAgainst(target, true))
-		&& (this.GetStance().respondChaseBeyondVision || this.CheckTargetIsInVisionRange(target))
-	);
+	var target = {};
+
+	var cmpFormation = Engine.QueryInterface(this.formationController, IID_Formation);
+	if (!cmpFormation)
+		target = ents.find(target =>
+			this.CanAttack(target)
+			&& this.CheckTargetDistanceFromHeldPosition(target, IID_Attack, this.GetBestAttackAgainst(target, true))
+			&& (this.GetStance().respondChaseBeyondVision || this.CheckTargetIsInVisionRange(target))
+		);
+	else
+		target = ents.find(target =>
+			this.CanAttack(target)
+			&& this.CheckTargetDistanceFromFormationPosition(target, IID_Attack, this.GetBestAttackAgainst(target, true))
+			&& (this.GetStance().respondChaseBeyondVision || this.CheckTargetIsInVisionRange(target))
+		);
+
+
 	if (!target)
 		return false;
 
@@ -4624,8 +4676,10 @@ UnitAI.prototype.RespondToHealableEntities = function(ents)
 UnitAI.prototype.ShouldAbandonChase = function(target, force, iid, type)
 {
 	// Forced orders shouldn't be interrupted.
-	if (force)
+	if (force) {
+		warn("AbandonChase, Force, false");
 		return false;
+	}
 
 	// If we are guarding/escorting, don't abandon as long as the guarded unit is in target range of the attacker
 	if (this.isGuardOf)
@@ -4633,27 +4687,40 @@ UnitAI.prototype.ShouldAbandonChase = function(target, force, iid, type)
 		var cmpUnitAI =  Engine.QueryInterface(target, IID_UnitAI);
 		var cmpAttack = Engine.QueryInterface(target, IID_Attack);
 		if (cmpUnitAI && cmpAttack &&
-		    cmpAttack.GetAttackTypes().some(type => cmpUnitAI.CheckTargetAttackRange(this.isGuardOf, type)))
+		    cmpAttack.GetAttackTypes().some(type => cmpUnitAI.CheckTargetAttackRange(this.isGuardOf, type))) {
+				warn("AbandonChase, IsGuardOf, false");
 				return false;
+			}
 	}
 
 	// Stop if we're in hold-ground mode and it's too far from the holding point
 	if (this.GetStance().respondHoldGround)
 	{
-		if (!this.CheckTargetDistanceFromHeldPosition(target, iid, type))
-			return true;
+		if (!this.formationController)
+			if (!this.CheckTargetDistanceFromHeldPosition(target, iid, type)) {
+				warn("AbandonChase, HeldPosition, true");
+				return true;
+			}
+		else
+			if (!this.CheckTargetDistanceFromFormationPosition(target, iid, type)) {
+				warn("AbandonChase, Formation, true");
+				return true;
+			}
 	}
 
 	// Stop if it's left our vision range, unless we're especially persistent
 	if (!this.GetStance().respondChaseBeyondVision)
 	{
-		if (!this.CheckTargetIsInVisionRange(target))
+		if (!this.CheckTargetIsInVisionRange(target)) {
+			warn("AbandonChase, TargetVisionRange, true");
 			return true;
+		}
 	}
 
 	// (Note that CCmpUnitMotion will detect if the target is lost in FoW,
 	// and will continue moving to its last seen position and then stop)
 
+	warn("AbandonChase, lastReturn, false");
 	return false;
 };
 

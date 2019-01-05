@@ -18,6 +18,9 @@ Battalion.prototype.Init = function()
 	this.spawnFormationTemplate = this.template.SpawnFormationTemplate;
 	this.templateName = this.template.TemplateName;
 	this.entities = [];
+	this.formationEntity = INVALID_ENTITY;
+
+	warn("Init. entities.length: " + this.entities.length);
 
 	//this.SpawnUnits();
 };
@@ -26,10 +29,9 @@ Battalion.prototype.Init = function()
 /**
  * Spawn all member units of the formation.
  */
-Battalion.prototype.SpawnUnits = function()
+Battalion.prototype.SpawnUnits = function(playerId)
 {
 	//var template = Engine.QueryInterface(SYSTEM_ENTITY, IID_TemplateManager).GetTemplate(this.templateName);
-	var cmpOwnership = Engine.QueryInterface(this.entity, IID_Ownership);
 	var cmpFootprint = Engine.QueryInterface(this.entity, IID_Footprint);
 
 	for (let i = 0; i < this.numberOfUnits; ++i)
@@ -48,10 +50,10 @@ Battalion.prototype.SpawnUnits = function()
 		if (cmpPosition)
 			cmpNewPosition.SetYRotation(cmpPosition.GetPosition().horizAngleTo(pos));
 
-		cmpNewOwnership.SetOwner(cmpOwnership.GetOwner())
+		cmpNewOwnership.SetOwner(playerId)
 
-		let cmpNewBattalionMember = Engine.QueryInterface(ent, IID_BattalionMember);
-		cmpNewBattalionMember.SetLeader(this.entity);
+		let cmpUnitAI = Engine.QueryInterface(ent, IID_UnitAI);
+		cmpUnitAI.SetStance("defensive");
 
 		this.entities.push(ent);
 	}
@@ -61,22 +63,43 @@ Battalion.prototype.SpawnUnits = function()
 
 Battalion.prototype.CreateFormation = function()
 {
-	// Create the new controller
-	var formationEnt = Engine.AddEntity(this.spawnFormationTemplate);
-	var cmpFormation = Engine.QueryInterface(formationEnt, IID_Formation);
+	if (this.formationEntity === INVALID_ENTITY)
+	{
+		// Create the new controller
+		warn("create formation");
+		this.formationEntity = Engine.AddEntity(this.spawnFormationTemplate);
+	}
 
+	let cmpFormation = Engine.QueryInterface(this.formationEntity, IID_Formation);
 	cmpFormation.SetMembers(this.entities);
-	
-	var cmpOwnership = Engine.QueryInterface(this.entity, IID_Ownership);
-	var newCmpOwnership = Engine.QueryInterface(formationEnt, IID_Ownership);
-	cmpOwnership.SetOwner(cmpOwnership.GetOwner());
-
 	cmpFormation.AddMembers([this.entity]);
+
+	for (let entity of this.entities)
+	{
+		let cmpBattalionMember = Engine.QueryInterface(entity, IID_BattalionMember);
+		cmpBattalionMember.SetLeader(this.entity);
+	}
 }
 
 Battalion.prototype.GetMembers = function()
 {
 	return this.entities;
+}
+
+Battalion.prototype.SetMembers = function(entities)
+{
+	this.entities = entities;
+	warn("Battalion.SetMembers");
+}
+
+Battalion.prototype.SetFormationEntity = function(formationEnt)
+{
+	this.formationEntity = formationEnt;
+}
+
+Battalion.prototype.GetFormationEntity = function()
+{
+	return this.formationEntity;
 }
 
 Battalion.prototype.GetLeader = function()
@@ -94,6 +117,18 @@ Battalion.prototype.RemoveMember = function(ent)
 	{
 		let cmpHealth = Engine.QueryInterface(this.entity, IID_Health);
 		cmpHealth.SetInvincible(false);
+	}
+}
+
+Battalion.prototype.OnOwnershipChanged = function(msg)
+{
+	if (msg.from == INVALID_PLAYER)
+	{
+		if (!this.entities.length)
+		{
+			warn("spawnUnits");
+			this.SpawnUnits(msg.to);
+		}
 	}
 }
 

@@ -79,6 +79,9 @@ COMPONENT(AIInterfaceScripted)
 INTERFACE(AIManager)
 COMPONENT(AIManager)
 
+INTERFACE(Battalion)
+COMPONENT(BattalionScripted)
+
 INTERFACE(CinemaManager)
 COMPONENT(CinemaManager)
 

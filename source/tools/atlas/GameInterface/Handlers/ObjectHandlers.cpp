@@ -41,6 +41,7 @@
 #include "renderer/Renderer.h"
 #include "renderer/WaterManager.h"
 #include "simulation2/Simulation2.h"
+#include "simulation2/components/ICmpBattalion.h"
 #include "simulation2/components/ICmpObstruction.h"
 #include "simulation2/components/ICmpOwnership.h"
 #include "simulation2/components/ICmpPosition.h"
@@ -286,6 +287,22 @@ QUERYHANDLER(GetObjectMapSettings)
 							XML_Element("Orientation");
 							XML_Attribute("y", rot.Y);
 														// TODO: X, Z maybe
+						}
+					}
+
+					CmpPtr<ICmpBattalion> cmpBattalion(*g_Game->GetSimulation2(), id);
+					if (cmpBattalion)
+					{
+						XML_Element("Battalion");
+						{
+
+							const std::vector<entity_id_t>& entities = cmpBattalion->GetMembers();
+
+							for (entity_id_t ent : entities)
+							{
+								XML_Element("Member");
+								XML_Attribute("eid", ent);
+							}
 						}
 					}
 

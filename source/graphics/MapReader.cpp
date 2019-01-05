@@ -40,6 +40,7 @@
 #include "renderer/SkyManager.h"
 #include "renderer/WaterManager.h"
 #include "simulation2/Simulation2.h"
+#include "simulation2/components/ICmpBattalion.h"
 #include "simulation2/components/ICmpCinemaManager.h"
 #include "simulation2/components/ICmpObstruction.h"
 #include "simulation2/components/ICmpOwnership.h"
@@ -414,8 +415,10 @@ private:
 	int el_entity;
 	int el_tracks;
 	int el_template, el_player;
+	int el_battalion, el_member, el_formationentity;
 	int el_position, el_orientation, el_obstruction;
 	int el_actor;
+	int at_eid;
 	int at_x, at_y, at_z;
 	int at_group, at_group2;
 	int at_angle;
@@ -463,10 +466,14 @@ void CXMLReader::Init(const VfsPath& xml_filename)
 	EL(tracks);
 	EL(template);
 	EL(player);
+	EL(battalion);
+	EL(member);
+	EL(formationentity);
 	EL(position);
 	EL(orientation);
 	EL(obstruction);
 	EL(actor);
+	AT(eid);
 	AT(x); AT(y); AT(z);
 	AT(group); AT(group2);
 	AT(angle);
@@ -929,6 +936,9 @@ int CXMLReader::ReadEntities(XMBElement parent, double end_time)
 	ENSURE(m_MapReader.pSimulation2);
 	CSimulation2& sim = *m_MapReader.pSimulation2;
 	CmpPtr<ICmpPlayerManager> cmpPlayerManager(sim, SYSTEM_ENTITY);
+	// Battalions require other entities (members, formation) before they can be initialized.
+	// Therefore, initialization is delayed until after loading all other entities.
+	std::vector<CmpPtr<ICmpBattalion>> battalions;
 
 	while (entity_idx < entities.size())
 	{
@@ -947,6 +957,8 @@ int CXMLReader::ReadEntities(XMBElement parent, double end_time)
 		int PlayerID = 0;
 		CFixedVector3D Position;
 		CFixedVector3D Orientation;
+		std::vector<entity_id_t> Members;
+		entity_id_t FormationEntity = INVALID_ENTITY;
 		long Seed = -1;
 
 		// Obstruction control groups.
@@ -975,6 +987,27 @@ int CXMLReader::ReadEntities(XMBElement parent, double end_time)
 					fixed::FromString(attrs.GetNamedItem(at_x)),
 					fixed::FromString(attrs.GetNamedItem(at_y)),
 					fixed::FromString(attrs.GetNamedItem(at_z)));
+			}
+			// <battalion>
+			else if (element_name == el_battalion)
+			{
+				XERO_ITER_EL(setting, member)
+				{
+					if (member.GetNodeName() == el_member)
+					{
+						XMBAttributeList attrs = member.GetAttributes();
+						CStr eidStr = attrs.GetNamedItem(at_eid);
+						entity_id_t eid = eidStr.ToLong();
+						Members.push_back(eid);
+					}
+					else if (member.GetNodeName() == el_formationentity)
+					{
+						XMBAttributeList attrs = member.GetAttributes();
+						CStr eidStr = attrs.GetNamedItem(at_eid);
+						entity_id_t eid = eidStr.ToLong();
+						FormationEntity = eid;
+					}
+				}
 			}
 			// <orientation>
 			else if (element_name == el_orientation)
@@ -1024,6 +1057,17 @@ int CXMLReader::ReadEntities(XMBElement parent, double end_time)
 				// TODO: other parts of the position
 			}
 
+			CmpPtr<ICmpBattalion> cmpBattalion(sim, ent);
+			if (cmpBattalion)
+			{
+				// Add the entity ids, even though the entities might not exist yet.
+				// The entities will only be used later.
+				// TODO: this seems unsafe
+				cmpBattalion->SetMembers(Members);
+				cmpBattalion->SetFormationEntity(FormationEntity);
+				battalions.push_back(cmpBattalion);
+			}
+
 			CmpPtr<ICmpOwnership> cmpOwnership(sim, ent);
 			if (cmpOwnership)
 				cmpOwnership->SetOwner(PlayerID);
@@ -1056,6 +1100,12 @@ int CXMLReader::ReadEntities(XMBElement parent, double end_time)
 
 		completed_jobs++;
 		LDR_CHECK_TIMEOUT(completed_jobs, total_jobs);
+	}
+
+	// Delayed initialization of battalions
+	for (CmpPtr<ICmpBattalion> cmpBattalion : battalions)
+	{
+		cmpBattalion->CreateFormation();
 	}
 
 	return 0;

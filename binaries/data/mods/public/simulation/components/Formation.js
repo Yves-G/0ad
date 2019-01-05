@@ -434,6 +434,26 @@ Formation.prototype.Disband = function()
 	Engine.DestroyEntity(this.entity);
 };
 
+Formation.prototype.GetAvgPos = function()
+{
+	var positions = [];
+
+	for (var ent of this.members)
+	{
+		var cmpPosition = Engine.QueryInterface(ent, IID_Position);
+		if (!cmpPosition || !cmpPosition.IsInWorld())
+			continue;
+
+		// query the 2D position as exact hight calculation isn't needed
+		// but bring the position to the right coordinates
+		var pos = cmpPosition.GetPosition2D();
+		positions.push(pos);
+	}
+
+	var avgpos = Vector2D.average(positions);
+	return avgpos;
+};
+
 /**
  * Set all members to form up into the formation shape.
  * If moveCenter is true, the formation center will be reinitialised
@@ -919,8 +939,14 @@ Formation.prototype.OnGlobalOwnershipChanged = function(msg)
 	// When an entity is captured or destroyed, it should no longer be
 	// controlled by this formation
 
-	if (this.members.indexOf(msg.entity) != -1)
+	// When spawning a battalion, there's an ownership changed event
+	if (msg.from == INVALID_PLAYER)
+		return;
+
+	if (this.members.indexOf(msg.entity) != -1) {
+		warn("remove member");
 		this.RemoveMembers([msg.entity]);
+	}
 };
 
 Formation.prototype.OnGlobalEntityRenamed = function(msg)
