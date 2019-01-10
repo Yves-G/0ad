@@ -159,6 +159,10 @@ UnitAI.prototype.UnitFsmSpec = {
 		// ignore newly-seen injured units by default
 	},
 
+	"FormationMemberAttackRangeUpdate": function(msg) {
+		// ignore by default
+	},
+
 	"Attacked": function(msg) {
 		// ignore attacker
 	},
@@ -487,6 +491,8 @@ UnitAI.prototype.UnitFsmSpec = {
 			// We've started walking to the given point
 			if (this.IsAnimal())
 				this.SetNextState("ANIMAL.COMBAT.APPROACHING");
+			else if (this.IsFormationMember())
+				this.SetNextState("FORMATIONMEMBER.COMBAT.APPROACHING");
 			else
 				this.SetNextState("INDIVIDUAL.COMBAT.APPROACHING");
 			return;
@@ -826,8 +832,10 @@ UnitAI.prototype.UnitFsmSpec = {
 			var target = msg.data.target;
 			var allowCapture = msg.data.allowCapture;
 			var cmpTargetUnitAI = Engine.QueryInterface(target, IID_UnitAI);
-			if (cmpTargetUnitAI && cmpTargetUnitAI.IsFormationMember())
+			if (cmpTargetUnitAI && cmpTargetUnitAI.IsFormationMember()) {
 				target = cmpTargetUnitAI.GetFormationController();
+				warn("attacking formation");
+			}
 
 			var cmpAttack = Engine.QueryInterface(this.entity, IID_Attack);
 			// Check if we are already in range, otherwise walk there
@@ -1008,16 +1016,83 @@ UnitAI.prototype.UnitFsmSpec = {
 		},
 
 		"IDLE": {
-			"enter": function(msg) {
+
+			"enter": function() {
+
 				var cmpFormation = Engine.QueryInterface(this.entity, IID_Formation);
 				cmpFormation.SetRearrange(false);
+				warn("FORMATIONCONTROLLER.IDLE:enter()");
+
+				//this.SelectAnimation(animationName);
+
+				// If we have some orders, it is because we are in an intermediary state
+				// from FinishOrder (SetNextState("IDLE") is only executed when we get
+				// a ProcessMessage), and thus we should not start another order which could
+				// put us in a weird state
+				if (this.orderQueue.length > 0 && !this.IsGarrisoned())
+					return false;
+
+				// If the unit is guarding/escorting, go back to its duty
+				if (this.isGuardOf)
+				{
+					this.Guard(this.isGuardOf, false);
+					return true;
+				}
+
+				// The GUI and AI want to know when a unit is idle, but we don't
+				// want to send frequent spurious messages if the unit's only
+				// idle for an instant and will quickly go off and do something else.
+				// So we'll set a timer here and only report the idle event if we
+				// remain idle
+				this.StartTimer(1000);
+
+				// If we entered the idle state we must have nothing better to do,
+				// so immediately check whether there's anybody nearby to attack.
+				// (If anyone approaches later, it'll be handled via LosRangeUpdate.)
+				if (this.FindNewTargets())
+					return true; // (abort the FSM transition since we may have already switched state)
+
+				// Nobody to attack - stay in idle
+				return false;
+			},
+
+			"leave": function() {
+				var cmpRangeManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_RangeManager);
+				if (this.losRangeQuery)
+					cmpRangeManager.DisableActiveQuery(this.losRangeQuery);
+				if (this.losHealRangeQuery)
+					cmpRangeManager.DisableActiveQuery(this.losHealRangeQuery);
+
+				this.StopTimer();
+
+				if (this.isIdle)
+				{
+					this.isIdle = false;
+					Engine.PostMessage(this.entity, MT_UnitIdleChanged, { "idle": this.isIdle });
+				}
+			},
+
+			"LosRangeUpdate": function(msg) {
+				if (this.GetStance().targetVisibleEnemies)
+				{
+					// Start attacking one of the newly-seen enemy (if any)
+					this.AttackEntitiesByPreference(msg.data.added);
+				}
 			},
 
 			"MoveStarted": function() {
 				let cmpFormation = Engine.QueryInterface(this.entity, IID_Formation);
 				cmpFormation.SetRearrange(true);
 				cmpFormation.MoveMembersIntoFormation(true, true);
-			}
+			},
+
+			"Timer": function(msg) {
+				if (!this.isIdle)
+				{
+					this.isIdle = true;
+					Engine.PostMessage(this.entity, MT_UnitIdleChanged, { "idle": this.isIdle });
+				}
+			},
 		},
 
 		"WALKING": {
@@ -1337,14 +1412,51 @@ UnitAI.prototype.UnitFsmSpec = {
 			}
 		},
 
-
 		"IDLE": {
 			"enter": function() {
-				if (this.IsAnimal())
-					this.SetNextState("ANIMAL.IDLE");
-				else
-					this.SetNextState("INDIVIDUAL.IDLE");
-				return true;
+
+				// The formation controller entity makes the decisions and idle formation members do
+				// pretty much nothing on their own.
+				let animationName = "idle";
+				let cmpFormation = Engine.QueryInterface(this.formationController, IID_Formation);
+				animationName = cmpFormation.GetFormationAnimation(this.entity, animationName);
+				this.SelectAnimation(animationName);
+
+				// If we have some orders, it is because we are in an intermediary state
+				// from FinishOrder (SetNextState("IDLE") is only executed when we get
+				// a ProcessMessage), and thus we should not start another order which could
+				// put us in a weird state
+				if (this.orderQueue.length > 0 && !this.IsGarrisoned())
+					return false;
+
+				return false;
+			},
+
+			"leave": function() {
+				var cmpRangeManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_RangeManager);
+				if (this.losRangeQuery)
+					warn("losRangeQuery active");
+					//cmpRangeManager.DisableActiveQuery(this.losRangeQuery);
+				if (this.losHealRangeQuery)
+					warn("losHealRangeQuery active");
+					//cmpRangeManager.DisableActiveQuery(this.losHealRangeQuery);
+
+				// Needed? Assuming it's not needed and only send a message if the formation controller becomes idle.
+				//if (this.isIdle)
+				//{
+				//	this.isIdle = false;
+				//	Engine.PostMessage(this.entity, MT_UnitIdleChanged, { "idle": this.isIdle });
+				//}
+			},
+
+			// TODO: When does this happen? Don't we change to another state anyway in this case?
+			// Maybe when leaving a foundation or so?
+			"MoveStarted": function() {
+				this.SelectAnimation("move");
+			},
+
+			"MoveCompleted": function() {
+				this.SelectAnimation("idle");
 			},
 		},
 
@@ -1376,6 +1488,91 @@ UnitAI.prototype.UnitFsmSpec = {
 				var cmpFormation = Engine.QueryInterface(this.formationController, IID_Formation);
 				if (cmpFormation)
 					cmpFormation.SetInPosition(this.entity);
+			},
+		},
+
+		"COMBAT": {
+			"APPROACHING": {
+				"enter": function() {
+					warn("FORMATIONMEMBER.COMBAT.APPROACHING:enter()");
+					// Show weapons rather than carried resources.
+					this.SetAnimationVariant("combat");
+
+					this.SelectAnimation("move");
+					this.StartTimer(1000, 1000);
+
+
+					// Setup range query
+					let minRange = 0;
+					let maxRange = 1;
+					let cmpRangeManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_RangeManager);
+
+					// TODO: can this even happen in this case? (copied from SetupRangeQuery function
+					let cmpPlayer = QueryOwnerInterface(this.entity);
+					// If we are being destructed (owner -1), creating a range query is pointless
+					if (!cmpPlayer)
+						return;
+
+					// Exclude allies, and self
+					// TODO: How to handle neutral players - Special query to attack military only?
+					let players = cmpPlayer.GetEnemies();
+					let range = this.GetQueryRange(IID_Attack);
+
+					this.formationMemberAttackRangeQuery = cmpRangeManager.CreateActiveQuery(this.entity, range.min, range.max, players, IID_DamageReceiver, cmpRangeManager.GetEntityFlagMask("normal"));
+
+					cmpRangeManager.EnableActiveQuery(this.formationMemberAttackRangeQuery);
+				},
+
+				"leave": function() {
+					let cmpRangeManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_RangeManager);
+					cmpRangeManager.DestroyActiveQuery(this.formationMemberAttackRangeQuery);
+					// Show carried resources when walking.
+					this.SetDefaultAnimationVariant();
+					this.StopTimer();
+				},
+
+				"Timer": function(msg) {
+					if (this.ShouldAbandonChase(this.order.data.target, this.order.data.force, IID_Attack, this.order.data.attackType))
+					{
+						this.StopMoving();
+						this.FinishOrder();
+					}
+				},
+
+				"FormationMemberAttackRangeUpdate": function(msg) {
+					warn("FormationMemberAttackRangeUpdate");
+					this.FinishOrder();
+					this.AttackVisibleEntity(msg.data.added);
+					//this.AttackEntitiesByPreference(msg.data.added);
+				},
+
+				"MoveCompleted": function() {
+					warn("FORMATIONMEMBER.COMBAT.APPROACHING:MoveCompleted()");
+
+					if (this.CheckTargetAttackRange(this.order.data.target, this.order.data.attackType))
+					{
+						// If the unit needs to unpack, do so
+						if (this.CanUnpack())
+						{
+							this.PushOrderFront("Unpack", { "force": true });
+							return;
+						}
+						else
+							this.SetNextState("INDIVIDUAL.COMBAT.ATTACKING");
+					}
+					else
+					{
+						if (this.MoveToTargetAttackRange(this.order.data.target, this.order.data.attackType))
+						{
+							this.SetNextState("APPROACHING");
+						}
+						else
+						{
+							// Give up
+							this.FinishOrder();
+						}
+					}
+				},
 			},
 		},
 
@@ -3980,6 +4177,8 @@ UnitAI.prototype.OnRangeUpdate = function(msg)
 		this.UnitFsm.ProcessMessage(this, {"type": "LosRangeUpdate", "data": msg});
 	else if (msg.tag == this.losHealRangeQuery)
 		this.UnitFsm.ProcessMessage(this, {"type": "LosHealRangeUpdate", "data": msg});
+	else if (msg.tag == this.formationMemberAttackRangeQuery)
+		this.UnitFsm.ProcessMessage(this, {"type": "FormationMemberAttackRangeUpdate", "data": msg});
 };
 
 UnitAI.prototype.OnPackFinished = function(msg)
@@ -4676,10 +4875,8 @@ UnitAI.prototype.RespondToHealableEntities = function(ents)
 UnitAI.prototype.ShouldAbandonChase = function(target, force, iid, type)
 {
 	// Forced orders shouldn't be interrupted.
-	if (force) {
-		warn("AbandonChase, Force, false");
+	if (force)
 		return false;
-	}
 
 	// If we are guarding/escorting, don't abandon as long as the guarded unit is in target range of the attacker
 	if (this.isGuardOf)
@@ -4781,7 +4978,11 @@ UnitAI.prototype.GetFormationController = function()
 
 UnitAI.prototype.GetFormationTemplate = function()
 {
-	return Engine.QueryInterface(SYSTEM_ENTITY, IID_TemplateManager).GetCurrentTemplateName(this.formationController) || "special/formations/null";
+	let cmpFormation = Engine.QueryInterface(this.formationController, IID_Formation);
+	if (cmpFormation)
+		return cmpFormation.GetFormationTemplate()
+	return "null";
+	//return Engine.QueryInterface(SYSTEM_ENTITY, IID_TemplateManager).GetCurrentTemplateName(this.formationController) || "special/formations/null";
 };
 
 UnitAI.prototype.MoveIntoFormation = function(cmd)

@@ -39,7 +39,7 @@
     <GenericName>Cavalry</GenericName>
     <Rank>Basic</Rank>
     <Formations datatype="tokens">
-      special/formations/wedge
+      wedge
     </Formations>
   </Identity>
   <Loot>

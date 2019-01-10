@@ -28,7 +28,7 @@
     <VisibleClasses datatype="tokens">Ranged Javelin</VisibleClasses>
     <GenericName>Champion Skirmisher</GenericName>
     <Formations datatype="tokens">
-      special/formations/skirmish
+      skirmish
     </Formations>
   </Identity>
   <UnitMotion>

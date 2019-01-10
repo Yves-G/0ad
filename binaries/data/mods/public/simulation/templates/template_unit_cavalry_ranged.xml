@@ -23,7 +23,7 @@
     <GenericName>Ranged Cavalry</GenericName>
     <VisibleClasses datatype="tokens">Ranged</VisibleClasses>
     <Formations datatype="tokens">
-      special/formations/skirmish
+      skirmish
     </Formations>
   </Identity>
 </Entity>

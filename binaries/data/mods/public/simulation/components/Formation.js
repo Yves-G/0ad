@@ -1,118 +1,139 @@
 function Formation() {}
 
 Formation.prototype.Schema =
-	"<element name='FormationName' a:help='Name of the formation'>" +
-		"<text/>" +
-	"</element>" +
-	"<element name='Icon'>" +
-		"<text/>" +
-	"</element>" +
-	"<element name='RequiredMemberCount' a:help='Minimum number of entities the formation should contain'>" +
-		"<data type='nonNegativeInteger'/>" +
-	"</element>" +
-	"<element name='DisabledTooltip' a:help='Tooltip shown when the formation is disabled'>" +
-		"<text/>" +
-	"</element>" +
-	"<element name='SpeedMultiplier' a:help='The speed of the formation is determined by the minimum speed of all members, multiplied with this number.'>" +
-		"<ref name='nonNegativeDecimal'/>" +
-	"</element>" +
-	"<element name='FormationShape' a:help='Formation shape, currently supported are square, triangle and special, where special will be defined in the source code.'>" +
-		"<text/>" +
-	"</element>" +
-	"<element name='ShiftRows' a:help='Set the value to true to shift subsequent rows'>" +
-		"<text/>" +
-	"</element>" +
-	"<element name='SortingClasses' a:help='Classes will be added to the formation in this order. Where the classes will be added first depends on the formation'>" +
-		"<text/>" +
-	"</element>" +
-	"<optional>" +
-		"<element name='SortingOrder' a:help='The order of sorting. This defaults to an order where the formation is filled from the first row to the last, and the center of each row to the sides. Other possible sort orders are \"fillFromTheSides\", where the most important units are on the sides of each row, and \"fillToTheCenter\", where the most vulerable units are right in the center of the formation. '>" +
-			"<text/>" +
-		"</element>" +
-	"</optional>" +
-	"<element name='WidthDepthRatio' a:help='Average width/depth, counted in number of units.'>" +
-		"<ref name='nonNegativeDecimal'/>" +
-	"</element>" +
-	"<element name='Sloppyness' a:help='Sloppyness in meters (the max difference between the actual and the perfectly aligned formation position'>" +
-		"<ref name='nonNegativeDecimal'/>" +
-	"</element>" +
-	"<optional>" +
-		"<element name='MinColumns' a:help='When possible, this number of colums will be created. Overriding the wanted width depth ratio'>" +
-			"<data type='nonNegativeInteger'/>" +
-		"</element>" +
-	"</optional>" +
-	"<optional>" +
-		"<element name='MaxColumns' a:help='When possible within the number of units, and the maximum number of rows, this will be the maximum number of columns.'>" +
-			"<data type='nonNegativeInteger'/>" +
-		"</element>" +
-	"</optional>" +
-	"<optional>" +
-		"<element name='MaxRows' a:help='The maximum number of rows in the formation'>" +
-			"<data type='nonNegativeInteger'/>" +
-		"</element>" +
-	"</optional>" +
-	"<optional>" +
-		"<element name='CenterGap' a:help='The size of the central gap, expressed in number of units wide'>" +
-			"<ref name='nonNegativeDecimal'/>" +
-		"</element>" +
-	"</optional>" +
-	"<element name='UnitSeparationWidthMultiplier' a:help='Place the units in the formation closer or further to each other. The standard separation is the footprint size.'>" +
-		"<ref name='nonNegativeDecimal'/>" +
-	"</element>" +
-	"<element name='UnitSeparationDepthMultiplier' a:help='Place the units in the formation closer or further to each other. The standard separation is the footprint size.'>" +
-		"<ref name='nonNegativeDecimal'/>" +
-	"</element>" +
-	"<element name='Animations' a:help='Give a list of animations to use for the particular formation members, based on their positions'>" +
-		"<zeroOrMore>" +
-			"<element a:help='The name of the default animation (walk, idle, attack_ranged...) that will be transformed in the formation-specific ResetMoveAnimation'>" +
-				"<anyName/>" +
-				"<text a:help='example text: \"1..1,1..-1:animation1;2..2,1..-1;animation2\", this will set animation1 for the first row, and animation2 for the second row. The first part of the numbers (1..1 and 2..2) means the row range. Every row between (and including) those values will switch animations. The second part of the numbers (1..-1) denote the columns inside those rows that will be affected. Note that in both cases, you can use -1 for the last row/column, -2 for the second to last, etc.'/>" +
+	"<element name='FormationTypeList' a:help='Define one or more fromation types in this list.'>" +
+	"<oneOrMore>" +
+		"<element>" +
+			"<anyName/>" +
+			"<interleave>" +
+			"<element name='FormationName' a:help='Name of the formation'>" +
+				"<text/>" +
 			"</element>" +
-		"</zeroOrMore>" +
+			"<element name='Icon'>" +
+				"<text/>" +
+			"</element>" +
+			"<element name='RequiredMemberCount' a:help='Minimum number of entities the formation should contain'>" +
+				"<data type='nonNegativeInteger'/>" +
+			"</element>" +
+			"<element name='DisabledTooltip' a:help='Tooltip shown when the formation is disabled'>" +
+				"<text/>" +
+			"</element>" +
+			"<element name='SpeedMultiplier' a:help='The speed of the formation is determined by the minimum speed of all members, multiplied with this number.'>" +
+				"<ref name='nonNegativeDecimal'/>" +
+			"</element>" +
+			"<element name='FormationShape' a:help='Formation shape, currently supported are square, triangle and special, where special will be defined in the source code.'>" +
+				"<text/>" +
+			"</element>" +
+			"<element name='ShiftRows' a:help='Set the value to true to shift subsequent rows'>" +
+				"<text/>" +
+			"</element>" +
+			"<element name='SortingClasses' a:help='Classes will be added to the formation in this order. Where the classes will be added first depends on the formation'>" +
+				"<text/>" +
+			"</element>" +
+			"<optional>" +
+				"<element name='SortingOrder' a:help='The order of sorting. This defaults to an order where the formation is filled from the first row to the last, and the center of each row to the sides. Other possible sort orders are \"fillFromTheSides\", where the most important units are on the sides of each row, and \"fillToTheCenter\", where the most vulerable units are right in the center of the formation. '>" +
+					"<text/>" +
+				"</element>" +
+			"</optional>" +
+			"<element name='WidthDepthRatio' a:help='Average width/depth, counted in number of units.'>" +
+				"<ref name='nonNegativeDecimal'/>" +
+			"</element>" +
+			"<element name='Sloppyness' a:help='Sloppyness in meters (the max difference between the actual and the perfectly aligned formation position'>" +
+				"<ref name='nonNegativeDecimal'/>" +
+			"</element>" +
+			"<optional>" +
+				"<element name='MinColumns' a:help='When possible, this number of colums will be created. Overriding the wanted width depth ratio'>" +
+					"<data type='nonNegativeInteger'/>" +
+				"</element>" +
+			"</optional>" +
+			"<optional>" +
+				"<element name='MaxColumns' a:help='When possible within the number of units, and the maximum number of rows, this will be the maximum number of columns.'>" +
+					"<data type='nonNegativeInteger'/>" +
+				"</element>" +
+			"</optional>" +
+			"<optional>" +
+				"<element name='MaxRows' a:help='The maximum number of rows in the formation'>" +
+					"<data type='nonNegativeInteger'/>" +
+				"</element>" +
+			"</optional>" +
+			"<optional>" +
+				"<element name='CenterGap' a:help='The size of the central gap, expressed in number of units wide'>" +
+					"<ref name='nonNegativeDecimal'/>" +
+				"</element>" +
+			"</optional>" +
+			"<element name='UnitSeparationWidthMultiplier' a:help='Place the units in the formation closer or further to each other. The standard separation is the footprint size.'>" +
+				"<ref name='nonNegativeDecimal'/>" +
+			"</element>" +
+			"<element name='UnitSeparationDepthMultiplier' a:help='Place the units in the formation closer or further to each other. The standard separation is the footprint size.'>" +
+				"<ref name='nonNegativeDecimal'/>" +
+			"</element>" +
+			"<element name='Animations' a:help='Give a list of animations to use for the particular formation members, based on their positions'>" +
+				"<zeroOrMore>" +
+					"<element a:help='The name of the default animation (walk, idle, attack_ranged...) that will be transformed in the formation-specific ResetMoveAnimation'>" +
+						"<anyName/>" +
+						"<text a:help='example text: \"1..1,1..-1:animation1;2..2,1..-1;animation2\", this will set animation1 for the first row, and animation2 for the second row. The first part of the numbers (1..1 and 2..2) means the row range. Every row between (and including) those values will switch animations. The second part of the numbers (1..-1) denote the columns inside those rows that will be affected. Note that in both cases, you can use -1 for the last row/column, -2 for the second to last, etc.'/>" +
+					"</element>" +
+				"</zeroOrMore>" +
+			"</element>" +
+			"</interleave>" +
+		"</element>" +
+	"</oneOrMore>" +
 	"</element>";
 
 var g_ColumnDistanceThreshold = 128; // distance at which we'll switch between column/box formations
 
 Formation.prototype.Init = function()
 {
-	this.formationShape = this.template.FormationShape;
-	this.sortingClasses = this.template.SortingClasses.split(/\s+/g);
-	this.sortingOrder = this.template.SortingOrder;
-	this.shiftRows = this.template.ShiftRows == "true";
-	this.separationMultiplier = {
-		"width": +this.template.UnitSeparationWidthMultiplier,
-		"depth": +this.template.UnitSeparationDepthMultiplier
-	};
-	this.sloppyness = +this.template.Sloppyness;
-	this.widthDepthRatio = +this.template.WidthDepthRatio;
-	this.minColumns = +(this.template.MinColumns || 0);
-	this.maxColumns = +(this.template.MaxColumns || 0);
-	this.maxRows = +(this.template.MaxRows || 0);
-	this.centerGap = +(this.template.CenterGap || 0);
-
-	var animations = this.template.Animations;
-	this.animations = {};
-	for (var animationName in animations)
+	// TODO: should we maybe just use the values from this.template.FormationTypeList directly in the Getters?
+	// Or at least for those values which don't need to be further processed.
+	this.formationTypes = {};
+	this.activeFormationTemplate = "null";
+	let formationTypeList = this.template.FormationTypeList;
+	for (let formationTypeName in formationTypeList)
 	{
-		var differentAnimations = animations[animationName].split(/\s*;\s*/);
-		this.animations[animationName] = [];
-		// loop over the different rectangulars that will map to different animations
-		for (var rectAnimation of differentAnimations)
+		let formationType = formationTypeList[formationTypeName];
+		let form = this.formationTypes[formationTypeName] = {};
+		form.formationName = formationType.FormationName;
+		form.formationShape = formationType.FormationShape;
+		form.sortingClasses = formationType.SortingClasses.split(/\s+/g);
+		form.sortingOrder = formationType.SortingOrder;
+		form.speedMultiplier = +formationType.SpeedMultiplier;
+		form.shiftRows = formationType.ShiftRows == "true";
+		form.separationMultiplier = {
+			"width": +formationType.UnitSeparationWidthMultiplier,
+			"depth": +formationType.UnitSeparationDepthMultiplier
+		};
+		form.sloppyness = +formationType.Sloppyness;
+		form.widthDepthRatio = +formationType.WidthDepthRatio;
+		form.minColumns = +(formationType.MinColumns || 0);
+		form.maxColumns = +(formationType.MaxColumns || 0);
+		form.maxRows = +(formationType.MaxRows || 0);
+		form.centerGap = +(formationType.CenterGap || 0);
+
+		var animations = formationType.Animations;
+		form.animations = {};
+		for (var animationName in animations)
 		{
-			var rect, replacementAnimationName;
-			[rect, replacementAnimationName] = rectAnimation.split(/\s*:\s*/);
-			var rows, columns;
-			[rows, columns] = rect.split(/\s*,\s*/);
-			var minRow, maxRow, minColumn, maxColumn;
-			[minRow, maxRow] = rows.split(/\s*\.\.\s*/);
-			[minColumn, maxColumn] = columns.split(/\s*\.\.\s*/);
-			this.animations[animationName].push({
-				"minRow": +minRow,
-				"maxRow": +maxRow,
-				"minColumn": +minColumn,
-				"maxColumn": +maxColumn,
-				"animation": replacementAnimationName
-			});
+			var differentAnimations = animations[animationName].split(/\s*;\s*/);
+			form.animations[animationName] = [];
+			// loop over the different rectangulars that will map to different animations
+			for (var rectAnimation of differentAnimations)
+			{
+				var rect, replacementAnimationName;
+				[rect, replacementAnimationName] = rectAnimation.split(/\s*:\s*/);
+				var rows, columns;
+				[rows, columns] = rect.split(/\s*,\s*/);
+				var minRow, maxRow, minColumn, maxColumn;
+				[minRow, maxRow] = rows.split(/\s*\.\.\s*/);
+				[minColumn, maxColumn] = columns.split(/\s*\.\.\s*/);
+				form.animations[animationName].push({
+					"minRow": +minRow,
+					"maxRow": +maxRow,
+					"minColumn": +minColumn,
+					"maxColumn": +maxColumn,
+					"animation": replacementAnimationName
+				});
+			}
 		}
 	}
 
@@ -142,6 +163,79 @@ Formation.prototype.SetFormationSeparation = function(value)
 	this.formationSeparation = value;
 };
 
+Formation.prototype.GetFormationName = function()
+{
+	let  formation = this.formationTypes[this.activeFormationTemplate];
+	return formation.formationName;
+};
+
+Formation.prototype.GetFormationShape = function()
+{
+	let  formation = this.formationTypes[this.activeFormationTemplate];
+	return formation.formationShape;
+};
+
+Formation.prototype.GetSortingClasses = function()
+{
+	let  formation = this.formationTypes[this.activeFormationTemplate];
+	return formation.sortingClasses;
+};
+
+Formation.prototype.GetSortingOrder = function()
+{
+	let  formation = this.formationTypes[this.activeFormationTemplate];
+	return formation.sortingOrder;
+};
+
+Formation.prototype.GetSeparationMultiplier = function()
+{
+	let  formation = this.formationTypes[this.activeFormationTemplate];
+	return formation.separationMultiplier;
+};
+
+Formation.prototype.GetShiftRows = function()
+{
+	let  formation = this.formationTypes[this.activeFormationTemplate];
+	return formation.shiftRows;
+};
+
+Formation.prototype.GetSloppyness = function()
+{
+	let  formation = this.formationTypes[this.activeFormationTemplate];
+	return formation.sloppyness;
+};
+
+Formation.prototype.GetWidthDepthRatio = function()
+{
+	let  formation = this.formationTypes[this.activeFormationTemplate];
+	return formation.widthDepthRatio;
+};
+
+
+Formation.prototype.GetMinColumns = function()
+{
+	let  formation = this.formationTypes[this.activeFormationTemplate];
+	return formation.minColumns;
+};
+
+Formation.prototype.GetMaxColumns = function()
+{
+	let  formation = this.formationTypes[this.activeFormationTemplate];
+	return formation.maxColumns;
+};
+
+Formation.prototype.GetMaxRows = function()
+{
+	let  formation = this.formationTypes[this.activeFormationTemplate];
+	return formation.maxRows;
+};
+
+Formation.prototype.GetCenterGap = function()
+{
+	let  formation = this.formationTypes[this.activeFormationTemplate];
+	return formation.centerGap;
+};
+
 Formation.prototype.GetSize = function()
 {
 	return {"width": this.width, "depth": this.depth};
@@ -149,7 +243,14 @@ Formation.prototype.GetSize = function()
 
 Formation.prototype.GetSpeedMultiplier = function()
 {
-	return +this.template.SpeedMultiplier;
+	let  formation = this.formationTypes[this.activeFormationTemplate];
+	return formation.speedMultiplier;
+};
+
+Formation.prototype.GetAnimations = function()
+{
+	let  formation = this.formationTypes[this.activeFormationTemplate];
+	return formation.animations;
 };
 
 Formation.prototype.GetMemberCount = function()
@@ -213,7 +314,7 @@ Formation.prototype.GetPrimaryMember = function()
  */
 Formation.prototype.GetFormationAnimation = function(entity, defaultAnimation)
 {
-	var animationGroup = this.animations[defaultAnimation];
+	var animationGroup = this.GetAnimations()[defaultAnimation];
 	if (!animationGroup || this.columnar || !this.memberPositions[entity])
 		return defaultAnimation;
 	var row = this.memberPositions[entity].row;
@@ -607,13 +708,14 @@ Formation.prototype.GetAvgFootprint = function(active)
 Formation.prototype.ComputeFormationOffsets = function(active, positions)
 {
 	var separation = this.GetAvgFootprint(active);
-	separation.width *= this.separationMultiplier.width;
-	separation.depth *= this.separationMultiplier.depth;
+	let separationMultiplier = this.GetSeparationMultiplier();
+	separation.width *= separationMultiplier.width;
+	separation.depth *= separationMultiplier.depth;
 
 	if (this.columnar)
 		var sortingClasses = ["Cavalry","Infantry"];
 	else
-		var sortingClasses = this.sortingClasses.slice();
+		var sortingClasses = this.GetSortingClasses().slice();
 	sortingClasses.push("Unknown");
 
 	// the entities will be assigned to positions in the formation in
@@ -642,10 +744,10 @@ Formation.prototype.ComputeFormationOffsets = function(active, positions)
 
 	var count = active.length;
 
-	var shape = this.formationShape;
-	var shiftRows = this.shiftRows;
-	var centerGap = this.centerGap;
-	var sortingOrder = this.sortingOrder;
+	var shape = this.GetFormationShape();
+	var shiftRows = this.GetShiftRows();
+	var centerGap = this.GetCenterGap();
+	var sortingOrder = this.GetSortingOrder();
 
 	var offsets = [];
 
@@ -662,18 +764,18 @@ Formation.prototype.ComputeFormationOffsets = function(active, positions)
 	}
 	else
 	{
-		var depth = Math.sqrt(count / this.widthDepthRatio);
-		if (this.maxRows && depth > this.maxRows)
-			depth = this.maxRows;
-		cols = Math.ceil(count / Math.ceil(depth) + (this.shiftRows ? 0.5 : 0));
-		if (cols < this.minColumns)
-			cols = Math.min(count, this.minColumns);
-		if (this.maxColumns && cols > this.maxColumns && this.maxRows != depth)
-			cols = this.maxColumns;
+		var depth = Math.sqrt(count / this.GetWidthDepthRatio());
+		if (this.GetMaxRows() && depth > this.GetMaxRows())
+			depth = this.GetMaxRows();
+		cols = Math.ceil(count / Math.ceil(depth) + (shiftRows ? 0.5 : 0));
+		if (cols < this.GetMinColumns())
+			cols = Math.min(count, this.GetMinColumns());
+		if (this.GetMaxColumns() && cols > this.GetMaxColumns() && this.GetMaxRows() != depth)
+			cols = this.GetMaxColumns();
 	}
 
 	// define special formations here
-	if (this.template.FormationName == "Scatter")
+	if (this.GetFormationName() == "scatter")
 	{
 		var width = Math.sqrt(count) * (separation.width + separation.depth) * 2.5;
 
@@ -732,8 +834,8 @@ Formation.prototype.ComputeFormationOffsets = function(active, positions)
 					x += side * centerGap / 2;
 				}
 				var column = Math.ceil(n/2) + Math.ceil(c/2) * side;
-				var r1 = randFloat(-1, 1) * this.sloppyness;
-				var r2 = randFloat(-1, 1) * this.sloppyness;
+				var r1 = randFloat(-1, 1) * this.GetSloppyness();
+				var r2 = randFloat(-1, 1) * this.GetSloppyness();
 
 				offsets.push(new Vector2D(x + r1, z + r2));
 				offsets[offsets.length - 1].row = r+1;
@@ -755,9 +857,9 @@ Formation.prototype.ComputeFormationOffsets = function(active, positions)
 	// sort the available places in certain ways
 	// the places first in the list will contain the heaviest units as defined by the order
 	// of the types list
-	if (this.sortingOrder == "fillFromTheSides")
+	if (this.GetSortingOrder() == "fillFromTheSides")
 		offsets.sort(function(o1, o2) { return Math.abs(o1.x) < Math.abs(o2.x);});
-	else if (this.sortingOrder == "fillToTheCenter")
+	else if (this.GetSortingOrder() == "fillToTheCenter")
 		offsets.sort(function(o1, o2) {
 			return Math.max(Math.abs(o1.x), Math.abs(o1.y)) < Math.max(Math.abs(o2.x), Math.abs(o2.y));
 		});
@@ -993,8 +1095,16 @@ Formation.prototype.DeleteTwinFormations = function()
 	this.twinFormations = [];
 };
 
-Formation.prototype.LoadFormation = function(newTemplate)
+Formation.prototype.GetFormationTemplate = function()
 {
+	return this.activeFormationTemplate;
+};
+
+Formation.prototype.LoadFormation = function(newFormationTemplate)
+{
+	this.activeFormationTemplate = newFormationTemplate;
+
+/*
 	// get the old formation info
 	var members = this.members.slice();
 	var cmpThisUnitAI = Engine.QueryInterface(this.entity, IID_UnitAI);
@@ -1024,7 +1134,7 @@ Formation.prototype.LoadFormation = function(newTemplate)
 	else
 		cmpNewUnitAI.MoveIntoFormation();
 
-	Engine.PostMessage(this.entity, MT_EntityRenamed, { "entity": this.entity, "newentity": newFormation });
+	Engine.PostMessage(this.entity, MT_EntityRenamed, { "entity": this.entity, "newentity": newFormation });*/
 };
 
 Engine.RegisterComponentType(IID_Formation, "Formation", Formation);

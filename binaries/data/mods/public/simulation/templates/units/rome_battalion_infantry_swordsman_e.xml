@@ -11,7 +11,7 @@
     <DefaultInvincible>true</DefaultInvincible>
   </Health>
   <Battalion>
-	<SpawnFormationTemplate>special/formations/box</SpawnFormationTemplate>
+	<SpawnFormationTemplate>box</SpawnFormationTemplate>
 	<NumberOfUnits>12</NumberOfUnits>
 	<TemplateName>units/rome_battalion_infantry_swordsman_b</TemplateName>
   </Battalion>

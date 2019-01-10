@@ -21,19 +21,6 @@
     <VisibleInAtlasOnly>false</VisibleInAtlasOnly>
   </VisualActor>
   -->
-  <Formation>
-    <RequiredMemberCount>1</RequiredMemberCount>
-    <DisabledTooltip/>
-    <SpeedMultiplier>1</SpeedMultiplier>
-    <FormationShape>square</FormationShape>
-    <SortingClasses>Hero Champion Cavalry Melee Ranged</SortingClasses>
-    <ShiftRows>false</ShiftRows>
-    <UnitSeparationWidthMultiplier>1</UnitSeparationWidthMultiplier>
-    <UnitSeparationDepthMultiplier>1</UnitSeparationDepthMultiplier>
-    <WidthDepthRatio>1</WidthDepthRatio>
-    <Sloppyness>0</Sloppyness>
-    <Animations/>
-  </Formation>
   <FormationAttack>
     <CanAttackAsFormation>false</CanAttackAsFormation>
   </FormationAttack>

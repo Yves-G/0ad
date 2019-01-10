@@ -26,7 +26,7 @@
     <GenericName>Hero Pikeman</GenericName>
     <Tooltip>Counters: 3x vs. Cavalry.</Tooltip>
     <Formations datatype="tokens">
-      special/formations/testudo
+      testudo
     </Formations>
   </Identity>
   <UnitMotion>

@@ -736,16 +736,25 @@ GuiInterface.prototype.CanMoveEntsIntoFormation = function(player, data)
 GuiInterface.prototype.GetFormationInfoFromTemplate = function(player, data)
 {
 	let cmpTemplateManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_TemplateManager);
-	let template = cmpTemplateManager.GetTemplate(data.templateName);
+	let template = cmpTemplateManager.GetTemplate("special/formations/formation_definition");
 
 	if (!template || !template.Formation)
 		return {};
 
-	return {
-		"name": template.Formation.FormationName,
-		"tooltip": template.Formation.DisabledTooltip || "",
-		"icon": template.Formation.Icon
-	};
+	let formationTypeList = template.Formation.FormationTypeList;
+
+	for (let formationTypeName in formationTypeList)
+	{
+		if (formationTypeName == data.templateName)
+		{
+			let formationType = formationTypeList[formationTypeName];
+			return {
+				"name": formationType.FormationName,
+				"tooltip": formationType.DisabledTooltip || "",
+				"icon": formationType.Icon
+			};
+		}
+	}
 };
 
 GuiInterface.prototype.IsFormationSelected = function(player, data)

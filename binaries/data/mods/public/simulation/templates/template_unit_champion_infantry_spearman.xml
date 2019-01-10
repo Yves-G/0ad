@@ -34,7 +34,7 @@
     <VisibleClasses datatype="tokens">Melee Spear</VisibleClasses>
     <Tooltip>Counters: 3x vs. Cavalry.</Tooltip>
     <Formations datatype="tokens">
-      special/formations/testudo
+      testudo
     </Formations>
   </Identity>
   <UnitMotion>

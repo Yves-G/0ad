@@ -1451,8 +1451,8 @@ function GetFormationUnitAIs(ents, player, formationTemplate)
 		// TODO: We only check if the formation is usable by some units
 		// if we move them to it. We should check if we can use formations
 		// for the other cases.
-		var nullFormation = (formationTemplate || cmpUnitAI.GetFormationTemplate()) == "special/formations/null";
-		if (!nullFormation && cmpIdentity && cmpIdentity.CanUseFormation(formationTemplate || "special/formations/null"))
+		var nullFormation = (formationTemplate || cmpUnitAI.GetFormationTemplate()) == "null";
+		if (!nullFormation && cmpIdentity && cmpIdentity.CanUseFormation(formationTemplate || "null"))
 			formedEnts.push(ent);
 		else
 		{
@@ -1524,12 +1524,12 @@ function GetFormationUnitAIs(ents, player, formationTemplate)
 				if (lastFormationTemplate && CanMoveEntsIntoFormation(cluster, lastFormationTemplate))
 					formationTemplate = lastFormationTemplate;
 				else
-					formationTemplate = "special/formations/null";
+					formationTemplate = "null";
 			}
 
 			RemoveFromFormation(cluster);
 
-			if (formationTemplate == "special/formations/null")
+			if (formationTemplate == "null")
 			{
 				for (let ent of cluster)
 					nonformedUnitAIs.push(Engine.QueryInterface(ent, IID_UnitAI));
@@ -1538,8 +1538,9 @@ function GetFormationUnitAIs(ents, player, formationTemplate)
 			}
 
 			// Create the new controller
-			var formationEnt = Engine.AddEntity(formationTemplate);
+			var formationEnt = Engine.AddEntity("special/formations/formation_definition");
 			var cmpFormation = Engine.QueryInterface(formationEnt, IID_Formation);
+			cmpFormation.LoadFormation(formationTemplate);
 			formationUnitAIs.push(Engine.QueryInterface(formationEnt, IID_UnitAI));
 			cmpFormation.SetFormationSeparation(formationSeparation);
 			cmpFormation.SetMembers(cluster);
@@ -1629,11 +1630,26 @@ function ClusterEntities(ents, separationDistance)
 
 function GetFormationRequirements(formationTemplate)
 {
-	var template = Engine.QueryInterface(SYSTEM_ENTITY, IID_TemplateManager).GetTemplate(formationTemplate);
-	if (!template.Formation)
-		return false;
+	var template = Engine.QueryInterface(SYSTEM_ENTITY, IID_TemplateManager).GetTemplate("special/formations/formation_definition");
+
+	let formationTypeList = template.Formation.FormationTypeList;
+
+	for (let formationTypeName in formationTypeList)
+	{
+		if (formationTypeName == formationTemplate)
+		{
+			let formationType = formationTypeList[formationTypeName];
+			return { "minCount": formationType.RequiredMemberCount };
+		}
+	}
+
+/*
+  <Formation>
+    <FormationTypeList>
+      <FormationType>
 
 	return { "minCount": +template.Formation.RequiredMemberCount };
+*/
 }
 
 

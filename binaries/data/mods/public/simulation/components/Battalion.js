@@ -67,15 +67,17 @@ Battalion.prototype.CreateFormation = function()
 	{
 		// Create the new controller
 		warn("create formation");
-		this.formationEntity = Engine.AddEntity(this.spawnFormationTemplate);
+		this.formationEntity = Engine.AddEntity("special/formations/formation_definition");
 	}
 
 	let cmpFormation = Engine.QueryInterface(this.formationEntity, IID_Formation);
+	cmpFormation.LoadFormation(this.spawnFormationTemplate);
 	cmpFormation.SetMembers(this.entities);
 	cmpFormation.AddMembers([this.entity]);
 
 	for (let entity of this.entities)
 	{
+		warn("cmpBattalionMember.SetLeader: " + this.entity);
 		let cmpBattalionMember = Engine.QueryInterface(entity, IID_BattalionMember);
 		cmpBattalionMember.SetLeader(this.entity);
 	}

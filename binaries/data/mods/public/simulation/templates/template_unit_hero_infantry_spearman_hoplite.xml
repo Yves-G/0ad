@@ -2,7 +2,7 @@
 <Entity parent="template_unit_hero_infantry_spearman">
   <Identity>
     <Formations datatype="tokens">
-      special/formations/phalanx
+      phalanx
     </Formations>
   </Identity>
 </Entity>

@@ -70,7 +70,7 @@ Identity.prototype.Schema =
 		"</element>" +
 	"</optional>" +
 	"<optional>" +
-		"<element name='Formations' a:help='Optional list of space-separated formations this unit is allowed to use. Choices include: Scatter, Box, ColumnClosed, LineClosed, ColumnOpen, LineOpen, Flank, Skirmish, Wedge, Testudo, Phalanx, Syntagma, BattleLine'>" +
+		"<element name='Formations' a:help='Optional list of space-separated formations this unit is allowed to use. Choices include: scatter, box, column_closed, line_closed, column_open, line_open, flank, skirmish, wedge, testudo, phalanx, syntagma, battle_line'>" +
 			"<attribute name='datatype'>" +
 				"<value>tokens</value>" +
 			"</attribute>" +
@@ -146,9 +146,9 @@ Identity.prototype.GetFormationsList = function()
 	return [];
 };
 
-Identity.prototype.CanUseFormation = function(template)
+Identity.prototype.CanUseFormation = function(FormationTemplate)
 {
-	return this.GetFormationsList().indexOf(template) != -1;
+	return this.GetFormationsList().indexOf(FormationTemplate) != -1;
 };
 
 Identity.prototype.GetSelectionGroupName = function()
