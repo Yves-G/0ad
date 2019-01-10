@@ -1020,6 +1020,14 @@ UnitAI.prototype.UnitFsmSpec = {
 			"enter": function() {
 
 				var cmpFormation = Engine.QueryInterface(this.entity, IID_Formation);
+				if (!cmpFormation) {
+					// During initialization of the component, the formation
+					// component might not be availiable yet
+					// TODO: needs some work
+					this.StartTimer(1000);
+					return false;
+				}
+
 				cmpFormation.SetRearrange(false);
 				warn("FORMATIONCONTROLLER.IDLE:enter()");
 

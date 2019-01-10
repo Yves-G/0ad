@@ -627,6 +627,15 @@ ProductionQueue.prototype.SpawnUnits = function(templateName, count, metadata)
 			if (cmpPosition)
 				cmpNewPosition.SetYRotation(cmpPosition.GetPosition().horizAngleTo(pos));
 
+			warn("Productionqueue.js");
+			let cmpBattalion = Engine.QueryInterface(ent, IID_Battalion);
+			if (cmpBattalion)
+			{
+				let cmpPlayer = QueryOwnerInterface(this.entity);
+				cmpBattalion.SpawnUnits(cmpPlayer.GetPlayerID());
+				cmpBattalion.CreateFormation();
+			}
+
 			spawnedEnts.push(ent);
 		}
 

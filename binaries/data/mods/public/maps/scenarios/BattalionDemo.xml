@@ -16,8 +16,8 @@
 		<Water>
 			<WaterBody>
 				<Type>ocean</Type>
-				<Color r="0.298039" g="0.34902" b="0.698039"/>
-				<Tint r="0.278431" g="0.298039" b="0.588235"/>
+				<Color r="0.294118" g="0.34902" b="0.694118"/>
+				<Tint r="0.27451" g="0.294118" b="0.584314"/>
 				<Height>5</Height>
 				<Waviness>4</Waviness>
 				<Murkiness>0.45</Murkiness>
@@ -104,11 +104,9 @@
 				<Member eid="21"/>
 				<Member eid="22"/>
 				<Member eid="23"/>
-				<FormationEntity eid="24"/>
 			</Battalion>
-			<Position x="455.75126" z="459.73746"/>
+			<Position x="457.89155" z="456.2319"/>
 			<Orientation y="2.35621"/>
-			<Obstruction group="24"/>
 			<Actor seed="58231"/>
 		</Entity>
 		<Entity uid="12">
@@ -116,90 +114,84 @@
 			<Player>1</Player>
 			<Position x="457.6613" z="457.82749"/>
 			<Orientation y="2.3562"/>
-			<Obstruction group="24"/>
+			<Obstruction group="11"/>
 		</Entity>
 		<Entity uid="13">
 			<Template>units/rome_battalion_infantry_swordsman_b</Template>
 			<Player>1</Player>
 			<Position x="459.35911" z="456.12977"/>
 			<Orientation y="2.35618"/>
-			<Obstruction group="24"/>
+			<Obstruction group="11"/>
 		</Entity>
 		<Entity uid="14">
 			<Template>units/rome_battalion_infantry_swordsman_b</Template>
 			<Player>1</Player>
 			<Position x="461.0569" z="454.43204"/>
 			<Orientation y="2.35618"/>
-			<Obstruction group="24"/>
+			<Obstruction group="11"/>
 		</Entity>
 		<Entity uid="15">
 			<Template>units/rome_battalion_infantry_swordsman_b</Template>
 			<Player>1</Player>
 			<Position x="455.0517" z="457.12732"/>
 			<Orientation y="-2.87974"/>
-			<Obstruction group="24"/>
+			<Obstruction group="11"/>
 		</Entity>
 		<Entity uid="16">
 			<Template>units/rome_battalion_infantry_swordsman_b</Template>
 			<Player>1</Player>
 			<Position x="457.07291" z="454.80732"/>
 			<Orientation y="2.87967"/>
-			<Obstruction group="24"/>
+			<Obstruction group="11"/>
 		</Entity>
 		<Entity uid="17">
 			<Template>units/rome_battalion_infantry_swordsman_b</Template>
 			<Player>1</Player>
 			<Position x="458.92374" z="452.93561"/>
 			<Orientation y="2.70517"/>
-			<Obstruction group="24"/>
+			<Obstruction group="11"/>
 		</Entity>
 		<Entity uid="18">
 			<Template>units/rome_battalion_infantry_swordsman_b</Template>
 			<Player>1</Player>
 			<Position x="458.36124" z="460.4372"/>
 			<Orientation y="1.30886"/>
-			<Obstruction group="24"/>
+			<Obstruction group="11"/>
 		</Entity>
 		<Entity uid="19">
 			<Template>units/rome_battalion_infantry_swordsman_b</Template>
 			<Player>1</Player>
 			<Position x="460.68137" z="458.41602"/>
 			<Orientation y="1.83268"/>
-			<Obstruction group="24"/>
+			<Obstruction group="11"/>
 		</Entity>
 		<Entity uid="20">
 			<Template>units/rome_battalion_infantry_swordsman_b</Template>
 			<Player>1</Player>
 			<Position x="462.55332" z="456.56531"/>
 			<Orientation y="2.00718"/>
-			<Obstruction group="24"/>
+			<Obstruction group="11"/>
 		</Entity>
 		<Entity uid="21">
 			<Template>units/rome_battalion_infantry_swordsman_b</Template>
 			<Player>1</Player>
 			<Position x="453.14112" z="459.0377"/>
 			<Orientation y="-1.83274"/>
-			<Obstruction group="24"/>
+			<Obstruction group="11"/>
 		</Entity>
 		<Entity uid="22">
 			<Template>units/rome_battalion_infantry_swordsman_b</Template>
 			<Player>1</Player>
 			<Position x="454.42988" z="454.80723"/>
 			<Orientation y="-2.87974"/>
-			<Obstruction group="24"/>
+			<Obstruction group="11"/>
 		</Entity>
 		<Entity uid="23">
 			<Template>units/rome_battalion_infantry_swordsman_b</Template>
 			<Player>1</Player>
 			<Position x="456.40595" z="452.25974"/>
 			<Orientation y="3.05427"/>
-			<Obstruction group="24"/>
-		</Entity>
-		<Entity uid="24">
-			<Template>special/formations/box</Template>
-			<Player>-1</Player>
-			<Position x="483.21344" z="423.41276"/>
-			<Orientation y="0"/>
+			<Obstruction group="11"/>
 		</Entity>
 		<Entity uid="25">
 			<Template>units/rome_battalion_infantry_swordsman_e</Template>
@@ -217,11 +209,9 @@
 				<Member eid="35"/>
 				<Member eid="36"/>
 				<Member eid="37"/>
-				<FormationEntity eid="38"/>
 			</Battalion>
-			<Position x="529.38563" z="378.5532"/>
+			<Position x="531.52591" z="375.04763"/>
 			<Orientation y="2.35621"/>
-			<Obstruction group="38"/>
 			<Actor seed="26472"/>
 		</Entity>
 		<Entity uid="26">
@@ -229,90 +219,84 @@
 			<Player>2</Player>
 			<Position x="531.29566" z="376.64322"/>
 			<Orientation y="2.3562"/>
-			<Obstruction group="38"/>
+			<Obstruction group="25"/>
 		</Entity>
 		<Entity uid="27">
 			<Template>units/rome_battalion_infantry_swordsman_b</Template>
 			<Player>2</Player>
 			<Position x="532.99346" z="374.9455"/>
 			<Orientation y="2.35618"/>
-			<Obstruction group="38"/>
+			<Obstruction group="25"/>
 		</Entity>
 		<Entity uid="28">
 			<Template>units/rome_battalion_infantry_swordsman_b</Template>
 			<Player>2</Player>
 			<Position x="534.69126" z="373.24778"/>
 			<Orientation y="2.35618"/>
-			<Obstruction group="38"/>
+			<Obstruction group="25"/>
 		</Entity>
 		<Entity uid="29">
 			<Template>units/rome_battalion_infantry_swordsman_b</Template>
 			<Player>2</Player>
 			<Position x="528.68607" z="375.94306"/>
 			<Orientation y="-2.87974"/>
-			<Obstruction group="38"/>
+			<Obstruction group="25"/>
 		</Entity>
 		<Entity uid="30">
 			<Template>units/rome_battalion_infantry_swordsman_b</Template>
 			<Player>2</Player>
 			<Position x="530.7073" z="373.62305"/>
 			<Orientation y="2.87967"/>
-			<Obstruction group="38"/>
+			<Obstruction group="25"/>
 		</Entity>
 		<Entity uid="31">
 			<Template>units/rome_battalion_infantry_swordsman_b</Template>
 			<Player>2</Player>
 			<Position x="532.55811" z="371.75136"/>
 			<Orientation y="2.70517"/>
-			<Obstruction group="38"/>
+			<Obstruction group="25"/>
 		</Entity>
 		<Entity uid="32">
 			<Template>units/rome_battalion_infantry_swordsman_b</Template>
 			<Player>2</Player>
 			<Position x="531.99563" z="379.25295"/>
 			<Orientation y="1.30886"/>
-			<Obstruction group="38"/>
+			<Obstruction group="25"/>
 		</Entity>
 		<Entity uid="33">
 			<Template>units/rome_battalion_infantry_swordsman_b</Template>
 			<Player>2</Player>
 			<Position x="534.31576" z="377.23174"/>
 			<Orientation y="1.83268"/>
-			<Obstruction group="38"/>
+			<Obstruction group="25"/>
 		</Entity>
 		<Entity uid="34">
 			<Template>units/rome_battalion_infantry_swordsman_b</Template>
 			<Player>2</Player>
 			<Position x="536.18767" z="375.38105"/>
 			<Orientation y="2.00718"/>
-			<Obstruction group="38"/>
+			<Obstruction group="25"/>
 		</Entity>
 		<Entity uid="35">
 			<Template>units/rome_battalion_infantry_swordsman_b</Template>
 			<Player>2</Player>
 			<Position x="526.77549" z="377.85343"/>
 			<Orientation y="-1.83274"/>
-			<Obstruction group="38"/>
+			<Obstruction group="25"/>
 		</Entity>
 		<Entity uid="36">
 			<Template>units/rome_battalion_infantry_swordsman_b</Template>
 			<Player>2</Player>
 			<Position x="528.06424" z="373.62296"/>
 			<Orientation y="-2.87974"/>
-			<Obstruction group="38"/>
+			<Obstruction group="25"/>
 		</Entity>
 		<Entity uid="37">
 			<Template>units/rome_battalion_infantry_swordsman_b</Template>
 			<Player>2</Player>
 			<Position x="530.04032" z="371.07547"/>
 			<Orientation y="3.05427"/>
-			<Obstruction group="38"/>
-		</Entity>
-		<Entity uid="38">
-			<Template>special/formations/box</Template>
-			<Player>-1</Player>
-			<Position x="531.36127" z="375.3173"/>
-			<Orientation y="0"/>
+			<Obstruction group="25"/>
 		</Entity>
 	</Entities>
 	<Paths/>

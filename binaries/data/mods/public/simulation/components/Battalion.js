@@ -19,10 +19,6 @@ Battalion.prototype.Init = function()
 	this.templateName = this.template.TemplateName;
 	this.entities = [];
 	this.formationEntity = INVALID_ENTITY;
-
-	warn("Init. entities.length: " + this.entities.length);
-
-	//this.SpawnUnits();
 };
 
 
@@ -57,27 +53,17 @@ Battalion.prototype.SpawnUnits = function(playerId)
 
 		this.entities.push(ent);
 	}
-
-	this.CreateFormation();
 };
 
 Battalion.prototype.CreateFormation = function()
 {
-	if (this.formationEntity === INVALID_ENTITY)
-	{
-		// Create the new controller
-		warn("create formation");
-		this.formationEntity = Engine.AddEntity("special/formations/formation_definition");
-	}
-
-	let cmpFormation = Engine.QueryInterface(this.formationEntity, IID_Formation);
+	let cmpFormation = Engine.QueryInterface(this.entity, IID_Formation);
 	cmpFormation.LoadFormation(this.spawnFormationTemplate);
 	cmpFormation.SetMembers(this.entities);
-	cmpFormation.AddMembers([this.entity]);
+	//cmpFormation.AddMembers([this.entity]);
 
 	for (let entity of this.entities)
 	{
-		warn("cmpBattalionMember.SetLeader: " + this.entity);
 		let cmpBattalionMember = Engine.QueryInterface(entity, IID_BattalionMember);
 		cmpBattalionMember.SetLeader(this.entity);
 	}
@@ -91,17 +77,6 @@ Battalion.prototype.GetMembers = function()
 Battalion.prototype.SetMembers = function(entities)
 {
 	this.entities = entities;
-	warn("Battalion.SetMembers");
-}
-
-Battalion.prototype.SetFormationEntity = function(formationEnt)
-{
-	this.formationEntity = formationEnt;
-}
-
-Battalion.prototype.GetFormationEntity = function()
-{
-	return this.formationEntity;
 }
 
 Battalion.prototype.GetLeader = function()
@@ -113,26 +88,6 @@ Battalion.prototype.RemoveMember = function(ent)
 {
 	let index = this.entities.indexOf(ent);
 	if (index !== -1) this.entities.splice(index, 1);
-
-	// The leader is invincible as long as there are other units in the battalion
-	if (this.entities.length == 0)
-	{
-		let cmpHealth = Engine.QueryInterface(this.entity, IID_Health);
-		cmpHealth.SetInvincible(false);
-	}
 }
-
-Battalion.prototype.OnOwnershipChanged = function(msg)
-{
-	if (msg.from == INVALID_PLAYER)
-	{
-		if (!this.entities.length)
-		{
-			warn("spawnUnits");
-			this.SpawnUnits(msg.to);
-		}
-	}
-}
-
 
 Engine.RegisterComponentType(IID_Battalion, "Battalion", Battalion);

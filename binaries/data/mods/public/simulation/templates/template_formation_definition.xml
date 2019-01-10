@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Entity parent="template_formation">  
+  <Formation>
+    <FormationTypeList>
+      <null>
+        <FormationName>None</FormationName>
+        <Icon>formations/null.png</Icon>
+        <RequiredMemberCount>1</RequiredMemberCount>
+        <DisabledTooltip/>
+        <SpeedMultiplier>1</SpeedMultiplier>
+        <FormationShape>square</FormationShape>
+        <SortingClasses>Hero Champion Cavalry Melee Ranged</SortingClasses>
+        <ShiftRows>false</ShiftRows>
+        <UnitSeparationWidthMultiplier>1</UnitSeparationWidthMultiplier>
+        <UnitSeparationDepthMultiplier>1</UnitSeparationDepthMultiplier>
+        <WidthDepthRatio>1</WidthDepthRatio>
+        <Sloppyness>0</Sloppyness>
+        <Animations/>
+      </null>
+      <battle_line>
+        <Icon>formations/battle_line.png</Icon>
+        <RequiredMemberCount>1</RequiredMemberCount>
+        <DisabledTooltip/>
+        <SpeedMultiplier>1</SpeedMultiplier>
+        <FormationShape>square</FormationShape>
+        <UnitSeparationWidthMultiplier>1</UnitSeparationWidthMultiplier>
+        <UnitSeparationDepthMultiplier>1</UnitSeparationDepthMultiplier>
+        <Sloppyness>0</Sloppyness>
+        <Animations/>
+        <FormationName>Battle Line</FormationName>
+        <SortingClasses>Cavalry Melee Ranged</SortingClasses>
+        <SortingOrder>fillFromTheSides</SortingOrder>
+        <ShiftRows>true</ShiftRows>
+        <MinColumns>5</MinColumns>
+        <MaxColumns>8</MaxColumns>
+        <MaxRows>4</MaxRows>
+        <WidthDepthRatio>2</WidthDepthRatio>
+      </battle_line>
+      <box>
+        <Icon>formations/box.png</Icon>
+        <RequiredMemberCount>4</RequiredMemberCount>
+        <DisabledTooltip>4 units required</DisabledTooltip>
+        <SpeedMultiplier>1</SpeedMultiplier>
+        <ShiftRows>false</ShiftRows>
+        <UnitSeparationWidthMultiplier>1</UnitSeparationWidthMultiplier>
+        <UnitSeparationDepthMultiplier>1</UnitSeparationDepthMultiplier>
+        <WidthDepthRatio>1</WidthDepthRatio>
+        <Sloppyness>0</Sloppyness>
+        <Animations/>
+        <FormationName>Box</FormationName>
+        <FormationShape>square</FormationShape>
+        <SortingClasses>Melee Ranged</SortingClasses>
+        <SortingOrder>fillToTheCenter</SortingOrder>
+      </box>
+      <column_closed>
+        <Icon>formations/column_closed.png</Icon>
+        <RequiredMemberCount>1</RequiredMemberCount>
+        <DisabledTooltip/>
+        <SpeedMultiplier>1</SpeedMultiplier>
+        <FormationShape>square</FormationShape>
+        <SortingClasses>Hero Champion Cavalry Melee Ranged</SortingClasses>
+        <ShiftRows>false</ShiftRows>
+        <WidthDepthRatio>1</WidthDepthRatio>
+        <Sloppyness>0</Sloppyness>
+        <Animations/>
+        <FormationName>Forced March</FormationName>
+        <UnitSeparationWidthMultiplier>0.75</UnitSeparationWidthMultiplier>
+        <UnitSeparationDepthMultiplier>1.0</UnitSeparationDepthMultiplier>
+        <MinColumns>3</MinColumns>
+        <MaxColumns>3</MaxColumns>
+      </column_closed>
+      <column_open>
+        <Icon>formations/column_open.png</Icon>
+        <RequiredMemberCount>1</RequiredMemberCount>
+        <DisabledTooltip/>
+        <SpeedMultiplier>1</SpeedMultiplier>
+        <FormationShape>square</FormationShape>
+        <SortingClasses>Hero Champion Cavalry Melee Ranged</SortingClasses>
+        <FormationName>Column Open</FormationName>
+        <ShiftRows>true</ShiftRows>
+        <WidthDepthRatio>1</WidthDepthRatio>
+        <Sloppyness>0</Sloppyness>
+        <Animations/>
+        <UnitSeparationWidthMultiplier>2</UnitSeparationWidthMultiplier>
+        <UnitSeparationDepthMultiplier>1</UnitSeparationDepthMultiplier>
+        <MaxColumns>2</MaxColumns>
+        <MinColumns>2</MinColumns>
+      </column_open>
+      <flank>
+        <Icon>formations/flank.png</Icon>
+        <RequiredMemberCount>8</RequiredMemberCount>
+        <DisabledTooltip>8 units required</DisabledTooltip>
+        <SpeedMultiplier>1</SpeedMultiplier>
+        <SortingClasses>Hero Champion Cavalry Melee Ranged</SortingClasses>
+        <UnitSeparationWidthMultiplier>1</UnitSeparationWidthMultiplier>
+        <UnitSeparationDepthMultiplier>1</UnitSeparationDepthMultiplier>
+        <WidthDepthRatio>1</WidthDepthRatio>
+        <Sloppyness>0</Sloppyness>
+        <Animations/>
+        <FormationName>Flank</FormationName>
+        <FormationShape>square</FormationShape>
+        <ShiftRows>true</ShiftRows>
+        <CenterGap>12</CenterGap>
+      </flank>
+      <line_closed>
+        <Icon>formations/line_closed.png</Icon>
+        <RequiredMemberCount>1</RequiredMemberCount>
+        <DisabledTooltip/>
+        <SpeedMultiplier>1</SpeedMultiplier>
+        <FormationShape>square</FormationShape>
+        <SortingClasses>Hero Champion Cavalry Melee Ranged</SortingClasses>
+        <ShiftRows>false</ShiftRows>
+        <UnitSeparationWidthMultiplier>1</UnitSeparationWidthMultiplier>
+        <UnitSeparationDepthMultiplier>1</UnitSeparationDepthMultiplier>
+        <Animations/>
+        <FormationName>Close Order</FormationName>
+        <MinColumns>3</MinColumns>
+        <WidthDepthRatio>4</WidthDepthRatio>
+        <Sloppyness>0.25</Sloppyness>
+      </line_closed>
+      <line_open>
+        <Icon>formations/line_open.png</Icon>
+        <RequiredMemberCount>1</RequiredMemberCount>
+        <DisabledTooltip/>
+        <SpeedMultiplier>1</SpeedMultiplier>
+        <FormationShape>square</FormationShape>
+        <SortingClasses>Hero Champion Cavalry Melee Ranged</SortingClasses>
+        <ShiftRows>false</ShiftRows>
+        <Animations/>
+        <FormationName>Open Order</FormationName>
+        <UnitSeparationWidthMultiplier>1.5</UnitSeparationWidthMultiplier>
+        <UnitSeparationDepthMultiplier>1.5</UnitSeparationDepthMultiplier>
+        <WidthDepthRatio>4</WidthDepthRatio>
+        <MinColumns>3</MinColumns>
+        <Sloppyness>0.5</Sloppyness>
+      </line_open>
+      <scatter>
+        <Icon>formations/scatter.png</Icon>
+        <RequiredMemberCount>1</RequiredMemberCount>
+        <DisabledTooltip/>
+        <SpeedMultiplier>1</SpeedMultiplier>
+        <SortingClasses>Hero Champion Cavalry Melee Ranged</SortingClasses>
+        <ShiftRows>false</ShiftRows>
+        <UnitSeparationWidthMultiplier>1</UnitSeparationWidthMultiplier>
+        <UnitSeparationDepthMultiplier>1</UnitSeparationDepthMultiplier>
+        <WidthDepthRatio>1</WidthDepthRatio>
+        <Sloppyness>0</Sloppyness>
+        <Animations/>
+        <FormationName>Scatter</FormationName>
+        <FormationShape>special</FormationShape>
+      </scatter>
+      <skirmish>
+        <Icon>formations/skirmish.png</Icon>
+        <RequiredMemberCount>1</RequiredMemberCount>
+        <DisabledTooltip>Only ranged units allowed</DisabledTooltip>
+        <SpeedMultiplier>1</SpeedMultiplier>
+        <FormationShape>square</FormationShape>
+        <SortingClasses>Hero Champion Cavalry Melee Ranged</SortingClasses>
+        <FormationName>Skirmish</FormationName>
+        <ShiftRows>true</ShiftRows>
+        <UnitSeparationWidthMultiplier>2</UnitSeparationWidthMultiplier>
+        <UnitSeparationDepthMultiplier>1</UnitSeparationDepthMultiplier>
+        <WidthDepthRatio>1</WidthDepthRatio>
+        <Sloppyness>0</Sloppyness>
+        <Animations/>
+        <MaxRows>2</MaxRows>
+        <MinColumns>3</MinColumns>
+      </skirmish>
+      <syntagma>
+        <Icon>formations/syntagma.png</Icon>
+        <RequiredMemberCount>16</RequiredMemberCount>
+        <DisabledTooltip>16 pike infantry units required</DisabledTooltip>
+        <SpeedMultiplier>1</SpeedMultiplier>
+        <FormationShape>square</FormationShape>
+        <ShiftRows>false</ShiftRows>
+        <SortingClasses>Hero Champion Elite Advanced Basic</SortingClasses>
+        <FormationName>Syntagma</FormationName>
+        <UnitSeparationWidthMultiplier>0.65</UnitSeparationWidthMultiplier>
+        <UnitSeparationDepthMultiplier>0.75</UnitSeparationDepthMultiplier>
+        <WidthDepthRatio>1</WidthDepthRatio>
+        <MinColumns>4</MinColumns>
+        <MaxColumns>8</MaxColumns>
+        <MaxRows>8</MaxRows>
+        <Animations>
+          <idle>
+            1..2,1..-1: syntagma_front_idle;
+            3..4,1..-1: syntagma_med_idle;
+            4..8,1..-1: syntagma_back_idle
+          </idle>
+          <walk>
+            1..2,1..-1: syntagma_front_walk;
+            3..4,1..-1: syntagma_med_walk;
+            4..8,1..-1: syntagma_back_walk
+          </walk>
+          <run>
+            1..2,1..-1: syntagma_front_run;
+            3..4,1..-1: syntagma_med_run;
+            4..8,1..-1: syntagma_back_run
+          </run>
+        </Animations>
+        <Sloppyness>0.15</Sloppyness>
+      </syntagma>
+      <testudo>
+        <Icon>formations/testudo.png</Icon>
+        <RequiredMemberCount>9</RequiredMemberCount>
+        <DisabledTooltip>9 melee infantry units required</DisabledTooltip>
+        <SpeedMultiplier>1</SpeedMultiplier>
+        <FormationShape>square</FormationShape>
+        <SortingClasses>Hero Champion Cavalry Melee Ranged</SortingClasses>
+        <ShiftRows>false</ShiftRows>
+        <FormationName>Testudo</FormationName>
+        <UnitSeparationWidthMultiplier>0.5</UnitSeparationWidthMultiplier>
+        <UnitSeparationDepthMultiplier>0.7</UnitSeparationDepthMultiplier>
+        <WidthDepthRatio>1.5</WidthDepthRatio>
+        <Sloppyness>0</Sloppyness>
+        <Animations>
+          <idle>
+            1..1,1..-1: idle_testudo_front;
+            2..-1,1..-1: idle_testudo_top
+          </idle>
+          <walk>
+            1..1,1..-1: walk_testudo_front;
+            2..-1,1..-1: walk_testudo_top
+          </walk>
+        </Animations>
+      </testudo>
+      <wedge>
+        <Icon>formations/wedge.png</Icon>
+        <RequiredMemberCount>6</RequiredMemberCount>
+        <DisabledTooltip>6 cavalry units required</DisabledTooltip>
+        <SpeedMultiplier>1</SpeedMultiplier>
+        <SortingClasses>Hero Champion Cavalry Melee Ranged</SortingClasses>
+        <FormationName>Wedge</FormationName>
+        <FormationShape>triangle</FormationShape>
+        <ShiftRows>true</ShiftRows>
+        <Sloppyness>0.25</Sloppyness>
+        <UnitSeparationWidthMultiplier>1.1</UnitSeparationWidthMultiplier>
+        <UnitSeparationDepthMultiplier>1.1</UnitSeparationDepthMultiplier>
+        <WidthDepthRatio>1</WidthDepthRatio>
+        <Animations/>
+      </wedge>
+      <phalanx>
+        <Icon>formations/phalanx.png</Icon>
+        <RequiredMemberCount>10</RequiredMemberCount>
+        <DisabledTooltip>10 hoplite infantry required</DisabledTooltip>
+        <SpeedMultiplier>1</SpeedMultiplier>
+        <FormationShape>square</FormationShape>
+        <SortingClasses>Hero Champion Cavalry Melee Ranged</SortingClasses>
+        <ShiftRows>false</ShiftRows>
+        <FormationName>Phalanx</FormationName>
+        <UnitSeparationWidthMultiplier>0.6</UnitSeparationWidthMultiplier>
+        <UnitSeparationDepthMultiplier>0.6</UnitSeparationDepthMultiplier>
+        <WidthDepthRatio>4</WidthDepthRatio>
+        <MinColumns>5</MinColumns>
+        <MaxColumns>20</MaxColumns>
+        <MaxRows>8</MaxRows>
+        <Sloppyness>0</Sloppyness>
+        <Animations>
+          <idle>
+            1..2,1..-1: phalanx_idle;
+            3..4,1..-1: phalanx_idle;
+            5..6,1..-1: phalanx_back_idle
+          </idle>
+          <walk>
+            1..2,1..-1: phalanx_walk;
+            3..4,1..-1: phalanx_walk;
+            5..6,1..-1: phalanx_walk
+          </walk>
+          <run>
+            1..2,1..-1: phalanx_run;
+            3..4,1..-1: phalanx_run;
+            5..6,1..-1: phalanx_run
+          </run>
+          <attack>
+            1..2,1..-1: phalanx_attack;
+            3..4,1..-1: phalanx_attack;
+            5..6,1..-1: phalanx_idle
+          </attack>
+        </Animations>
+      </phalanx>
+    </FormationTypeList>
+  </Formation>
+</Entity>

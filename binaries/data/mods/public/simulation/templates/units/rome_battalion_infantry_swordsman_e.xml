@@ -1,15 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Entity parent="units/rome_infantry_swordsman_a">
+<Entity parent="template_battalion">
   <Identity>
     <Rank>Elite</Rank>
+    <Icon>units/rome_infantry_swordsman.png</Icon>
   </Identity>
   <Promotion disable=""/>
-  <VisualActor>
-    <Actor>units/romans/infantry_swordsman_e.xml</Actor>
-  </VisualActor>
-  <Health>
-    <DefaultInvincible>true</DefaultInvincible>
-  </Health>
   <Battalion>
 	<SpawnFormationTemplate>box</SpawnFormationTemplate>
 	<NumberOfUnits>12</NumberOfUnits>
@@ -17,5 +12,13 @@
   </Battalion>
   <Cost>
     <Population>12</Population>
+    <PopulationBonus>0</PopulationBonus>
+    <BuildTime>1</BuildTime>
+    <Resources>
+      <food>0</food>
+      <wood>0</wood>
+      <stone>0</stone>
+      <metal>0</metal>
+    </Resources>
   </Cost>
 </Entity>

@@ -351,7 +351,6 @@ void CMapWriter::WriteXML(const VfsPath& filename,
 				{
 					XML_Element("Battalion");
 					{
-
 						const std::vector<entity_id_t>& entities = cmpBattalion->GetMembers();
 
 						for (entity_id_t memberEnt : entities)
@@ -359,10 +358,6 @@ void CMapWriter::WriteXML(const VfsPath& filename,
 							XML_Element("Member");
 							XML_Attribute("eid", memberEnt);
 						}
-
-						entity_id_t formationEntity = cmpBattalion->GetFormationEntity();
-						XML_Element("FormationEntity");
-						XML_Attribute("eid", formationEntity);
 					}
 				}
 
