@@ -18,6 +18,10 @@
     <Circle radius="1.5"/>
     <Height>2.5</Height>
   </Footprint>
+<!-- Defines the range where the battalion starts attacking enemies (for example) -->
+  <Vision>
+    <Range>80</Range>
+  </Vision>
 <!--  <VisualActor>
     <Actor>props/special/common/waypoint_flag.xml</Actor>
     <SilhouetteDisplay>true</SilhouetteDisplay>

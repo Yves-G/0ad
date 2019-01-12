@@ -193,6 +193,10 @@ UnitAI.prototype.UnitFsmSpec = {
 		// ignore when we're not in FORMATIONMEMBER
 	},
 
+	"FormationJoin": function(msg) {
+		// ignore when we're not in FORMATIONMEMBER
+	},
+
 	// Called when being told to walk as part of a formation
 	"Order.FormationWalk": function(msg) {
 		// Let players move captured domestic animals around
@@ -832,10 +836,8 @@ UnitAI.prototype.UnitFsmSpec = {
 			var target = msg.data.target;
 			var allowCapture = msg.data.allowCapture;
 			var cmpTargetUnitAI = Engine.QueryInterface(target, IID_UnitAI);
-			if (cmpTargetUnitAI && cmpTargetUnitAI.IsFormationMember()) {
+			if (cmpTargetUnitAI && cmpTargetUnitAI.IsFormationMember())
 				target = cmpTargetUnitAI.GetFormationController();
-				warn("attacking formation");
-			}
 
 			var cmpAttack = Engine.QueryInterface(this.entity, IID_Attack);
 			// Check if we are already in range, otherwise walk there
@@ -1024,12 +1026,12 @@ UnitAI.prototype.UnitFsmSpec = {
 					// During initialization of the component, the formation
 					// component might not be availiable yet
 					// TODO: needs some work
+					warn("no Formation during initialization");
 					this.StartTimer(1000);
 					return false;
 				}
 
 				cmpFormation.SetRearrange(false);
-				warn("FORMATIONCONTROLLER.IDLE:enter()");
 
 				//this.SelectAnimation(animationName);
 
@@ -1057,6 +1059,7 @@ UnitAI.prototype.UnitFsmSpec = {
 				// If we entered the idle state we must have nothing better to do,
 				// so immediately check whether there's anybody nearby to attack.
 				// (If anyone approaches later, it'll be handled via LosRangeUpdate.)
+
 				if (this.FindNewTargets())
 					return true; // (abort the FSM transition since we may have already switched state)
 
@@ -1081,6 +1084,7 @@ UnitAI.prototype.UnitFsmSpec = {
 			},
 
 			"LosRangeUpdate": function(msg) {
+				//warn("FORMATIONCONTROLLER.IDLE:LosRangeUpdate. Stance: " + uneval(this.GetStance()));
 				if (this.GetStance().targetVisibleEnemies)
 				{
 					// Start attacking one of the newly-seen enemy (if any)
@@ -1441,13 +1445,12 @@ UnitAI.prototype.UnitFsmSpec = {
 			},
 
 			"leave": function() {
+
 				var cmpRangeManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_RangeManager);
 				if (this.losRangeQuery)
-					warn("losRangeQuery active");
-					//cmpRangeManager.DisableActiveQuery(this.losRangeQuery);
+					cmpRangeManager.DisableActiveQuery(this.losRangeQuery);
 				if (this.losHealRangeQuery)
-					warn("losHealRangeQuery active");
-					//cmpRangeManager.DisableActiveQuery(this.losHealRangeQuery);
+					cmpRangeManager.DisableActiveQuery(this.losHealRangeQuery);
 
 				// Needed? Assuming it's not needed and only send a message if the formation controller becomes idle.
 				//if (this.isIdle)
@@ -1502,7 +1505,7 @@ UnitAI.prototype.UnitFsmSpec = {
 		"COMBAT": {
 			"APPROACHING": {
 				"enter": function() {
-					warn("FORMATIONMEMBER.COMBAT.APPROACHING:enter()");
+
 					// Show weapons rather than carried resources.
 					this.SetAnimationVariant("combat");
 
@@ -1548,14 +1551,13 @@ UnitAI.prototype.UnitFsmSpec = {
 				},
 
 				"FormationMemberAttackRangeUpdate": function(msg) {
-					warn("FormationMemberAttackRangeUpdate");
+
 					this.FinishOrder();
 					this.AttackVisibleEntity(msg.data.added);
 					//this.AttackEntitiesByPreference(msg.data.added);
 				},
 
 				"MoveCompleted": function() {
-					warn("FORMATIONMEMBER.COMBAT.APPROACHING:MoveCompleted()");
 
 					if (this.CheckTargetAttackRange(this.order.data.target, this.order.data.attackType))
 					{
@@ -1672,6 +1674,7 @@ UnitAI.prototype.UnitFsmSpec = {
 			"enter": function() {
 				// Switch back to idle animation to guarantee we won't
 				// get stuck with an incorrect animation
+
 				var animationName = "idle";
 				if (this.IsFormationMember())
 				{
@@ -1712,14 +1715,18 @@ UnitAI.prototype.UnitFsmSpec = {
 				// If we entered the idle state we must have nothing better to do,
 				// so immediately check whether there's anybody nearby to attack.
 				// (If anyone approaches later, it'll be handled via LosRangeUpdate.)
-				if (this.FindNewTargets())
+
+				if (this.FindNewTargets()) {
+					warn("return true");
 					return true; // (abort the FSM transition since we may have already switched state)
+				}
 
 				// Nobody to attack - stay in idle
 				return false;
 			},
 
 			"leave": function() {
+
 				var cmpRangeManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_RangeManager);
 				if (this.losRangeQuery)
 					cmpRangeManager.DisableActiveQuery(this.losRangeQuery);
@@ -1745,6 +1752,10 @@ UnitAI.prototype.UnitFsmSpec = {
 
 			"LosHealRangeUpdate": function(msg) {
 				this.RespondToHealableEntities(msg.data.added);
+			},
+
+			"FormationJoin": function(msg) {
+				this.SetNextState("FORMATIONMEMBER.IDLE");
 			},
 
 			"MoveStarted": function() {
@@ -3570,6 +3581,8 @@ UnitAI.prototype.OnCreate = function()
 		this.UnitFsm.Init(this, "ANIMAL.FEEDING");
 	else if (this.IsFormationController())
 		this.UnitFsm.Init(this, "FORMATIONCONTROLLER.IDLE");
+	else if (this.IsFormationMember())
+		this.UnitFsm.Init(this, "FORMATIONMEMBER.IDLE");
 	else
 		this.UnitFsm.Init(this, "INDIVIDUAL.IDLE");
 	this.isIdle = true;
@@ -4739,7 +4752,6 @@ UnitAI.prototype.CheckTargetDistanceFromHeldPosition = function(target, iid, typ
 	if (heldPosition === undefined)
 		heldPosition = { "x": pos.x, "z": pos.z };
 
-	warn("heldPosition: " + uneval(heldPosition) + " halfvision: " + halfvision);
 	return Math.euclidDistance2D(pos.x, pos.z, heldPosition.x, heldPosition.z) < halfvision + range.max;
 };
 
@@ -4892,40 +4904,31 @@ UnitAI.prototype.ShouldAbandonChase = function(target, force, iid, type)
 		var cmpUnitAI =  Engine.QueryInterface(target, IID_UnitAI);
 		var cmpAttack = Engine.QueryInterface(target, IID_Attack);
 		if (cmpUnitAI && cmpAttack &&
-		    cmpAttack.GetAttackTypes().some(type => cmpUnitAI.CheckTargetAttackRange(this.isGuardOf, type))) {
-				warn("AbandonChase, IsGuardOf, false");
+		    cmpAttack.GetAttackTypes().some(type => cmpUnitAI.CheckTargetAttackRange(this.isGuardOf, type)))
 				return false;
-			}
 	}
 
 	// Stop if we're in hold-ground mode and it's too far from the holding point
 	if (this.GetStance().respondHoldGround)
 	{
 		if (!this.formationController)
-			if (!this.CheckTargetDistanceFromHeldPosition(target, iid, type)) {
-				warn("AbandonChase, HeldPosition, true");
+			if (!this.CheckTargetDistanceFromHeldPosition(target, iid, type))
 				return true;
-			}
 		else
-			if (!this.CheckTargetDistanceFromFormationPosition(target, iid, type)) {
-				warn("AbandonChase, Formation, true");
+			if (!this.CheckTargetDistanceFromFormationPosition(target, iid, type))
 				return true;
-			}
 	}
 
 	// Stop if it's left our vision range, unless we're especially persistent
 	if (!this.GetStance().respondChaseBeyondVision)
 	{
-		if (!this.CheckTargetIsInVisionRange(target)) {
-			warn("AbandonChase, TargetVisionRange, true");
+		if (!this.CheckTargetIsInVisionRange(target))
 			return true;
-		}
 	}
 
 	// (Note that CCmpUnitMotion will detect if the target is lost in FoW,
 	// and will continue moving to its last seen position and then stop)
 
-	warn("AbandonChase, lastReturn, false");
 	return false;
 };
 
@@ -4977,6 +4980,11 @@ UnitAI.prototype.SetFormationController = function(ent)
 	// If we were removed from a formation, let the FSM switch back to INDIVIDUAL
 	if (ent == INVALID_ENTITY)
 		this.UnitFsm.ProcessMessage(this, { "type": "FormationLeave" });
+	else {
+		//this.SetNextState("FORMATIONMEMBER.IDLE");
+		this.UnitFsm.ProcessMessage(this, { "type": "FormationJoin" });
+	}
+	//	this.SetNextState("FORMATIONMEMBER.IDLE");
 };
 
 UnitAI.prototype.GetFormationController = function()
@@ -5851,6 +5859,7 @@ UnitAI.prototype.GetQueryRange = function(iid)
 		var range = cmpVision.GetRange();
 		ret.max = range;
 	}
+
 	return ret;
 };
 

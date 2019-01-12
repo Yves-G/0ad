@@ -262,7 +262,7 @@ FSM.prototype.SetNextStateAlwaysEntering = function(obj, state)
 
 FSM.prototype.ProcessMessage = function(obj, msg)
 {
-//	warn("ProcessMessage(obj, "+uneval(msg)+")");
+	//warn("ProcessMessage(" + uneval(obj) + "," + uneval(msg)+")");
 
 	var func = this.states[obj.fsmStateName][msg.type];
 	if (!func)

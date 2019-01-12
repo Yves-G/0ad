@@ -49,7 +49,7 @@ Battalion.prototype.SpawnUnits = function(playerId)
 		cmpNewOwnership.SetOwner(playerId)
 
 		let cmpUnitAI = Engine.QueryInterface(ent, IID_UnitAI);
-		cmpUnitAI.SetStance("defensive");
+		//cmpUnitAI.SetStance("defensive");
 
 		this.entities.push(ent);
 	}
