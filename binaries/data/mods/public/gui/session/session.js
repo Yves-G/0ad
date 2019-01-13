@@ -932,8 +932,7 @@ function updateGUIObjects()
 	if (g_ShowAllStatusBars)
 		recalculateStatusBarDisplay();
 
-	if (g_ShowGuarding || g_ShowGuarded)
-		updateAdditionalHighlight();
+	updateAdditionalHighlight();
 
 	updatePanelEntities();
 	displayPanelEntities();
@@ -1422,30 +1421,52 @@ function updateAdditionalHighlight()
 	for (let ent in g_Selection.highlighted)
 		highlighted.push(g_Selection.highlighted[ent]);
 
-	if (g_ShowGuarding)
-		// flag the guarding entities to add in this additional highlight
+	if(g_ShowGuarded || g_ShowGuarding)
+		// flag the guarding and/or guarded entities to add in this additional highlight
 		for (let sel in g_Selection.selected)
 		{
 			let state = GetEntityState(g_Selection.selected[sel]);
-			if (!state.guard || !state.guard.entities.length)
-				continue;
 
-			for (let ent of state.guard.entities)
+			if (g_ShowGuarded){
+				if (!state.unitAI || !state.unitAI.isGuarding)
+					continue;
+				let ent = state.unitAI.isGuarding;
 				if (highlighted.indexOf(ent) == -1 && entsAdd.indexOf(ent) == -1)
 					entsAdd.push(ent);
+			}
+			if (g_ShowGuarding){
+				if (!state.guard || !state.guard.entities.length)
+					continue;
+				for (let ent of state.guard.entities)
+					if (highlighted.indexOf(ent) == -1 && entsAdd.indexOf(ent) == -1)
+						entsAdd.push(ent);
+			}
 		}
 
-	if (g_ShowGuarded)
-		// flag the guarded entities to add in this additional highlight
-		for (let sel in g_Selection.selected)
-		{
-			let state = GetEntityState(g_Selection.selected[sel]);
-			if (!state.unitAI || !state.unitAI.isGuarding)
-				continue;
-			let ent = state.unitAI.isGuarding;
-			if (highlighted.indexOf(ent) == -1 && entsAdd.indexOf(ent) == -1)
+	// flag all formation members to add in this additional highlight
+	let used = [];
+	for (let highl of highlighted)
+	{
+		let state = GetEntityState(highl);
+
+		if (!state.unitAI)
+			continue;
+
+		let formation = state.unitAI.formationController;
+		if (!formation)
+			continue;
+
+		if (used.indexOf(formation) != -1)
+			continue;
+
+		used.push(formation);
+		let fState = GetEntityState(formation);
+
+		let ents = fState.formation.members;
+		for (let ent of ents)
+			if(highlighted.indexOf(ent) == -1 && entsAdd.indexOf(ent) == -1)
 				entsAdd.push(ent);
-		}
+	}
 
 	// flag the entities to remove (from the previously added) from this additional highlight
 	for (let ent of g_AdditionalHighlight)

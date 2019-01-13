@@ -370,6 +370,13 @@ GuiInterface.prototype.GetEntityState = function(player, ent)
 			"canPatrol": cmpUnitAI.CanPatrol(),
 			"selectableStances": cmpUnitAI.GetSelectableStances(),
 			"isIdle": cmpUnitAI.IsIdle(),
+			"formationController": cmpUnitAI.GetFormationController()
+		};
+
+	let cmpFormation = Engine.QueryInterface(ent, IID_Formation);
+	if (cmpFormation)
+		ret.formation = {
+			"members": cmpFormation.GetMembers()
 		};
 
 	let cmpGuard = Engine.QueryInterface(ent, IID_Guard);
