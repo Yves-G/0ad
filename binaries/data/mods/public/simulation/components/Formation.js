@@ -1045,10 +1045,8 @@ Formation.prototype.OnGlobalOwnershipChanged = function(msg)
 	if (msg.from == INVALID_PLAYER)
 		return;
 
-	if (this.members.indexOf(msg.entity) != -1) {
-		warn("remove member");
+	if (this.members.indexOf(msg.entity) != -1)
 		this.RemoveMembers([msg.entity]);
-	}
 };
 
 Formation.prototype.OnGlobalEntityRenamed = function(msg)

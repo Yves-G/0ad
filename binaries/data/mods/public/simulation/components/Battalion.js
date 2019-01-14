@@ -59,8 +59,7 @@ Battalion.prototype.CreateFormation = function()
 {
 	let cmpFormation = Engine.QueryInterface(this.entity, IID_Formation);
 	cmpFormation.LoadFormation(this.spawnFormationTemplate);
-	cmpFormation.SetMembers(this.entities);
-	//cmpFormation.AddMembers([this.entity]);
+	cmpFormation.SetMembers(this.entities.slice());
 
 	for (let entity of this.entities)
 	{

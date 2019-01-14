@@ -132,6 +132,12 @@ EntityGroups.prototype.add = function(ents)
 
 EntityGroups.prototype.removeEnt = function(ent)
 {
+	// This can happen when the removeEnt gets called with a formation
+	// member entity id. To remove the formation, removeEnt must be called
+	// with the formation controller entity id.
+	if (this.ents[ent] === undefined)
+		return;
+
 	var key = this.ents[ent].key;
 
 	// Remove the entity
@@ -340,7 +346,7 @@ EntitySelection.prototype.addList = function(ents, quiet, force = false)
 {
 	// If a formation member is selected, expand the selection to all members of that formation
 	let expandedEnts = EntityGroups.prototype.FormationSelect(ents);
-	let memberAndSingle = expandedEnts.single.concat(expandedEnts.member);
+	let memberSingleAndFormation = expandedEnts.single.concat(expandedEnts.member, expandedEnts.formation);
 	let selection = this.toList();
 
 	// If someone else's player is the sole selected unit, don't allow adding to the selection
@@ -351,7 +357,7 @@ EntitySelection.prototype.addList = function(ents, quiet, force = false)
 	let i = 1;
 	let added = [];
 
-	for (let ent of memberAndSingle)
+	for (let ent of memberSingleAndFormation)
 	{
 		if (selection.length + i > g_MaxSelectionSize)
 			break;
