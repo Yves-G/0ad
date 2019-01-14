@@ -1449,7 +1449,7 @@ function updateAdditionalHighlight()
 	{
 		let state = GetEntityState(highl);
 
-		if (!state.unitAI)
+		if (!state || !state.unitAI)
 			continue;
 
 		let formation = state.unitAI.formationController;
