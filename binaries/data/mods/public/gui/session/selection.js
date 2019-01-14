@@ -49,39 +49,90 @@ EntityGroups.prototype.reset = function()
 	this.ents = {};
 };
 
-EntityGroups.prototype.add = function(ents)
+EntityGroups.prototype.genKeyName = function(entState)
 {
+	var key = GetTemplateData(entState.template).selectionGroupName || entState.template;
+
+	// Group the ents by player and template
+	if (entState.player !== undefined)
+		key = "p" + entState.player + "&" + key;
+	return key;
+};
+
+// From a list of entities, distinguish between:
+//  - Single entities (not part of a fromation)
+//  - Formation members
+//  - Formation controllers
+// If any member or the controller of a formation is included in the input, all associated members
+// and the controller are included in the returned entities.
+EntityGroups.prototype.FormationSelect = function(ents)
+{
+	let ret = {};
+	ret.member = [];
+	ret.single = [];
+	ret.formation = [];
+
 	for (let ent of ents)
 	{
-		if (this.ents[ent])
-			continue;
-		var entState = GetEntityState(ent);
-
-		// When this function is called during group rebuild, deleted
-		// entities will not yet have been removed, so entities might
-		// still be present in the group despite not existing.
+		let entState = GetEntityState(+ent);
 		if (!entState)
 			continue;
 
-		var templateName = entState.template;
-		var key = GetTemplateData(templateName).selectionGroupName || templateName;
+		if (!entState.unitAI || !entState.unitAI.formationController && !entState.unitAI.isFormationController)
+		{
+			ret.single.push(ent);
+			continue;
+		}
 
-		// Group the ents by player and template
-		if (entState.player !== undefined)
-			key = "p" + entState.player + "&" + key;
+		let formationEnt = entState.unitAI.isFormationController ? ent : entState.unitAI.formationController;
 
-		if (this.groups[key])
-			this.groups[key] += 1;
-		else
-			this.groups[key] = 1;
+		if (ret.formation.indexOf(formationEnt) != -1)
+			continue;
 
-		this.ents[ent] = key;
+		ret.formation.push(formationEnt);
+		entState = GetEntityState(formationEnt);
+		ret.member.push(...entState.formation.members);
 	}
+
+	return ret;
+};
+
+EntityGroups.prototype.add = function(ents)
+{
+	let expandedEnts = this.FormationSelect(ents);
+
+	let processEnt = function(thisObj, ent, isFormation)
+		{
+			if (thisObj.ents[ent])
+				return;
+
+			// When this function is called during group rebuild, deleted
+			// entities will not yet have been removed, so entities might
+			// still be present in the group despite not existing.
+			let entState = GetEntityState(ent);
+			if (!entState)
+				return;
+
+			let key = thisObj.genKeyName(entState);
+			thisObj.ents[ent] = { "key": key, "isFormation": isFormation };
+
+			if (thisObj.groups[key])
+				thisObj.groups[key] += 1;
+			else
+				thisObj.groups[key] = 1;
+
+		}
+
+	for (let ent of expandedEnts.single)
+		processEnt(this, ent, false);
+
+	for (let ent of expandedEnts.formation)
+		processEnt(this, ent, true);
 };
 
 EntityGroups.prototype.removeEnt = function(ent)
 {
-	var key = this.ents[ent];
+	var key = this.ents[ent].key;
 
 	// Remove the entity
 	delete this.ents[ent];
@@ -127,9 +178,13 @@ EntityGroups.prototype.getKeys = function()
 EntityGroups.prototype.getEntsByKey = function(key)
 {
 	var ents = [];
-	for (var ent in this.ents)
-		if (this.ents[ent] == key)
-			ents.push(+ent);
+	for (let ent in this.ents)
+		if (this.ents[ent].key == key)
+		{
+			let ret = this.FormationSelect([ent])
+			ents.push(...ret.single);
+			ents.push(...ret.member);
+		}
 
 	return ents;
 };
@@ -151,9 +206,13 @@ EntityGroups.prototype.getEntsGrouped = function()
 EntityGroups.prototype.getEntsByKeyInverse = function(key)
 {
 	var ents = [];
-	for (var ent in this.ents)
-		if (this.ents[ent] != key)
-			ents.push(+ent);
+	for (let ent in this.ents)
+		if (this.ents[ent].key != key)
+		{
+			let ret = this.FormationSelect([ent])
+			ents.push(...ret.single);
+			ents.push(...ret.member);
+		}
 
 	return ents;
 };
@@ -279,6 +338,9 @@ EntitySelection.prototype.checkRenamedEntities = function()
  */
 EntitySelection.prototype.addList = function(ents, quiet, force = false)
 {
+	// If a formation member is selected, expand the selection to all members of that formation
+	let expandedEnts = EntityGroups.prototype.FormationSelect(ents);
+	let memberAndSingle = expandedEnts.single.concat(expandedEnts.member);
 	let selection = this.toList();
 
 	// If someone else's player is the sole selected unit, don't allow adding to the selection
@@ -289,7 +351,7 @@ EntitySelection.prototype.addList = function(ents, quiet, force = false)
 	let i = 1;
 	let added = [];
 
-	for (let ent of ents)
+	for (let ent of memberAndSingle)
 	{
 		if (selection.length + i > g_MaxSelectionSize)
 			break;

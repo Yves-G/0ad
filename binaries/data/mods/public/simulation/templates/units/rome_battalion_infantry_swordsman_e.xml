@@ -3,6 +3,7 @@
   <Identity>
     <Rank>Elite</Rank>
     <Icon>units/rome_infantry_swordsman.png</Icon>
+    <SelectionGroupName>units/rome_battalion_infantry_swordsman_e</SelectionGroupName>
   </Identity>
   <Promotion disable=""/>
   <Battalion>

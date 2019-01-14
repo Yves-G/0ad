@@ -370,6 +370,7 @@ GuiInterface.prototype.GetEntityState = function(player, ent)
 			"canPatrol": cmpUnitAI.CanPatrol(),
 			"selectableStances": cmpUnitAI.GetSelectableStances(),
 			"isIdle": cmpUnitAI.IsIdle(),
+			"isFormationController": cmpUnitAI.IsFormationController(),
 			"formationController": cmpUnitAI.GetFormationController()
 		};
 
