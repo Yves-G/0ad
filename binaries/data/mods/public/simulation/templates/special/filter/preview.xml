@@ -6,6 +6,8 @@
   <!-- Attack is needed for the Actor Viewer and attack range overlay -->
   <Attack merge=""/>
   <BuildRestrictions merge=""/>
+  <Battalion merge=""/>
+  <Formation merge=""/>
   <Decay merge=""/>
   <Footprint merge=""/>
   <Identity merge=""/>

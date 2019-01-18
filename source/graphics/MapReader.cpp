@@ -935,9 +935,6 @@ int CXMLReader::ReadEntities(XMBElement parent, double end_time)
 	ENSURE(m_MapReader.pSimulation2);
 	CSimulation2& sim = *m_MapReader.pSimulation2;
 	CmpPtr<ICmpPlayerManager> cmpPlayerManager(sim, SYSTEM_ENTITY);
-	// Battalions require other entities (members, formation) before they can be initialized.
-	// Therefore, initialization is delayed until after loading all other entities.
-	std::vector<CmpPtr<ICmpBattalion>> battalions;
 
 	while (entity_idx < entities.size())
 	{
@@ -1052,10 +1049,9 @@ int CXMLReader::ReadEntities(XMBElement parent, double end_time)
 			if (cmpBattalion)
 			{
 				// Add the entity ids, even though the entities might not exist yet.
-				// The entities will only be used later.
-				// TODO: this seems unsafe
+				// The component will do the final initialisation later when these member
+				// entities are loaded and it's safe to access them.
 				cmpBattalion->SetMembers(Members);
-				battalions.push_back(cmpBattalion);
 			}
 
 			CmpPtr<ICmpOwnership> cmpOwnership(sim, ent);
@@ -1090,12 +1086,6 @@ int CXMLReader::ReadEntities(XMBElement parent, double end_time)
 
 		completed_jobs++;
 		LDR_CHECK_TIMEOUT(completed_jobs, total_jobs);
-	}
-
-	// Delayed initialization of battalions
-	for (CmpPtr<ICmpBattalion> cmpBattalion : battalions)
-	{
-		cmpBattalion->CreateFormation();
 	}
 
 	return 0;

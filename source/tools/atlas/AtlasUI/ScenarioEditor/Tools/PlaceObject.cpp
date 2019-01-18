@@ -52,7 +52,7 @@ public:
 			POST_MESSAGE(ObjectPreview, ((std::wstring)m_ObjectID.wc_str(), GetScenarioEditor().GetObjectSettings().GetSettings(), m_ObjPos, useTarget, m_Target, g_DefaultAngle, m_ActorSeed, true));
 		else
 		{
-			POST_COMMAND(CreateObject, ((std::wstring)m_ObjectID.wc_str(), GetScenarioEditor().GetObjectSettings().GetSettings(), m_ObjPos, useTarget, m_Target, g_DefaultAngle, m_ActorSeed));
+			POST_MESSAGE(ObjectPreviewToEntity, ());
 			RandomizeActorSeed();
 		}
 	}

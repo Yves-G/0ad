@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Entity parent="template_battalion">
+  <Identity>
+    <Icon>units/rome_infantry_javelinist.png</Icon>
+    <SelectionGroupName>units/rome_battalion_infantry_javelinist_b</SelectionGroupName>
+  </Identity>
+  <Promotion disable=""/>
+  <Battalion>
+	<SpawnFormationTemplate>box</SpawnFormationTemplate>
+	<NumberOfUnits>12</NumberOfUnits>
+	<TemplateName>units/rome_batmember_infantry_javelinist_b</TemplateName>
+  </Battalion>
+  <Cost>
+    <Population>12</Population>
+    <PopulationBonus>0</PopulationBonus>
+    <BuildTime>1</BuildTime>
+    <Resources>
+      <food>0</food>
+      <wood>0</wood>
+      <stone>0</stone>
+      <metal>0</metal>
+    </Resources>
+  </Cost>
+</Entity>

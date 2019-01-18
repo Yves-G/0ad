@@ -705,7 +705,13 @@ Formation.prototype.GetAvgFootprint = function(active)
 	return r;
 };
 
-Formation.prototype.ComputeFormationOffsets = function(active, positions)
+/*
+* TODO: Workaround:  We must not access the UnitAI component when calculating formation
+* offsets for preview entities because preview entities don't have a UnitAI component.
+* For preview entities, we pass the angle to the function directly as a workaround to
+* avoid querying UnitAI.
+*/
+Formation.prototype.ComputeFormationOffsets = function(active, positions, angle)
 {
 	var separation = this.GetAvgFootprint(active);
 	let separationMultiplier = this.GetSeparationMultiplier();
@@ -871,7 +877,7 @@ Formation.prototype.ComputeFormationOffsets = function(active, positions)
 	// use realistic place assignment,
 	// every soldier searches the closest available place in the formation
 	var newOffsets = [];
-	var realPositions = this.GetRealOffsetPositions(offsets, formationPos);
+	var realPositions = this.GetRealOffsetPositions(offsets, formationPos, angle);
 	for (var i = sortingClasses.length; i; --i)
 	{
 		var t = types[sortingClasses[i-1]];
@@ -917,11 +923,21 @@ Formation.prototype.TakeClosestOffset = function(entPos, realPositions, offsets)
 
 /**
  * Get the world positions for a list of offsets in this formation
+ *
+ * TODO: Workaround:  We must not access the UnitAI component when calculating formation
+ * offsets for preview entities because preview entities don't have a UnitAI component.
+ * For preview entities, we pass the angle to the function directly as a workaround to
+ * avoid querying UnitAI.
  */
-Formation.prototype.GetRealOffsetPositions = function(offsets, pos)
+Formation.prototype.GetRealOffsetPositions = function(offsets, pos, angle)
 {
 	var offsetPositions = [];
-	var {sin, cos} = this.GetEstimatedOrientation(pos);
+
+	if (angle !== undefined)
+		var {sin, cos} = { "sin": Math.sin(angle), "cos": Math.cos(angle)};
+	else
+		var {sin, cos} = this.GetEstimatedOrientation(pos);
+
 	// calculate the world positions
 	for (var o of offsets)
 		offsetPositions.push(new Vector2D(pos.x + o.y * sin + o.x * cos, pos.y + o.y * cos - o.x * sin));

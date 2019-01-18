@@ -379,16 +379,6 @@ MESSAGE(ObjectPreview,
 		((bool, cleanObjectPreviews))
 		);
 
-COMMAND(CreateObject, NOMERGE,
-		((std::wstring, id))
-		((sObjectSettings, settings))
-		((Position, pos))
-		((bool, usetarget)) // true => use 'target' for orientation; false => use 'angle'
-		((Position, target))
-		((float, angle))
-		((unsigned int, actorseed))
-		);
-
 // Set an actor to be previewed on its own (i.e. without the game world).
 // (Use RenderEnable to make it visible.)
 MESSAGE(SetActorViewer,

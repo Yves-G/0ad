@@ -22,6 +22,12 @@
   <Vision>
     <Range>80</Range>
   </Vision>
+  <Visibility>
+    <RetainInFog>false</RetainInFog>
+    <AlwaysVisible>false</AlwaysVisible>
+    <Corpse>false</Corpse>
+    <Preview>false</Preview>
+  </Visibility>
 <!--  <VisualActor>
     <Actor>props/special/common/waypoint_flag.xml</Actor>
     <SilhouetteDisplay>true</SilhouetteDisplay>

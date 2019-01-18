@@ -27,6 +27,8 @@ Battalion.prototype.Init = function()
  */
 Battalion.prototype.SpawnUnits = function(playerId)
 {
+	let cmpPosition = Engine.QueryInterface(this.entity, IID_Position);
+
 	//var template = Engine.QueryInterface(SYSTEM_ENTITY, IID_TemplateManager).GetTemplate(this.templateName);
 	var cmpFootprint = Engine.QueryInterface(this.entity, IID_Footprint);
 
@@ -36,15 +38,17 @@ Battalion.prototype.SpawnUnits = function(playerId)
 		let cmpNewOwnership = Engine.QueryInterface(ent, IID_Ownership);
 
 		let pos = cmpFootprint.PickSpawnPoint(ent);
+
 		if (pos.y < 0)
 			break;
 
 		let cmpNewPosition = Engine.QueryInterface(ent, IID_Position);
-		cmpNewPosition.JumpTo(pos.x, pos.z);
 
-		let cmpPosition = Engine.QueryInterface(this.entity, IID_Position);
-		if (cmpPosition)
+		if (cmpPosition && cmpNewPosition)
+		{
+			cmpNewPosition.JumpTo(pos.x, pos.z);
 			cmpNewPosition.SetYRotation(cmpPosition.GetPosition().horizAngleTo(pos));
+		}
 
 		cmpNewOwnership.SetOwner(playerId)
 
@@ -57,9 +61,14 @@ Battalion.prototype.SpawnUnits = function(playerId)
 
 Battalion.prototype.CreateFormation = function()
 {
+	warn("create formation. members: " + uneval(this.entities));
+
 	let cmpFormation = Engine.QueryInterface(this.entity, IID_Formation);
 	cmpFormation.LoadFormation(this.spawnFormationTemplate);
 	cmpFormation.SetMembers(this.entities.slice());
+
+	if (this.entities.length == 0)
+		this.SpawnUnits();
 
 	for (let entity of this.entities)
 	{
@@ -87,6 +96,14 @@ Battalion.prototype.RemoveMember = function(ent)
 {
 	let index = this.entities.indexOf(ent);
 	if (index !== -1) this.entities.splice(index, 1);
+}
+
+Battalion.prototype.OnInitGame = function()
+{
+	// Run initialisation code here that depends on other entities, specifically
+	// the members. Here we can be sure that all entities listed in the map file are
+	// fully loaded.
+	this.CreateFormation();
 }
 
 Engine.RegisterComponentType(IID_Battalion, "Battalion", Battalion);

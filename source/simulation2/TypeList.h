@@ -101,6 +101,9 @@ COMPONENT(FoggingScripted)
 INTERFACE(Footprint)
 COMPONENT(Footprint)
 
+INTERFACE(Formation)
+COMPONENT(FormationScripted)
+
 INTERFACE(GuiInterface)
 COMPONENT(GuiInterfaceScripted)
 

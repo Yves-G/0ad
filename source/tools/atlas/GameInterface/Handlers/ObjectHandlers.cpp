@@ -42,6 +42,8 @@
 #include "renderer/WaterManager.h"
 #include "simulation2/Simulation2.h"
 #include "simulation2/components/ICmpBattalion.h"
+#include "simulation2/components/ICmpFootprint.h"
+#include "simulation2/components/ICmpFormation.h"
 #include "simulation2/components/ICmpObstruction.h"
 #include "simulation2/components/ICmpOwnership.h"
 #include "simulation2/components/ICmpPosition.h"
@@ -431,6 +433,8 @@ MESSAGEHANDLER(ObjectPreviewToEntity)
 	ENSURE(cmpTemplateManager);
 
 	PlayerColorMap playerColor;
+	std::map<entity_id_t, std::vector<entity_id_t> > oldBatToMemberMap;
+	std::map<entity_id_t, entity_id_t> oldToNewIdMap;
 
 	//I need to re create the objects finally delete preview objects
 	for (entity_id_t ent : g_PreviewEntitiesID)
@@ -463,11 +467,20 @@ MESSAGEHANDLER(ObjectPreviewToEntity)
 		if (cmpOwnershipNew && cmpOwnershipOld)
 			cmpOwnershipNew->SetOwner(cmpOwnershipOld->GetOwner());
 
-		//getVisual
+		//get visual
 		CmpPtr<ICmpVisual> cmpVisualNew(*g_Game->GetSimulation2(), new_ent);
 		CmpPtr<ICmpVisual> cmpVisualOld(*g_Game->GetSimulation2(), ent);
 		if (cmpVisualNew && cmpVisualOld)
 			cmpVisualNew->SetActorSeed(cmpVisualOld->GetActorSeed());
+
+		// Store battalion to member association of the preview entities to restore
+		// it later with the new ids
+		CmpPtr<ICmpBattalion> cmpBattalionOld(*g_Game->GetSimulation2(), ent);
+		if (cmpBattalionOld)
+				oldBatToMemberMap[ent] = cmpBattalionOld->GetMembers();
+
+		// Also need to know which preview entity id (old) became which new entity id
+		oldToNewIdMap[ent] = new_ent;
 
 		//Update g_selectedObject and higligth
 		g_Selection.push_back(new_ent);
@@ -477,7 +490,24 @@ MESSAGEHANDLER(ObjectPreviewToEntity)
 
 		g_Game->GetSimulation2()->DestroyEntity(ent);
 	}
+
+	for (auto bat : oldBatToMemberMap)
+	{
+		entity_id_t newBat = oldToNewIdMap[bat.first];
+		std::vector<entity_id_t> newMembers;
+		for (entity_id_t oldMember : bat.second)
+		{
+			newMembers.push_back(oldToNewIdMap[oldMember]);
+		}
+
+		CmpPtr<ICmpBattalion> cmpBattalion(*g_Game->GetSimulation2(), newBat);
+		ENSURE(cmpBattalion);
+		cmpBattalion->SetMembers(newMembers);
+		cmpBattalion->CreateFormation();
+	}
+
 	g_PreviewEntitiesID.clear();
+	g_PreviewUnitName = L"";
 
 }
 
@@ -537,28 +567,61 @@ MESSAGEHANDLER(ObjectPreview)
 
 		// Create the new entity
 		if ((*msg->id).empty())
+		{
 			g_PreviewEntityID = INVALID_ENTITY;
+			g_PreviewUnitName = *msg->id;
+		}
 		else
 		{
 			g_PreviewEntityID = g_Game->GetSimulation2()->AddLocalEntity(L"preview|" + *msg->id);
 			g_PreviewEntitiesID.push_back(g_PreviewEntityID);
+			g_PreviewUnitName = *msg->id;
+
+			// Spawn battalion members
+			CmpPtr<ICmpTemplateManager> cmpTemplateManager(*g_Game->GetSimulation2(), SYSTEM_ENTITY);
+			ENSURE(cmpTemplateManager);
+
+			const CParamNode* templateRoot = cmpTemplateManager->GetTemplate("preview|" + CStrW(*msg->id).ToUTF8());
+			std::map<std::string, CParamNode> children = templateRoot->GetChildren();
+
+			CmpPtr<ICmpBattalion> cmpBattalion(*g_Game->GetSimulation2(), g_PreviewEntityID);
+			const CParamNode& nodeBattalion = templateRoot->GetChild("Battalion");
+
+			if (nodeBattalion.IsOk())
+			{
+				std::vector<entity_id_t> newMembers;
+				const CParamNode& nodeNumberOfUnits = nodeBattalion.GetChild("NumberOfUnits");
+				ENSURE(nodeNumberOfUnits.IsOk());
+				int nbrUnits = nodeNumberOfUnits.ToInt();
+
+				const CParamNode& nodeTemplateName = nodeBattalion.GetChild("TemplateName");
+				ENSURE(nodeTemplateName.IsOk());
+				CStrW memberTemplateName = nodeTemplateName.ToString();
+
+				for (int i = 0; i < nbrUnits; ++i)
+				{
+					entity_id_t ent = g_Game->GetSimulation2()->AddLocalEntity(L"preview|" + memberTemplateName);
+					g_PreviewEntitiesID.push_back(ent);
+					newMembers.push_back(ent);
+				}
+
+				cmpBattalion->SetMembers(newMembers);
+			}
 		}
-
-
-		g_PreviewUnitName = *msg->id;
 	}
 
 	if (g_PreviewEntityID != INVALID_ENTITY)
 	{
 		// Update the unit's position and orientation:
+		CVector3D pos;
+		float angle;
 
 		CmpPtr<ICmpPosition> cmpPosition(*g_Game->GetSimulation2(), g_PreviewEntityID);
 		if (cmpPosition)
 		{
-			CVector3D pos = GetUnitPos(msg->pos, cmpPosition->CanFloat());
+			pos = GetUnitPos(msg->pos, cmpPosition->CanFloat());
 			cmpPosition->JumpTo(entity_pos_t::FromFloat(pos.X), entity_pos_t::FromFloat(pos.Z));
 
-			float angle;
 			if (msg->usetarget)
 			{
 				// Aim from pos towards msg->target
@@ -584,77 +647,45 @@ MESSAGEHANDLER(ObjectPreview)
 			cmpOwnership->SetOwner((player_id_t)msg->settings->player);
 
 		CheckObstructionAndUpdateVisual(g_PreviewEntityID);
-	}
-}
 
-BEGIN_COMMAND(CreateObject)
-{
-	CVector3D m_Pos;
-	float m_Angle;
-	player_id_t m_Player;
-	entity_id_t m_EntityID;
-	u32 m_ActorSeed;
-
-	void Do()
-	{
-		// Calculate the position/orientation to create this unit with
-
-		m_Pos = GetUnitPos(msg->pos, true); // don't really care about floating
-
-		if (msg->usetarget)
-		{
-			// Aim from m_Pos towards msg->target
-			CVector3D target = msg->target->GetWorldSpace(m_Pos.Y);
-			m_Angle = atan2(target.X-m_Pos.X, target.Z-m_Pos.Z);
-		}
-		else
-		{
-			m_Angle = msg->angle;
-		}
-
-		m_Player = (player_id_t)msg->settings->player;
-		m_ActorSeed = msg->actorseed;
-		// TODO: variation/selection strings
-
-		Redo();
-	}
-
-	void Redo()
-	{
-		m_EntityID = g_Game->GetSimulation2()->AddEntity(*msg->id);
-		if (m_EntityID == INVALID_ENTITY)
+		// Move battalion members if it's a battalion entity
+		CmpPtr<ICmpBattalion> cmpBattalion(*g_Game->GetSimulation2(), g_PreviewEntityID);
+		CmpPtr<ICmpFormation> cmpFormation(*g_Game->GetSimulation2(), g_PreviewEntityID);
+		if (!cmpBattalion || !cmpFormation)
 			return;
 
-		CmpPtr<ICmpPosition> cmpPosition(*g_Game->GetSimulation2(), m_EntityID);
-		if (cmpPosition)
-		{
-			cmpPosition->JumpTo(entity_pos_t::FromFloat(m_Pos.X), entity_pos_t::FromFloat(m_Pos.Z));
-			cmpPosition->SetYRotation(entity_angle_t::FromFloat(m_Angle));
-		}
+		CmpPtr<ICmpFootprint> cmpFootprint(*g_Game->GetSimulation2(), g_PreviewEntityID);
+		ENSURE(cmpFootprint);
 
-		CmpPtr<ICmpOwnership> cmpOwnership(*g_Game->GetSimulation2(), m_EntityID);
-		if (cmpOwnership)
-			cmpOwnership->SetOwner(m_Player);
+		std::vector<entity_id_t> members = cmpBattalion->GetMembers();
+		// Take the position of the formation controller and use it for all positions.
+		// We don't really care which member gets which position in the formation.
+		CFixedVector2D centerPos(entity_pos_t::FromFloat(pos.X), entity_pos_t::FromFloat(pos.Z));
+		std::vector<CFixedVector2D> positions(members.size(), centerPos);
 
-		CmpPtr<ICmpVisual> cmpVisual(*g_Game->GetSimulation2(), m_EntityID);
-		if (cmpVisual)
+		std::vector<CFixedVector2D> offsets = cmpFormation->ComputeFormationOffsets(members, positions, fixed::FromFloat(angle));
+		offsets = cmpFormation->GetRealOffsetPositions(offsets, centerPos, fixed::FromFloat(angle));
+		int count = 0;
+
+		for (entity_id_t member : members)
 		{
-			cmpVisual->SetActorSeed(m_ActorSeed);
-			// TODO: variation/selection strings
+			//CFixedVector3D spawnPos = cmpFootprint->PickSpawnPoint(member);
+
+			CmpPtr<ICmpPosition> cmpMemberPosition(*g_Game->GetSimulation2(), member);
+			if (cmpMemberPosition)
+			{
+				cmpMemberPosition->JumpTo(offsets[count].X, offsets[count].Y);
+				cmpMemberPosition->SetYRotation(entity_angle_t::FromFloat(angle));
+			}
+
+			CmpPtr<ICmpOwnership> cmpMemberOwnership(*g_Game->GetSimulation2(), member);
+			if (cmpOwnership && cmpMemberOwnership)
+				cmpMemberOwnership->SetOwner(cmpOwnership->GetOwner());
+
+			++count;
 		}
 	}
-
-	void Undo()
-	{
-		if (m_EntityID != INVALID_ENTITY)
-		{
-			g_Game->GetSimulation2()->DestroyEntity(m_EntityID);
-			m_EntityID = INVALID_ENTITY;
-		}
-	}
-};
-END_COMMAND(CreateObject)
-
+}
 
 QUERYHANDLER(PickObject)
 {

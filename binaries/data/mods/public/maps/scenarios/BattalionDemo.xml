@@ -33,7 +33,7 @@
 		</Postproc>
 	</Environment>
 	<Camera>
-		<Position x="532.107" y="246.916" z="302.865"/>
+		<Position x="500.35" y="219.537" z="450.573"/>
 		<Rotation angle="0"/>
 		<Declination angle="0.610865"/>
 	</Camera>
@@ -107,7 +107,6 @@
 			</Battalion>
 			<Position x="457.89155" z="456.2319"/>
 			<Orientation y="2.35621"/>
-			<Actor seed="58231"/>
 		</Entity>
 		<Entity uid="12">
 			<Template>units/rome_battalion_infantry_swordsman_b</Template>
@@ -212,7 +211,6 @@
 			</Battalion>
 			<Position x="531.52591" z="375.04763"/>
 			<Orientation y="2.35621"/>
-			<Actor seed="26472"/>
 		</Entity>
 		<Entity uid="26">
 			<Template>units/rome_battalion_infantry_swordsman_b</Template>
@@ -297,6 +295,238 @@
 			<Position x="530.04032" z="371.07547"/>
 			<Orientation y="3.05427"/>
 			<Obstruction group="25"/>
+		</Entity>
+		<Entity uid="38">
+			<Template>units/rome_battalion_infantry_javelinist_b</Template>
+			<Player>1</Player>
+			<Battalion>
+				<Member eid="39"/>
+				<Member eid="40"/>
+				<Member eid="41"/>
+				<Member eid="42"/>
+				<Member eid="43"/>
+				<Member eid="44"/>
+				<Member eid="45"/>
+				<Member eid="46"/>
+				<Member eid="47"/>
+				<Member eid="48"/>
+				<Member eid="49"/>
+				<Member eid="50"/>
+			</Battalion>
+			<Position x="492.68693" z="485.80555"/>
+			<Orientation y="2.35621"/>
+		</Entity>
+		<Entity uid="39">
+			<Template>units/rome_batmember_infantry_javelinist_b</Template>
+			<Player>1</Player>
+			<Position x="493.74756" z="484.74488"/>
+			<Orientation y="2.35621"/>
+			<Obstruction group="38"/>
+			<Actor seed="536870913"/>
+		</Entity>
+		<Entity uid="40">
+			<Template>units/rome_batmember_infantry_javelinist_b</Template>
+			<Player>1</Player>
+			<Position x="491.62629" z="486.86622"/>
+			<Orientation y="2.35621"/>
+			<Obstruction group="38"/>
+			<Actor seed="536870914"/>
+		</Entity>
+		<Entity uid="41">
+			<Template>units/rome_batmember_infantry_javelinist_b</Template>
+			<Player>1</Player>
+			<Position x="491.62623" z="482.62357"/>
+			<Orientation y="2.35621"/>
+			<Obstruction group="38"/>
+			<Actor seed="536870915"/>
+		</Entity>
+		<Entity uid="42">
+			<Template>units/rome_batmember_infantry_javelinist_b</Template>
+			<Player>1</Player>
+			<Position x="495.8689" z="486.86619"/>
+			<Orientation y="2.35621"/>
+			<Obstruction group="38"/>
+			<Actor seed="536870916"/>
+		</Entity>
+		<Entity uid="43">
+			<Template>units/rome_batmember_infantry_javelinist_b</Template>
+			<Player>1</Player>
+			<Position x="489.50495" z="484.74491"/>
+			<Orientation y="2.35621"/>
+			<Obstruction group="38"/>
+			<Actor seed="536870917"/>
+		</Entity>
+		<Entity uid="44">
+			<Template>units/rome_batmember_infantry_javelinist_b</Template>
+			<Player>1</Player>
+			<Position x="493.74762" z="488.98752"/>
+			<Orientation y="2.35621"/>
+			<Obstruction group="38"/>
+			<Actor seed="536870918"/>
+		</Entity>
+		<Entity uid="45">
+			<Template>units/rome_batmember_infantry_javelinist_b</Template>
+			<Player>1</Player>
+			<Position x="495.8689" z="482.62354"/>
+			<Orientation y="2.35621"/>
+			<Obstruction group="38"/>
+			<Actor seed="536870919"/>
+		</Entity>
+		<Entity uid="46">
+			<Template>units/rome_batmember_infantry_javelinist_b</Template>
+			<Player>1</Player>
+			<Position x="489.50495" z="488.98755"/>
+			<Orientation y="2.35621"/>
+			<Obstruction group="38"/>
+			<Actor seed="536870920"/>
+		</Entity>
+		<Entity uid="47">
+			<Template>units/rome_batmember_infantry_javelinist_b</Template>
+			<Player>1</Player>
+			<Position x="497.99024" z="484.74485"/>
+			<Orientation y="2.35621"/>
+			<Obstruction group="38"/>
+			<Actor seed="536870921"/>
+		</Entity>
+		<Entity uid="48">
+			<Template>units/rome_batmember_infantry_javelinist_b</Template>
+			<Player>1</Player>
+			<Position x="487.38361" z="486.86625"/>
+			<Orientation y="2.35621"/>
+			<Obstruction group="38"/>
+			<Actor seed="536870922"/>
+		</Entity>
+		<Entity uid="49">
+			<Template>units/rome_batmember_infantry_javelinist_b</Template>
+			<Player>1</Player>
+			<Position x="493.74756" z="480.50223"/>
+			<Orientation y="2.35621"/>
+			<Obstruction group="38"/>
+			<Actor seed="536870923"/>
+		</Entity>
+		<Entity uid="50">
+			<Template>units/rome_batmember_infantry_javelinist_b</Template>
+			<Player>1</Player>
+			<Position x="491.62629" z="491.10886"/>
+			<Orientation y="2.35621"/>
+			<Obstruction group="38"/>
+			<Actor seed="536870924"/>
+		</Entity>
+		<Entity uid="51">
+			<Template>units/rome_battalion_infantry_javelinist_b</Template>
+			<Player>2</Player>
+			<Battalion>
+				<Member eid="52"/>
+				<Member eid="53"/>
+				<Member eid="54"/>
+				<Member eid="55"/>
+				<Member eid="56"/>
+				<Member eid="57"/>
+				<Member eid="58"/>
+				<Member eid="59"/>
+				<Member eid="60"/>
+				<Member eid="61"/>
+				<Member eid="62"/>
+				<Member eid="63"/>
+			</Battalion>
+			<Position x="565.43" z="400.25174"/>
+			<Orientation y="-0.74268"/>
+		</Entity>
+		<Entity uid="52">
+			<Template>units/rome_batmember_infantry_javelinist_b</Template>
+			<Player>2</Player>
+			<Position x="564.4156" z="401.35676"/>
+			<Orientation y="-0.74268"/>
+			<Obstruction group="51"/>
+			<Actor seed="536870926"/>
+		</Entity>
+		<Entity uid="53">
+			<Template>units/rome_batmember_infantry_javelinist_b</Template>
+			<Player>2</Player>
+			<Position x="566.4444" z="399.14673"/>
+			<Orientation y="-0.74268"/>
+			<Obstruction group="51"/>
+			<Actor seed="536870927"/>
+		</Entity>
+		<Entity uid="54">
+			<Template>units/rome_batmember_infantry_javelinist_b</Template>
+			<Player>2</Player>
+			<Position x="566.62562" z="403.3855"/>
+			<Orientation y="-0.74268"/>
+			<Obstruction group="51"/>
+			<Actor seed="536870928"/>
+		</Entity>
+		<Entity uid="55">
+			<Template>units/rome_batmember_infantry_javelinist_b</Template>
+			<Player>2</Player>
+			<Position x="564.23438" z="397.11799"/>
+			<Orientation y="-0.74268"/>
+			<Obstruction group="51"/>
+			<Actor seed="536870929"/>
+		</Entity>
+		<Entity uid="56">
+			<Template>units/rome_batmember_infantry_javelinist_b</Template>
+			<Player>2</Player>
+			<Position x="562.20563" z="399.32795"/>
+			<Orientation y="-0.74268"/>
+			<Obstruction group="51"/>
+			<Actor seed="536870930"/>
+		</Entity>
+		<Entity uid="57">
+			<Template>units/rome_batmember_infantry_javelinist_b</Template>
+			<Player>2</Player>
+			<Position x="568.65436" z="401.17554"/>
+			<Orientation y="-0.74268"/>
+			<Obstruction group="51"/>
+			<Actor seed="536870931"/>
+		</Entity>
+		<Entity uid="58">
+			<Template>units/rome_batmember_infantry_javelinist_b</Template>
+			<Player>2</Player>
+			<Position x="562.38685" z="403.56672"/>
+			<Orientation y="-0.74268"/>
+			<Obstruction group="51"/>
+			<Actor seed="536870932"/>
+		</Entity>
+		<Entity uid="59">
+			<Template>units/rome_batmember_infantry_javelinist_b</Template>
+			<Player>2</Player>
+			<Position x="568.47315" z="396.93677"/>
+			<Orientation y="-0.74268"/>
+			<Obstruction group="51"/>
+			<Actor seed="536870933"/>
+		</Entity>
+		<Entity uid="60">
+			<Template>units/rome_batmember_infantry_javelinist_b</Template>
+			<Player>2</Player>
+			<Position x="560.17682" z="401.53794"/>
+			<Orientation y="-0.74268"/>
+			<Obstruction group="51"/>
+			<Actor seed="536870934"/>
+		</Entity>
+		<Entity uid="61">
+			<Template>units/rome_batmember_infantry_javelinist_b</Template>
+			<Player>2</Player>
+			<Position x="570.68317" z="398.96555"/>
+			<Orientation y="-0.74268"/>
+			<Obstruction group="51"/>
+			<Actor seed="536870935"/>
+		</Entity>
+		<Entity uid="62">
+			<Template>units/rome_batmember_infantry_javelinist_b</Template>
+			<Player>2</Player>
+			<Position x="564.59681" z="405.59553"/>
+			<Orientation y="-0.74268"/>
+			<Obstruction group="51"/>
+			<Actor seed="536870936"/>
+		</Entity>
+		<Entity uid="63">
+			<Template>units/rome_batmember_infantry_javelinist_b</Template>
+			<Player>2</Player>
+			<Position x="566.26319" z="394.90796"/>
+			<Orientation y="-0.74268"/>
+			<Obstruction group="51"/>
+			<Actor seed="536870937"/>
 		</Entity>
 	</Entities>
 	<Paths/>
