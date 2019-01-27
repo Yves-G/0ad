@@ -274,7 +274,7 @@ Formation.prototype.GetClosestMember = function(ent, filter)
 	var closestDistance = Infinity;
 	for (var member of this.members)
 	{
-		if (filter && !filter(ent))
+		if (filter && !filter(member))
 			continue;
 
 		var cmpPosition = Engine.QueryInterface(member, IID_Position);
