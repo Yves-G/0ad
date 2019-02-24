@@ -88,8 +88,8 @@ FormationAttack.prototype.GetPreference = function(target)
 	let targetClasses = cmpIdentity.GetClassesList();
 
 	// First, get all unit types in the formation
-	// This is dynamic becaus units can die, and all units of one type could have died
-	let unitTypes = {};
+	// This is dynamic because units can die, and all units of one type could have died
+	let unitTypes = new Set();
 	let attackTypes = {};
 	for (let member of cmpFormation.GetMembers())
 	{
@@ -100,8 +100,10 @@ FormationAttack.prototype.GetPreference = function(target)
 
 		// Only check once per template (unit type)
 		let templateNameMember = cmpTemplateManager.GetCurrentTemplateName(member);
-		if (!!unitTypes[templateNameMember])
+		if (unitTypes.has(templateNameMember))
 			continue;
+
+		unitTypes.add(templateNameMember);
 
 		// When ranged and melee troops are combined in a battalion, we prefer ranged.
 		// When different unit types with the same attack type (ranged, melee) are combined,
