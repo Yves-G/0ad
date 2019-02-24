@@ -12,6 +12,9 @@ FormationAttack.prototype.Init = function()
 
 FormationAttack.prototype.CanAttackAsFormation = function()
 {
+	if (this.GetMemberAttackTypes().has("Ranged"))
+		return true;
+
 	return this.canAttackAsFormation;
 };
 
@@ -66,6 +69,34 @@ FormationAttack.prototype.GetRange = function(target)
 		result.max += extraRange;
 
 	return result;
+};
+
+FormationAttack.prototype.GetMemberAttackTypes = function()
+{
+	let ret = new Set();
+
+	let cmpTemplateManager = Engine.QueryInterface(SYSTEM_ENTITY, IID_TemplateManager);
+
+	let cmpFormation = Engine.QueryInterface(this.entity, IID_Formation);
+	if (!cmpFormation)
+	{
+		error("No Formation component!");
+		return undefined;
+	}
+
+	for (let member of cmpFormation.GetMembers())
+	{
+		let cmpAttackMember = Engine.QueryInterface(member, IID_Attack);
+
+		if (!cmpAttackMember)
+			continue;
+
+		let attackTypesMember = cmpAttackMember.GetAttackTypes();
+		for (let attackTypeMember of attackTypesMember)
+			ret.add(attackTypeMember)
+	}
+
+	return ret;
 };
 
 /**
